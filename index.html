@@ -15,11 +15,6 @@
     .hero-text h1 { font-size: 36px; margin-bottom: 20px; }
     .hero-text p { font-size: 18px; margin-bottom: 20px; }
     .hero-text button { background: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; }
-    .section-title { font-size: 24px; margin-top: 40px; margin-bottom: 20px; }
-    .services { display: flex; gap: 40px; }
-    .service { flex: 1; }
-    .service h3 { margin-bottom: 10px; }
-
     .banner {
       position: fixed;
       top: 40%;
@@ -33,21 +28,26 @@
       z-index: 1000;
       box-shadow: 0 0 20px rgba(0,0,0,0.3);
     }
+    .logo-right {
+      position: absolute;
+      top: 20px;
+      right: 40px;
+      width: 150px;
+    }
   </style>
 </head>
 <body>
   <div class="banner">COMING SOON. IM AUFBAU</div>
-
   <header>
     <div><strong>virtauto®</strong></div>
     <nav>
-      <a href="#">Home</a>
-      <a href="#">About</a>
-      <a href="#">Services</a>
-      <a href="#">Contact</a>
+      <a href="index.html">Home</a>
+      <a href="contact.html">Contact</a>
+      <a href="impressum.html">Impressum / Legal</a>
+      <a href="https://medium.com/@andreas.braun.2011" target="_blank">Blog</a>
     </nav>
   </header>
-
+  <img src="logo_virtauto.png" alt="virtauto logo" class="logo-right"/>
   <div class="container">
     <div class="hero">
       <div class="hero-text">
@@ -56,37 +56,16 @@
         <button>Get Started</button>
       </div>
     </div>
-
-    <section>
-      <h2 class="section-title">About Us</h2>
-      <p>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</p>
-      <p>We are a provider of Cloud and AI solutions for the Automotive sector. Our mission is to empower Automotive businesses through innovative technology and data-driven approaches.</p>
-    </section>
-
-    <section>
-      <h2 class="section-title">Our Services</h2>
-      <div class="services">
-        <div class="service">
-          <h3>Cloud Solutions</h3>
-          <p>Scalable and secure cloud infrastructure tailored for automotive applications.</p>
-        </div>
-        <div class="service">
-          <h3>AI and Machine Learning</h3>
-          <p>Advanced AI models to drive automation, optimization, and intelligence.</p>
-        </div>
-        <div class="service">
-          <h3>Multi-Agent Systems (MAS)</h3>
-          <p>The operating system of the modern Automotive company – intelligent agents for Smart Production, Quality Control, Logistics and more.</p>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2 class="section-title">Contact</h2>
-      <p><strong>Name:</strong> Andreas Braun</p>
-      <p><strong>E-Mail:</strong> <a href="mailto:andreas.braun.2011@gmx.de">andreas.braun.2011@gmx.de</a></p>
-      <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/andreas-braun-42535317b/" target="_blank">linkedin.com/in/andreas-braun-42535317b</a></p>
-    </section>
+    <h2>About Us</h2>
+    <p>The Digital Transformation of the Automotive Industry. When Software builds Hardware.<br>
+    We are a provider of Cloud and AI solutions for the Automotive sector. Our mission is to empower automotive businesses through innovative technology and data-driven approaches.</p>
+    <h2>Our Services</h2>
+    <h3>Cloud Solutions</h3>
+    <p>Scalable and secure cloud infrastructure tailored for automotive applications.</p>
+    <h3>AI and Machine Learning</h3>
+    <p>Advanced AI models to drive automation, optimization, and intelligence.</p>
+    <h3>Multi-Agent Systems (MAS)</h3>
+    <p>The operating system of the modern Automotive company – intelligent agents for Smart Production, Quality Control, Logistics and more.</p>
   </div>
 </body>
 </html>
