@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Production – virtauto</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>Smart Production</h1>
+    <p>From Static to Smart: How virtauto Reinvents Automotive Production</p>
+    <a href="#architecture" class="cta-button">See System Architecture ↓</a>
+</header>
+
+<main>
+    <section id="concept">
+        <h2>What is Smart Production?</h2>
+        <p>Smart Production combines intelligent agents, real-time manufacturing data, and AWS cloud infrastructure to enable adaptive, efficient, and resilient automotive production processes. At the core of this system lies the Manufacturing Execution System (MES), which bridges digital planning with physical execution on the shop floor.</p>
+    </section>
+
+    <section id="architecture">
+        <h2>System Architecture: Agents, MES and AWS</h2>
+        <img src="Smart_Production_MES_MAS_AWS.png" alt="Smart Production Architecture" style="width:100%;max-width:800px;">
+        <p>This architecture shows how virtauto leverages MAS and AWS services such as Lambda, IoT Core, and EKS to coordinate Planner, Controller, and Robot Agents through the central MES.</p>
+    </section>
+
+    <section id="usecases">
+        <h2>Real-World Use Cases</h2>
+        <div class="use-case">
+            <h3>Predictive Maintenance</h3>
+            <p>MES streams telemetry to the Controller Agent. Maintenance windows are planned by the Planner Agent. Robot Agent initiates diagnostics. AWS Lambda triggers ERP workflows and logs events in the MES.</p>
+        </div>
+        <div class="use-case">
+            <h3>Real-Time Line Balancing</h3>
+            <p>Planner Agent identifies bottlenecks from MES data. Controller Agent adjusts workflows dynamically. Robot Agent executes the new task via AWS IoT Core. MES syncs with ERP and QA systems.</p>
+        </div>
+        <div class="use-case">
+            <h3>Quality Control & Escalation</h3>
+            <p>MES sets inspection standards. Robot Agent reports findings. Controller Agent validates data and triggers escalation. MES logs deviations and coordinates further action.</p>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p><a href="index.html">← Back to Home</a> | <a href="blog.html">Visit the Blog</a></p>
+</footer>
+
+</body>
+</html>
