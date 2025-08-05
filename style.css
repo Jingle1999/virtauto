@@ -14,11 +14,11 @@ body {
   gap: 15px;
 }
 .navbar {
-  padding-left: 40px;  /* Abstand vom linken Rand */
+  padding-left: 20px;  /* Abstand vom linken Rand */
 }
 
 .logo {
-  margin-right: 10px;  /* Abstand zwischen Logo und Menüpunkt */
+  margin-right: 20px;  /* Abstand zwischen Logo und Menüpunkt */
 }
 
 .navbar a {
