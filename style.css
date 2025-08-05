@@ -13,6 +13,13 @@ body {
   align-items: center;
   gap: 15px;
 }
+.navbar {
+  padding-left: 40px;  /* Abstand vom linken Rand */
+}
+
+.logo {
+  margin-right: 40px;  /* Abstand zwischen Logo und Menüpunkt */
+}
 
 .navbar a {
   color: white;
