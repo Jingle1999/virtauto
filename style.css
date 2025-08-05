@@ -14,7 +14,7 @@ body {
   gap: 15px;
 }
 .navbar {
-  padding-left: 5px;  /* Abstand vom linken Rand */
+  padding-left: 100px;  /* Abstand vom linken Rand */
 }
 
 .logo {
