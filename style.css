@@ -123,3 +123,38 @@ footer {
     padding: 10px 0;
   }
 }
+/* Navigationsleiste mit Logo links und Menü rechts */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #000000;
+  padding: 10px 20px;
+}
+
+/* virtauto-Logo links */
+.logo a {
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 24px;
+  text-decoration: none;
+}
+
+/* Navigation rechts */
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 20px;
+}
+
+nav ul li a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
