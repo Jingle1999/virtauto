@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>virtauto® – Building Intelligent Systems</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="navbar-wrapper">
+      <div class="navbar">
+        <div class="logo">
+          <a href="index.html">virtauto®</a>
+        </div>
+        <div class="menu-icon" onclick="toggleMenu()">☰</div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="solutions.html">Solutions</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="impressum.html">Impressum</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main>
+    <h1>Building Intelligent Systems for the Next Industrial Revolution</h1>
+    <p>From AI prototype to scalable production: Architecting the future of industrial intelligence.</p>
+
+    <div class="card">
+      <a href="smart-production.html"><h3>Smart Production</h3></a>
+      <p>Real-time optimization and predictive control of assembly lines via autonomous agent collaboration.</p>
+    </div>
+
+    <div class="card">
+      <a href="intelligent-procurement.html"><h3>Intelligent Procurement</h3></a>
+      <p>Use AI-driven decision models to reduce costs, avoid bottlenecks, and manage supplier risks dynamically.</p>
+    </div>
+
+    <div class="card">
+      <a href="automated-quality.html"><h3>Automated Quality</h3></a>
+      <p>Detect deviations, document findings, and trigger audit workflows automatically using computer vision + NLP.</p>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 virtauto. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const links = document.querySelector('.nav-links');
+      links.classList.toggle('active');
+    }
+  </script>
+
+</body>
+</html>
