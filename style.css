@@ -104,20 +104,19 @@ footer {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 48px;
-    align-items: start;  /* statt center -> Bild darf höher werden */
+    align-items: stretch;
   }
 
   .hero-grid .panel {
-    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 480px;   /* kannst du anpassen */
   }
 
   .hero-grid .panel img {
-    width: 100%;
-    height: auto;
+    max-height: 100%;
+    width: auto;
     object-fit: contain;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
   }
 }
