@@ -1,33 +1,88 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>virtauto - Digital Brain</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>virtauto® — The digital brain for the automotive enterprise</title>
+  <meta name="description" content="virtauto® connects all departments into a cohesive, adaptive, self-learning organism. Lead Agent GEORGE orchestrates specialized agents aligned with ISA-95." />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="navbar-wrapper">
-    <nav class="navbar">
-      <a class="logo" href="index.html">virtauto</a>
-      <ul class="nav-links">
+  <!-- NAV -->
+  <div class="navbar-wrapper">
+    <nav class="navbar container">
+      <a class="logo" href="index.html">virtauto<sup>®</sup></a>
+      <button class="menu-icon" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
+      <ul id="primary-nav" class="nav-links">
+        <li><a href="index.html">Home</a></li>
         <li><a href="agents.html">Agents</a></li>
         <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="solutions.html">Solutions</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
       </ul>
     </nav>
-  </header>
+  </div>
 
-  <main class="hero-grid">
-    <div class="panel">
-      <picture>
-        <source srcset="images/hero/smart_production.webp" type="image/webp">
-        <img src="images/hero/smart_production.jpg" alt="Smart Production">
-      </picture>
-    </div>
-    <div class="panel">
-      <h1>virtauto connects all departments</h1>
-      <p>The adaptive, self-learning digital brain for the automotive enterprise.</p>
-    </div>
+  <main class="container">
+    <!-- HERO -->
+    <section class="hero-grid">
+      <div class="panel copy">
+        <p class="eyebrow">THE DIGITAL BRAIN FOR THE AUTOMOTIVE ENTERPRISE</p>
+        <h1 class="display">virtauto connects all departments into a cohesive, adaptive, self-learning organism.</h1>
+        <p class="subcopy">
+          At its core, the Lead Agent <strong>GEORGE</strong> orchestrates specialized agents via industrial-grade
+          protocols aligned with <strong>ISA-95</strong> — spanning from shop-floor execution to enterprise strategy.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary" href="solutions.html">Explore Solutions (preview)</a>
+          <a class="btn ghost" href="architecture.html">View Meta-Model</a>
+        </div>
+      </div>
+
+      <div class="panel media">
+        <!-- Deine echten Bilder liegen bereits in /images/hero/. Fallback funktioniert auch mit nur 1 Datei. -->
+        <picture>
+          <source type="image/webp" srcset="images/hero/smart_production.webp" sizes="(min-width:1024px) 42vw, 92vw" />
+          <img
+            src="images/hero/smart_production.jpg"
+            alt="Smart production line with robotic arms and connected digital overlays"
+            loading="eager" decoding="async" />
+        </picture>
+      </div>
+    </section>
+
+    <!-- 3 Feature Cards -->
+    <section class="features-3">
+      <article class="feature">
+        <h3>Vision</h3>
+        <p>virtauto becomes the digital brain of the automotive enterprise — a nervous system that orchestrates Production, Finance, HR, Procurement, Quality, Engineering, and Sales as one.</p>
+      </article>
+      <article class="feature">
+        <h3>Gaia Principles</h3>
+        <p>Roles, Permissions, Responsibilities, and Protocols define how agents collaborate: LeadAgent (GEORGE), SubLeadAgent (MES), and SpecializedAgents operate with clear accountability.</p>
+      </article>
+      <article class="feature">
+        <h3>ISA-95 Alignment</h3>
+        <p>End-to-end integration across Levels 0–5 — from sensors and PLCs to strategic orchestration and OKR alignment.</p>
+      </article>
+    </section>
   </main>
+
+  <footer>
+    <small>© <span id="y"></span> virtauto® — All rights reserved.</small>
+  </footer>
+
+  <script>
+    // Mobile nav toggle + year
+    const btn = document.querySelector('.menu-icon');
+    const nav = document.getElementById('primary-nav');
+    btn?.addEventListener('click', () => {
+      nav.classList.toggle('active');
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+    });
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
