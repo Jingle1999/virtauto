@@ -15,7 +15,7 @@ body {
   align-items: center;
 }
 
-.logo a {
+.logo {
   color: #fff;
   font-weight: bold;
   font-size: 20px;
@@ -34,89 +34,16 @@ body {
   font-weight: bold;
 }
 
-.menu-icon {
-  display: none;
-  font-size: 24px;
-  color: #fff;
-  cursor: pointer;
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 40px;
+  align-items: center;
 }
 
-main {
-  padding: 20px;
-}
-
-section {
-  margin-top: 20px;
-}
-
-footer {
-  background-color: #eee;
-  padding: 10px;
-  text-align: center;
-  margin-top: 40px;
-}
-
-/* Responsive Navigation */
-@media (max-width: 768px) {
-  .menu-icon {
-    display: block;
-  }
-
-  .nav-links {
-    display: none;
-    flex-direction: column;
-    background-color: #000;
-    padding: 10px;
-  }
-
-  .nav-links.active {
-    display: flex;
-  }
-
-  .nav-links li {
-    margin: 10px 0;
-  }
-}
-
-/* === Hero Section & Panel Fix === */
-
-/* Panel Container */
-.hero-grid .panel {
-  padding: 0;
-  height: auto;
-  overflow: visible;
-  border-radius: 12px;
-  background: transparent;
-}
-
-/* Bild immer vollständig sichtbar */
 .hero-grid .panel img {
-  display: block;
   width: 100%;
   height: auto;
-  object-fit: contain;   /* zeigt das komplette Bild */
-  border-radius: 12px;
-}
-
-/* Desktop-Layout */
-@media (min-width: 1024px) {
-  .hero-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
-    align-items: stretch;
-  }
-
-  .hero-grid .panel {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 480px;   /* kannst du anpassen */
-  }
-
-  .hero-grid .panel img {
-    max-height: 100%;
-    width: auto;
-    object-fit: contain;
-  }
+  object-fit: contain;
 }
