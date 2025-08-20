@@ -3,40 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>System Architecture - virtauto</title>
-  <link rel="stylesheet" href="style.css">
+  <title>virtauto Architecture</title>
+  <link rel="stylesheet" href="style.css?v=arch2">
 </head>
 <body>
-  <!-- Navbar -->
-  <header>
-    <nav class="navbar">
-      <div class="logo">virtauto</div>
-      <ul class="nav-links">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="agents.html">Agents</a></li>
-        <li><a href="architecture.html" class="active">Architecture</a></li>
-      </ul>
-    </nav>
-  </header>
+<header class="navbar-wrapper">
+  <nav class="navbar">
+    <a class="logo" href="index.html">virtauto®</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="agents.html">Agents</a></li>
+      <li><a href="architecture.html" aria-current="page">Architecture</a></li>
+    </ul>
+  </nav>
+</header>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-content">
-      <h1>System Architecture</h1>
-      <p>OEM Multi-Agent Orchestration across ISA-95 levels.</p>
-    </div>
+<main class="arch-page">
+  <section class="hero-intro">
+    <h1>System Architecture</h1>
+    <p>OEM Multi‑Agent Orchestration across ISA‑95 levels.</p>
   </section>
 
-  <!-- Content -->
-  <main class="content">
-    <div class="image-container">
-      <img src="images/hero/oem_multi.png" alt="OEM Multi-Agent Orchestration">
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer>
-    <p>© 2025 virtauto. All rights reserved.</p>
-  </footer>
+  <section class="arch-hero">
+    <figure class="arch-figure">
+      <!-- IMPORTANT: keep this exact file path; CSS has a fallback selector by file name -->
+      <img src="images/hero/oem_multi.png" alt="OEM Multi‑Agent Orchestration diagram">
+    </figure>
+  </section>
+</main>
 </body>
 </html>
