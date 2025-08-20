@@ -1,35 +1,71 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>virtauto Architecture</title>
-  <link rel="stylesheet" href="style.css?v=arch2">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>virtauto® — System Architecture</title>
+  <link rel="stylesheet" href="style.css?v=arch5" />
 </head>
 <body>
-<header class="navbar-wrapper">
-  <nav class="navbar">
-    <a class="logo" href="index.html">virtauto®</a>
-    <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="agents.html">Agents</a></li>
-      <li><a href="architecture.html" aria-current="page">Architecture</a></li>
-    </ul>
-  </nav>
-</header>
+  <!-- Navbar (same as Home) -->
+  <header class="navbar-wrapper">
+    <div class="navbar container">
+      <a class="logo" href="index.html">virtauto<sup>®</sup></a>
 
-<main class="arch-page">
-  <section class="hero-intro">
-    <h1>System Architecture</h1>
-    <p>OEM Multi‑Agent Orchestration across ISA‑95 levels.</p>
-  </section>
+      <button class="menu-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
 
-  <section class="arch-hero">
-    <figure class="arch-figure">
-      <!-- IMPORTANT: keep this exact file path; CSS has a fallback selector by file name -->
-      <img src="images/hero/oem_multi.png" alt="OEM Multi‑Agent Orchestration diagram">
-    </figure>
-  </section>
-</main>
+      <nav class="nav">
+        <ul class="nav-links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="agents.html">Agents</a></li>
+          <li><a class="active" href="architecture.html">Architecture</a></li>
+          <li><a href="solutions.html">Solutions</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero (aligned with Home) -->
+    <section class="section hero hero--simple">
+      <div class="container hero-narrow">
+        <p class="kicker">SYSTEM ARCHITECTURE</p>
+        <h1>OEM Multi‑Agent Orchestration across ISA‑95 levels.</h1>
+        <p class="lead">Lead Agent <strong>GEORGE</strong> coordinates specialized agents for development,
+          production and quality — unified by shared protocols and memory.</p>
+
+        <figure class="arch-figure">
+          <img
+            class="arch-diagram"
+            src="images/hero/oem_multi.png"
+            alt="OEM Multi‑Agent Orchestration diagram"
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption class="arch-caption">
+            Overview of GEORGE orchestrating specialized agents across enterprise and shop‑floor domains.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <small>© 2025 virtauto — All rights reserved.</small>
+    </div>
+  </footer>
+
+  <script>
+    const toggle = document.querySelector('.menu-toggle');
+    const nav = document.querySelector('.nav');
+    toggle.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  </script>
 </body>
 </html>
