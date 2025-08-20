@@ -41,7 +41,7 @@ body {
 @media (min-width:1024px) { .hero { grid-template-columns: 1.1fr 0.9fr; } }
 
 .hero-right { display:flex; align-items:center; justify-content:center; }
-.hero-image { width:100%; height:auto; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.35); object-fit:contain; }
+.hero-image { width:100%; height:auto; object-fit:contain; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
 
 /* Features */
 .features-3 { display:grid; grid-template-columns:1fr; gap:16px; margin:32px 0 64px; }
