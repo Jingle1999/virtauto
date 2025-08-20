@@ -132,7 +132,7 @@ h1{
 .arch-figure{ margin: 22px auto 8px; }
 .arch-diagram{
   width:100%;
-  max-width: 720px; /* asked: smaller than 840px */
+  max-width: 600px; /* asked: smaller than 840px */
   display:block;
   margin-inline:auto;
   border-radius: var(--radius-lg);
