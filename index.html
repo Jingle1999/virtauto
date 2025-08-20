@@ -1,316 +1,72 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>virtauto — The Digital Brain for the Automotive Enterprise</title>
-  <meta name="description" content="virtauto is the digital brain for the automotive enterprise — a multi-agent operating system orchestrating OEM processes end-to-end." />
-  <meta name="robots" content="index,follow" />
-  <style>
-    :root{
-      --bg:#0b1220;
-      --panel:#0f172a;
-      --card:#111827;
-      --text:#e5e7eb;
-      --muted:#9ca3af;
-      --accent:#38bdf8;
-      --accent-2:#60a5fa;
-      --ok:#34d399;
-      --warn:#fbbf24;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      --radius: 14px;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --border: 1px solid rgba(255,255,255,.08);
-      --gradient: radial-gradient(1200px 600px at 20% -10%, rgba(56,189,248,.25), transparent 60%),
-                  radial-gradient(900px 500px at 100% 10%, rgba(96,165,250,.20), transparent 60%);
-    }
-    * { box-sizing: border-box; }
-    html,body { height:100%; }
-    body{
-      margin:0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      line-height:1.55;
-      letter-spacing:.2px;
-      background-image: var(--gradient);
-      background-attachment: fixed;
-    }
-    a{ color: var(--accent); text-decoration: none; }
-    a:hover{ text-decoration: underline; }
-    .wrap{ max-width:1100px; margin:0 auto; padding: 0 20px; }
-    header{
-      position:sticky; top:0; backdrop-filter: blur(8px);
-      background: linear-gradient(to bottom, rgba(11,18,32,.8), rgba(11,18,32,.3));
-      border-bottom: var(--border);
-      z-index: 5;
-    }
-    .nav{ display:flex; align-items:center; justify-content:space-between; padding:16px 0; }
-    .brand{ display:flex; align-items:center; gap:12px; font-weight:700; font-size:20px; }
-    .badge{
-      display:inline-block; padding:4px 10px; border-radius:999px;
-      background: rgba(96,165,250,.15); border: var(--border); color: var(--accent-2);
-      font-size:12px; letter-spacing:.6px; text-transform:uppercase;
-    }
-    .hero{
-      padding: 72px 0 40px;
-    }
-    .hero-grid{
-      display:grid; grid-template-columns: 1.1fr .9fr; gap: 28px;
-    }
-    h1{
-      font-size: clamp(34px, 4vw, 56px);
-      line-height:1.1; margin: 12px 0 14px;
-      letter-spacing:.3px;
-    }
-    .lead{ color: var(--muted); font-size: clamp(16px, 1.4vw, 19px); }
-    .cta{ display:flex; gap:12px; margin-top:22px; flex-wrap:wrap; }
-    .btn{
-      display:inline-flex; align-items:center; justify-content:center; gap:10px;
-      padding:12px 16px; border-radius: 12px; border: var(--border);
-      background: linear-gradient(180deg, rgba(34,197,94,.12), rgba(34,197,94,.08));
-      color:#d1fae5; font-weight:600;
-    }
-    .btn.secondary{
-      background: linear-gradient(180deg, rgba(56,189,248,.12), rgba(56,189,248,.08));
-      color:#e0f2fe;
-    }
-    .panel{
-      background: linear-gradient(180deg, rgba(17,24,39,.7), rgba(17,24,39,.6));
-      border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
-    }
-    .mock{
-      aspect-ratio: 16 / 10; width:100%; border-radius: 12px; overflow:hidden; border: var(--border);
-      background: linear-gradient(135deg, rgba(56,189,248,.18), rgba(96,165,250,.12));
-      display:grid; place-items:center; color:#e5f2ff;
-      font-weight:600;
-    }
-    .section{
-      padding: 40px 0;
-    }
-    .section h2{
-      margin-top:0; font-size: clamp(22px, 2.4vw, 32px);
-    }
-    .grid-3{
-      display:grid; gap:18px; grid-template-columns: repeat(3, 1fr);
-    }
-    .card{ padding:18px; border-radius:12px; border: var(--border); background: rgba(17,24,39,.7); }
-    .card h3{ margin:6px 0 8px; font-size:18px; }
-    .meta{ color:var(--muted); font-size:14px; }
-    code, pre{ font-family: var(--mono); font-size: 13px; }
-    pre{ background: #0c1426; border-radius: 12px; padding:16px; border: var(--border); overflow:auto; }
-    .kicker{ color:var(--ok); font-weight:700; font-size:13px; letter-spacing:.6px; text-transform: uppercase; }
-    details{ border: var(--border); border-radius: 12px; padding: 14px 16px; background: rgba(17,24,39,.6); }
-    details summary{ cursor: pointer; font-weight: 600; margin: -4px 0 6px; }
-    .solutions{ display:grid; gap:14px; grid-template-columns: repeat(5, minmax(0,1fr)); }
-    .sol-card{ border: var(--border); border-radius:12px; padding:14px; background: rgba(17,24,39,.7); }
-    .sol-badge{ font-size:11px; color:#fde68a; background: rgba(251,191,36,.15); border: var(--border); padding:3px 8px; border-radius:999px; display:inline-block; }
-    .foot{
-      margin-top:28px; padding:18px; border-top: var(--border); color: var(--muted); font-size: 13px;
-    }
-    @media (max-width: 980px){
-      .hero-grid{ grid-template-columns: 1fr; }
-      .grid-3{ grid-template-columns: 1fr; }
-      .solutions{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-    }
-  </style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>virtauto® — The digital brain for the automotive enterprise</title>
+  <meta name="description" content="virtauto® connects all departments into a cohesive, adaptive, self-learning organism. Lead Agent GEORGE orchestrates specialized agents aligned with ISA‑95."/>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <header>
-    <div class="wrap nav">
-      <div class="brand">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <defs>
-            <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stop-color="#38bdf8"/>
-              <stop offset="100%" stop-color="#60a5fa"/>
-            </linearGradient>
-          </defs>
-          <rect x="2" y="2" width="20" height="20" rx="6" stroke="url(#g)" stroke-width="2"/>
-          <circle cx="12" cy="12" r="4" fill="url(#g)"/>
-        </svg>
-        <span>virtauto</span>
-        <span class="badge">coming&nbsp;soon</span>
-      </div>
-      <nav class="meta">
-        <a href="#vision">Vision</a> ·
-        <a href="#meta-model">Meta‑Model</a> ·
-        <a href="#oem-mas">OEM as MAS</a> ·
-        <a href="#solutions">Solutions</a>
-      </nav>
-    </div>
+  <!-- NAV -->
+  <header class="navbar-wrapper">
+    <nav class="navbar container">
+      <a class="logo" href="index.html">virtauto<sup>®</sup></a>
+      <button class="menu-icon" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
+      <ul id="primary-nav" class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="agents.html">Agents</a></li>
+        <li><a href="architecture.html">Architecture</a></li>
+        <li><a href="solutions.html">Solutions</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
   </header>
 
-  <main class="wrap">
+  <!-- HERO -->
+  <main class="container">
     <section class="hero">
-      <div class="hero-grid">
-        <div>
-          <div class="kicker">The Digital Brain for the Automotive Enterprise</div>
-          <h1>virtauto connects all departments into a cohesive, adaptive, self‑learning organism.</h1>
-          <p class="lead">At its core, the Lead Agent <strong>GEORGE</strong> orchestrates specialized agents via industrial-grade protocols aligned with <strong>ISA‑95</strong> — spanning from shop‑floor execution to enterprise strategy.</p>
-          <div class="cta">
-            <a class="btn" href="#solutions">Explore Solutions (preview)</a>
-            <a class="btn secondary" href="#meta-model">View Meta‑Model</a>
-          </div>
+      <div class="hero-left">
+        <p class="eyebrow">THE DIGITAL BRAIN FOR THE AUTOMOTIVE ENTERPRISE</p>
+        <h1 class="display">virtauto connects all departments into a cohesive, adaptive, self‑learning organism.</h1>
+        <p class="subcopy">At its core, the Lead Agent <strong>GEORGE</strong> orchestrates specialized agents via industrial‑grade protocols aligned with <strong>ISA‑95</strong> — spanning from shop‑floor execution to enterprise strategy.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="solutions.html">Explore Solutions (preview)</a>
+          <a class="btn ghost" href="architecture.html">View Meta‑Model</a>
         </div>
-        <div class="panel mock">
-          Homepage Preview — <em>coming soon</em>
-        </div>
+      </div>
+      <div class="hero-right">
+        <picture>
+          <source type="image/webp" srcset="images/hero/smart_production.webp" sizes="(min-width: 1024px) 42vw, 92vw"/>
+          <img src="images/hero/smart_production.jpg" alt="Smart production line" class="hero-image" loading="eager" decoding="async"/>
+        </picture>
       </div>
     </section>
 
-    <section id="vision" class="section">
-      <div class="grid-3">
-        <div class="card">
-          <h3>Vision</h3>
-          <p>virtauto becomes the digital brain of the automotive enterprise — a nervous system that orchestrates Production, Finance, HR, Procurement, Quality, Engineering, and Sales as one.</p>
-        </div>
-        <div class="card">
-          <h3>Gaia Principles</h3>
-          <p>Roles, Permissions, Responsibilities, and Protocols define how agents collaborate: <strong>LeadAgent (GEORGE)</strong>, <strong>SubLeadAgent (MES)</strong>, and <strong>SpecializedAgents</strong> operate with clear accountability.</p>
-        </div>
-        <div class="card">
-          <h3>ISA‑95 Alignment</h3>
-          <p>End‑to‑end integration across Levels 0‑5 — from sensors and PLCs to strategic orchestration and OKR alignment.</p>
-        </div>
-      </div>
+    <!-- Feature Cards -->
+    <section class="features-3">
+      <article class="feature"><h3>Vision</h3>
+        <p>virtauto becomes the digital brain of the automotive enterprise — a nervous system that orchestrates Production, Finance, HR, Procurement, Quality, Engineering, and Sales as one.</p></article>
+      <article class="feature"><h3>Gaia Principles</h3>
+        <p>Roles, Permissions, Responsibilities, and Protocols define how agents collaborate: LeadAgent (GEORGE), SubLeadAgent (MES), and SpecializedAgents operate with clear accountability.</p></article>
+      <article class="feature"><h3>ISA‑95 Alignment</h3>
+        <p>End‑to‑end integration across Levels 0–5 — from sensors and PLCs to strategic orchestration and OKR alignment.</p></article>
     </section>
-
-    <section id="meta-model" class="section">
-      <h2>Meta‑Model (Consolidated)</h2>
-      <p class="meta">Short‑term memory (protocol buffers), long‑term memory (Data Warehouse, Historian, ERP), and strategic memory (OKR Repository, Knowledge Base).</p>
-      <details open>
-        <summary>Agent Modeling Language (AML) — virtautoOEM</summary>
-        <pre><code>system virtautoOEM {
-
-  roles {
-    LeadAgent role;             // GEORGE – Enterprise Orchestrator
-    SubLeadAgent role;          // MES – Production Orchestrator
-    StrategicAgent role;        // CEO, CFO, CTO, COO
-    FunctionalAgent role;       // R&amp;D, SupplyChain, Procurement, Quality, IT, HR, Finance, Sales
-    OperativeAgent role;        // Planner, Logistics, Maintenance, QualityMgr, ProjectLead
-    SupportAgent role;          // Legal, Compliance, PR, AfterSales, Sustainability
-    CrisisAgent role;           // SWAT
-    ExternalActor role;         // Customer, Supplier, Market, Regulator
-  }
-
-  agents {
-    GEORGE : LeadAgent; MES : SubLeadAgent;
-    CEO, CFO, CTO, COO : StrategicAgent;
-    RnD, SupplyChain, Procurement, Finance, Quality, ITPlatform, HR, SalesMarketing : FunctionalAgent;
-    Produktionsplaner, Logistik, Instandhaltung, Qualitätsmanager, Projektleiter, Robotersteuerung, PrototypValidator : OperativeAgent;
-    Recht, Compliance, PRKrise, AfterSales, Nachhaltigkeit, RisikoAssessment, FacilityEnergie, DatenGovernance, SecurityCyber : SupportAgent;
-    SWATKrise : CrisisAgent;
-    Customer, Supplier, Market, Regulator : ExternalActor;
-  }
-
-  protocols {
-    Negotiation(CFO, Procurement, Supplier);
-    Coordination(COO, Produktionsplaner, SupplyChain, Logistik, MES);
-    InformationSharing(Quality, AfterSales, RnD);
-    ErrorHandling(SWATKrise, COO, SupplyChain, MES);
-    DecisionMaking(GEORGE, CEO, CFO, CTO, COO, all FunctionalAgents);
-    ComplianceCheck(Compliance, Recht, Procurement, CFO);
-    CrisisCommunication(PRKrise, CEO, Quality, AfterSales);
-  }
-
-  responsibilities {
-    GEORGE ensureGlobalAlignment(OKRs, KPIs); MES ensureProductionFlow();
-    CEO defineVisionAndM&amp;A(); CFO ensureBudgetControl(); CTO ensureInnovationRoadmap(); COO ensureOperationalExcellence();
-    SupplyChain ensureMaterialFlow(); Procurement manageSuppliers(); Finance reportFinancials(); Quality ensureComplianceAndTesting();
-    ITPlatform integrateSystems(); HR ensureResourceAllocation(); SalesMarketing captureMarketFeedback();
-    Produktionsplaner scheduleProduction(); Logistik ensureTransportFlow(); Instandhaltung manageMaintenance();
-    Robotersteuerung controlRobots(); PrototypValidator validatePrototypes(); Projektleiter manageProjects();
-    Recht provideLegalSupport(); Compliance ensureGovernance(); PRKrise manageCommunications(); AfterSales manageCustomerService();
-    Nachhaltigkeit ensureESGCompliance(); RisikoAssessment provideRiskAnalysis(); FacilityEnergie manageEnergy();
-    DatenGovernance ensureDataQuality(); SecurityCyber ensureCyberSecurity(); SWATKrise solveCriticalIssues();
-  }
-
-  environment { Level0_PhysicalProcesses; Level1_ControlSystems; Level2_SupervisorySystems; Level3_MES; Level4_Enterprise; Level5_Strategic; }
-  memory { ShortTerm: ProtocolBuffers; LongTerm: DataWarehouse, Historian, ERP integration; Strategic: OKR Repository, Knowledge Base; }
-}</code></pre>
-      </details>
-    </section>
-
-    <section id="oem-mas" class="section">
-      <h2>OEM as MAS — Organizational Mapping</h2>
-      <p class="meta">A compact view of how classic organizational roles translate to autonomous agents and protocols.</p>
-      <div class="grid-3">
-        <div class="card">
-          <h3>Strategic Agents</h3>
-          <ul>
-            <li>CEO — Vision, Portfolio, M&amp;A</li>
-            <li>CFO — Capital allocation, Budgeting</li>
-            <li>CTO — Technology roadmap, IP</li>
-            <li>COO — Operations, Capacity</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>Functional Agents</h3>
-          <ul>
-            <li>Supply Chain, Procurement, Finance</li>
-            <li>Quality, IT Platform, HR</li>
-            <li>R&amp;D, Sales &amp; Marketing</li>
-          </ul>
-        </div>
-        <div class="card">
-          <h3>Operative &amp; Support</h3>
-          <ul>
-            <li>Planner, Logistics, Maintenance, Robotics</li>
-            <li>Project Lead, Prototype Validation</li>
-            <li>Legal, Compliance, PR, After‑Sales, Sustainability</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section id="solutions" class="section">
-      <h2>Solutions (Preview)</h2>
-      <div class="solutions">
-        <div class="sol-card">
-          <div class="sol-badge">coming soon</div>
-          <h3>Root Cause Agent</h3>
-          <p class="meta">8D workflows, SPC insights, cross‑shop failure analysis.</p>
-        </div>
-        <div class="sol-card">
-          <div class="sol-badge">coming soon</div>
-          <h3>Supply Chain Agent</h3>
-          <p class="meta">Forecast‑to‑stock, ETA signals, supplier risk sensing.</p>
-        </div>
-        <div class="sol-card">
-          <div class="sol-badge">coming soon</div>
-          <h3>Quality Agent</h3>
-          <p class="meta">FMEA hooks, Cp/Cpk monitors, automated release gates.</p>
-        </div>
-        <div class="sol-card">
-          <div class="sol-badge">coming soon</div>
-          <h3>Procurement Agent</h3>
-          <p class="meta">Tendering, contracts, ESG &amp; compliance alignment.</p>
-        </div>
-        <div class="sol-card">
-          <div class="sol-badge">coming soon</div>
-          <h3>Finance Agent</h3>
-          <p class="meta">S&amp;OP tie‑in, CAPEX/OPEX scenarios, KPI guardrails.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2>Disclaimers</h2>
-      <div class="card">
-        <p><strong>GEORGE</strong> is a conceptual lead agent designation used within the virtauto framework. It is not associated with or owned by any external company, entity, or product outside the virtauto initiative.</p>
-        <p><strong>virtauto</strong> is a registered trademark of Andreas Braun. Any reference to virtauto in this document refers exclusively to the proprietary framework and initiative developed under this trademark.</p>
-      </div>
-    </section>
-
-    <footer class="foot">
-      © <span id="y"></span> virtauto — All rights reserved • <span class="meta">Made for GitHub Pages. This is a preview; functionality is coming soon.</span>
-    </footer>
   </main>
 
+  <footer><small>© <span id="y"></span> virtauto® — All rights reserved.</small></footer>
+
   <script>
-    document.getElementById("y").textContent = new Date().getFullYear();
+    // Mobile nav
+    const btn = document.querySelector('.menu-icon');
+    const nav = document.getElementById('primary-nav');
+    btn?.addEventListener('click', () => {
+      nav.classList.toggle('active');
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+    });
+    document.getElementById('y').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
