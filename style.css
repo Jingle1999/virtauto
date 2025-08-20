@@ -51,3 +51,30 @@ body {
 
 /* Footer */
 footer { background: rgba(255,255,255,0.05); color:#cdd6f4; text-align:center; padding:20px; margin-top:40px; }
+
+/* === Architecture hero section === */
+.arch-hero {
+  margin: 24px 0 40px;
+}
+
+.arch-figure {
+  margin: 0;
+}
+
+.arch-image {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  object-fit: contain;
+}
+
+.arch-caption {
+  color: #b8c1d9;
+  font-size: 0.95rem;
+  margin-top: 8px;
+  text-align: center;
+}
+
