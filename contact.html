@@ -1,31 +1,65 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>virtauto – Contact</title>
-    <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact – virtauto®</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/styles_additions.css" />
 </head>
 <body>
-    <header>
-        <div class="logo">virtauto®</div>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="solutions.html">Solutions</a>
-            <a href="blog.html">Blog</a>
-            <a href="contact.html">Contact</a>
-            <a href="impressum.html">Impressum</a>
-        </nav>
-    </header>
+  <header class="site-header">
+  <nav class="nav">
+    <a class="nav__logo" href="/index.html">virtauto®</a>
+    <ul class="nav__menu">
+      <li><a href="/index.html">Home</a></li>
+      <li><a href="/agents.html">Agents</a></li>
+      <li><a href="/architecture.html">Architecture</a></li>
+      <li><a href="/solutions.html">Solutions</a></li>
+      <li><a href="/blog.html">Blog</a></li>
+      <li><a href="/contact.html" class="active">Contact</a></li>
+    </ul>
+  </nav>
+</header>
 
-    <main>
-        <h1>Contact</h1>
-        <p>Content coming soon...</p>
-    </main>
+    <main class="section section--narrow">
+    <h1>Contact</h1>
+    <p class="subtitle">Get in touch</p>
 
-    <footer>
-        <p>© 2025 virtauto. All rights reserved.</p>
-    </footer>
+    <div class="grid grid--2">
+      <section class="card">
+        <h2 class="mt-0">Andreas Braun</h2>
+        <p class="muted"><em>The Digital Transformation of the Automotive Industry.<br/>When Software builds Hardware.</em></p>
+        <p class="muted">Braunschweig / Wolfsburg, DE</p>
+        <ul class="list list--icons">
+          <li>📧 <a href="mailto:andreas.braun.2011@gmx.de">Email</a></li>
+          <li>🔗 <a href="https://www.linkedin.com/in/andreas-braun-42535317b/" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li>💻 <a href="https://github.com/Jingle1999" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+        <a class="btn" href="mailto:andreas.braun.2011@gmx.de">Get in touch</a>
+      </section>
+
+      <section class="card">
+        <h2 class="mt-0">Write me a message</h2>
+        <!-- Replace YOUR_FORM_ID with your Formspree ID -->
+        <form class="form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+          <input type="text" name="_gotcha" class="hidden" tabindex="-1" autocomplete="off">
+          <label>Name <input type="text" name="name" required></label>
+          <label>Email <input type="email" name="_replyto" required></label>
+          <label>Company <input type="text" name="company"></label>
+          <label>Your Message <textarea name="message" rows="6" required></textarea></label>
+          <input type="hidden" name="_subject" value="New message via virtauto.de Contact">
+          <button type="submit" class="btn">Send</button>
+        </form>
+        <p class="gdpr">By submitting this form you agree that your data will be processed for the purpose of handling your request. See <a href="/privacy.html">Privacy</a>.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+  <a href="/imprint.html">Imprint</a> · <a href="/privacy.html">Privacy</a> · <a href="/sitemap.xml">Sitemap</a>
+</footer>
+
 </body>
 </html>
