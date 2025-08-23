@@ -1,101 +1,117 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>virtauto® — The digital brain for the automotive enterprise</title>
-  <link rel="stylesheet" href="style.css?v=home5" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Home · virtauto®</title>
+<meta name="description" content="virtauto.OS — Multi-Agent Orchestration for Automotive Manufacturing"/>
+<link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <!-- Navbar -->
-  <header class="navbar-wrapper">
-    <div class="navbar container">
-      <a class="logo" href="index.html">virtauto<sup>®</sup></a>
-
-      <button class="menu-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
-
-      <nav class="nav">
-        <ul class="nav-links">
-          <li><a href="index.html">Home</a></li>
-          <li><a href="agents.html">Agents</a></li>
-          <li><a href="architecture.html">Architecture</a></li>
-          <li><a href="solutions.html">Solutions</a></li>
-          <li><a href="blog.html">Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-          <link rel="stylesheet" href="styles_additions.css">
-        </ul>
-      </nav>
+<header class="header">
+  <div class="container nav">
+    <div class="brand">
+      <span>virtauto®</span>
+      <span class="badge">OS</span>
     </div>
-  </header>
+    <nav class="menu" id="menu">
+      <a href="index.html">Home</a>
+      <a href="agents.html">Agents</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="solutions.html">Solutions</a>
+      <a href="usecases.html">Use&nbsp;Cases</a>
+      <a href="blog.html">Blog</a>
+      <a href="contact.html">Contact</a>
+      <a class="cta" href="solutions.html#george">Meet GEORGE</a>
+    </nav>
+    <button class="burger" aria-label="Menu" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<main>
 
-  <main>
-    <!-- Hero -->
-    <section class="section hero">
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <p class="kicker">THE DIGITAL BRAIN FOR THE AUTOMOTIVE ENTERPRISE</p>
-          <h1>
-            virtauto connects all departments into a cohesive, adaptive, self-learning organism.
-          </h1>
-          <p class="lead">
-            At its core, the Lead Agent <strong>GEORGE</strong> orchestrates specialized agents via
-            industrial‑grade protocols aligned with <strong>ISA‑95</strong> — spanning from shop‑floor
-            execution to enterprise strategy.
-          </p>
-
-          <div class="cta-row">
-            <a class="btn btn-primary" href="solutions.html">Explore Solutions (preview)</a>
-            <a class="btn" href="agents.html">View Meta‑Model</a>
-          </div>
-        </div>
-
-        <figure class="panel hero-visual">
-          <picture>
-            <source srcset="images/hero/smart_production.webp" type="image/webp" />
-            <img
-              src="images/hero/smart_production.jpg"
-              alt="Smart production line with orchestrated robots and connected car"
-              loading="eager"
-            />
-          </picture>
-        </figure>
-      </div>
-    </section>
-
-    <!-- Three feature cards (placeholder content for consistent spacing / feel) -->
-    <section class="section features">
-      <div class="container features-grid">
-        <article class="feature">
-          <h3>Gaia Principles</h3>
-          <p>Roles, permissions, responsibilities and protocols define how agents collaborate.</p>
-        </article>
-        <article class="feature">
-          <h3>ISA‑95 Alignment</h3>
-          <p>End‑to‑end integration across Levels 0‑5 — from sensors & PLCs to strategic orchestration.</p>
-        </article>
-        <article class="feature">
-          <h3>Security by Design</h3>
-          <p>Modern platform foundations with observability, resilience and isolation built‑in.</p>
-        </article>
-      </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container">
-      <small>© 2025 virtauto — All rights reserved.</small>
+<section class="hero">
+  <div class="container">
+    <div class="kicker">Welcome</</div>
+    <h1>We leverage Multi-Agent-Orchestration to revolutionize Automotive manufacturing.</h1>
+    <p class="lead">Streamline processes, enhance efficiency, and drive results with <strong>virtauto.OS</strong> — orchestrated by <strong>GEORGE</strong>.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="contact.html#demo">Book a demo</a>
+      <a class="btn ghost" href="solutions.html#george">Meet GEORGE</a>
     </div>
-  </footer>
+  </div>
+</section>
 
-  <script>
-    // Simple mobile menu toggle
-    const toggle = document.querySelector('.menu-toggle');
-    const nav = document.querySelector('.nav');
-    toggle.addEventListener('click', () => {
-      const open = nav.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-  </script>
+<section class="section">
+  <div class="container">
+    <h2>What is an AI Agent?</h2>
+    <p>Agents are autonomous systems that reason, plan, use tools, and collaborate to achieve goals—going beyond static LLM prompts. In virtauto.OS, specialized agents take responsibility for quality, sourcing, production, finance, and more—each with clear roles, tools, guardrails, and memory. <strong>GEORGE</strong> coordinates them.</p>
+    <div class="kpi">
+      <div class="pill">Role-playing</div>
+      <div class="pill">Tools & MCP</div>
+      <div class="pill">Cooperation</div>
+      <div class="pill">Guardrails</div>
+      <div class="pill">Memory</div>
+      <div class="pill">GEORGE Orchestration</div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Maturity Model: 5 Levels of Agentic AI</h2>
+    <table class="table">
+      <tr><th>Level</th><th>Name</th><th>What it means for the factory</th></tr>
+      <tr><td>1</td><td>Basic Responder</td><td>LLM answers; humans drive execution.</td></tr>
+      <tr><td>2</td><td>Router</td><td>LLM routes to fixed functions or playbooks.</td></tr>
+      <tr><td>3</td><td>Tool Calling</td><td>Agents call APIs/DBs; measurable outcomes.</td></tr>
+      <tr><td>4</td><td>Multi-Agent</td><td>Domain agents cooperate; <strong>GEORGE</strong> orchestrates.</td></tr>
+      <tr><td>5</td><td>Autonomous</td><td>Goal-driven, self-refining, safe-guarded autonomy.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Highlighted Use Cases</h2>
+    <div class="card-grid">
+      <div class="card">
+        <div class="eyebrow">Quality</div>
+        <h3>Root Cause Agent</h3>
+        <p>Correlates shop-floor signals and 8D data to propose fixes and quantify impact.</p>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Procurement</div>
+        <h3>Sourcing & Supplier Scoring</h3>
+        <p>Game-theory-aided RFQ, multi-criteria scoring (cost, risk, lead time, ESG).</p>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Operations</div>
+        <h3>Factory Knowledge Assistant</h3>
+        <p>Agentic RAG over SOPs, MES/ERP snapshots, and engineering docs with citations.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer class="footer">
+  <div class="container">
+    <div class="cols">
+      <div style="flex:1;min-width:220px">
+        <strong>virtauto®</strong><br/>
+        <small>Driving Automotive Innovation</small>
+      </div>
+      <div style="flex:1;min-width:220px">
+        <small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a> · <a href="#">Imprint</a> · <a href="#">Privacy</a></small>
+      </div>
+      <div style="flex:1;min-width:220px;text-align:right">
+        <small>© 2025 virtauto®. All rights reserved.</small>
+      </div>
+    </div>
+  </div>
+</footer>
+<script src="script.js"></script>
 </body>
 </html>

@@ -1,161 +1,141 @@
-<!DOCTYPE html>
-<html lang="de">
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>virtauto — Solutions</title>
-  <meta name="description" content="Interactive MAS Use-Cases with GEORGE for automotive OEM value creation." />
-  <style>
-    :root{
-      --bg:#0b0f1a; --bg-alt:#0e1424; --fg:#e6e9f2; --muted:#9aa4b2;
-      --card:#12192a; --card-b:#1b233a; --accent:#6aa9ff; --accent-2:#88d4ff;
-      --ok:#2ecc71; --warn:#ffb020; --bad:#ff6b6b;
-      --max:1200px;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;
-         background:linear-gradient(180deg,var(--bg),var(--bg-alt) 40%,var(--bg)); color:var(--fg)}
-    a{color:var(--accent);text-decoration:none}
-    a:hover{text-decoration:underline}
-    /* Top nav (lightweight – if you already have a shared header, keep only .main below) */
-    .nav{display:flex;gap:18px;align-items:center;justify-content:flex-start;
-         padding:14px 18px;border-bottom:1px solid #1e2742;background:#0c1222}
-    .brand{font-weight:800;letter-spacing:.6px}
-    .nav a{color:#bcd2ff}
-    .nav a:hover{color:white}
-    /* Main */
-    .main{max-width:var(--max); margin:0 auto; padding:28px 18px 48px}
-    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:center}
-    .hero .copy h1{margin:0 0 10px 0;font-size:32px;letter-spacing:.2px}
-    .hero .copy p{margin:0;color:var(--muted);line-height:1.5}
-    .hero .card{background:var(--card);border:1px solid var(--card-b);border-radius:16px;padding:16px}
-    .badges{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-    .badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#0d1b33;border:1px solid #24406e;color:#bcd2ff;font-size:12px}
-    /* Use-Case Grid */
-    .section{margin-top:32px}
-    .section h2{font-size:22px;margin:0 0 8px 0}
-    .section p{margin:0 0 12px 0;color:var(--muted)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
-    .uc{background:var(--card);border:1px solid var(--card-b);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
-    .uc .head{padding:14px 16px;border-bottom:1px solid #1a2240}
-    .uc .head h3{margin:0;font-size:18px}
-    .uc .head p{margin:6px 0 0 0;color:var(--muted);font-size:14px}
-    .uc iframe{width:100%;height:360px;border:0;background:#0d1322}
-    .uc .foot{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:12px 14px;border-top:1px solid #1a2240}
-    .btn{display:inline-block;padding:8px 12px;border-radius:10px;border:1px solid #2a3a66;background:#132148;color:#eaf2ff}
-    .btn:hover{border-color:var(--accent);color:white}
-    .hint{color:var(--muted);font-size:12px}
-    /* Responsive */
-    @media (max-width:900px){ .hero{grid-template-columns:1fr} }
-    footer{color:#71809a;text-align:center;padding:22px 0}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Solutions · virtauto®</title>
+<meta name="description" content="virtauto.OS — Multi-Agent Orchestration for Automotive Manufacturing"/>
+<link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <!-- If your site has a shared header, remove this block and keep the page body only -->
-  <nav class="nav" aria-label="Primary">
-    <div class="brand">virtauto®</div>
-    <a href="index.html">Home</a>
-    <a aria-current="page" href="solutions.html">Solutions</a>
-    <a href="blog.html">Blog</a>
-    <a href="contact.html">Contact</a>
-    <a href="impressum.html">Impressum</a>
-  </nav>
+<header class="header">
+  <div class="container nav">
+    <div class="brand">
+      <span>virtauto®</span>
+      <span class="badge">OS</span>
+    </div>
+    <nav class="menu" id="menu">
+      <a href="index.html">Home</a>
+      <a href="agents.html">Agents</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="solutions.html">Solutions</a>
+      <a href="usecases.html">Use&nbsp;Cases</a>
+      <a href="blog.html">Blog</a>
+      <a href="contact.html">Contact</a>
+      <a class="cta" href="solutions.html#george">Meet GEORGE</a>
+    </nav>
+    <button class="burger" aria-label="Menu" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<main>
 
-  <main class="main">
-    <!-- Hero -->
-    <section class="hero">
-      <div class="copy">
-        <h1>Solutions — GEORGE Multi‑Agent System</h1>
-        <p>Sehen Sie GEORGE in Aktion: interaktive Demos zeigen, wie Multi‑Agenten‑Systeme Engpässe lösen, Qualität steigern und CO₂e reduzieren — direkt über eine einfache UI.</p>
-        <div class="badges">
-          <span class="badge">Real‑time Orchestration</span>
-          <span class="badge">Event‑Driven</span>
-          <span class="badge">Simulation‑Ready</span>
-        </div>
+<section class="hero" id="george">
+  <div class="container">
+    <div class="kicker">GEORGE</div>
+    <h1>GEORGE — Generic Entity Orchestrating Resources & Gathering Efficiency</h1>
+    <p class="lead">The supervisory brain of virtauto.OS. Plans, routes, validates and learns across all domain agents.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="contact.html#demo">Request demo</a>
+      <a class="btn ghost" href="#george-resp">See responsibilities</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="george-resp">
+  <div class="container">
+    <h2>Responsibilities</h2>
+    <ul class="list">
+      <li><strong>Task Orchestration:</strong> break down intents, assign to domain agents, monitor progress.</li>
+      <li><strong>Policy & Guardrails:</strong> enforce constraints (cost/safety/data access), human-in-the-loop when needed.</li>
+      <li><strong>Memory Management:</strong> maintain short-/long-term and entity memory; share scoped context.</li>
+      <li><strong>Tool Governance:</strong> register MCP tools/APIs, rate-limit & audit usage.</li>
+      <li><strong>Evidence Tracking:</strong> require citations/logs; generate explainable outcomes.</li>
+      <li><strong>KPI Feedback:</strong> measure impact (OEE, scrap, lead time) and learn optimal playbooks.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Interfaces</h2>
+    <div class="card-grid">
+      <div class="card"><h3>Northbound (L4)</h3><p>ERP/PLM/SCM via APIs & events (orders, BOMs, changes).</p></div>
+      <div class="card"><h3>Southbound (L3–L1)</h3><p>MES, SCADA/OPC UA, CV/IoT streams through gateways.</p></div>
+      <div class="card"><h3>Tool Registry</h3><p>MCP catalog of reusable tools (RAG, simulators, optimizers).</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Example Flow</h2>
+    <p class="quote">“Quality status for Part X, Line 3, Week 34?” → GEORGE routes to Quality + Production + Supply Chain agents → validates evidence (MES, QMS, supplier ASN) → returns answer + next-best-actions.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Security & Compliance</h2>
+    <ul class="list">
+      <li>Role-based access; tokenization where required.</li>
+      <li>Audit trail of agent/tool calls; prompt & policy red-teaming.</li>
+      <li>Environment separation and rate limits per site.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2>Solution Portfolio (GEORGE-powered)</h2>
+    <div class="card-grid">
+      <div class="card">
+        <div class="eyebrow">Quality</div>
+        <h3>Root Cause Intelligence</h3>
+        <p>Detect, explain, and prevent defects; quantify yield gain.</p>
       </div>
       <div class="card">
-        <strong>Hinweis zur Einbindung</strong>
-        <p class="hint" style="margin-top:6px">Jede Kachel lädt einen Demo‑Service per <code>&lt;iframe&gt;</code> (z. B. Streamlit/Gradio). Legen Sie die Services z. B. unter <code>/demos/*</code> ab oder hinter einen Reverse‑Proxy.</p>
-        <p class="hint">Wenn der Dienst offline ist, erscheint ein leerer Rahmen — der „Open Demo“-Link öffnet den Pfad direkt.</p>
+        <div class="eyebrow">Procurement</div>
+        <h3>Sourcing & RFQ Automation</h3>
+        <p>RFQ creation, supplier scoring, negotiation support, contracts.</p>
       </div>
-    </section>
-
-    <!-- Use-Case Grid -->
-    <section class="section">
-      <h2>Interactive Use‑Cases</h2>
-      <p>Fünf exemplarische Anwendungsfälle — jeder in einem Satz beschrieben, mit Live‑UI.</p>
-
-      <div class="grid">
-
-        <!-- 1 Demand & Mix Optimizer -->
-        <article class="uc">
-          <div class="head">
-            <h3>Demand & Mix Optimizer</h3>
-            <p>Optimiert Tages‑Mix (Modelle/Trims) live nach Marge, Takt und CO₂‑Grenzen und erzeugt den Build‑Plan für GEORGE.</p>
-          </div>
-          <iframe src="/demos/mix" title="Demand & Mix Optimizer"></iframe>
-          <div class="foot">
-            <a class="btn" href="/demos/mix" target="_blank" rel="noopener">Open Demo</a>
-            <span class="hint">Pfad: <code>/demos/mix</code></span>
-          </div>
-        </article>
-
-        <!-- 2 Shortage Resolver -->
-        <article class="uc">
-          <div class="head">
-            <h3>Shortage Resolver</h3>
-            <p>Rechnet Fehlteile gegen den Sequenz‑Plan und schlägt Re‑Sequencing/JIS‑Maßnahmen vor, um Linienstopps zu vermeiden.</p>
-          </div>
-          <iframe src="/demos/shortage" title="Shortage Resolver"></iframe>
-          <div class="foot">
-            <a class="btn" href="/demos/shortage" target="_blank" rel="noopener">Open Demo</a>
-            <span class="hint">Pfad: <code>/demos/shortage</code></span>
-          </div>
-        </article>
-
-        <!-- 3 Predictive Maintenance Planner -->
-        <article class="uc">
-          <div class="head">
-            <h3>Predictive Maintenance Planner</h3>
-            <p>Prognostiziert Ausfallwahrscheinlichkeit pro Maschine und plant Wartungsfenster mit minimalem Takt‑Impact.</p>
-          </div>
-          <iframe src="/demos/pm" title="Predictive Maintenance Planner"></iframe>
-          <div class="foot">
-            <a class="btn" href="/demos/pm" target="_blank" rel="noopener">Open Demo</a>
-            <span class="hint">Pfad: <code>/demos/pm</code></span>
-          </div>
-        </article>
-
-        <!-- 4 Root Cause & 8D Assistant -->
-        <article class="uc">
-          <div class="head">
-            <h3>Root Cause & 8D Assistant</h3>
-            <p>Klustert Defekte (SPC/CV) und liefert 8D‑Vorschläge inkl. Sofortmaßnahmen und Verantwortlichkeiten.</p>
-          </div>
-          <iframe src="/demos/rca" title="Root Cause & 8D Assistant"></iframe>
-          <div class="foot">
-            <a class="btn" href="/demos/rca" target="_blank" rel="noopener">Open Demo</a>
-            <span class="hint">Pfad: <code>/demos/rca</code></span>
-          </div>
-        </article>
-
-        <!-- 5 CO2e-aware Scheduling -->
-        <article class="uc">
-          <div class="head">
-            <h3>CO₂e‑aware Scheduling</h3>
-            <p>Legt energieintensive Schritte in grüne Stromfenster, um CO₂e/VIN und Energiekosten zu senken.</p>
-          </div>
-          <iframe src="/demos/co2" title="CO2e-aware Scheduling"></iframe>
-          <div class="foot">
-            <a class="btn" href="/demos/co2" target="_blank" rel="noopener">Open Demo</a>
-            <span class="hint">Pfad: <code>/demos/co2</code></span>
-          </div>
-        </article>
-
+      <div class="card">
+        <div class="eyebrow">Production</div>
+        <h3>OEE & Scheduling Co-Pilot</h3>
+        <p>Forecast bottlenecks, propose re-scheduling, simulate takt impacts.</p>
       </div>
-    </section>
-  </main>
+      <div class="card">
+        <div class="eyebrow">Supply Chain</div>
+        <h3>Visibility & Risk</h3>
+        <p>ETA, shortages, disruption detection, mitigation playbooks.</p>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Finance</div>
+        <h3>Controlling Agent</h3>
+        <p>Variance analysis, scenarios, ROI tracking.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <footer>© 2025 virtauto. All rights reserved.</footer>
+</main>
+<footer class="footer">
+  <div class="container">
+    <div class="cols">
+      <div style="flex:1;min-width:220px">
+        <strong>virtauto®</strong><br/>
+        <small>Driving Automotive Innovation</small>
+      </div>
+      <div style="flex:1;min-width:220px">
+        <small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a> · <a href="#">Imprint</a> · <a href="#">Privacy</a></small>
+      </div>
+      <div style="flex:1;min-width:220px;text-align:right">
+        <small>© 2025 virtauto®. All rights reserved.</small>
+      </div>
+    </div>
+  </div>
+</footer>
+<script src="script.js"></script>
 </body>
 </html>
