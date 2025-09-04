@@ -15,6 +15,15 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 img{max-width:100%;height:auto;display:block}
+/* Diagram styling */
+.diagram {
+  display: block;
+  margin: 24px auto;
+  max-width: 90%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
 .container{max-width:var(--maxw);margin:0 auto;padding:0 20px}
 .header{position:sticky;top:0;z-index:1000;backdrop-filter:saturate(160%) blur(10px);
   background:linear-gradient(180deg,rgba(17,24,39,0.9),rgba(17,24,39,0.6));
