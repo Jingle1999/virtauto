@@ -1,0 +1,28 @@
+name: Deploy virtauto-web (Pages)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'virtauto-web/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build static site
+        run: mkdir -p virtauto-web/site/dist && cp -r virtauto-web/site/src/* virtauto-web/site/dist/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: virtauto-web/site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/configure-pages@v3   # <--- NEU
+      - uses: actions/deploy-pages@v4
