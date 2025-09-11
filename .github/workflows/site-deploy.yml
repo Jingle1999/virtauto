@@ -6,23 +6,38 @@ on:
     paths:
       - 'virtauto-web/**'
 
+# (optional, aber hilfreich gegen parallele Deploys)
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
       - name: Build static site
-        run: mkdir -p virtauto-web/site/dist && cp -r virtauto-web/site/src/* virtauto-web/site/dist/
-      - uses: actions/upload-pages-artifact@v3
+        run: mkdir -p dist && cp -r virtauto-web/site/src/* dist/
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: virtauto-web/site/dist
+          path: dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/configure-pages@v3   # <--- NEU
-      - uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
