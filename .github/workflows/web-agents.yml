@@ -27,5 +27,13 @@ jobs:
       - name: Run navigation helper (optional auto-fix)
         run: python virtauto-web/agents/navigation_agent/ensure_links.py
 
-      - name: Run consistency checks
+      - name: Run consistency checks (produce report)   # ← NEU: erzeugt Report
         run: python virtauto-web/agents/consistency_agent/run.py
+
+      - name: Upload report artifact                    # ← NEU: lädt Report hoch
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-agents-report
+          path: agents-reports/web-consistency.md
+
