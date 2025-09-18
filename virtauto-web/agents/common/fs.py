@@ -1,41 +1,18 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "5a7bcf9f",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import os\n",
-    "\n",
-    "def lst_html_files(root=\"virtauto-web/site/src\"):\n",
-    "    for dirpath, _, filenames in os.walk(root):\n",
-    "        for fn in filenames:\n",
-    "            if fn.endswith(\".html\"):\n",
-    "                yield os.path.join(dirpath, fn)"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.6.8"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+# virtauto-web/agents/common/fs.py
+from pathlib import Path
+from typing import Iterable, List, Sequence
+
+EXCLUDE_DIRS: Sequence[str] = (".git", ".github", "__pycache__", "node_modules")
+
+def list_html_files(root: Path | str = ".", patterns: Iterable[str] = ("*.html", "*.htm")) -> List[Path]:
+    """
+    Liefert alle HTML/HTM-Dateien unterhalb von `root`, rekursiv,
+    und überspringt typische Ausschlussordner.
+    """
+    root = Path(root)
+    files: List[Path] = []
+    for pat in patterns:
+        for p in root.rglob(pat):
+            if not any(part in EXCLUDE_DIRS for part in p.parts):
+                files.append(p)
+    return sorted(files)

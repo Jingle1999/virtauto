@@ -1,59 +1,64 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "410c87c6",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "from bs4 import BeautifulSoup\n",
-    "from agents.common.fs import list_html_files\n",
-    "from agents.consistency_agent.policies import POLICIES\n",
-    "\n",
-    "def run():\n",
-    "    errors = []\n",
-    "    for filepath in list_html_files():\n",
-    "        with open(filepath, encoding=\"utf-8\") as f:\n",
-    "            soup = BeautifulSoup(f, \"lxml\")\n",
-    "\n",
-    "        for policy in POLICIES:\n",
-    "            ok, msg = policy(soup)\n",
-    "            if not ok:\n",
-    "                errors.append(f\"{filepath}: {msg}\")\n",
-    "\n",
-    "    if errors:\n",
-    "        print(\"❌ Consistency check failed:\")\n",
-    "        for e in errors:\n",
-    "            print(\" -\", e)\n",
-    "        exit(1)\n",
-    "    else:\n",
-    "        print(\"✅ All consistency checks passed\")\n",
-    "\n",
-    "if __name__ == \"__main__\":\n",
-    "    run()"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.6.8"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+# virtauto-web/agents/consistency_agent/run.py
+
+from bs4 import BeautifulSoup
+from agents.common.fs import list_html_files
+from agents.consistency_agent.policies import POLICIES
+from agents.consistency_agent.report import write_markdown, write_html
+
+with open(filepath, "rb") as f:
+    soup = BeautifulSoup(f.read(), "html.parser")  # <— Standard-Parser, kein lxml
+
+from pathlib import Path
+import sys
+# fügt <repo-root>\virtauto-web zum Suchpfad hinzu
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+
+
+def run() -> None:
+    """
+    Läuft über alle HTML-Dateien (aus list_html_files),
+    wendet die POLICIES an, erzeugt Markdown- und HTML-Report
+    und beendet den Prozess mit passendem Exit-Code (0/1).
+    """
+    errors: list[str] = []
+
+    # --- Checks ausführen ---
+    for filepath in list_html_files():
+        with open(filepath, "r", encoding="utf-8") as f:
+            soup = BeautifulSoup(f, "lxml")
+
+        for policy in POLICIES:
+            ok, msg = policy(soup)
+            if not ok:
+                errors.append(f"{filepath}: {msg}")
+
+    ok = len(errors) == 0
+
+    # --- Reports erzeugen ---
+    # 1) Markdown (für GitHub Actions Artifact)
+    md_path = "agents-reports/web-consistency.md"
+    write_markdown(md_path, ok=ok, items=errors)
+
+    # 2) HTML (wird in die Website gelegt und per Pages veröffentlicht)
+    html_path = "virtauto-web/site/src/reports/consistency.html"
+    write_html(
+        template_dir="virtauto-web/agents/consistency_agent/templates",
+        template_name="report.html",
+        out_path=html_path,
+        ok=ok,
+        items=errors,
+    )
+
+    # --- Exit-Code / Ausgabe ---
+    if not ok:
+        print("❌ Consistency check failed! Details:")
+        for e in errors:
+            print(" -", e)
+        # Non-zero Exit damit CI fehlschlägt
+        exit(1)
+
+    print("✅ All consistency checks passed")
+
+
+if __name__ == "__main__":
+    run()
