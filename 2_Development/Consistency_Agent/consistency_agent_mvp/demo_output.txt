@@ -1,0 +1,5 @@
+This document tests Multi-Agent System and Multi-Agent System spelling.
+We mention Artificial Intelligence, but in other sections we write Artificial Intelligence.
+Inconsistent spelling: color (UK) vs color (US).
+Abbreviation mix: Supply Chain Management vs. Supply Chain Management.
+Also inconsistent: Supply chain management vs SupplyChain Management.

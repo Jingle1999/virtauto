@@ -1,0 +1,14 @@
+# Copy to config.yaml and set provider & credentials
+provider: openai   # options: openai, bedrock
+model: gpt-4o-mini
+openai:
+  api_key_env: OPENAI_API_KEY
+bedrock:
+  region_name: eu-central-1
+  model_id: anthropic.claude-3-haiku-20240307-v1:0
+paths:
+  rules: rules.yaml
+  glossary: glossary.md
+  prompts:
+    system: prompts/system.txt
+    user_template: prompts/user_template.txt

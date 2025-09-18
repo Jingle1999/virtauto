@@ -1,0 +1,31 @@
+terminology:
+  - pattern: "(?i)\bMAS\b"
+    message: "Expand MAS to Multi-Agent System"
+    severity: "info"
+    replace_with: "Multi-Agent System"
+
+  - pattern: "(?i)\bMulti Agent System\b"
+    message: "Standardize spelling: 'Multi-Agent System' (with hyphen)"
+    severity: "info"
+    replace_with: "Multi-Agent System"
+
+  - pattern: "(?i)\bAI\b"
+    message: "Consider using 'Artificial Intelligence' after first mention"
+    severity: "info"
+    replace_with: "Artificial Intelligence"
+
+  - pattern: "(?i)\bSCM\b"
+    message: "Write 'Supply Chain Management' in full"
+    severity: "warn"
+    replace_with: "Supply Chain Management"
+
+  - pattern: "(?i)SupplyChainManagement"
+    message: "Use spaced version: 'Supply Chain Management'"
+    severity: "info"
+    replace_with: "Supply Chain Management"
+
+style:
+  - pattern: "\bcolour\b"
+    message: "Use US spelling 'color'"
+    severity: "warn"
+    replace_with: "color"

@@ -1,0 +1,43 @@
+{
+  "file": "demo_input.txt",
+  "out": "demo_input_fixed.txt",
+  "total_replacements": 6,
+  "applied": [
+    {
+      "block": "terminology",
+      "pattern": "(?i)\\bMAS\\b",
+      "replace_with": "Multi-Agent System",
+      "count": 1
+    },
+    {
+      "block": "terminology",
+      "pattern": "(?i)\\bMulti Agent System\\b",
+      "replace_with": "Multi-Agent System",
+      "count": 1
+    },
+    {
+      "block": "terminology",
+      "pattern": "(?i)\\bAI\\b",
+      "replace_with": "Artificial Intelligence",
+      "count": 1
+    },
+    {
+      "block": "style",
+      "pattern": "\\bcolour\\b",
+      "replace_with": "color",
+      "count": 1
+    },
+    {
+      "block": "terminology",
+      "pattern": "(?i)\\bSCM\\b",
+      "replace_with": "Supply Chain Management",
+      "count": 1
+    },
+    {
+      "block": "terminology",
+      "pattern": "(?i)SupplyChainManagement",
+      "replace_with": "Supply Chain Management",
+      "count": 1
+    }
+  ]
+}

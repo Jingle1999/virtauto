@@ -1,0 +1,11 @@
+Context:
+- Glossary (key concepts): {{GLOSSARY_SNIPPET}}
+- Rules (highlights): {{RULES_SNIPPET}}
+
+Task:
+Review the following content for consistency and alignment:
+---
+{{CONTENT}}
+---
+
+Focus on: naming conventions, terminology, strategy coherence (Fusion Strategy), and structural completeness.

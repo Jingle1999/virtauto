@@ -1,0 +1,5 @@
+This document tests MAS and Multi Agent System spelling.
+We mention AI, but in other sections we write Artificial Intelligence.
+Inconsistent spelling: colour (UK) vs color (US).
+Abbreviation mix: SCM vs. SupplyChainManagement.
+Also inconsistent: Supply chain management vs SupplyChain Management.
