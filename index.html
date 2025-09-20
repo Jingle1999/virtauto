@@ -47,6 +47,12 @@
       font-size: 0.85rem;
       color: #666;
     }
+    .test-banner {
+      color: red;
+      font-weight: bold;
+      text-align: center;
+      margin: 1rem 0;
+    }
   </style>
 </head>
 <body>
@@ -54,6 +60,11 @@
     <h1>virtauto – Live Status Dashboard</h1>
     <p>Latest updates from audit log (auto-updated)</p>
   </header>
+
+  <!-- Test-Zeile -->
+  <div class="test-banner">
+    ✅ virtauto deployment test successful – 20.09.2025
+  </div>
 
   <section id="latest-news">
     <h2>Latest Runs</h2>
@@ -81,16 +92,15 @@
 
         data.forEach(item => {
           const li = document.createElement('li');
-          li.innerHTML = `<span class="timestamp">[${item.ts}]</span> 
-            <strong>${item.event}</strong> → ${item.agent} :: ${item.summary}`;
+          li.innerHTML = `<span class="timestamp">[${item.ts}]</span> <strong>${item.event}</strong> → ${item.agent} :: ${item.summary}`;
           list.appendChild(li);
         });
       } catch (err) {
         console.error('Failed to load news.json', err);
-        document.getElementById('news-list').innerHTML = 
-          '<li>Error loading events</li>';
+        document.getElementById('news-list').innerHTML = '<li>Error loading events</li>';
       }
     }
+
     loadNews();
   </script>
 </body>
