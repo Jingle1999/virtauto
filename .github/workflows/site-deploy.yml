@@ -26,10 +26,16 @@ jobs:
       - name: Disable Jekyll
         run: echo > .nojekyll
 
+      - name: List files for debugging
+        run: |
+          echo "=== Files in repo root ==="
+          ls -la
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .   # <-- NUR Punkt, kein dist/
+          path: .   # <-- GANZ wichtig: Repo-Root (wo index.html liegt)
+
 
 
   deploy:
