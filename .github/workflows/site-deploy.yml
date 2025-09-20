@@ -28,8 +28,11 @@ jobs:
 
       - name: List files for debugging
         run: |
-          echo "=== Files in repo root ==="
+          echo "=== Root files ==="
           ls -la
+          echo "=== HTML files (depth 2) ==="
+          find . -maxdepth 2 -name "*.html" -print
+
       - name: Generate news.json from recent Actions runs
         env:
           REPO: ${{ github.repository }}
@@ -37,10 +40,7 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y jq
-          curl -sS -H "Authorization: Bearer ${GH_TOKEN}" \
-                   -H "Accept: application/vnd.github+json" \
-                   "https://api.github.com/repos/${REPO}/actions/runs?per_page=10" \
-          | jq '[.workflow_runs[]
+          curl -sS -H "Authorization: Bearer ${GH_TOKEN}"                    -H "Accept: application/vnd.github+json"                    "https://api.github.com/repos/${REPO}/actions/runs?per_page=10"           | jq '[.workflow_runs[]
                  | { ts: .created_at,
                      event: .name,
                      agent: (.triggering_actor.login // .actor.login // "system"),
@@ -55,9 +55,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .   # <-- GANZ wichtig: Repo-Root (wo index.html liegt)
-
-
+          path: .
 
   deploy:
     needs: build
@@ -68,5 +66,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-
-
