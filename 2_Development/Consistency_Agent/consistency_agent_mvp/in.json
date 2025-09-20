@@ -1,0 +1,8 @@
+﻿{
+  "stage": "pre",
+  "task": {
+    "type": "quality.analyze_csv",
+    "payload": {},
+    "meta": { "owner": "Quality", "source": "MES", "kpi": "FPY" }
+  }
+}
