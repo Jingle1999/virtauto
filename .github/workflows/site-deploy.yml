@@ -30,6 +30,27 @@ jobs:
         run: |
           echo "=== Files in repo root ==="
           ls -la
+      - name: Generate news.json from recent Actions runs
+        env:
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+          curl -sS -H "Authorization: Bearer ${GH_TOKEN}" \
+                   -H "Accept: application/vnd.github+json" \
+                   "https://api.github.com/repos/${REPO}/actions/runs?per_page=10" \
+          | jq '[.workflow_runs[]
+                 | { ts: .created_at,
+                     event: .name,
+                     agent: (.triggering_actor.login // .actor.login // "system"),
+                     summary: (.conclusion // .status // "unknown") }
+               ][0:10]' > news.json
+
+      - name: Verify generated news.json
+        run: |
+          echo "news.json size:" $(wc -c < news.json)
+          head -c 400 news.json && echo
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
