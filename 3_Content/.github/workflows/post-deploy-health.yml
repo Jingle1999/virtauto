@@ -1,0 +1,21 @@
+name: Post-deploy health check
+
+on:
+  workflow_run:
+    workflows: ["Deploy website (Pages)"]
+    types: [completed]
+
+jobs:
+  check:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hit homepage
+        run: |
+          echo "Replace with your live URL if custom domain is configured"
+          curl -I --max-time 30 https://<YOUR-PAGES-URL> | tee curl.log || true
+      - name: Upload curl log
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-curl-log
+          path: curl.log
