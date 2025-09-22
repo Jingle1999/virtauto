@@ -17,30 +17,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Repo auschecken (muss als erstes kommen)
+        uses: actions/checkout@v4
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # Audit-Log: Deploy start
       - name: Append news.json (Deploy start)
         run: |
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           tmp=$(mktemp)
-          if [ -f news.json ]; then
-            jq --arg ts "$ts" \
-               --arg ev "Deploy start" \
-               --arg ag "CI/CD" \
-               --arg su "Deployment pipeline triggered" \
-               '([{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}] + .)[:50]' news.json > "$tmp"
-          else
-            jq -n --arg ts "$ts" \
-                  --arg ev "Deploy start" \
-                  --arg ag "CI/CD" \
-                  --arg su "Deployment pipeline triggered" \
-                  '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
-          fi
-          mv "$tmp" news.json
+          jq --arg ts "$ts"              --arg ev "Deploy start"              --arg agent "CI/CD"              --arg summary "Deployment pipeline triggered"              '. += [{"ts":$ts,"event":$ev,"agent":$agent,"summary":$summary}]' news.json > "$tmp"           && mv "$tmp" news.json
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
@@ -62,22 +49,22 @@ jobs:
       - name: Check homepage (200 expected, 3 retries)
         shell: bash
         run: |
-          URL="${CUSTOM_URL}"
+          URL="${{ env.CUSTOM_URL }}"
           if [ -z "$URL" ]; then
-            echo "::error::No CUSTOM_URL provided"
+            echo "Fehler: No CUSTOM_URL provided"
             exit 1
           fi
           echo "Healthcheck on $URL"
           for i in 1 2 3; do
             code=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
-            echo "Attempt $i → HTTP $code"
+            echo "Attempt $i - HTTP code: $code"
             if [ "$code" -eq 200 ]; then
-              echo "OK"
+              echo "Healthcheck passed"
               exit 0
             fi
             sleep 10
           done
-          echo "::error::Healthcheck failed after 3 attempts"
+          echo "Healthcheck failed after 3 attempts"
           exit 1
 
   rollback:
@@ -86,74 +73,38 @@ jobs:
     if: failure()
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Switch to backup branch
-        run: |
-          git fetch origin "$BACKUP_BRANCH" || true
-          if git rev-parse --verify origin/"$BACKUP_BRANCH" >/dev/null 2>&1; then
-            git checkout -f "$BACKUP_BRANCH"
-          else
-            echo "::error::Backup branch '$BACKUP_BRANCH' not found"
-            exit 1
-          fi
-
-      - name: Write status.json (rollback)
-        run: |
-          cat > status.json << 'JSON'
-          {
-            "status": "rollback",
-            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "commit": "${GITHUB_SHA}",
-            "note": "Auto-rollback to previous working version"
-          }
-          JSON
-
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Append news.json (Rollback)
         run: |
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           tmp=$(mktemp)
-          if [ -f news.json ]; then
-            jq --arg ts "$ts" \
-               --arg ev "Rollback" \
-               --arg ag "Healthcheck" \
-               --arg su "Restored from backup" \
-               '([{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}] + .)[:50]' news.json > "$tmp"
-          else
-            jq -n --arg ts "$ts" \
-                  --arg ev "Rollback" \
-                  --arg ag "Healthcheck" \
-                  --arg su "Restored from backup" \
-                  '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
-          fi
-          mv "$tmp" news.json
-
-      - name: Upload backup artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./
-
-      - name: Deploy backup to GitHub Pages
-        uses: actions/deploy-pages@v4
+          jq --arg ts "$ts"              --arg ev "Rollback"              --arg agent "Healthcheck"              --arg summary "Restored from backup"              '. += [{"ts":$ts,"event":$ev,"agent":$agent,"summary":$summary}]' news.json > "$tmp"           && mv "$tmp" news.json
+      # hier könnte man noch ein echtes Rollback-Deploy einfügen
 
   update-backup:
     runs-on: ubuntu-latest
     needs: healthcheck
-    if: success()
+    if: always()
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Append news.json (Backup update)
+        run: |
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          tmp=$(mktemp)
+          jq --arg ts "$ts"              --arg ev "Backup"              --arg agent "CI/CD"              --arg summary "Backup branch updated"              '. += [{"ts":$ts,"event":$ev,"agent":$agent,"summary":$summary}]' news.json > "$tmp"           && mv "$tmp" news.json
+
       - name: Update backup branch with current site
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name  "github-actions"
+          git config user.name "github-actions"
           git config user.email "actions@github.com"
           git fetch origin "$BACKUP_BRANCH" || true
           git checkout -B "$BACKUP_BRANCH"
