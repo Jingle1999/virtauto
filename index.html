@@ -1,3 +1,8 @@
+<html>
+<defekt>
+<head>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -73,10 +78,6 @@
     </ul>
   </section>
 
-  <footer>
-    &copy; 2025 virtauto – powered by GitHub Actions
-  </footer>
-
   <script>
     async function loadNews() {
       try {
@@ -104,4 +105,22 @@
     loadNews();
   </script>
 </body>
+
+<footer style="margin-top:3rem; padding:1rem; text-align:center; font-size:.95rem; color:#444">
+  <div>
+    &copy; 2025 virtauto – powered by GitHub Actions
+  </div>
+
+  <div style="margin-top:.5rem">
+    <span id="deploy-badge" style="
+        display:inline-block; padding:.25rem .6rem; border-radius:.6rem;
+        background:#bbb; color:#fff; font-weight:600;">
+      Status wird geladen…
+    </span>
+    <span id="deploy-info" style="margin-left:.5rem; opacity:.8"></span>
+  </div>
+
+  <script src="status.js"></script>
+</footer>
+
 </html>
