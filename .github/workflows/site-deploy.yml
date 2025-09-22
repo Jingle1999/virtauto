@@ -11,10 +11,9 @@ permissions:
 
 env:
   BACKUP_BRANCH: pages-backup
-  CUSTOM_URL: https://www.virtauto.de   # ggf. anpassen
+  CUSTOM_URL: https://www.virtauto.de
 
 jobs:
-  # 1) Build: Artefakt erzeugen + "Deploy start" in news.json eintragen
   build:
     runs-on: ubuntu-latest
     steps:
@@ -23,6 +22,7 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
+      # Audit-Log: Deploy start
       - name: Append news.json (Deploy start)
         run: |
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -47,7 +47,6 @@ jobs:
         with:
           path: ./
 
-  # 2) Deploy auf GitHub Pages
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -56,7 +55,6 @@ jobs:
         id: pages
         uses: actions/deploy-pages@v4
 
-  # 3) Healthcheck mit bis zu 3 Versuchen
   healthcheck:
     runs-on: ubuntu-latest
     needs: deploy
@@ -82,56 +80,6 @@ jobs:
           echo "::error::Healthcheck failed after 3 attempts"
           exit 1
 
-  # 4) Nach Erfolg: Status=ok + News ergänzen + kurzer Redeploy
-  status-ok:
-    runs-on: ubuntu-latest
-    needs: healthcheck
-    if: success()
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Write status.json (ok)
-        run: |
-          cat > status.json << 'JSON'
-          {
-            "status": "ok",
-            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "commit": "${GITHUB_SHA}",
-            "note": "Deployment passed healthcheck"
-          }
-          JSON
-
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Append news.json (Deployment OK)
-        run: |
-          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          tmp=$(mktemp)
-          if [ -f news.json ]; then
-            jq --arg ts "$ts" \
-               --arg ev "Deployment" \
-               --arg ag "Healthcheck" \
-               --arg su "Website successfully updated" \
-               '([{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}] + .)[:50]' news.json > "$tmp"
-          else
-            jq -n --arg ts "$ts" \
-                  --arg ev "Deployment" \
-                  --arg ag "Healthcheck" \
-                  --arg su "Website successfully updated" \
-                  '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
-          fi
-          mv "$tmp" news.json
-
-      - name: Upload tiny artifact (status/news)
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./
-
-      - name: Deploy status update
-        uses: actions/deploy-pages@v4
-
-  # 5) Rollback bei Fehlschlag: Status=rollback + News + Backup deployen
   rollback:
     runs-on: ubuntu-latest
     needs: healthcheck
@@ -192,10 +140,9 @@ jobs:
       - name: Deploy backup to GitHub Pages
         uses: actions/deploy-pages@v4
 
-  # 6) Nach Erfolg: Backup-Branch aktualisieren
   update-backup:
     runs-on: ubuntu-latest
-    needs: status-ok
+    needs: healthcheck
     if: success()
     steps:
       - uses: actions/checkout@v4
