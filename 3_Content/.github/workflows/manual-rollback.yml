@@ -1,0 +1,29 @@
+name: Manual rollback (redeploy backup)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  id-token: write
+  contents: read
+
+env:
+  BACKUP_BRANCH: pages-backup
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout backup branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BACKUP_BRANCH }}
+          fetch-depth: 0
+      - name: Upload backup artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+      - name: Deploy backup to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
