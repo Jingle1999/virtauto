@@ -5,62 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>virtauto – Live Status</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f9f9f9; color: #222; margin: 2rem; }
-    header { text-align: center; margin-bottom: 2rem; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+      color: #222;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
     h1 { color: #004080; }
-    section { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
+    section {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: auto;
+    }
     ul { list-style-type: none; padding: 0; }
-    li { padding: 0.8rem; margin: 0.5rem 0; border-left: 5px solid #ccc; background: #f0f4f8; border-radius: 4px; }
-    .Deploy\ start { border-color: #007bff; }
-    .Deploy\ success { border-color: #28a745; }
-    .Rollback { border-color: #dc3545; }
-    .Healthcheck\ failed { border-color: #ffc107; }
-    .timestamp { font-size: 0.9em; color: #666; margin-right: 0.5rem; }
+    li {
+      background: #f0f4f8;
+      margin: 0.5rem 0;
+      padding: 0.8rem;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .event-success { color: green; }
+    .event-failed { color: red; }
+    .event-rollback { color: orange; }
   </style>
 </head>
 <body>
   <header>
     <h1>virtauto – Live Status Dashboard</h1>
     <p>Aktuelle Deploy-Ereignisse aus <code>news.json</code>. Aktualisiert sich automatisch.</p>
+    <p><span id="status">🔄 Status lädt...</span></p>
   </header>
-
   <section>
-    <ul id="news-list">
-      <li>Loading latest events...</li>
-    </ul>
+    <h2>Aktuelle Ereignisse</h2>
+    <ul id="events"></ul>
   </section>
-
-  <footer style="margin-top:2rem; text-align:center; font-size:.9rem; color:#444">
-    &copy; 2025 virtauto — powered by GitHub Actions
-  </footer>
-
-  <script>
-    async function loadNews() {
-      try {
-        const res = await fetch('news.json?_t=' + new Date().getTime());
-        const data = await res.json();
-        const list = document.getElementById('news-list');
-        list.innerHTML = '';
-
-        if (data.length === 0) {
-          list.innerHTML = '<li>No recent events</li>';
-          return;
-        }
-
-        data.slice().reverse().forEach(item => {
-          const li = document.createElement('li');
-          li.className = item.event;
-          li.innerHTML = '<span class="timestamp">['+item.ts+']</span> <strong>'+item.event+'</strong> → '+item.agent+' :: '+item.summary;
-          list.appendChild(li);
-        });
-      } catch (err) {
-        console.error('Failed to load news.json', err);
-        document.getElementById('news-list').innerHTML = '<li>Error loading events</li>';
-      }
-    }
-
-    loadNews();
-    setInterval(loadNews, 30000);
-  </script>
+  <script src="status.js"></script>
 </body>
 </html>

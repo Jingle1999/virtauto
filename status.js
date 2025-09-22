@@ -1,47 +1,32 @@
-(function () {
-  async function loadStatus() {
-    const badge = document.getElementById('deploy-badge');
-    const info  = document.getElementById('deploy-info');
+async function loadEvents() {
+  try {
+    const response = await fetch('news.json?_=' + new Date().getTime());
+    const data = await response.json();
+    const list = document.getElementById('events');
+    list.innerHTML = '';
 
-    // Fallback, falls Elemente fehlen
-    if (!badge || !info) return;
+    data.slice(0, 20).forEach(event => {
+      const li = document.createElement('li');
+      let cssClass = '';
+      let icon = '';
 
-    const setBadge = (bg, label) => {
-      badge.style.background = bg;
-      badge.textContent = label;
-    };
+      if (event.event.includes('success')) { cssClass = 'event-success'; icon = '🟢'; }
+      else if (event.event.includes('failed')) { cssClass = 'event-failed'; icon = '🔴'; }
+      else if (event.event.includes('Rollback')) { cssClass = 'event-rollback'; icon = '🟡'; }
+      else { icon = 'ℹ️'; }
 
-    try {
-      const res = await fetch('status.json', { cache: 'no-store' });
-      if (!res.ok) throw new Error('status.json not found');
-      const data = await res.json();
+      li.className = cssClass;
+      li.textContent = `[${event.ts}] ${event.event} — ${event.agent} :: ${event.summary}`;
+      li.prepend(icon + ' ');
+      list.appendChild(li);
+    });
 
-      // Statusfarben/-texte
-      if (data.status === 'ok') {
-        setBadge('#16a34a', 'Deployment OK'); // grün
-      } else if (data.status === 'rollback') {
-        setBadge('#dc2626', 'Rollback aktiv'); // rot
-      } else if (data.status === 'deploying') {
-        setBadge('#ca8a04', 'Deploy läuft…'); // gelb
-      } else {
-        setBadge('#6b7280', 'Status unbekannt'); // grau
-      }
-
-      // Zusatzinfos (Zeit, Commit, Notiz)
-      const ts     = data.timestamp ? new Date(data.timestamp).toLocaleString() : '';
-      const commit = data.commit ? String(data.commit).slice(0, 7) : '';
-      const parts  = [];
-      if (ts) parts.push(ts);
-      if (commit) parts.push(commit);
-      if (data.note) parts.push(data.note);
-      info.textContent = parts.length ? `(${parts.join(' • ')})` : '';
-    } catch (e) {
-      // Kein status.json vorhanden oder Fehler -> neutraler Fallback
-      setBadge('#6b7280', 'Status unbekannt');
-      info.textContent = '';
-      // console.warn('status.js:', e);
-    }
+    document.getElementById('status').textContent = '✅ Live aktualisiert';
+  } catch (err) {
+    document.getElementById('status').textContent = '⚠️ Fehler beim Laden';
   }
+}
 
-  loadStatus();
-})();
+// Auto-Refresh alle 30 Sekunden
+setInterval(loadEvents, 30000);
+loadEvents();

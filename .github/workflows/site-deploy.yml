@@ -17,7 +17,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -26,7 +27,12 @@ jobs:
         run: |
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           tmp=$(mktemp)
-          jq --arg ts "$ts"              --arg event "Deploy start"              --arg agent "CI/CD"              --arg summary "Deployment pipeline triggered"              '. += [{"ts":$ts,"event":$event,"agent":$agent,"summary":$summary}]' news.json > "$tmp"              && mv "$tmp" news.json
+          jq -n --arg ts "$ts" --arg ev "Deploy start" --arg ag "CI/CD" --arg su "Deployment pipeline triggered"             '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
+          if [ -f news.json ]; then
+            jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
+          else
+            mv "$tmp" news.json
+          fi
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
@@ -45,28 +51,29 @@ jobs:
         run: |
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           tmp=$(mktemp)
-          jq --arg ts "$ts"              --arg event "Deploy success"              --arg agent "GitHub Actions"              --arg summary "Deployment successful"              '. += [{"ts":$ts,"event":$event,"agent":$agent,"summary":$summary}]' news.json > "$tmp"              && mv "$tmp" news.json
+          jq -n --arg ts "$ts" --arg ev "Deploy success" --arg ag "CI/CD" --arg su "Deployment successful"             '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
+          if [ -f news.json ]; then
+            jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
+          else
+            mv "$tmp" news.json
+          fi
 
   healthcheck:
     runs-on: ubuntu-latest
     needs: deploy
     steps:
-      - name: Check homepage (200 expected, 3 retries)
+      - name: Check homepage
         shell: bash
         run: |
           URL="${{ env.CUSTOM_URL }}"
           if [ -z "$URL" ]; then
-            echo "::error::No CUSTOM_URL provided"
-            exit 1
+            echo "Error: No CUSTOM_URL provided" && exit 1
           fi
           echo "Healthcheck on $URL"
           for i in 1 2 3; do
             code=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
-            if [ "$code" -eq 200 ]; then
-              echo "OK"
-              exit 0
-            fi
-            echo "Attempt $i failed with $code"
+            echo "Attempt $i: HTTP code $code"
+            if [ "$code" -eq 200 ]; then exit 0; fi
             sleep 5
           done
           exit 1
@@ -76,7 +83,12 @@ jobs:
         run: |
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           tmp=$(mktemp)
-          jq --arg ts "$ts"              --arg event "Healthcheck failed"              --arg agent "Monitor"              --arg summary "Site unreachable"              '. += [{"ts":$ts,"event":$event,"agent":$agent,"summary":$summary}]' news.json > "$tmp"              && mv "$tmp" news.json
+          jq -n --arg ts "$ts" --arg ev "Healthcheck failed" --arg ag "Monitor" --arg su "Site unreachable"             '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
+          if [ -f news.json ]; then
+            jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
+          else
+            mv "$tmp" news.json
+          fi
 
   rollback:
     runs-on: ubuntu-latest
@@ -89,7 +101,12 @@ jobs:
         run: |
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           tmp=$(mktemp)
-          jq --arg ts "$ts"              --arg event "Rollback"              --arg agent "Healthcheck"              --arg summary "Restored from backup"              '. += [{"ts":$ts,"event":$event,"agent":$agent,"summary":$summary}]' news.json > "$tmp"              && mv "$tmp" news.json
+          jq -n --arg ts "$ts" --arg ev "Rollback" --arg ag "CI/CD" --arg su "Restored from backup"             '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
+          if [ -f news.json ]; then
+            jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
+          else
+            mv "$tmp" news.json
+          fi
 
       - name: Upload backup artifact
         uses: actions/upload-pages-artifact@v3
@@ -105,17 +122,14 @@ jobs:
     if: success()
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Update backup branch with current site
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git fetch origin "$BACKUP_BRANCH" || true
-          git checkout -B "$BACKUP_BRANCH"
+          git fetch origin "\${BACKUP_BRANCH}" || true
+          git checkout -B "\${BACKUP_BRANCH}"
           git add -A
-          git commit -m "backup from ${GITHUB_SHA}" || echo "No changes to commit"
-          git push origin "$BACKUP_BRANCH" --force
+          git commit -m "backup from \${GITHUB_SHA}" || echo "No changes to commit"
+          git push origin "\${BACKUP_BRANCH}" --force
