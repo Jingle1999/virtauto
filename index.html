@@ -1,126 +1,207 @@
-<html>
-<defekt>
-<head>
-
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>virtauto – Live Status</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
-      background-color: #f9f9f9;
-      color: #222;
+    :root{
+      --bg:#f6f7fb; --panel:#fff;
+      --text:#152233; --muted:#5b6b7a;
+      --ok:#1a9f5a; --warn:#e08a00; --err:#d13b3b; --info:#276ef1;
+      --chip:#eef1f7; --border:#e6e9f0;
     }
-    header {
-      text-align: center;
-      margin-bottom: 2rem;
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
+    header{max-width:980px;margin:28px auto 18px;padding:0 16px}
+    h1{margin:0 0 4px;font-size:clamp(1.4rem,2.5vw,1.8rem)}
+    .sub{color:var(--muted);font-size:.95rem}
+
+    .badgebar{
+      display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap
     }
-    h1 {
-      color: #004080;
+    .badge{
+      display:inline-flex;align-items:center;gap:.5rem;
+      padding:.45rem .7rem;border-radius:999px;background:var(--chip);color:var(--muted);font-weight:600;font-size:.9rem
     }
-    section {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      max-width: 800px;
-      margin: auto;
+    .badge .dot{width:.55rem;height:.55rem;border-radius:50%}
+    .dot.ok{background:var(--ok)}
+    .dot.warn{background:var(--warn)}
+    .dot.err{background:var(--err)}
+    .dot.info{background:var(--info)}
+
+    main{max-width:980px;margin:0 auto;padding:0 16px 40px}
+    .panel{
+      background:var(--panel);border:1px solid var(--border);border-radius:14px;
+      box-shadow:0 1px 2px rgba(16,24,40,.03);overflow:hidden
     }
-    ul {
-      list-style-type: none;
-      padding: 0;
+    .panel h2{margin:0;padding:16px 18px;border-bottom:1px solid var(--border);font-size:1.05rem}
+    .controls{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+    .controls input,.controls select{
+      padding:.5rem .65rem;border:1px solid var(--border);border-radius:8px;background:#fff
     }
-    li {
-      background: #f0f4f8;
-      margin: 0.5rem 0;
-      padding: 0.8rem;
-      border-radius: 5px;
-      font-size: 0.95rem;
+
+    ul.events{list-style:none;margin:0;padding:0}
+    .item{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .item:last-child{border-bottom:0}
+    .icon{
+      width:28px;height:28px;display:grid;place-items:center;border-radius:8px;color:#fff;font-size:16px;font-weight:700
     }
-    .timestamp {
-      font-weight: bold;
-      color: #555;
-    }
-    footer {
-      text-align: center;
-      margin-top: 2rem;
-      font-size: 0.85rem;
-      color: #666;
-    }
-    .test-banner {
-      color: red;
-      font-weight: bold;
-      text-align: center;
-      margin: 1rem 0;
-    }
+    .icon.deploy{background:var(--ok)}
+    .icon.rollback{background:var(--err)}
+    .icon.healthcheck{background:var(--info)}
+    .icon.info{background:var(--muted)}
+    .title{font-weight:700}
+    .meta{color:var(--muted);font-size:.92rem}
+    .summary{color:var(--text)}
+    .ts{white-space:nowrap;color:var(--muted);font-size:.9rem}
+
+    .empty{padding:28px 18px;color:var(--muted)}
+    footer{max-width:980px;margin:28px auto;padding:0 16px 30px;color:var(--muted);font-size:.9rem}
+    .sr-only{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px)}
   </style>
 </head>
 <body>
-  <header>
-    <h1>virtauto – Live Status Dashboard</h1>
-    <p>Latest updates from audit log (auto-updated)</p>
-  </header>
+<header>
+  <h1>virtauto – Live Status Dashboard</h1>
+  <p class="sub">Aktuelle Deploy-Ereignisse aus <code>news.json</code>. Aktualisiert sich automatisch.</p>
 
-  <!-- Test-Zeile -->
-  <div class="test-banner">
-    ✅ virtauto deployment test successful – 20.09.2025
+  <!-- Deployment-Badge aus status.json (dein bestehendes status.js) -->
+  <div class="badgebar">
+    <span class="badge"><span class="dot ok"></span><span id="deploy-badge">Status lädt…</span></span>
+    <span id="deploy-info" class="sub"></span>
   </div>
+</header>
 
-  <section id="latest-news">
-    <h2>Latest Runs</h2>
-    <ul id="news-list">
-      <li>Loading latest events...</li>
-    </ul>
+<main>
+  <section class="panel" aria-labelledby="events-h">
+    <h2 id="events-h">Aktuelle Ereignisse</h2>
+
+    <div class="controls">
+      <label>
+        <span class="sr-only">Filter Ereignistyp</span>
+        <select id="typeFilter">
+          <option value="">Alle Typen</option>
+          <option value="Deployment">Deployment</option>
+          <option value="Rollback">Rollback</option>
+          <option value="Healthcheck">Healthcheck</option>
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Suche</span>
+        <input id="searchBox" type="search" placeholder="Suchen (Agent, Summary)…"/>
+      </label>
+      <label>
+        <span class="sr-only">Anzahl</span>
+        <select id="limit">
+          <option>20</option><option selected>50</option><option>100</option>
+        </select>
+      </label>
+    </div>
+
+    <ul id="list" class="events" role="list"></ul>
+    <div id="empty" class="empty" hidden>Keine Ereignisse gefunden.</div>
   </section>
+</main>
 
-  <script>
-    async function loadNews() {
-      try {
-        const res = await fetch('news.json');
-        const data = await res.json();
-        const list = document.getElementById('news-list');
-        list.innerHTML = '';
+<footer>© 2025 virtauto — powered by GitHub Actions</footer>
 
-        if (data.length === 0) {
-          list.innerHTML = '<li>No recent events</li>';
-          return;
-        }
+<!-- dein bestehendes Badge-Script (liest status.json) -->
+<script src="status.js"></script>
 
-        data.forEach(item => {
-          const li = document.createElement('li');
-          li.innerHTML = `<span class="timestamp">[${item.ts}]</span> <strong>${item.event}</strong> → ${item.agent} :: ${item.summary}`;
-          list.appendChild(li);
-        });
-      } catch (err) {
-        console.error('Failed to load news.json', err);
-        document.getElementById('news-list').innerHTML = '<li>Error loading events</li>';
-      }
-    }
+<script>
+/* ---------- Konfiguration ---------- */
+const NEWS_URL = 'news.json';      // liegt im Repo-Root
+const AUTO_REFRESH_MS = 20_000;    // alle 20s neu laden
 
-    loadNews();
-  </script>
+/* Map: Typ -> Icon/Label + Farbe-Klasse */
+const TYPE_MAP = {
+  'Deployment': { cls:'deploy', icon:'✓', label:'Deployment' },
+  'Rollback'  : { cls:'rollback', icon:'↩', label:'Rollback' },
+  'Healthcheck':{ cls:'healthcheck', icon:'♥', label:'Healthcheck' }
+};
+
+const listEl  = document.getElementById('list');
+const emptyEl = document.getElementById('empty');
+const filterEl= document.getElementById('typeFilter');
+const searchEl= document.getElementById('searchBox');
+const limitEl = document.getElementById('limit');
+
+let dataCache = [];
+
+/* Utils */
+const fmtTs = iso => {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString(undefined, { year:'numeric', month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  } catch { return iso; }
+};
+const normalize = s => (s||'').toString().toLowerCase();
+
+/* Rendering */
+function render(){
+  const type = filterEl.value;
+  const q = normalize(searchEl.value);
+  const lim = parseInt(limitEl.value,10) || 50;
+
+  let arr = [...dataCache];
+  if (type) arr = arr.filter(x => x.event === type);
+  if (q)    arr = arr.filter(x =>
+              normalize(x.agent).includes(q) ||
+              normalize(x.summary).includes(q) ||
+              normalize(x.event).includes(q)
+            );
+
+  // neueste zuerst (so erzeugt dein jq die Liste)
+  arr = arr.slice(0, lim);
+
+  listEl.innerHTML = '';
+  if (arr.length === 0){
+    emptyEl.hidden = false;
+    return;
+  }
+  emptyEl.hidden = true;
+
+  const frag = document.createDocumentFragment();
+  for (const ev of arr){
+    const map = TYPE_MAP[ev.event] || {cls:'info', icon:'i', label:ev.event||'Info'};
+
+    const li = document.createElement('li');
+    li.className = 'item';
+    li.innerHTML = `
+      <div class="icon ${map.cls}" aria-hidden="true">${map.icon}</div>
+      <div>
+        <div class="title">${map.label} <span class="meta">— ${ev.agent||'–'}</span></div>
+        <div class="summary">${(ev.summary||'').replace(/[<>&]/g,s=>({ '<':'&lt;','>':'&gt;','&':'&amp;' }[s]))}</div>
+      </div>
+      <div class="ts" title="${ev.ts}">${fmtTs(ev.ts)}</div>
+    `;
+    frag.appendChild(li);
+  }
+  listEl.appendChild(frag);
+}
+
+/* Laden & Auto-Refresh */
+async function loadNews(){
+  try{
+    const res = await fetch(NEWS_URL, { cache:'no-store' });
+    if(!res.ok) throw new Error('fetch news.json failed');
+    const data = await res.json();
+    // safety: erwarte Array
+    dataCache = Array.isArray(data) ? data : [];
+  }catch(e){
+    console.warn('news.json error:', e);
+    dataCache = [];
+  }finally{
+    render();
+  }
+}
+
+/* Events */
+[filterEl, searchEl, limitEl].forEach(el => el.addEventListener('input', render));
+loadNews();
+setInterval(loadNews, AUTO_REFRESH_MS);
+</script>
 </body>
-
-<footer style="margin-top:3rem; padding:1rem; text-align:center; font-size:.95rem; color:#444">
-  <div>
-    &copy; 2025 virtauto – powered by GitHub Actions
-  </div>
-
-  <div style="margin-top:.5rem">
-    <span id="deploy-badge" style="
-        display:inline-block; padding:.25rem .6rem; border-radius:.6rem;
-        background:#bbb; color:#fff; font-weight:600;">
-      Status wird geladen…
-    </span>
-    <span id="deploy-info" style="margin-left:.5rem; opacity:.8"></span>
-  </div>
-
-  <script src="status.js"></script>
-</footer>
-
 </html>
