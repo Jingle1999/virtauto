@@ -1,3 +1,14 @@
 [
-  { "ts": "2025-09-20T20:55:00Z", "event": "Site online", "agent": "virtauto", "summary": "initial deploy" }
+  {
+    "ts": "2025-09-22T09:00:00Z",
+    "event": "Deployment",
+    "agent": "CI/CD",
+    "summary": "Website successfully updated"
+  },
+  {
+    "ts": "2025-09-22T09:30:00Z",
+    "event": "Rollback",
+    "agent": "Healthcheck",
+    "summary": "Restored from backup"
+  }
 ]
