@@ -1,26 +1,84 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>virtauto – Live Status Dashboard</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-    h1 { color: #003366; }
-    .status { margin-top: 20px; }
-    .status ul { list-style: none; padding: 0; }
-    .status li { padding: 8px; margin-bottom: 6px; border-radius: 5px; }
-    .green { background: #d4edda; color: #155724; }
-    .yellow { background: #fff3cd; color: #856404; }
-    .red { background: #f8d7da; color: #721c24; }
-    #filter { margin-bottom: 15px; padding: 6px; width: 300px; }
+    :root{
+      --bg:#f7f7fb; --card:#ffffff; --ink:#1b2330; --muted:#61708a;
+      --ok:#16a34a; --warn:#f59e0b; --err:#dc2626; --info:#2563eb;
+      --chip:#eef2ff; --border:#e6e7ee;
+    }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+    .wrap{max-width:980px;margin:32px auto;padding:0 16px;}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .ttl{font-size:clamp(20px,2.8vw,28px);font-weight:700;}
+    .live{display:inline-flex;align-items:center;gap:8px;background:var(--chip);padding:6px 10px;border-radius:20px;border:1px solid var(--border);font-size:13px;color:var(--muted);}
+    .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent);}
+    .dot.warn{background:var(--warn);box-shadow:0 0 0 3px color-mix(in srgb, var(--warn) 25%, transparent);}
+    .dot.err{background:var(--err);box-shadow:0 0 0 3px color-mix(in srgb, var(--err) 25%, transparent);}
+    .tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0;}
+    .input{flex:1 1 280px;min-width:220px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--ink);}
+    .input input{border:0;outline:none;width:100%;font:inherit;color:inherit;background:transparent;}
+    select,.btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 10px;font:inherit;color:inherit;}
+    .btn{cursor:pointer}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    ul{list-style:none;margin:0;padding:0;}
+    li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-top:1px solid var(--border);}
+    li:first-child{border-top:0}
+    .badge{width:10px;height:10px;border-radius:50%;margin-top:7px;flex:0 0 10px}
+    .b-ok{background:var(--ok)} .b-warn{background:var(--warn)} .b-err{background:var(--err)} .b-info{background:var(--info)}
+    .meta{font-size:13px;color:var(--muted)}
+    .sep{height:8px}
+    .hint{font-size:13px;color:var(--muted);margin-left:2px}
+    footer{margin:22px 0;color:var(--muted);font-size:13px;text-align:center}
+    .pill{display:inline-block;border:1px solid var(--border);padding:2px 8px;border-radius:999px;font-size:12px;color:var(--muted)}
+    .statusbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    .hidden{display:none}
   </style>
 </head>
 <body>
-  <h1>virtauto – Live Status Dashboard</h1>
-  <p><strong>Suche:</strong> <input type="text" id="filter" placeholder="Filter nach Text..." /></p>
-  <div class="status">
-    <ul id="statusList"></ul>
+  <div class="wrap">
+    <header>
+      <div class="ttl">virtauto – Live Status Dashboard</div>
+      <div class="live"><span id="liveDot" class="dot"></span><span id="liveTxt">Live aktualisiert</span></div>
+    </header>
+
+    <div class="tools">
+      <label class="input" title="Volltextsuche in Agent, Event, Summary">
+        🔎 <input id="q" type="search" placeholder="Suchen (Agent, Event, Summary)…" />
+      </label>
+      <select id="filter" title="Typ-Filter">
+        <option value="">Alle Typen</option>
+        <option value="start">Deploy start</option>
+        <option value="success">Deployment success</option>
+        <option value="health">Healthcheck</option>
+        <option value="rollback">Rollback</option>
+      </select>
+      <select id="limit" title="Anzahl Einträge">
+        <option>25</option>
+        <option selected>50</option>
+        <option>100</option>
+      </select>
+      <button id="refresh" class="btn" title="Neu laden">↻ Aktualisieren</button>
+      <span class="hint" id="lastUpdated"></span>
+    </div>
+
+    <div class="card">
+      <ul id="list" aria-live="polite"></ul>
+    </div>
+
+    <div class="statusbar">
+      <span class="pill"><span class="b-info badge" style="vertical-align:-2px;margin-right:6px"></span>Deploy start</span>
+      <span class="pill"><span class="b-ok badge" style="vertical-align:-2px;margin-right:6px"></span>Deployment success</span>
+      <span class="pill"><span class="b-warn badge" style="vertical-align:-2px;margin-right:6px"></span>Rollback aktiv</span>
+      <span class="pill"><span class="b-err badge" style="vertical-align:-2px;margin-right:6px"></span>Healthcheck failed</span>
+    </div>
+
+    <footer>© 2025 virtauto — powered by GitHub Actions</footer>
   </div>
+
   <script src="status.js"></script>
 </body>
 </html>
