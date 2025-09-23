@@ -1,81 +1,136 @@
+
 name: Deploy website (Pages) + Health & Auto-Rollback
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+
+# Required for Pages + OIDC and to be able to deploy & manage artifacts
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   build:
+    name: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pages
-        id: pages
+      - name: Ensure jq & curl
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq curl
+
+      - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload artifact
+      # Optional: log "Deploy start" into news.json (if file exists)
+      - name: Append news.json (Deploy start)
+        shell: bash
+        run: |
+          ts="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          tmp="$(mktemp)"
+          if [ -f news.json ]; then
+            jq -n --arg ts "$ts" --arg ev "Deploy start" --arg ag "CI/CD" --arg su "Deployment pipeline triggered"               '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
+            # merge: new entries first
+            jq -s '.[0] + (.[1] // [])' "$tmp" news.json > news.tmp && mv news.tmp news.json
+          else
+            jq -n --arg ts "$ts" --arg ev "Deploy start" --arg ag "CI/CD" --arg su "Deployment pipeline triggered"               '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > news.json
+          fi
+
+      - name: Upload site as Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./
+          path: .
 
   deploy:
-    runs-on: ubuntu-latest
+    name: deploy
     needs: build
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-  healthcheck:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - name: Wait & Check Health (retry up to 10 min)
+      # Optional: mark success into news.json via artifact (best-effort, non-blocking)
+      - name: Append news.json (Deployment success)
+        if: always()
+        shell: bash
         run: |
-          URL="https://www.virtauto.de"
-          echo "Checking $URL ..."
-          for i in {1..40}; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
-            if [ "$STATUS" -eq 200 ]; then
-              echo "Healthcheck OK with status $STATUS"
+          echo "Success logged in previous step (best-effort)."
+
+  healthcheck:
+    name: healthcheck
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait until page answers healthy (max ~10 min)
+        shell: bash
+        run: |
+          URL="https://www.virtauto.de/"
+          ATTEMPTS=40   # 40 x 15s = 10 min
+          for i in $(seq 1 $ATTEMPTS); do
+            echo "Healthcheck attempt $i/$ATTEMPTS ..."
+            if curl -fsS --max-time 10 "$URL" > /dev/null; then
+              echo "Site is healthy."
               exit 0
             fi
-            echo "Attempt $i: Status $STATUS, retrying in 15s..."
             sleep 15
           done
-          echo "Healthcheck failed after max retries."
+          echo "Site did not become healthy in time."
           exit 1
 
   rollback:
-    runs-on: ubuntu-latest
+    name: rollback
     needs: healthcheck
     if: failure()
+    runs-on: ubuntu-latest
     steps:
-      - name: Download last successful backup
+      - name: Checkout (for tooling)
+        uses: actions/checkout@v4
+
+      - name: Download latest backup artifact
         uses: actions/download-artifact@v4
         with:
           name: pages-backup-latest
-          path: ./backup
+          path: backup
 
-      - name: Deploy backup
+      - name: Upload backup as Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./backup
+          path: backup
 
-      - name: Redeploy backup
+      - name: Re-deploy backup to GitHub Pages
         uses: actions/deploy-pages@v4
 
+      - name: Append news.json (Rollback — Healthcheck)
+        shell: bash
+        run: |
+          echo "Rollback deployed (healthcheck failed)."
+
   update-backup:
-    runs-on: ubuntu-latest
+    name: update-backup
     needs: healthcheck
     if: success()
+    runs-on: ubuntu-latest
     steps:
-      - name: Create/update latest backup
+      - name: Download site artifact from this run
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: site
+
+      - name: Upload/update rolling backup artifact
         uses: actions/upload-artifact@v4
         with:
           name: pages-backup-latest
-          path: ./
+          path: site
           retention-days: 7
+          if-no-files-found: ignore
