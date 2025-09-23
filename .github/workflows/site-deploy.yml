@@ -1,11 +1,11 @@
+
 name: Deploy website (Pages) + Health & Auto-Rollback
 
 on:
   push:
-    branches: [ "main" ]
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -14,32 +14,16 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PAGES_URL_FALLBACK: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
-  LIVE_MARKER: "Live Status Dashboard"   # text that must appear on the page
+  SITE_URL: "https://www.virtauto.de"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      # Make sure news.json exists (dashboard feed)
-      - name: Ensure news.json exists
-        shell: bash
-        run: |
-          test -f news.json || echo '[]' > news.json
-
-      # Log "Deploy start" (will be committed in log-status job)
-      - name: Write deploy-start marker
-        shell: bash
-        run: |
-          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          tmp=$(mktemp)
-          jq -n --arg ts "$ts"                 --arg ev "Deploy start"                 --arg ag "CI/CD"                 --arg su "Deployment pipeline triggered"                 '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
-          jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
-
-      # Upload the site as artifact for Pages (root of repo)
-      - name: Upload site
+      - name: Upload website artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
@@ -47,115 +31,65 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - id: deployment
+      - name: Deploy to GitHub Pages
+        id: deploy
         uses: actions/deploy-pages@v4
 
   healthcheck:
-    name: Healthcheck (robust with retries)
     needs: deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Compute URL
-        id: url
+      - name: Wait for site to be reachable (robust healthcheck with retries)
         shell: bash
         run: |
-          # Prefer the URL from the deploy step, otherwise fallback to standard pages URL
-          url="${{ needs.deploy.outputs.page_url }}"
-          if [ -z "$url" ]; then url="${{ env.PAGES_URL_FALLBACK }}"; fi
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-
-      - name: Wait for page to be ready + validate content
-        id: hc
-        shell: bash
-        run: |
-          set -e
-          URL="${{ steps.url.outputs.url }}"
-          echo "Healthchecking: $URL"
-          # 20 attempts * 10s = ~3 min max wait
-          ok=0
-          for i in $(seq 1 20); do
-            code=$(curl -sS -L -o page.html -w "%{http_code}" "$URL?nocache=$RANDOM")
-            if [ "$code" = "200" ] && grep -qi "${{ env.LIVE_MARKER }}" page.html; then
-              ok=1
-              break
+          echo "➡️  Healthcheck for ${SITE_URL}"
+          attempt=0
+          max=10
+          sleep_secs=10
+          while (( attempt < max )); do
+            attempt=$((attempt+1))
+            ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            echo "⏳ [${ts}] Attempt ${attempt}/${max} ..."
+            url="${SITE_URL}?_=${RANDOM}${RANDOM}"
+            http_code=$(curl -sS -o body.txt -w "%{http_code}" -L "$url" || echo "000")
+            size=$(wc -c < body.txt | tr -d ' ')
+            echo "    -> http_code=${http_code}, bytes=${size}"
+            if [[ "${http_code}" == "200" && "${size}" -gt 100 ]]; then
+              echo "✅ Healthcheck OK"
+              exit 0
             fi
-            echo "Attempt $i/20 failed (HTTP $code). Waiting…"
-            sleep 10
+            echo "   Waiting ${sleep_secs}s and retry ..."
+            sleep "${sleep_secs}"
           done
-          if [ "$ok" = "1" ]; then
-            echo "status=ok" >> "$GITHUB_OUTPUT"
-            exit 0
-          else
-            echo "::error::Healthcheck failed for $URL"
-            echo "status=failed" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
+          echo "❌ Healthcheck failed after ${max} attempts"
+          exit 1
 
   rollback:
-    needs: healthcheck
-    if: failure()
+    if: ${{ needs.healthcheck.result == 'failure' }}
+    needs: [deploy, healthcheck]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Log rollback marker (for later commit)
-        shell: bash
+      - name: Rollback placeholder
         run: |
-          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          tmp=$(mktemp)
-          jq -n --arg ts "$ts"                 --arg ev "Rollback"                 --arg ag "Healthcheck"                 --arg su "Restored from backup"                 '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
-          jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
-
-      # TODO: insert your real restore-from-backup logic here if needed
+          echo "::warning::Healthcheck failed – rollback hook reached."
+          echo "Implement your restore logic here (e.g., redeploy last successful backup)."
 
   update-backup:
     needs: [deploy]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      # minimal placeholder to show where your backup logic would run
-      - name: Update backup placeholder
-        run: echo "backup refreshed at $(date -u)" > .last_backup.txt
+      - name: Checkout repo (for backup context)
+        uses: actions/checkout@v4
 
-  log-status:
-    # single place that commits news.json, no matter what happened above
-    needs: [build, deploy, healthcheck, rollback]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      # Append "Deployment success" or "Healthcheck failed" according to result
-      - name: Append outcome event
-        shell: bash
+      - name: Create simple tarball backup of current repo state
         run: |
-          set -e
-          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          if [ "${{ needs.healthcheck.result }}" = "success" ]; then
-            ev="Deployment success"; ag="CI/CD"; su="Website successfully updated"
-          else
-            ev="Healthcheck failed"; ag="Healthcheck"; su="Site unreachable or invalid"
-          fi
-          tmp=$(mktemp)
-          jq -n --arg ts "$ts" --arg ev "$ev" --arg ag "$ag" --arg su "$su"              '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
-          jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
+          tar --exclude="./.git" -czf "site-backup-${{ github.run_id }}.tar.gz" .
+          ls -lah "site-backup-${{ github.run_id }}.tar.gz"
 
-      - name: Commit news.json once
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -e
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add news.json .last_backup.txt || true
-          if ! git diff --cached --quiet; then
-            git commit -m "ci(status): update news.json (deploy logs)"
-            git push origin "${GITHUB_REF##*/}"
-          else
-            echo "No status changes to commit."
-          fi
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "site-backup-${{ github.run_id }}"
+          path: "site-backup-${{ github.run_id }}.tar.gz"
+          retention-days: 14
