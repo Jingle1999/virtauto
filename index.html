@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <title>virtauto – Live Status Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-        h1 { color: #003366; }
-        .status { margin: 10px 0; padding: 10px; border-radius: 5px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .status.info { border-left: 5px solid #2b7bba; }
-        .status.success { border-left: 5px solid #2e8b57; }
-        .status.error { border-left: 5px solid #b22222; }
-        .status.warning { border-left: 5px solid #daa520; }
-        #filter { margin-bottom: 20px; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>virtauto – Live Status Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    h1 { color: #003366; }
+    .status { margin-top: 20px; }
+    .status ul { list-style: none; padding: 0; }
+    .status li { padding: 8px; margin-bottom: 6px; border-radius: 5px; }
+    .green { background: #d4edda; color: #155724; }
+    .yellow { background: #fff3cd; color: #856404; }
+    .red { background: #f8d7da; color: #721c24; }
+    #filter { margin-bottom: 15px; padding: 6px; width: 300px; }
+  </style>
 </head>
 <body>
-    <h1>virtauto – Live Status Dashboard</h1>
-    <p>Aktuelle Deploy-Ereignisse aus <code>news.json</code>. Aktualisiert sich automatisch.</p>
-    <label for="search">🔍 Suche:</label>
-    <input type="text" id="search" placeholder="Filter nach Text...">
-    <div id="events"></div>
-    <script src="status.js"></script>
+  <h1>virtauto – Live Status Dashboard</h1>
+  <p><strong>Suche:</strong> <input type="text" id="filter" placeholder="Filter nach Text..." /></p>
+  <div class="status">
+    <ul id="statusList"></ul>
+  </div>
+  <script src="status.js"></script>
 </body>
 </html>

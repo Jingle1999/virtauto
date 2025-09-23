@@ -1,32 +1,26 @@
-async function loadEvents() {
+async function loadStatus() {
   try {
     const response = await fetch('news.json?_=' + new Date().getTime());
     const data = await response.json();
-    const list = document.getElementById('events');
+    const filter = document.getElementById('filter').value.toLowerCase();
+    const list = document.getElementById('statusList');
     list.innerHTML = '';
-
-    data.slice(0, 20).forEach(event => {
-      const li = document.createElement('li');
-      let cssClass = '';
-      let icon = '';
-
-      if (event.event.includes('success')) { cssClass = 'event-success'; icon = '🟢'; }
-      else if (event.event.includes('failed')) { cssClass = 'event-failed'; icon = '🔴'; }
-      else if (event.event.includes('Rollback')) { cssClass = 'event-rollback'; icon = '🟡'; }
-      else { icon = 'ℹ️'; }
-
-      li.className = cssClass;
-      li.textContent = `[${event.ts}] ${event.event} — ${event.agent} :: ${event.summary}`;
-      li.prepend(icon + ' ');
-      list.appendChild(li);
+    data.slice(0, 50).forEach(item => {
+      const text = `[${item.ts}] ${item.event} — ${item.agent} :: ${item.summary}`;
+      if (text.toLowerCase().includes(filter)) {
+        const li = document.createElement('li');
+        if (item.event.includes('Deploy start')) li.className = 'yellow';
+        else if (item.event.includes('Deployment success')) li.className = 'green';
+        else if (item.event.includes('Rollback')) li.className = 'yellow';
+        else if (item.event.includes('Healthcheck failed')) li.className = 'red';
+        li.textContent = text;
+        list.appendChild(li);
+      }
     });
-
-    document.getElementById('status').textContent = '✅ Live aktualisiert';
-  } catch (err) {
-    document.getElementById('status').textContent = '⚠️ Fehler beim Laden';
+  } catch (e) {
+    console.error('Fehler beim Laden der Statusdaten:', e);
   }
 }
-
-// Auto-Refresh alle 30 Sekunden
-setInterval(loadEvents, 30000);
-loadEvents();
+document.getElementById('filter').addEventListener('input', loadStatus);
+setInterval(loadStatus, 30000);
+loadStatus();
