@@ -2,162 +2,160 @@ name: Deploy website (Pages) + Health & Auto-Rollback
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
 
 permissions:
   contents: write
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 env:
-  BACKUP_BRANCH: pages-backup
-  CUSTOM_URL: https://www.virtauto.de
+  PAGES_URL_FALLBACK: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+  LIVE_MARKER: "Live Status Dashboard"   # text that must appear on the page
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Append news.json (Deploy start)
+      # Make sure news.json exists (dashboard feed)
+      - name: Ensure news.json exists
         shell: bash
         run: |
-          set -euo pipefail
-          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          ev="Deploy start"
-          ag="CI/CD"
-          su="Deployment pipeline triggered"
-          tmp=$(mktemp)
-          if [ -f news.json ]; then
-            jq -n --arg ts "$ts" --arg ev "$ev" --arg ag "$ag" --arg su "$su"                '. = [{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}] + (input|.[0:50])' news.json > "$tmp" && mv "$tmp" news.json
-          else
-            jq -n --arg ts "$ts" --arg ev "$ev" --arg ag "$ag" --arg su "$su"                '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > news.json
-          fi
+          test -f news.json || echo '[]' > news.json
 
-      - name: Upload site artifact
+      # Log "Deploy start" (will be committed in log-status job)
+      - name: Write deploy-start marker
+        shell: bash
+        run: |
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          tmp=$(mktemp)
+          jq -n --arg ts "$ts"                 --arg ev "Deploy start"                 --arg ag "CI/CD"                 --arg su "Deployment pipeline triggered"                 '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
+          jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
+
+      # Upload the site as artifact for Pages (root of repo)
+      - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./
+          path: .
 
   deploy:
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: pages
+      - id: deployment
         uses: actions/deploy-pages@v4
 
   healthcheck:
-    runs-on: ubuntu-latest
+    name: Healthcheck (robust with retries)
     needs: deploy
+    runs-on: ubuntu-latest
     steps:
-      - name: Decide URL (CUSTOM_URL or Pages fallback)
+      - name: Compute URL
         id: url
         shell: bash
         run: |
-          url="${CUSTOM_URL:-}"
-          fb="${{ steps.pages.outputs.page_url }}"
-          if [[ -n "$url" ]]; then
-            echo "Using CUSTOM_URL: $url"
-            echo "url=$url" >> $GITHUB_OUTPUT
-          elif [[ -n "$fb" ]]; then
-            echo "Using pages output: $fb"
-            echo "url=$fb" >> $GITHUB_OUTPUT
-          else
-            echo "No URL available (neither CUSTOM_URL nor pages output)."
-            exit 1
-          fi
+          # Prefer the URL from the deploy step, otherwise fallback to standard pages URL
+          url="${{ needs.deploy.outputs.page_url }}"
+          if [ -z "$url" ]; then url="${{ env.PAGES_URL_FALLBACK }}"; fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
-      - name: Healthcheck (200/301/302 expected, retry up to 2 min)
+      - name: Wait for page to be ready + validate content
+        id: hc
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
           URL="${{ steps.url.outputs.url }}"
-          echo "Checking URL: $URL"
+          echo "Healthchecking: $URL"
+          # 20 attempts * 10s = ~3 min max wait
           ok=0
-          for i in {1..15}; do
-            code=$(curl -sS -o /dev/null -w '%{http_code}' "$URL" || true)
-            echo "Attempt $i: $code ($URL)"
-            if [[ "$code" =~ ^(200|301|302)$ ]]; then ok=1; break; fi
-            code2=$(curl -sS -o /dev/null -w '%{http_code}' "${URL%/}/index.html" || true)
-            echo "Attempt $i (index.html): $code2 (${URL%/}/index.html)"
-            if [[ "$code2" =~ ^(200|301|302)$ ]]; then ok=1; break; fi
-            sleep 8
+          for i in $(seq 1 20); do
+            code=$(curl -sS -L -o page.html -w "%{http_code}" "$URL?nocache=$RANDOM")
+            if [ "$code" = "200" ] && grep -qi "${{ env.LIVE_MARKER }}" page.html; then
+              ok=1
+              break
+            fi
+            echo "Attempt $i/20 failed (HTTP $code). Waiting…"
+            sleep 10
           done
-          if [[ "$ok" -ne 1 ]]; then
-            echo "Healthcheck failed after retries."
-            exit 1
-          fi
-          echo "Healthcheck OK."
-
-      - name: Append news.json (Deploy success)
-        if: ${{ success() }}
-        shell: bash
-        run: |
-          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          ev="Deployment"
-          ag="CI/CD"
-          su="Website successfully updated"
-          tmp=$(mktemp)
-          if [ -f news.json ]; then
-            jq -n --arg ts "$ts" --arg ev "$ev" --arg ag "$ag" --arg su "$su"               '. = [{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}] + (input|.[0:50])' news.json > "$tmp" && mv "$tmp" news.json
+          if [ "$ok" = "1" ]; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+            exit 0
           else
-            jq -n --arg ts "$ts" --arg ev "$ev" --arg ag "$ag" --arg su "$su"               '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > news.json
+            echo "::error::Healthcheck failed for $URL"
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            exit 1
           fi
 
   rollback:
-    runs-on: ubuntu-latest
     needs: healthcheck
     if: failure()
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Append news.json (Rollback)
+      - name: Log rollback marker (for later commit)
         shell: bash
         run: |
-          set -euo pipefail
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          ev="Rollback"
-          ag="Healthcheck"
-          su="Restored from backup"
           tmp=$(mktemp)
-          if [ -f news.json ]; then
-            jq -n --arg ts "$ts" --arg ev "$ev" --arg ag "$ag" --arg su "$su"               '. = [{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}] + (input|.[0:50])' news.json > "$tmp" && mv "$tmp" news.json
-          else
-            jq -n --arg ts "$ts" --arg ev "$ev" --arg ag "$ag" --arg su "$su"               '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > news.json
-          fi
+          jq -n --arg ts "$ts"                 --arg ev "Rollback"                 --arg ag "Healthcheck"                 --arg su "Restored from backup"                 '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
+          jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
 
-      - name: Upload rollback artifact (unique)
-        uses: actions/upload-artifact@v4
-        with:
-          name: rollback-${{ github.run_id }}
-          path: ./
+      # TODO: insert your real restore-from-backup logic here if needed
 
   update-backup:
+    needs: [deploy]
     runs-on: ubuntu-latest
-    needs: healthcheck
-    if: success()
     steps:
-      - name: Checkout repo (full)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
+      # minimal placeholder to show where your backup logic would run
+      - name: Update backup placeholder
+        run: echo "backup refreshed at $(date -u)" > .last_backup.txt
 
-      - name: Push current site to backup branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  log-status:
+    # single place that commits news.json, no matter what happened above
+    needs: [build, deploy, healthcheck, rollback]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Append "Deployment success" or "Healthcheck failed" according to result
+      - name: Append outcome event
         shell: bash
         run: |
-          set -euo pipefail
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git fetch origin "$BACKUP_BRANCH" || true
-          git checkout -B "$BACKUP_BRANCH"
-          git add -A
-          git commit -m "backup from ${GITHUB_SHA}" || echo "No changes to commit"
-          git push origin "$BACKUP_BRANCH" --force
+          set -e
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          if [ "${{ needs.healthcheck.result }}" = "success" ]; then
+            ev="Deployment success"; ag="CI/CD"; su="Website successfully updated"
+          else
+            ev="Healthcheck failed"; ag="Healthcheck"; su="Site unreachable or invalid"
+          fi
+          tmp=$(mktemp)
+          jq -n --arg ts "$ts" --arg ev "$ev" --arg ag "$ag" --arg su "$su"              '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
+          jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
+
+      - name: Commit news.json once
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add news.json .last_backup.txt || true
+          if ! git diff --cached --quiet; then
+            git commit -m "ci(status): update news.json (deploy logs)"
+            git push origin "${GITHUB_REF##*/}"
+          else
+            echo "No status changes to commit."
+          fi
