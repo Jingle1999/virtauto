@@ -6,79 +6,101 @@
   <title>virtauto – Live Status Dashboard</title>
   <style>
     :root{
-      --bg:#f7f7fb; --card:#ffffff; --ink:#1b2330; --muted:#61708a;
-      --ok:#16a34a; --warn:#f59e0b; --err:#dc2626; --info:#2563eb;
-      --chip:#eef2ff; --border:#e6e7ee;
+      --bg:#0b1220;
+      --panel:#111a2c;
+      --text:#e6eefc;
+      --muted:#9fb3d9;
+      --ok:#16a34a;
+      --warn:#ca8a04;
+      --err:#dc2626;
+      --chip:#1f2a44;
+      --chip-border:#2b3b60;
+      --link:#7aa2ff;
+      --accent:#4f46e5;
     }
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
-    .wrap{max-width:980px;margin:32px auto;padding:0 16px;}
-    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px;}
-    .ttl{font-size:clamp(20px,2.8vw,28px);font-weight:700;}
-    .live{display:inline-flex;align-items:center;gap:8px;background:var(--chip);padding:6px 10px;border-radius:20px;border:1px solid var(--border);font-size:13px;color:var(--muted);}
-    .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent);}
-    .dot.warn{background:var(--warn);box-shadow:0 0 0 3px color-mix(in srgb, var(--warn) 25%, transparent);}
-    .dot.err{background:var(--err);box-shadow:0 0 0 3px color-mix(in srgb, var(--err) 25%, transparent);}
-    .tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0;}
-    .input{flex:1 1 280px;min-width:220px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px 10px;color:var(--ink);}
-    .input input{border:0;outline:none;width:100%;font:inherit;color:inherit;background:transparent;}
-    select,.btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 10px;font:inherit;color:inherit;}
-    .btn{cursor:pointer}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
-    ul{list-style:none;margin:0;padding:0;}
-    li{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-top:1px solid var(--border);}
-    li:first-child{border-top:0}
-    .badge{width:10px;height:10px;border-radius:50%;margin-top:7px;flex:0 0 10px}
-    .b-ok{background:var(--ok)} .b-warn{background:var(--warn)} .b-err{background:var(--err)} .b-info{background:var(--info)}
-    .meta{font-size:13px;color:var(--muted)}
-    .sep{height:8px}
-    .hint{font-size:13px;color:var(--muted);margin-left:2px}
-    footer{margin:22px 0;color:var(--muted);font-size:13px;text-align:center}
-    .pill{display:inline-block;border:1px solid var(--border);padding:2px 8px;border-radius:999px;font-size:12px;color:var(--muted)}
-    .statusbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
-    .hidden{display:none}
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    a{color:var(--link);text-decoration:none}
+    .container{max-width:1000px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+    h1{font-size:22px;margin:0}
+    .live{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
+    .muted{color:var(--muted)}
+    .panel{background:var(--panel);border:1px solid #1b2742;border-radius:12px;padding:16px}
+    .controls{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+    .controls input,.controls select,.controls button{
+      background:var(--chip);border:1px solid var(--chip-border);color:var(--text);
+      padding:8px 10px;border-radius:10px;outline:none
+    }
+    .controls .group{display:flex;gap:8px;align-items:center}
+    ul.events{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+    .event{display:grid;grid-template-columns:160px 1fr;gap:12px;padding:12px;
+      background:#0e172a;border:1px solid #1b2742;border-radius:12px;align-items:center}
+    .ts{font-variant-numeric:tabular-nums;color:var(--muted)}
+    .summary{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .badge{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid transparent}
+    .ok{background:color-mix(in srgb, var(--ok) 20%, transparent);border-color:color-mix(in srgb, var(--ok) 40%, transparent);}
+    .warn{background:color-mix(in srgb, var(--warn) 20%, transparent);border-color:color-mix(in srgb, var(--warn) 40%, transparent);}
+    .err{background:color-mix(in srgb, var(--err) 20%, transparent);border-color:color-mix(in srgb, var(--err) 40%, transparent);}
+    .chips{display:flex;gap:6px;flex-wrap:wrap}
+    .chip{background:var(--chip);border:1px solid var(--chip-border);border-radius:999px;padding:4px 8px;font-size:12px;color:var(--muted)}
+    .toolbar{display:flex;justify-content:space-between;gap:12px;margin:12px 0}
+    .right{display:flex;gap:8px;align-items:center}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace; font-size:12px; color:var(--muted)}
+    .empty{padding:24px;text-align:center;color:var(--muted)}
+    .error{border-color:var(--err);background:color-mix(in srgb, var(--err) 10%, var(--panel));}
+    footer{margin-top:24px;color:var(--muted);font-size:13px}
+    @media (max-width:700px){
+      .event{grid-template-columns:1fr}
+      .ts{order:2}
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="container">
     <header>
-      <div class="ttl">virtauto – Live Status Dashboard</div>
-      <div class="live"><span id="liveDot" class="dot"></span><span id="liveTxt">Live aktualisiert</span></div>
+      <h1>virtauto – Live Status Dashboard</h1>
+      <div class="live"><span class="dot" id="live-dot"></span><span id="live-label">Live aktualisiert</span></div>
     </header>
 
-    <div class="tools">
-      <label class="input" title="Volltextsuche in Agent, Event, Summary">
-        🔎 <input id="q" type="search" placeholder="Suchen (Agent, Event, Summary)…" />
-      </label>
-      <select id="filter" title="Typ-Filter">
-        <option value="">Alle Typen</option>
-        <option value="start">Deploy start</option>
-        <option value="success">Deployment success</option>
-        <option value="health">Healthcheck</option>
-        <option value="rollback">Rollback</option>
-      </select>
-      <select id="limit" title="Anzahl Einträge">
-        <option>25</option>
-        <option selected>50</option>
-        <option>100</option>
-      </select>
-      <button id="refresh" class="btn" title="Neu laden">↻ Aktualisieren</button>
-      <span class="hint" id="lastUpdated"></span>
+    <div class="panel">
+      <div class="controls">
+        <div class="group"><label class="mono">Suche:</label><input id="q" type="search" placeholder="Filter nach Text (summary, agent, event)…" /></div>
+        <div class="group"><label class="mono">Typ:</label>
+          <select id="type">
+            <option value="">Alle</option>
+            <option value="Deploy start">Deploy start</option>
+            <option value="Deployment success">Deployment success</option>
+            <option value="Healthcheck failed">Healthcheck failed</option>
+            <option value="Rollback">Rollback</option>
+          </select>
+        </div>
+        <div class="group"><label class="mono">Limit:</label>
+          <select id="limit">
+            <option>25</option><option selected>50</option><option>100</option>
+          </select>
+        </div>
+        <div class="group"><label class="mono">Auto-Refresh:</label>
+          <select id="refresh">
+            <option value="30" selected>30s</option>
+            <option value="60">60s</option>
+            <option value="0">Aus</option>
+          </select>
+        </div>
+        <div class="group right"><span class="mono">Stand:</span><span class="mono" id="last-upd">—</span></div>
+      </div>
+
+      <div id="list-wrap">
+        <ul class="events" id="events"></ul>
+        <div class="empty" id="empty" hidden>Keine Einträge gefunden.</div>
+        <div class="empty error" id="error" hidden>Fehler beim Laden der <code>news.json</code>. Wird automatisch neu versucht…</div>
+      </div>
     </div>
 
-    <div class="card">
-      <ul id="list" aria-live="polite"></ul>
-    </div>
-
-    <div class="statusbar">
-      <span class="pill"><span class="b-info badge" style="vertical-align:-2px;margin-right:6px"></span>Deploy start</span>
-      <span class="pill"><span class="b-ok badge" style="vertical-align:-2px;margin-right:6px"></span>Deployment success</span>
-      <span class="pill"><span class="b-warn badge" style="vertical-align:-2px;margin-right:6px"></span>Rollback aktiv</span>
-      <span class="pill"><span class="b-err badge" style="vertical-align:-2px;margin-right:6px"></span>Healthcheck failed</span>
-    </div>
-
-    <footer>© 2025 virtauto — powered by GitHub Actions</footer>
+    <footer class="mono">Quelle: <code>news.json</code> • Farben: <span class="badge ok">success</span> <span class="badge warn">info</span> <span class="badge err">failure</span></footer>
   </div>
 
-  <script src="status.js"></script>
+  <script src="status.js?v=1"></script>
 </body>
 </html>

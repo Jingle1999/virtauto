@@ -1,133 +1,140 @@
-/* virtauto dashboard logic (auto-refresh + filter + status mapping) */
+/* status.js – lädt news.json, filtert & rendert Liste, Auto-Refresh */
 (() => {
   const $ = (sel) => document.querySelector(sel);
-  const list = $('#list');
-  const q = $('#q');
-  const filter = $('#filter');
-  const limit = $('#limit');
-  const refreshBtn = $('#refresh');
-  const liveDot = $('#liveDot');
-  const lastUpdated = $('#lastUpdated');
+  const eventsEl = $("#events");
+  const emptyEl = $("#empty");
+  const errorEl = $("#error");
+  const lastUpdEl = $("#last-upd");
+  const liveDot = $("#live-dot");
 
-  const REFRESH_MS = 30_000;
-  let timer;
+  const qEl = $("#q");
+  const typeEl = $("#type");
+  const limitEl = $("#limit");
+  const refreshEl = $("#refresh");
 
-  const iconFor = (event, summary='') => {
-    const e = (event || '').toLowerCase();
-    const s = (summary || '').toLowerCase();
-    if (e.includes('success')) return 'ok';
-    if (e.includes('start')) return 'info';
-    if (e.includes('rollback')) return 'warn';
-    if (e.includes('health') && (s.includes('fail') || s.includes('unreach'))) return 'err';
-    if (e.includes('health')) return 'warn';
-    return 'info';
+  let data = [];
+  let timer = null;
+
+  const STATUS = {
+    "Deployment success": "ok",
+    "Deploy start": "warn",
+    "Healthcheck failed": "err",
+    "Rollback": "warn"
   };
 
-  const textIncludes = (hay, needle) =>
-    (hay || '').toString().toLowerCase().includes((needle || '').toLowerCase());
-
-  const meetsType = (ev, type) => {
-    if (!type) return true;
-    const e = (ev.event || '').toLowerCase();
-    switch (type) {
-      case 'start':   return e.includes('start');
-      case 'success': return e.includes('success');
-      case 'health':  return e.includes('health');
-      case 'rollback':return e.includes('rollback');
-      default: return true;
-    }
-  };
-
-  const bust = () => `?t=${Date.now()}`;
-
-  async function load() {
+  function fmtTs(iso) {
     try {
-      liveDot.classList.remove('err','warn');
-      // no-store + cache-bust
-      const res = await fetch('news.json' + bust(), { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      let data;
-      try {
-        data = await res.json();
-        if (!Array.isArray(data)) throw new Error('JSON root is not an array');
-      } catch (e) {
-        throw new Error('JSON parse error: ' + e.message);
-      }
-
-      render(data);
-      lastUpdated.textContent = new Date().toLocaleTimeString('de-DE') + ' Uhr';
-      liveDot.classList.remove('warn','err');
-    } catch (err) {
-      console.error(err);
-      lastUpdated.textContent = 'Fehler beim Laden – ' + (err && err.message ? err.message : err);
-      liveDot.classList.add('err');
-    }
+      const d = new Date(iso);
+      const z = (n) => String(n).padStart(2,"0");
+      const y = d.getFullYear(), m = z(d.getMonth()+1), da = z(d.getDate());
+      const h = z(d.getHours()), mi = z(d.getMinutes()), s = z(d.getSeconds());
+      return `[${y}-${m}-${da}T${h}:${mi}:${s}Z]`;
+    } catch { return iso; }
   }
 
-  function render(items) {
-    const needle = q.value.trim();
-    const type = filter.value;
-    const max = parseInt(limit.value, 10) || 50;
+  function badgeCls(ev) {
+    return STATUS[ev] || "warn";
+  }
 
-    // Filter + sort (newest first if data has ts)
-    const filtered = items
-      .filter((x) =>
-        meetsType(x, type) &&
-        (
-          !needle ||
-          textIncludes(x.summary, needle) ||
-          textIncludes(x.event, needle)   ||
-          textIncludes(x.agent, needle)
-        )
-      )
-      .sort((a,b) => String(b.ts).localeCompare(String(a.ts)))
-      .slice(0, max);
+  function render() {
+    const q = qEl.value.trim().toLowerCase();
+    const t = typeEl.value;
+    const lim = parseInt(limitEl.value,10) || 50;
 
-    list.innerHTML = '';
-    if (!filtered.length) {
-      const li = document.createElement('li');
-      li.innerHTML = '<span class="badge b-info"></span><div><div class="meta">Keine Einträge gefunden.</div></div>';
-      list.appendChild(li);
+    const filtered = data.filter(it => {
+      const hay = `${it.summary||""} ${it.event||""} ${it.agent||""}`.toLowerCase();
+      const matchText = !q || hay.includes(q);
+      const matchType = !t || (it.event === t);
+      return matchText && matchType;
+    }).slice(0, lim);
+
+    eventsEl.innerHTML = "";
+    if (filtered.length === 0) {
+      emptyEl.hidden = false;
       return;
+    } else {
+      emptyEl.hidden = true;
     }
 
     const frag = document.createDocumentFragment();
     for (const it of filtered) {
-      const badge = document.createElement('span');
-      const ico = iconFor(it.event, it.summary);
-      badge.className = `badge ${ico==='ok'?'b-ok': ico==='warn'?'b-warn': ico==='err'?'b-err':'b-info'}`;
+      const li = document.createElement("li");
+      li.className = "event";
 
-      const li = document.createElement('li');
-      const body = document.createElement('div');
+      const ts = document.createElement("div");
+      ts.className = "ts";
+      ts.textContent = fmtTs(it.ts || it.time || "");
+      li.appendChild(ts);
 
-      const head = document.createElement('div');
-      head.textContent = `[${it.ts}] ${it.summary || it.event || ''}`;
+      const sum = document.createElement("div");
+      sum.className = "summary";
 
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.textContent = `${it.event || '—'} — ${it.agent || 'CI/CD'}`;
+      const badge = document.createElement("span");
+      badge.className = `badge ${badgeCls(it.event)}`;
+      badge.textContent = it.event || "Event";
+      sum.appendChild(badge);
 
-      body.appendChild(head);
-      body.appendChild(meta);
+      const text = document.createElement("span");
+      text.textContent = " " + (it.summary || it.message || "");
+      sum.appendChild(text);
 
-      li.appendChild(badge);
-      li.appendChild(body);
+      const chips = document.createElement("div");
+      chips.className = "chips";
+      if (it.agent) {
+        const c = document.createElement("span");
+        c.className = "chip";
+        c.textContent = `Agent: ${it.agent}`;
+        chips.appendChild(c);
+      }
+      li.appendChild(sum);
+      li.appendChild(chips);
+
       frag.appendChild(li);
     }
-    list.appendChild(frag);
+    eventsEl.appendChild(frag);
   }
 
-  function startTimer() {
-    clearInterval(timer);
-    timer = setInterval(load, REFRESH_MS);
+  async function load() {
+    errorEl.hidden = true;
+    liveDot.style.opacity = "0.5";
+    // cache-bust to avoid stale CDN cache
+    const url = `news.json?cb=${Date.now()}`;
+    try {
+      const res = await fetch(url, {cache:"no-store"});
+      if (!res.ok) throw new Error(res.statusText);
+      const json = await res.json();
+      if (Array.isArray(json)) {
+        data = json;
+      } else if (Array.isArray(json.items)) {
+        data = json.items;
+      } else {
+        data = [];
+      }
+      lastUpdEl.textContent = new Date().toLocaleTimeString("de-DE");
+      render();
+    } catch (e) {
+      console.error("news.json error", e);
+      errorEl.hidden = false;
+    } finally {
+      liveDot.style.opacity = "1";
+    }
   }
 
-  // events
-  [q, filter, limit].forEach(el => el.addEventListener('input', () => load()));
-  refreshBtn.addEventListener('click', load);
+  function schedule() {
+    if (timer) clearInterval(timer);
+    const sec = parseInt(refreshEl.value,10);
+    if (sec > 0) {
+      timer = setInterval(load, sec * 1000);
+    }
+  }
 
-  // initial
+  // wire up
+  qEl.addEventListener("input", render);
+  typeEl.addEventListener("change", render);
+  limitEl.addEventListener("change", render);
+  refreshEl.addEventListener("change", () => { schedule(); });
+
+  // init
   load();
-  startTimer();
+  schedule();
 })();
