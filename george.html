@@ -1,57 +1,33 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>virtauto – GEORGE</title>
-  <link rel="stylesheet" href="/styles.css" />
-  <script defer src="/script.js"></script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GEORGE · virtauto</title>
+  <meta name="color-scheme" content="dark light">
+  <style>
+    :root { --vt-bg:#0b1220; --vt-card:#121a2a; --vt-text:#e6eefc; --vt-muted:#9fb3d6; --vt-border:#21304b; }
+    html, body { background: var(--vt-bg); color: var(--vt-text); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+    .hero { background: var(--vt-card); padding: 28px; border: 1px solid var(--vt-border); border-radius: 16px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p.lead { color: var(--vt-muted); margin: 0 0 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; margin-top: 18px; }
+    .card { background: var(--vt-card); border: 1px solid var(--vt-border); border-radius: 14px; padding: 16px; }
+    a.btn { display:inline-block; margin-top: 10px; background:#0f1728; border:1px solid var(--vt-border); color:#cfe3ff; padding:8px 12px; border-radius:10px; text-decoration:none; }
+    a.btn:hover { border-color:#335080; }
+  </style>
 </head>
 <body>
+  <script src="/site-nav.js" defer></script>
+  <main class="wrap">
+    
+<section class="hero">
+  <h1>GEORGE</h1>
+  <p class="lead">Der Agent, der Verantwortung übernimmt: Daten holen, Hypothesen testen, Ergebnisse deployen.</p>
+  <a class="btn" href="/">Letztes Deployment im Status-Dashboard</a>
+</section>
 
-<header class="header">
-  <div class="container nav">
-    <a class="logo" href="/">virtauto</a>
-    <a href="/">Live-Status</a>
-    <a href="/home.html">Home</a>
-    <a href="/solutions.html">Solutions</a>
-    <a href="/george.html">GEORGE</a>
-    <a href="/contact.html">Kontakt</a>
-    <span class="spacer"></span>
-    <a class="tag" href="https://github.com/Jingle1999/virtauto/actions" target="_blank" rel="noopener">GitHub Actions</a>
-  </div>
-</header>
-
-<main class="container">
-  <h1>GEORGE – Der Agenten‑Orchestrator</h1>
-  <p class="small">GEORGE koordiniert spezialisierte Agenten (Content, SEO, UI, DevRel), die Pull‑Requests vorschlagen.</p>
-
-  <div class="grid grid-2" style="margin-top:14px">
-    <div class="card">
-      <h3>Wie es funktioniert</h3>
-      <ul>
-        <li>Agent entdeckt Chance (z. B. bessere Headline)</li>
-        <li>Validiert Änderung lokal, erstellt Branch & PR</li>
-        <li>CI/CD baut Seite, Healthcheck prüft</li>
-        <li>Review/Policy entscheidet Merge</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>Was zuerst kommt</h3>
-      <ul>
-        <li>Content‑Agent: bessere Copy, CTAs</li>
-        <li>SEO‑Agent: Meta‑Daten, Sitemaps</li>
-        <li>UI‑Agent: Lesbarkeit, Kontrast, Layout</li>
-      </ul>
-    </div>
-  </div>
-</main>
-
-<footer class="footer">
-  <div class="container small">
-    © 2025 virtauto • <a href="/">Status</a> • <a href="/contact.html">Kontakt</a> • <span class="tag">alpha</span>
-  </div>
-</footer>
-
+  </main>
 </body>
 </html>

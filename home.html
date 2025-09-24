@@ -1,69 +1,38 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>virtauto – Home</title>
-  <link rel="stylesheet" href="/styles.css" />
-  <script defer src="/script.js"></script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Home · virtauto</title>
+  <meta name="color-scheme" content="dark light">
+  <style>
+    :root { --vt-bg:#0b1220; --vt-card:#121a2a; --vt-text:#e6eefc; --vt-muted:#9fb3d6; --vt-border:#21304b; }
+    html, body { background: var(--vt-bg); color: var(--vt-text); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+    .hero { background: var(--vt-card); padding: 28px; border: 1px solid var(--vt-border); border-radius: 16px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p.lead { color: var(--vt-muted); margin: 0 0 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; margin-top: 18px; }
+    .card { background: var(--vt-card); border: 1px solid var(--vt-border); border-radius: 14px; padding: 16px; }
+    a.btn { display:inline-block; margin-top: 10px; background:#0f1728; border:1px solid var(--vt-border); color:#cfe3ff; padding:8px 12px; border-radius:10px; text-decoration:none; }
+    a.btn:hover { border-color:#335080; }
+  </style>
 </head>
 <body>
+  <script src="/site-nav.js" defer></script>
+  <main class="wrap">
+    
+<section class="hero">
+  <h1>Willkommen bei virtauto</h1>
+  <p class="lead">Autonome Agenten. Schnelle Iteration. Sichere Deployments.</p>
+  <a class="btn" href="/">Live Status Dashboard ansehen</a>
+</section>
+<section class="grid">
+  <div class="card"><h3>Solutions</h3><p>Fallstudien und Produkte rund um AI-Agenten – vom Content-Agent bis zum CI/CD-Operator.</p><a class="btn" href="/solutions.html">Mehr erfahren</a></div>
+  <div class="card"><h3>GEORGE</h3><p>Showcase-Agent für echte Aufgaben – reproduzierbar, testbar und auditiert.</p><a class="btn" href="/george.html">Zu GEORGE</a></div>
+  <div class="card"><h3>Kontakt</h3><p>Projekt anfragen oder Partner werden? Wir freuen uns über Ihre Nachricht.</p><a class="btn" href="/contact.html">Kontakt aufnehmen</a></div>
+</section>
 
-<header class="header">
-  <div class="container nav">
-    <a class="logo" href="/">virtauto</a>
-    <a href="/">Live-Status</a>
-    <a href="/home.html">Home</a>
-    <a href="/solutions.html">Solutions</a>
-    <a href="/george.html">GEORGE</a>
-    <a href="/contact.html">Kontakt</a>
-    <span class="spacer"></span>
-    <a class="tag" href="https://github.com/Jingle1999/virtauto/actions" target="_blank" rel="noopener">GitHub Actions</a>
-  </div>
-</header>
-
-<main class="container">
-  <section class="hero">
-    <div>
-      <h1>Data-driven Vehicle Services – schnell, sicher, automatisch.</h1>
-      <p>virtauto bündelt Telemetrie, KI-Agenten und CI/CD, um Ihre Fahrzeug-Services in Echtzeit zu überwachen und zu verbessern.</p>
-      <div style="margin-top:16px; display:flex; gap:12px;">
-        <a class="btn" href="/">Live-Dashboard öffnen</a>
-        <a class="btn secondary" href="/solutions.html">Unsere Lösungen</a>
-      </div>
-      <p class="small" style="margin-top:10px;">CI/CD Events werden aus <span class="kbd">news.json</span> gelesen und live visualisiert.</p>
-    </div>
-    <div>
-      <div class="card">
-        <h3 style="margin-top:0">Sofort-Status</h3>
-        <ul style="margin:0;padding-left:18px">
-          <li>GitHub Pages Deployment mit Auto-Rollback</li>
-          <li>Robuster Healthcheck mit Retries & Marker</li>
-          <li>Aktives Live-Dashboard <span class="tag">online</span></li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <section style="margin-top:28px" class="grid grid-2">
-    <div class="card">
-      <h3>GEORGE</h3>
-      <p>Unser Agenten-Framework orchestriert autonome Verbesserungen am Webauftritt – sicher via PRs mit Review.</p>
-      <a class="btn secondary" href="/george.html">Mehr über GEORGE</a>
-    </div>
-    <div class="card">
-      <h3>Lösungen</h3>
-      <p>Von Telemetrie bis OTA-Kommunikation – modulare Bausteine für Ihre digitale Fahrzeugflotte.</p>
-      <a class="btn secondary" href="/solutions.html">Lösungen ansehen</a>
-    </div>
-  </section>
-</main>
-
-<footer class="footer">
-  <div class="container small">
-    © 2025 virtauto • <a href="/">Status</a> • <a href="/contact.html">Kontakt</a> • <span class="tag">alpha</span>
-  </div>
-</footer>
-
+  </main>
 </body>
 </html>

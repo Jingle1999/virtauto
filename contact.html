@@ -1,50 +1,36 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>virtauto – Kontakt</title>
-  <link rel="stylesheet" href="/styles.css" />
-  <script defer src="/script.js"></script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Kontakt · virtauto</title>
+  <meta name="color-scheme" content="dark light">
+  <style>
+    :root { --vt-bg:#0b1220; --vt-card:#121a2a; --vt-text:#e6eefc; --vt-muted:#9fb3d6; --vt-border:#21304b; }
+    html, body { background: var(--vt-bg); color: var(--vt-text); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+    .hero { background: var(--vt-card); padding: 28px; border: 1px solid var(--vt-border); border-radius: 16px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p.lead { color: var(--vt-muted); margin: 0 0 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; margin-top: 18px; }
+    .card { background: var(--vt-card); border: 1px solid var(--vt-border); border-radius: 14px; padding: 16px; }
+    a.btn { display:inline-block; margin-top: 10px; background:#0f1728; border:1px solid var(--vt-border); color:#cfe3ff; padding:8px 12px; border-radius:10px; text-decoration:none; }
+    a.btn:hover { border-color:#335080; }
+  </style>
 </head>
 <body>
-
-<header class="header">
-  <div class="container nav">
-    <a class="logo" href="/">virtauto</a>
-    <a href="/">Live-Status</a>
-    <a href="/home.html">Home</a>
-    <a href="/solutions.html">Solutions</a>
-    <a href="/george.html">GEORGE</a>
-    <a href="/contact.html">Kontakt</a>
-    <span class="spacer"></span>
-    <a class="tag" href="https://github.com/Jingle1999/virtauto/actions" target="_blank" rel="noopener">GitHub Actions</a>
-  </div>
-</header>
-
-<main class="container">
+  <script src="/site-nav.js" defer></script>
+  <main class="wrap">
+    
+<section class="hero">
   <h1>Kontakt</h1>
-  <p class="small">Schreib uns gern – wir melden uns zeitnah.</p>
-  <div class="card">
-    <form action="mailto:info@virtauto.de" method="post" enctype="text/plain">
-      <div class="grid" style="gap:12px">
-        <input required name="name" placeholder="Dein Name" style="padding:12px;border-radius:10px;border:1px solid #203050;background:#0b1324;color:#e2e8f0">
-        <input required name="email" type="email" placeholder="E-Mail" style="padding:12px;border-radius:10px;border:1px solid #203050;background:#0b1324;color:#e2e8f0">
-        <textarea required name="message" rows="6" placeholder="Nachricht" style="padding:12px;border-radius:10px;border:1px solid #203050;background:#0b1324;color:#e2e8f0"></textarea>
-      </div>
-      <div style="margin-top:12px">
-        <button class="btn" type="submit">Senden</button>
-        <a class="btn secondary" href="/">Zum Live‑Dashboard</a>
-      </div>
-    </form>
+  <p class="lead">Schreiben Sie uns gern – wir melden uns schnellstmöglich.</p>
+  <div class="grid">
+    <div class="card"><h3>E-Mail</h3><p>hello@virtauto.de</p></div>
+    <div class="card"><h3>GitHub</h3><p>Issues & Roadmap im Repo <em>virtauto</em>.</p><a class="btn" href="https://github.com/" target="_blank" rel="noopener">Zum GitHub</a></div>
   </div>
-</main>
+</section>
 
-<footer class="footer">
-  <div class="container small">
-    © 2025 virtauto • <a href="/">Status</a> • <a href="/contact.html">Kontakt</a> • <span class="tag">alpha</span>
-  </div>
-</footer>
-
+  </main>
 </body>
 </html>
