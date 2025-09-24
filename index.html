@@ -1,106 +1,14 @@
-<!doctype html>
-<html lang="de">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
   <title>virtauto – Live Status Dashboard</title>
-  <style>
-    :root{
-      --bg:#0b1220;
-      --panel:#111a2c;
-      --text:#e6eefc;
-      --muted:#9fb3d9;
-      --ok:#16a34a;
-      --warn:#ca8a04;
-      --err:#dc2626;
-      --chip:#1f2a44;
-      --chip-border:#2b3b60;
-      --link:#7aa2ff;
-      --accent:#4f46e5;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
-    a{color:var(--link);text-decoration:none}
-    .container{max-width:1000px;margin:0 auto;padding:24px}
-    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
-    h1{font-size:22px;margin:0}
-    .live{display:inline-flex;align-items:center;gap:8px;font-weight:600}
-    .dot{width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
-    .muted{color:var(--muted)}
-    .panel{background:var(--panel);border:1px solid #1b2742;border-radius:12px;padding:16px}
-    .controls{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}
-    .controls input,.controls select,.controls button{
-      background:var(--chip);border:1px solid var(--chip-border);color:var(--text);
-      padding:8px 10px;border-radius:10px;outline:none
-    }
-    .controls .group{display:flex;gap:8px;align-items:center}
-    ul.events{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-    .event{display:grid;grid-template-columns:160px 1fr;gap:12px;padding:12px;
-      background:#0e172a;border:1px solid #1b2742;border-radius:12px;align-items:center}
-    .ts{font-variant-numeric:tabular-nums;color:var(--muted)}
-    .summary{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-    .badge{padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid transparent}
-    .ok{background:color-mix(in srgb, var(--ok) 20%, transparent);border-color:color-mix(in srgb, var(--ok) 40%, transparent);}
-    .warn{background:color-mix(in srgb, var(--warn) 20%, transparent);border-color:color-mix(in srgb, var(--warn) 40%, transparent);}
-    .err{background:color-mix(in srgb, var(--err) 20%, transparent);border-color:color-mix(in srgb, var(--err) 40%, transparent);}
-    .chips{display:flex;gap:6px;flex-wrap:wrap}
-    .chip{background:var(--chip);border:1px solid var(--chip-border);border-radius:999px;padding:4px 8px;font-size:12px;color:var(--muted)}
-    .toolbar{display:flex;justify-content:space-between;gap:12px;margin:12px 0}
-    .right{display:flex;gap:8px;align-items:center}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace; font-size:12px; color:var(--muted)}
-    .empty{padding:24px;text-align:center;color:var(--muted)}
-    .error{border-color:var(--err);background:color-mix(in srgb, var(--err) 10%, var(--panel));}
-    footer{margin-top:24px;color:var(--muted);font-size:13px}
-    @media (max-width:700px){
-      .event{grid-template-columns:1fr}
-      .ts{order:2}
-    }
-  </style>
+  <script src="site-nav.js" defer></script>
 </head>
-<body>
-  <div class="container">
-    <header>
-      <h1>virtauto – Live Status Dashboard</h1>
-      <div class="live"><span class="dot" id="live-dot"></span><span id="live-label">Live aktualisiert</span></div>
-    </header>
-
-    <div class="panel">
-      <div class="controls">
-        <div class="group"><label class="mono">Suche:</label><input id="q" type="search" placeholder="Filter nach Text (summary, agent, event)…" /></div>
-        <div class="group"><label class="mono">Typ:</label>
-          <select id="type">
-            <option value="">Alle</option>
-            <option value="Deploy start">Deploy start</option>
-            <option value="Deployment success">Deployment success</option>
-            <option value="Healthcheck failed">Healthcheck failed</option>
-            <option value="Rollback">Rollback</option>
-          </select>
-        </div>
-        <div class="group"><label class="mono">Limit:</label>
-          <select id="limit">
-            <option>25</option><option selected>50</option><option>100</option>
-          </select>
-        </div>
-        <div class="group"><label class="mono">Auto-Refresh:</label>
-          <select id="refresh">
-            <option value="30" selected>30s</option>
-            <option value="60">60s</option>
-            <option value="0">Aus</option>
-          </select>
-        </div>
-        <div class="group right"><span class="mono">Stand:</span><span class="mono" id="last-upd">—</span></div>
-      </div>
-
-      <div id="list-wrap">
-        <ul class="events" id="events"></ul>
-        <div class="empty" id="empty" hidden>Keine Einträge gefunden.</div>
-        <div class="empty error" id="error" hidden>Fehler beim Laden der <code>news.json</code>. Wird automatisch neu versucht…</div>
-      </div>
-    </div>
-
-    <footer class="mono">Quelle: <code>news.json</code> • Farben: <span class="badge ok">success</span> <span class="badge warn">info</span> <span class="badge err">failure</span></footer>
+<body style="background:#0b0f19;color:#fff;font-family:Arial,sans-serif;">
+  <h1>virtauto – Live Status Dashboard</h1>
+  <div id="status-container">
+    <!-- Status-Dashboard-Inhalte -->
   </div>
-
-  <script src="status.js?v=1"></script>
 </body>
 </html>
