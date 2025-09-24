@@ -1,12 +1,28 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>virtauto – Solutions</title>
-  <script src="site-nav.js" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Solutions — virtauto</title>
+  <style>
+    :root{color-scheme:dark}
+    body{margin:0;background:#0b1220;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+    .wrap{max-width:1120px;margin:0 auto;padding:24px 16px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:16px}
+    .card a{color:#93c5fd;text-decoration:none}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  </style>
 </head>
-<body style="background:#0b0f19;color:#fff;font-family:Arial,sans-serif;">
-  <h1>Solutions</h1>
-  <p>Overview of agent-based solutions for automotive and smart production.</p>
+<body>
+  <script src="site-nav.js"></script>
+  <div class="wrap">
+    <h1>Solutions</h1>
+    <div class="grid">
+      <div class="card"><strong>Smart Production</strong><br>Fabrik‑IT Integration, Edge‑Agents, Quality‑Loops &amp; Traceability.</div>
+      <div class="card"><strong>Engineering Cloud</strong><br>Build/Sim/Test Pipelines, Digital Twins, Policy‑Gates.</div>
+      <div class="card"><strong>Operations</strong><br>Monitoring, Health, Auto‑Mitigation, Observability.</div>
+    </div>
+  </div>
 </body>
 </html>

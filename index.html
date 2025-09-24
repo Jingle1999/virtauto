@@ -6,109 +6,71 @@
   <title>virtauto – Live Status Dashboard</title>
   <link rel="icon" href="data:;base64,iVBORw0KGgo=">
   <style>
-    :root{
-      --bg:#0c1420;
-      --panel:#131e2c;
-      --text:#e8f0ff;
-      --muted:#96a3b8;
-      --brand:#4cc9f0;
-      --chip:#1f2a3a;
-      --success:#2aa772;
-      --info:#8aa2c1;
-      --warn:#b08d3a;
-      --danger:#b25555;
-      --border:#243246;
-    }
-    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-    a{color:var(--brand);text-decoration:none}
-    /* Top Nav */
-    .topnav{
-      position:sticky; top:0; z-index:10;
-      backdrop-filter:saturate(140%) blur(6px);
-      background:rgba(12,20,32,.8);
-      border-bottom:1px solid var(--border);
-    }
-    .topnav .wrap{
-      max-width:1100px;margin:0 auto;padding:10px 16px;
-      display:flex;align-items:center;gap:18px;flex-wrap:wrap;
-    }
-    .brand{font-weight:700;letter-spacing:.3px}
-    .nav{display:flex;gap:10px;flex-wrap:wrap}
-    .nav a{
-      padding:8px 10px;border-radius:10px;border:1px solid transparent;color:var(--muted)
-    }
-    .nav a.active,.nav a:hover{color:var(--text);background:var(--chip);border-color:var(--border)}
-    .spacer{flex:1}
-    /* Page shell */
-    .container{max-width:1100px;margin:26px auto;padding:0 16px}
-    .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
-    /* Dashboard (existing styles kept lightweight) */
-    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 12px;border-bottom:1px solid var(--border)}
-    .toolbar .dot{width:10px;height:10px;border-radius:50%;background:#22c55e;display:inline-block;margin-left:6px}
-    .row{padding:14px 16px;border-top:1px solid var(--border)}
-    .badge{font-size:.75rem;padding:4px 8px;border-radius:999px;background:var(--chip);color:var(--muted);display:inline-block}
-    .b-success{background:rgba(42,167,114,.15);color:#63e6be}
-    .b-warn{background:rgba(176,141,58,.15);color:#ffd277}
-    .b-fail{background:rgba(178,85,85,.15);color:#ffb4b4}
-    .meta{font-size:.8rem;color:var(--muted)}
-    .muted{color:var(--muted)}
-    input,select{background:#0f1826;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px 10px}
+    :root{color-scheme:dark;}
+    body{margin:0;background:#0b1220;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+    .container{max-width:1120px;margin:24px auto;padding:0 16px;}
+    .card{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:16px 18px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .chip{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid #1f2937;background:#0b1324}
+    .live{width:8px;height:8px;border-radius:999px;background:#16a34a;display:inline-block}
+    .kvs{color:#9ca3af;font-size:12px}
+    .tag{font-size:12px;border-radius:999px;padding:4px 8px;margin-right:6px}
+    .tag.success{background:#0a2c24;color:#34d399;border:1px solid #064e3b}
+    .tag.info{background:#111827;color:#a1a1aa;border:1px solid #1f2937}
+    .tag.failure{background:#2a0f14;color:#fda4af;border:1px solid #7f1d1d}
+    .list{display:grid;gap:12px;margin-top:14px}
+    .item{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:14px}
+    .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    input,select{background:#0b1324;border:1px solid #1f2937;color:#e5e7eb;border-radius:8px;padding:6px 8px}
+    .muted{color:#94a3b8}
   </style>
-  <script defer src="site-nav.js"></script>
-  <script defer src="status.js"></script>
 </head>
 <body>
-  <!-- Top Navigation -->
-  <header class="topnav" id="site-topnav" data-active="Dashboard">
-    <div class="wrap">
-      <div class="brand">virtauto</div>
-      <nav class="nav" aria-label="Hauptnavigation">
-        <a href="home.html">Home</a>
-        <a href="solutions.html">Solutions</a>
-        <a href="george.html">GEORGE</a>
-        <a href="contact.html">Kontakt</a>
-        <a href="index.html" class="active">Dashboard</a>
-      </nav>
-      <div class="spacer"></div>
-    </div>
-  </header>
+  <script src="site-nav.js"></script>
 
-  <!-- Dashboard -->
-  <main class="container">
+  <div class="container">
     <div class="card">
-      <div class="toolbar">
-        <strong>virtauto – Live Status Dashboard</strong>
-        <span class="muted">• Live aktualisiert</span><span class="dot" title="Live"></span>
-        <span class="spacer"></span>
-        <label class="muted">Suche:&nbsp;<input id="search" placeholder="Filter nach Text (summary, agent, event)"></label>
-        <label class="muted">Typ:&nbsp;
-          <select id="type">
+      <div class="row">
+        <h2 style="margin:0">virtauto – Live Status Dashboard</h2>
+        <span class="kvs">•</span>
+        <span class="muted">Live aktualisiert</span>
+        <span class="live" title="live"></span>
+      </div>
+      <div class="controls">
+        <div>Auto-Refresh: 
+          <select id="refresh">
+            <option>30s</option>
+            <option>60s</option>
+            <option>120s</option>
+          </select>
+        </div>
+        <div>Suche: <input id="q" placeholder="Filter nach Text (summary, agent, event)…"></div>
+        <div>Typ:
+          <select id="typ">
             <option>Alle</option>
             <option>Deploy start</option>
             <option>Deployment success</option>
             <option>Rollback</option>
-            <option>Healthcheck failed</option>
+            <option>Healthcheck</option>
           </select>
-        </label>
-        <label class="muted">Limit:&nbsp;
+        </div>
+        <div>Limit:
           <select id="limit">
-            <option>25</option><option selected>50</option><option>100</option>
+            <option>50</option>
+            <option>25</option>
+            <option>100</option>
           </select>
-        </label>
-        <label class="muted">Auto-Refresh:&nbsp;
-          <select id="refresh">
-            <option>Aus</option><option>15s</option><option selected>30s</option><option>60s</option>
-          </select>
-        </label>
-        <span class="muted" id="now"></span>
+        </div>
       </div>
-      <div id="list"></div>
+      <p class="muted">Quelle: <code>news.json</code> • Farben: 
+        <span class="tag success">success</span>
+        <span class="tag info">info</span>
+        <span class="tag failure">failure</span>
+      </p>
+      <div id="list" class="list" aria-live="polite"></div>
     </div>
-    <p class="muted" style="margin:14px 6px 40px">Quelle: <code>news.json</code> • Farben: 
-      <span class="badge b-success">success</span>
-      <span class="badge">info</span>
-      <span class="badge b-fail">failure</span>
-    </p>
-  </main>
+  </div>
+
+  <script src="status.js"></script>
 </body>
 </html>

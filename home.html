@@ -1,12 +1,60 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>virtauto – Home</title>
-  <script src="site-nav.js" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>virtauto — Home</title>
+  <style>
+    :root{color-scheme:dark}
+    body{margin:0;background:#0b1220;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+    .wrap{max-width:1120px;margin:0 auto;padding:24px 16px}
+    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center;margin-top:12px}
+    .claim{font-size:38px;line-height:1.15;font-weight:800;margin:0 0 10px}
+    .lead{color:#cbd5e1;font-size:18px}
+    .cta{display:flex;gap:12px;margin-top:18px}
+    .btn{background:#2563eb;border:1px solid #1e40af;color:white;padding:10px 14px;border-radius:10px;text-decoration:none}
+    .btn.alt{background:#0b1324;border:1px solid #1f2937;color:#e5e7eb}
+    .section{margin-top:40px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:16px}
+    img{max-width:100%;border-radius:12px;border:1px solid #1f2937;background:#0f172a}
+    @media (max-width:900px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
+  </style>
 </head>
-<body style="background:#0b0f19;color:#fff;font-family:Arial,sans-serif;">
-  <h1>Welcome to virtauto</h1>
-  <p>This is the starting point for the future of automotive Multi-Agent Systems.</p>
+<body>
+  <script src="site-nav.js"></script>
+  <div class="wrap">
+    <section class="hero">
+      <div>
+        <h1 class="claim">virtauto. The operating system for automotive value creation.</h1>
+        <p class="lead">
+          Eine modularisierte Plattform, die Entwicklungs‑, Produktions‑ und After‑Sales‑Prozesse
+          über Agenten automatisiert: von der CI/CD‑Pipeline bis zur Fabrikhalle.
+        </p>
+        <div class="cta">
+          <a class="btn" href="solutions.html">Explore Solutions</a>
+          <a class="btn alt" href="george.html">Meet GEORGE</a>
+        </div>
+      </div>
+      <div>
+        <img src="smart-production-header.png" alt="virtauto — smart production header">
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Plattform‑Architektur</h2>
+      <p class="lead">Skalierbar, beobachtbar, agenten‑gesteuert.</p>
+      <img src="smart-production-architecture.png" alt="virtauto architecture diagram">
+    </section>
+
+    <section class="section">
+      <h2>Highlights</h2>
+      <div class="grid">
+        <div class="card"><strong>Agenten‑Ökosystem</strong><br>Domänenspezifische Worker für CI/CD, Health, MES, Logistik &amp; mehr.</div>
+        <div class="card"><strong>GitOps &amp; Pages</strong><br>Jeder Merge ist ein automatisiertes, überwachtes Deployment mit Auto‑Rollback.</div>
+        <div class="card"><strong>Observability</strong><br>Live‑Status, Health‑Probes, Artefakt‑Backups &amp; strukturierte Audits.</div>
+      </div>
+    </section>
+  </div>
 </body>
 </html>
