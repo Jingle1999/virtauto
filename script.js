@@ -1,14 +1,10 @@
 
-function toggleMenu(){
-  const m = document.querySelector('.menu');
-  m.classList.toggle('open');
-}
-function setActive(){
-  const here = location.pathname.split('/').pop() || 'index.html';
-  document.querySelectorAll('.menu a').forEach(a=>{
-    if(a.getAttribute('href')===here || (here==='' && a.getAttribute('href')==='index.html')){
+(function(){
+  const path = location.pathname.replace(/\/$/,'/');
+  document.querySelectorAll('.nav a').forEach(a=>{
+    const href = a.getAttribute('href');
+    if ((href === '/' && path === '/') || (href !== '/' && path.endsWith(href))) {
       a.classList.add('active');
     }
   });
-}
-document.addEventListener('DOMContentLoaded', setActive);
+})();
