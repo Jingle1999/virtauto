@@ -1,76 +1,57 @@
 <!doctype html>
-<html lang="de">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>virtauto – Live Status Dashboard</title>
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-  <style>
-    :root{color-scheme:dark;}
-    body{margin:0;background:#0b1220;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
-    .container{max-width:1120px;margin:24px auto;padding:0 16px;}
-    .card{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:16px 18px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
-    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    .chip{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;border:1px solid #1f2937;background:#0b1324}
-    .live{width:8px;height:8px;border-radius:999px;background:#16a34a;display:inline-block}
-    .kvs{color:#9ca3af;font-size:12px}
-    .tag{font-size:12px;border-radius:999px;padding:4px 8px;margin-right:6px}
-    .tag.success{background:#0a2c24;color:#34d399;border:1px solid #064e3b}
-    .tag.info{background:#111827;color:#a1a1aa;border:1px solid #1f2937}
-    .tag.failure{background:#2a0f14;color:#fda4af;border:1px solid #7f1d1d}
-    .list{display:grid;gap:12px;margin-top:14px}
-    .item{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:14px}
-    .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px}
-    input,select{background:#0b1324;border:1px solid #1f2937;color:#e5e7eb;border-radius:8px;padding:6px 8px}
-    .muted{color:#94a3b8}
-  </style>
-</head>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>virtauto — Status</title>
+<link rel="stylesheet" href="assets/styles.css">
 <body>
-  <script src="site-nav.js"></script>
 
-  <div class="container">
-    <div class="card">
-      <div class="row">
-        <h2 style="margin:0">virtauto – Live Status Dashboard</h2>
-        <span class="kvs">•</span>
-        <span class="muted">Live aktualisiert</span>
-        <span class="live" title="live"></span>
-      </div>
-      <div class="controls">
-        <div>Auto-Refresh: 
-          <select id="refresh">
-            <option>30s</option>
-            <option>60s</option>
-            <option>120s</option>
-          </select>
-        </div>
-        <div>Suche: <input id="q" placeholder="Filter nach Text (summary, agent, event)…"></div>
-        <div>Typ:
-          <select id="typ">
-            <option>Alle</option>
-            <option>Deploy start</option>
-            <option>Deployment success</option>
-            <option>Rollback</option>
-            <option>Healthcheck</option>
-          </select>
-        </div>
-        <div>Limit:
-          <select id="limit">
-            <option>50</option>
-            <option>25</option>
-            <option>100</option>
-          </select>
-        </div>
-      </div>
-      <p class="muted">Quelle: <code>news.json</code> • Farben: 
-        <span class="tag success">success</span>
-        <span class="tag info">info</span>
-        <span class="tag failure">failure</span>
-      </p>
-      <div id="list" class="list" aria-live="polite"></div>
-    </div>
-  </div>
+    <div class="nav"><div class="nav-inner">
+      <a class="brand" href="home.html"><em>virt</em>auto</a>
+      <a href="home.html" >Home</a>
+      <a href="solutions.html" >Solutions</a>
+      <a href="george.html" >GEORGE</a>
+      <a href="contact.html" >Contact</a>
+      <a href="index.html" class="active">Status</a>
+      <span class="spacer"></span>
+    </div></div>
+    
+<div class="container">
 
-  <script src="status.js"></script>
+<h2>virtauto — Live Status Dashboard</h2>
+<div class="controls" style="margin-top:8px">
+  <label>Auto-Refresh:
+    <select id="autorefresh">
+      <option value="0">off</option>
+      <option value="15">15s</option>
+      <option value="30" selected>30s</option>
+      <option value="60">60s</option>
+    </select>
+  </label>
+  <input id="search" class="input" placeholder="Filter by text (summary)…"/>
+  <label>Type:
+    <select id="type">
+      <option value="all" selected>All</option>
+      <option value="deploy start">Deploy start</option>
+      <option value="deployment success">Deployment success</option>
+      <option value="rollback">Rollback</option>
+      <option value="healthcheck">Healthcheck</option>
+    </select>
+  </label>
+  <label>Limit:
+    <select id="limit">
+      <option>25</option><option selected>50</option><option>100</option>
+    </select>
+  </label>
+  <button id="refresh" class="btn secondary" type="button">Refresh</button>
+</div>
+<div id="status-list"></div>
+<p class="muted">Source: <code>news.json</code> • Badges: <span class="badge ok">success</span> <span class="badge info">info</span> <span class="badge err">failure</span></p>
+<script src="assets/status.js"></script>
+
+<hr class="sep"/>
+<div class="footer">© virtauto • Built with agents in mind.</div>
+</div>
+<script src="assets/site.js"></script>
 </body>
 </html>

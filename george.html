@@ -1,63 +1,37 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GEORGE — virtauto</title>
-  <style>
-    :root{color-scheme:dark}
-    body{margin:0;background:#0b1220;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
-    .wrap{max-width:1120px;margin:0 auto;padding:24px 16px}
-    .lead{color:#cbd5e1}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-    .card{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:16px}
-    .section{margin-top:32px}
-    ul{margin:10px 0 0 18px}
-    @media (max-width:900px){.grid{grid-template-columns:1fr}}
-  </style>
-</head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>virtauto — GEORGE</title>
+<link rel="stylesheet" href="assets/styles.css">
 <body>
-  <script src="site-nav.js"></script>
-  <div class="wrap">
-    <h1>GEORGE</h1>
-    <p class="lead">
-      GEORGE ist unser domänenspezifischer Orchestrierungs‑Agent für Entwicklung &amp; Produktion.
-      Er verbindet Git, Build‑Systeme, Fabrik‑IT (MES/SCADA), Datenplattform und UI.
-    </p>
 
-    <div class="section grid">
-      <div class="card">
-        <strong>Capabilities</strong>
-        <ul>
-          <li>CI/CD‑Koordination mit Qualitäts‑Gates und Auto‑Rollback</li>
-          <li>Health‑Probes mit Retries, Marker‑Checks und Backups</li>
-          <li>Workload‑Routing zu Spezialagenten (z. B. Simulation, Analytics, Shopfloor)</li>
-          <li>Policy‑ &amp; Secrets‑Handling (Least Privilege)</li>
-        </ul>
-      </div>
-      <div class="card">
-        <strong>Integrationen</strong>
-        <ul>
-          <li>GitHub Actions / Runners, Artefakt‑Storage</li>
-          <li>Rest‑APIs zu MES/SCADA/PLC‑Gateways</li>
-          <li>Data Lake / Warehouse (Batch &amp; Stream)</li>
-          <li>Identity / Audit Log</li>
-        </ul>
-      </div>
-      <div class="card">
-        <strong>UI &amp; APIs</strong>
-        <ul>
-          <li>Live Status Dashboard (Pages)</li>
-          <li>Job‑/Event‑APIs für Self‑Service Workflows</li>
-          <li>Kontext‑basierte Assistenten für Entwickler &amp; Operatoren</li>
-        </ul>
-      </div>
-    </div>
+    <div class="nav"><div class="nav-inner">
+      <a class="brand" href="home.html"><em>virt</em>auto</a>
+      <a href="home.html" >Home</a>
+      <a href="solutions.html" >Solutions</a>
+      <a href="george.html" class="active">GEORGE</a>
+      <a href="contact.html" >Contact</a>
+      <a href="index.html" >Status</a>
+      <span class="spacer"></span>
+    </div></div>
+    
+<div class="container">
 
-    <div class="section">
-      <h2>Architektur‑Überblick</h2>
-      <img src="smart-production-architecture.png" alt="Architecture overview" style="max-width:100%;border:1px solid #1f2937;border-radius:12px;background:#0f172a">
-    </div>
-  </div>
+<h2>GEORGE</h2>
+<p>GEORGE is our domain-specific orchestration agent for Engineering & Production. It connects Git, build systems, factory IT (MES/SCADA), data platform and UI.</p>
+<div class="grid">
+  <div class="card"><h3>Capabilities</h3><p>CI/CD coordination, quality gates, retries & auto-rollback; routing to specialized agents; least-privilege policy & secrets handling.</p></div>
+  <div class="card"><h3>Integrations</h3><p>GitHub Actions/Runners, artifact storage; REST to MES/SCADA/PLC; lake/warehouse; identity & audit.</p></div>
+  <div class="card"><h3>UI & APIs</h3><p>Live Status Dashboard, job/event APIs for self-service, context assistants for devs & operators.</p></div>
+</div>
+
+<h3 style="margin-top:24px">Architecture Overview</h3>
+<div class="kit"><img src="assets/architecture.svg" alt="Architecture" style="width:100%; border-radius:10px"/></div>
+
+<hr class="sep"/>
+<div class="footer">© virtauto • Built with agents in mind.</div>
+</div>
+<script src="assets/site.js"></script>
 </body>
 </html>
