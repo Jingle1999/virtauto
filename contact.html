@@ -1,35 +1,45 @@
 <!doctype html>
-<html lang="en">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>virtauto — Contact</title>
-<link rel="stylesheet" href="assets/styles.css">
-<body>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Contact · virtauto®</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+<script defer src="assets/site.js"></script>
+</head><body>
 
-    <div class="nav"><div class="nav-inner">
-      <a class="brand" href="home.html"><em>virt</em>auto</a>
-      <a href="home.html" >Home</a>
-      <a href="solutions.html" >Solutions</a>
-      <a href="george.html" >GEORGE</a>
-      <a href="contact.html" class="active">Contact</a>
-      <a href="index.html" >Status</a>
-      <span class="spacer"></span>
-    </div></div>
-    
-<div class="container">
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+    <nav class="menu" id="menu">
+      <a class="" href="index.html">Home</a>
+      <a class="" href="agents.html">Agents</a>
+      <a class="" href="architecture.html">Architecture</a>
+      <a class="" href="solutions.html">Solutions</a>
+      <a class="" href="status.html">Status</a>
+      <a class="active" href="contact.html">Contact</a>
+      <a class="cta" href="solutions.html#george">Meet GEORGE</a>
+    </nav>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+<main>
 
-<h2>Contact</h2>
-<p>Drop us a line — we’ll get back quickly.</p>
-<form onsubmit="event.preventDefault(); alert('Thanks! We will reach out.');">
-  <div class="row"><input placeholder="Your name"></div>
-  <div class="row"><input type="email" placeholder="you@example.com"></div>
-  <div class="row"><textarea placeholder="Your message…"></textarea></div>
-  <div class="row"><button class="btn" type="submit">Send</button></div>
-</form>
+<section class="hero"><div class="container">
+  <div class="kicker">Contact</div><h1>Talk to us</h1>
+  <p class="lead">Send a message and we’ll get back within one business day.</p>
+</div></section>
+<section class="section"><div class="container">
+<form class="form"><label>Name<input type="text" placeholder="Jane Doe" required></label>
+<label>Email<input type="email" placeholder="jane@example.com" required></label>
+<label>Message<textarea placeholder="Your message…"></textarea></label>
+<button class="btn" type="submit" onclick="event.preventDefault();alert('Thanks! We will reach out.');">Send</button></form>
+</div></section>
 
-<hr class="sep"/>
-<div class="footer">© virtauto • Built with agents in mind.</div>
-</div>
-<script src="assets/site.js"></script>
-</body>
-</html>
+</main>
+<footer class="footer"><div class="container cols">
+  <div><strong>virtauto®</strong><br/><small>Driving Automotive Innovation</small></div>
+  <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
+  <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+</div></footer>
+</body></html>

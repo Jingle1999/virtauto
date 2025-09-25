@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Agents · virtauto®</title>
+<title>Status · virtauto®</title>
 <link rel="stylesheet" href="assets/styles.css"/>
 <script defer src="assets/site.js"></script>
 </head><body>
@@ -11,10 +11,10 @@
     <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
     <nav class="menu" id="menu">
       <a class="" href="index.html">Home</a>
-      <a class="active" href="agents.html">Agents</a>
+      <a class="" href="agents.html">Agents</a>
       <a class="" href="architecture.html">Architecture</a>
       <a class="" href="solutions.html">Solutions</a>
-      <a class="" href="status.html">Status</a>
+      <a class="active" href="status.html">Status</a>
       <a class="" href="contact.html">Contact</a>
       <a class="cta" href="solutions.html#george">Meet GEORGE</a>
     </nav>
@@ -24,9 +24,14 @@
   </div>
 </header>
 <main>
+
 <section class="section"><div class="container">
-<h1>Agents</h1><p>Agents plan, act with tools, cooperate and remember. GEORGE keeps them aligned and policy‑compliant.</p>
-</div></section><div class="container"><iframe src="agents_raw.html" class="iframe"></iframe></div>
+  <h1>virtauto — Live Status Dashboard</h1>
+  <p class="muted">Auto‑refreshing list powered by <code>news.json</code>.</p>
+  <div id="status-app" class="status"></div>
+</div></section>
+<script src="assets/status.js"></script>
+
 </main>
 <footer class="footer"><div class="container cols">
   <div><strong>virtauto®</strong><br/><small>Driving Automotive Innovation</small></div>

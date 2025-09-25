@@ -1,102 +1,48 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Architecture · virtauto®</title>
-<meta name="description" content="virtauto.OS — Multi-Agent Orchestration for Automotive Manufacturing"/>
-<link rel="stylesheet" href="style.css"/>
-</head>
-<body>
+<link rel="stylesheet" href="assets/styles.css"/>
+<script defer src="assets/site.js"></script>
+</head><body>
+
 <header class="header">
   <div class="container nav">
-    <div class="brand">
-      <span>virtauto®</span>
-      <span class="badge">OS</span>
-    </div>
+    <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
     <nav class="menu" id="menu">
-      <a href="index.html">Home</a>
-      <a href="agents.html">Agents</a>
-      <a href="architecture.html">Architecture</a>
-      <a href="solutions.html">Solutions</a>
-      <a href="usecases.html">Use&nbsp;Cases</a>
-      <a href="blog.html">Blog</a>
-      <a href="contact.html">Contact</a>
+      <a class="" href="index.html">Home</a>
+      <a class="" href="agents.html">Agents</a>
+      <a class="active" href="architecture.html">Architecture</a>
+      <a class="" href="solutions.html">Solutions</a>
+      <a class="" href="status.html">Status</a>
+      <a class="" href="contact.html">Contact</a>
       <a class="cta" href="solutions.html#george">Meet GEORGE</a>
     </nav>
-    <button class="burger" aria-label="Menu" onclick="toggleMenu()">
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
       <span></span><span></span><span></span>
     </button>
   </div>
 </header>
 <main>
 
-<section class="hero">
-  <div class="container">
-    <div class="kicker">Architecture</div>
-    <h1>virtauto.OS Reference Architecture</h1>
-    <p class="lead">ISA-95 aligned, API-first, hybrid cloud. Agentic patterns baked-in. Orchestrated by <strong>GEORGE</strong>.</p>
-  </div>
-</section>
-<!-- GEORGE Architecture Diagram -->
-<img src="/images/GEORGE_ARCHITECTURE.PNG"
-     alt="GEORGE Architecture"
-     class="diagram">
-
-<img src="/images/GEORGE_USER.PNG"
-     alt="GEORGE User"
-     class="diagram">
-
-<section class="section">
-  <div class="container">
-    <h2>Design Patterns</h2>
-    <div class="card-grid">
-      <div class="card"><h3>Reflection</h3><p>Self-review loops for safer outputs.</p></div>
-      <div class="card"><h3>Tool Use</h3><p>Deterministic API/DB calls for grounded actions.</p></div>
-      <div class="card"><h3>ReAct</h3><p>Reason → Act → Observe cycles.</p></div>
-      <div class="card"><h3>Planning</h3><p>Sub-goals & steps improve task success.</p></div>
-      <div class="card"><h3>Multi-Agent</h3><p>Supervisor (GEORGE) + domain agents cooperation.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="section">
-  <div class="container">
-    <h2>Layers (ISA-95 framing)</h2>
-    <ul class="list">
-      <li><strong>Enterprise (L4):</strong> ERP/PLM/SCM connectors (APIs, events).</li>
-      <li><strong>Manufacturing Ops (L3):</strong> MES integration, schedules, OEE.</li>
-      <li><strong>Control (L2):</strong> OPC UA/SCADA gateways, telemetry.</li>
-      <li><strong>Edge (L1/L0):</strong> Sensors, PLCs, Computer Vision.</li>
-      <li><strong>Agent Layer:</strong> Orchestration (<strong>GEORGE</strong>), tools, memory, guardrails.</li>
-    </ul>
-  </div>
-</section>
-
-<section class="section">
-  <div class="container">
-    <h2>Maturity Roadmap (5 Levels)</h2>
-    <p class="quote">Start at Level 2–3 for quick value (routing & tool-use), then evolve to supervised multi-agent patterns with measurable KPIs before exploring autonomy.</p>
-  </div>
-</section>
+<section class="hero"><div class="container">
+  <div class="kicker">Architecture</div>
+  <h1>Unified Multi‑Agent Architecture</h1>
+  <p class="lead">GEORGE orchestrates specialized agents across ISA‑95 levels — unified by APIs, memory and governance.</p>
+</div></section>
+<section class="section"><div class="container">
+  <img src="assets/img/unified_architecture.png" class="frame" alt="Architecture diagram">
+</div></section>
+<section class="section" id="flow"><div class="container">
+  <h2>How orchestration works</h2>
+  <p>We leverage Multi‑Agent‑Orchestration to revolutionize automotive manufacturing.</p>
+  <img src="assets/img/orchestration_flow.png" class="frame" alt="Orchestration flow">
+</div></section>
 
 </main>
-<footer class="footer">
-  <div class="container">
-    <div class="cols">
-      <div style="flex:1;min-width:220px">
-        <strong>virtauto®</strong><br/>
-        <small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small>
-      </div>
-      <div style="flex:1;min-width:220px">
-        <small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a> · <a href="#">Imprint</a> · <a href="#">Privacy</a></small>
-      </div>
-      <div style="flex:1;min-width:220px;text-align:right">
-        <small>© 2025 virtauto®. All rights reserved.</small>
-      </div>
-    </div>
-  </div>
-</footer>
-<script src="script.js"></script>
-</body>
-</html>
+<footer class="footer"><div class="container cols">
+  <div><strong>virtauto®</strong><br/><small>Driving Automotive Innovation</small></div>
+  <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
+  <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+</div></footer>
+</body></html>
