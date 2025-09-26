@@ -1,0 +1,50 @@
+# Replace only your existing `healthcheck` job with this block
+# (Minimal-invasive drop-in. Keeps the rest of your workflow untouched.)
+healthcheck:
+  name: healthcheck
+  runs-on: ubuntu-latest
+  needs: deploy
+  timeout-minutes: 10
+
+  steps:
+    - name: Robust healthcheck (HTTP 200 + content marker)
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        URL="https://www.virtauto.de/"
+        # Optional content marker that must appear somewhere on the page.
+        # Adjust if you want a stricter/other check (empty => skip marker check).
+        MARKER=".virtauto"
+
+        # ~10 minutes total: 40 tries * 15s
+        MAX_TRIES=40
+        SLEEP_SECS=15
+
+        try=0
+        echo "🔎 Healthcheck waiting for $URL (HTTP 200 + marker: '${MARKER:-<none>}')"
+        while (( try < MAX_TRIES )); do
+          code="$(curl -Ls -o /dev/null -w '%{http_code}' "$URL" || true)"
+          if [[ "$code" == "200" ]]; then
+            if [[ -z "${MARKER}" ]]; then
+              echo "✅ HTTP 200 received (no marker configured)."
+              exit 0
+            fi
+
+            body="$(curl -Ls "$URL" | tr -d '\n' | head -c 100000 || true)"
+            if echo "$body" | grep -qi -- "$MARKER"; then
+              echo "✅ HTTP 200 and marker found ('${MARKER}')."
+              exit 0
+            else
+              echo "ℹ️  HTTP 200, but marker not found yet. Retrying…"
+            fi
+          else
+            echo "ℹ️  Got HTTP ${code}. Retrying…"
+          fi
+
+          ((try++))
+          sleep "$SLEEP_SECS"
+        done
+
+        echo "❌ Healthcheck failed after $MAX_TRIES tries (~$((MAX_TRIES*SLEEP_SECS/60)) min)."
+        exit 1
