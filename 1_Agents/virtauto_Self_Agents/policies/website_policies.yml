@@ -1,0 +1,3 @@
+policies:
+  - rule: Always ensure consistency
+  - rule: Log all changes
