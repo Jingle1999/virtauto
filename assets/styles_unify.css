@@ -1,0 +1,47 @@
+/* styles_unify.css — light-touch visual harmonization */
+
+:root {
+  --space-1: 6px;
+  --space-2: 10px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --round-lg: 14px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,.25);
+}
+
+.media { /* wrapper for images/figures */
+  display: block;
+  margin: var(--space-3) auto;
+  max-width: 860px;
+  padding: var(--space-2);
+  border-radius: var(--round-lg);
+  background: rgba(255,255,255,.02);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+}
+
+.media img.img-responsive {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  object-fit: contain;
+}
+
+.media figcaption {
+  font-size: .9rem;
+  opacity: .8;
+  margin-top: var(--space-1);
+  text-align: center;
+}
+
+section, .card, .grid {
+  margin-bottom: var(--space-4);
+}
+
+h1, h2, h3 {
+  letter-spacing: .2px;
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+}
