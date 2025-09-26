@@ -1,0 +1,41 @@
+name: Website Self-Agents
+
+on:
+  workflow_dispatch:
+
+jobs:
+  agents:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies (optional)
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Content Agent
+        run: python agents/content_agent.py
+
+      - name: Run UI/UX Agent
+        run: python agents/uiux_agent.py
+
+      - name: Run Consistency Agent
+        run: python agents/consistency_agent.py
+
+      - name: Run Transparency Agent
+        run: python agents/transparency_agent.py
+
+      - name: Upload agent logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-agent-logs
+          path: logs/*
+          if-no-files-found: ignore
