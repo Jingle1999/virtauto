@@ -1,113 +1,114 @@
 #!/usr/bin/env python3
-import os
-import re
+# -*- coding: utf-8 -*-
+
+"""
+Site Unifier: cleans <img> tags (remove width/height/style),
+adds a consistent responsive class, and writes changes.
+No lookbehinds are used (Python-friendly).
+Usage:
+  python tools/site_unifier.py --root . --dry-run
+  python tools/site_unifier.py --root . --apply
+"""
+
 import argparse
-from pathlib import Path
+import pathlib
+import re
+from typing import Tuple
 
-CSS_LINK = '<link rel="stylesheet" href="assets/styles_unify.css">'
-IMG_CLASS = 'img-responsive'
-FIGURE_CLASS = 'media'
+IMG_TAG_RE = re.compile(r"<img([^>]*)>", flags=re.IGNORECASE)
 
-def add_css_link(html: str) -> (str, bool):
-    if 'assets/styles_unify.css' in html:
-        return html, False
-    # insert before </head>
-    new = re.sub(r'</head>', f'  {CSS_LINK}\n</head>', html, flags=re.IGNORECASE, count=1)
-    changed = (new != html)
-    return (new if changed else html), changed
+# remove single attr (width/height/style) from an attribute string
+REMOVE_ATTR_RE = re.compile(r'\s(?:width|height|style)\s*=\s*"[^"]*"', flags=re.IGNORECASE)
 
-def normalize_img_tags(html: str) -> (str, int):
-    """
-    - ensure loading=lazy decoding=async
-    - ensure class includes IMG_CLASS
-    - remove inline width/height styles; keep width/height attributes if present
-    - add alt if missing (fallback from file name)
-    - wrap with <figure class="media"> if not already inside figure
-    """
-    count = 0
+# find class="...". We’ll update its value; if not present we insert one.
+CLASS_ATTR_RE = re.compile(r'\sclass\s*=\s*"([^"]*)"', flags=re.IGNORECASE)
 
-    def repl(m):
-        nonlocal count
-        tag = m.group(0)
+def strip_img_size_attrs(attr_str: str) -> str:
+    """Remove width/height/style attributes from the raw <img ...> attribute string."""
+    # repeatedly remove any of the attributes until none is left
+    before = None
+    after = attr_str
+    while before != after:
+        before = after
+        after = REMOVE_ATTR_RE.sub("", after)
+    # normalize excessive whitespace
+    after = re.sub(r"\s+", " ", after).strip()
+    if after and not after.startswith(" "):
+        after = " " + after
+    return after
 
-        # skip data URI svgs
-        if 'data:image' in tag:
-            return tag
-
-        # add loading/decoding
-        if ' loading=' not in tag:
-            tag = tag[:-1] + ' loading="lazy">'
-        if ' decoding=' not in tag:
-            tag = tag[:-1] + ' decoding="async">'
-
-        # class handling
-        if ' class=' in tag:
-            tag = re.sub(r'class="([^"]*)"', lambda c: f'class="{ensure_class(c.group(1), IMG_CLASS)}"', tag)
+def ensure_class(attr_str: str, required_class: str = "img-fluid") -> str:
+    """Ensure the <img> has the required CSS class (append if class= exists, else add)."""
+    m = CLASS_ATTR_RE.search(attr_str)
+    if m:
+        classes = m.group(1).strip()
+        tokens = [c for c in re.split(r"\s+", classes) if c]
+        if required_class not in tokens:
+            tokens.append(required_class)
+        new_classes = " ".join(tokens)
+        # replace the original class attribute value
+        start, end = m.span(1)
+        attr_str = attr_str[:start] + new_classes + attr_str[end:]
+    else:
+        # insert class attribute at the beginning (after the leading space if present)
+        if attr_str.startswith(" "):
+            attr_str = f' class="{required_class}"' + attr_str
         else:
-            tag = tag[:-1] + f' class="{IMG_CLASS}">'
+            attr_str = f' class="{required_class}" ' + attr_str
+    return attr_str
 
-        # alt
-        if ' alt=' not in tag:
-            src = re.search(r'src="([^"]+)"', tag)
-            alt = (Path(src.group(1)).stem.replace('-', ' ').replace('_', ' ') if src else 'image')
-            tag = tag[:-1] + f' alt="{alt}">'
+def transform_html(html: str) -> Tuple[str, int]:
+    """Transform all <img> tags; return (new_html, num_changes)."""
 
-        # remove inline width/height styles (style="...")
-        tag = re.sub(r'style="[^"]*?(width|height)\s*:[^"]*"', lambda _: re.sub(r'style="[^"]*"', '', tag), tag)
+    changes = 0
 
-        count += 1
-        return tag
+    def repl(m: re.Match) -> str:
+        nonlocal changes
+        attrs = m.group(1) or ""
+        original_attrs = attrs
 
-    def ensure_class(current: str, needed: str) -> str:
-        parts = set(filter(None, re.split(r'\s+', current.strip())))
-        parts.add(needed)
-        return ' '.join(sorted(parts))
+        # 1) remove width/height/style
+        attrs = strip_img_size_attrs(attrs)
+        # 2) ensure class= has img-fluid
+        attrs = ensure_class(attrs, "img-fluid")
 
-    new_html = re.sub(r'<img\b[^>]*?>', repl, html, flags=re.IGNORECASE)
-    # Wrap orphan <img> in figure blocks if not already inside <figure>
-    new_html = re.sub(
-        r'(?<!<figure[^>]*>\s*)(<img\b[^>]*?>)',
-        lambda m: f'<figure class="{FIGURE_CLASS}">{m.group(1)}</figure>',
-        new_html,
-        flags=re.IGNORECASE
-    )
-    return new_html, count
+        if attrs != original_attrs:
+            changes += 1
+        return f"<img{attrs}>"
 
-def process_file(p: Path, apply: bool) -> str:
-    original = p.read_text(encoding='utf-8', errors='ignore')
-    html = original
-    html, added_css = add_css_link(html)
-    html, img_changes = normalize_img_tags(html)
-    changed = (html != original)
-    report = f"{p}: css_link={'added' if added_css else 'ok'}, imgs_changed={img_changes}"
-    if apply and changed:
-        p.write_text(html, encoding='utf-8')
-    return report
+    new_html = IMG_TAG_RE.sub(repl, html)
+    return new_html, changes
+
+def process_file(p: pathlib.Path, apply: bool) -> Tuple[int, int]:
+    """Return (#changes, #files_modified(0/1))."""
+    text = p.read_text(encoding="utf-8", errors="ignore")
+    new_text, num = transform_html(text)
+    if num > 0 and apply:
+        p.write_text(new_text, encoding="utf-8")
+        return num, 1
+    return num, 0
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--root', required=True)
-    ap.add_argument('--apply', action='store_true')
-    ap.add_argument('--dry-run', action='store_true')
+    ap.add_argument("--root", required=True, help="repo/site root directory")
+    ap.add_argument("--apply", action="store_true", help="write changes")
+    ap.add_argument("--dry-run", action="store_true", help="preview only")
     args = ap.parse_args()
-    root = Path(args.root)
-    html_files = list(root.glob("*.html"))
-    # also include top-level subpages if present
-    for sub in ["", "site", "pages"]:
-        d = root / sub
-        if d.is_dir():
-            html_files.extend(d.glob("*.html"))
 
-    seen = set()
-    out_lines = ["# Site Unifier report", f"root: {root}", f"mode: {'apply' if args.apply else 'dry-run'}", ""]
-    for p in sorted(set(html_files)):
-        try:
-            rep = process_file(p, apply=args.apply)
-        except Exception as e:
-            rep = f"{p}: ERROR {e}"
-        out_lines.append(rep)
+    root = pathlib.Path(args.root).resolve()
+    html_files = list(root.glob("*.html")) + list(root.glob("*/*.html"))
 
-    print("\\n".join(out_lines))
+    total_changes = 0
+    modified_files = 0
+
+    for fp in html_files:
+        changes, wrote = process_file(fp, apply=args.apply and not args.dry_run)
+        total_changes += changes
+        modified_files += wrote
+
+    mode = "apply" if args.apply and not args.dry_run else "dry-run"
+    print(f"# Site Unifier\nroot: {root}\nmode: {mode}")
+    print(f"files scanned: {len(html_files)}, imgs changed: {total_changes}, files modified: {modified_files}")
 
 if __name__ == "__main__":
     main()
