@@ -1,15 +1,11 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="virtauto.OS — Multi-Agent Orchestration for Automotive Manufacturing">
-  <title>Blog · virtauto®</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/styles_unify.css">
-  <link rel="stylesheet" href="style.css">
-  <script src="assets/site.js" defer></script>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Blog · virtauto®</title>
+<meta name="description" content="virtauto.OS — Multi-Agent Orchestration for Automotive Manufacturing"/>
+<link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 <header class="header">

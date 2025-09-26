@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+  <meta charset="UTF-8">
   <title>virtauto – Status</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/styles_unify.css">
-  <script src="assets/site.js" defer></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; background: #f9f9f9; }
+    h1 { color: #333; }
+    .build { font-size: 0.9em; color: #666; margin-bottom: 1em; }
+    ul { list-style: none; padding: 0; }
+    li { background: #fff; margin: 0.5em 0; padding: 1em; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  </style>
 </head>
 <body>
   <h1>virtauto – Latest Runs</h1>

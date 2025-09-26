@@ -1,15 +1,11 @@
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>virtauto – Intelligent Procurement</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/styles_unify.css">
-  <link rel="stylesheet" href="css/style.css">
-  <script src="assets/site.js" defer></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>virtauto – Impressum</title>
+    <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
     <header>
@@ -24,7 +20,7 @@
     </header>
 
     <main>
-        <h1>Intelligent Procurement</h1>
+        <h1>Impressum</h1>
         <p>Content coming soon...</p>
     </main>
 

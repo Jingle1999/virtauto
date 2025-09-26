@@ -1,47 +1,66 @@
-/* styles_unify.css — light-touch visual harmonization */
+/* ===== virtauto — UX Unify Layer (safe to add on top) ===================== */
 
-:root {
-  --space-1: 6px;
-  --space-2: 10px;
-  --space-3: 16px;
-  --space-4: 24px;
-  --round-lg: 14px;
-  --shadow-card: 0 10px 30px rgba(0,0,0,.25);
+/* Layout containers */
+.va-container { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+.section     { padding: 56px 0; }
+.section--tight { padding: 32px 0; }
+
+/* Headings & rhythm */
+h1, h2, h3 { line-height: 1.25; margin-top: 0; }
+h1 { margin-bottom: 20px; }
+h2 { margin: 24px 0 16px; }
+h3 { margin: 20px 0 12px; }
+
+/* Images (global, safe) */
+img { border: 0; display: block; }
+.img-fluid { max-width: 100%; height: auto; }
+.img-center { margin-left: auto; margin-right: auto; }
+.img-max-900 { max-width: 900px; }
+.img-shadow { box-shadow: 0 6px 24px rgba(0,0,0,.35); border-radius: 10px; }
+
+/* Figure wrapper for consistent spacing + captions */
+.va-figure { margin: 24px auto; text-align: center; }
+.va-figure figcaption { margin-top: 10px; font-size: .95rem; opacity: .8; }
+
+/* Grid helpers for cards/columns */
+.grid      { display: grid; gap: 20px; }
+.grid-2    { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3    { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 992px) { .grid-3 { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } }
+
+/* Cards (e.g., “LLM / RAG / Agent”) */
+.va-card {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 18px 18px 16px;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease;
+}
+.va-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.04); }
+.va-card h4 { margin: 0 0 8px; }
+
+/* Navigation: active link highlight */
+.nav a.active {
+  background: rgba(64,160,255,.15);
+  color: #cde6ff !important;
+  border-radius: 8px;
 }
 
-.media { /* wrapper for images/figures */
-  display: block;
-  margin: var(--space-3) auto;
-  max-width: 860px;
-  padding: var(--space-2);
-  border-radius: var(--round-lg);
-  background: rgba(255,255,255,.02);
-  box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
-}
+/* Consistent section spacing around big posters/diagrams */
+.poster { margin: 24px auto 16px; }
+.poster img { max-width: 900px; }
 
-.media img.img-responsive {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-  border-radius: 12px;
-  box-shadow: var(--shadow-card);
-  object-fit: contain;
-}
+/* Utilities */
+.mt-0{margin-top:0!important}.mb-0{margin-bottom:0!important}.mt-16{margin-top:16px}.mb-16{margin-bottom:16px}
+.pt-24{padding-top:24px}.pb-24{padding-bottom:24px}
 
-.media figcaption {
-  font-size: .9rem;
-  opacity: .8;
-  margin-top: var(--space-1);
-  text-align: center;
-}
+/* Footer links a tad more visible on dark */
+footer a { opacity: .9; }
+footer a:hover { opacity: 1; }
 
-section, .card, .grid {
-  margin-bottom: var(--space-4);
-}
-
-h1, h2, h3 {
-  letter-spacing: .2px;
-  margin-top: var(--space-4);
-  margin-bottom: var(--space-2);
+/* Make buttons (CTAs) pop just a bit more */
+.button, .btn, .cta {
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 10px 14px;
 }

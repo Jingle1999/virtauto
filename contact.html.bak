@@ -1,24 +1,21 @@
 <!doctype html>
 <html lang="en"><head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agents · virtauto®</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/styles_unify.css">
-  <script defer src="assets/site.js"></script>
-</head>
-<body>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Contact · virtauto®</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+<script defer src="assets/site.js"></script>
+</head><body>
 
 <header class="header">
   <div class="container nav">
     <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
     <nav class="menu" id="menu">
       <a class="" href="index.html">Home</a>
-      <a class="active" href="agents.html">Agents</a>
+      <a class="" href="agents.html">Agents</a>
       <a class="" href="architecture.html">Architecture</a>
       <a class="" href="solutions.html">Solutions</a>
       <a class="" href="status.html">Status</a>
-      <a class="" href="contact.html">Contact</a>
+      <a class="active" href="contact.html">Contact</a>
       <a class="cta" href="solutions.html#george">Meet GEORGE</a>
     </nav>
     <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
@@ -27,9 +24,18 @@
   </div>
 </header>
 <main>
+
+<section class="hero"><div class="container">
+  <div class="kicker">Contact</div><h1>Talk to us</h1>
+  <p class="lead">Send a message and we’ll get back within one business day.</p>
+</div></section>
 <section class="section"><div class="container">
-<h1>Agents</h1><p>Agents plan, act with tools, cooperate and remember. GEORGE keeps them aligned and policy‑compliant.</p>
-</div></section><div class="container"><iframe src="agents_raw.html" class="iframe"></iframe></div>
+<form class="form"><label>Name<input type="text" placeholder="Jane Doe" required></label>
+<label>Email<input type="email" placeholder="jane@example.com" required></label>
+<label>Message<textarea placeholder="Your message…"></textarea></label>
+<button class="btn" type="submit" onclick="event.preventDefault();alert('Thanks! We will reach out.');">Send</button></form>
+</div></section>
+
 </main>
 <footer class="footer"><div class="container cols">
   <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>

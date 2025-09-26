@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solutions – virtauto®</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/styles_unify.css">
-  <link rel="stylesheet" href="style.css?v=home5">
-  <link rel="stylesheet" href="styles_additions.css">
-  <script src="assets/site.js" defer></script>
+  <title>Architecture – virtauto®</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css?v=home5" />
+  <link rel="stylesheet" href="styles_additions.css" />
+
 </head>
 <body>
 <header class="navbar-wrapper">
@@ -20,8 +17,8 @@
       <ul class="nav-links">
         <li><a href="index.html">Home</a></li>
         <li><a href="agents.html">Agents</a></li>
-        <li><a href="architecture.html">Architecture</a></li>
-        <li><a href="solutions.html" class="active">Solutions</a></li>
+        <li><a href="architecture.html" class="active">Architecture</a></li>
+        <li><a href="solutions.html">Solutions</a></li>
         <li><a href="blog.html">Blog</a></li>
         <li><a href="contact.html">Contact</a></li>
         <li><a href="imprint.html">Impressum</a></li>

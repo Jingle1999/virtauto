@@ -1,13 +1,10 @@
 <!doctype html>
 <html lang="en"><head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agents · virtauto®</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/styles_unify.css">
-  <script defer src="assets/site.js"></script>
-</head>
-<body>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Agents · virtauto®</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+<script defer src="assets/site.js"></script>
+</head><body>
 
 <header class="header">
   <div class="container nav">

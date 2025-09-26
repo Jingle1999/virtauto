@@ -1,21 +1,18 @@
 <!doctype html>
 <html lang="en"><head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agents · virtauto®</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/styles_unify.css">
-  <script defer src="assets/site.js"></script>
-</head>
-<body>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Architecture · virtauto®</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+<script defer src="assets/site.js"></script>
+</head><body>
 
 <header class="header">
   <div class="container nav">
     <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
     <nav class="menu" id="menu">
       <a class="" href="index.html">Home</a>
-      <a class="active" href="agents.html">Agents</a>
-      <a class="" href="architecture.html">Architecture</a>
+      <a class="" href="agents.html">Agents</a>
+      <a class="active" href="architecture.html">Architecture</a>
       <a class="" href="solutions.html">Solutions</a>
       <a class="" href="status.html">Status</a>
       <a class="" href="contact.html">Contact</a>
@@ -27,9 +24,21 @@
   </div>
 </header>
 <main>
+
+<section class="hero"><div class="container">
+  <div class="kicker">Architecture</div>
+  <h1>Unified Multi‑Agent Architecture</h1>
+  <p class="lead">GEORGE orchestrates specialized agents across ISA‑95 levels — unified by APIs, memory and governance.</p>
+</div></section>
 <section class="section"><div class="container">
-<h1>Agents</h1><p>Agents plan, act with tools, cooperate and remember. GEORGE keeps them aligned and policy‑compliant.</p>
-</div></section><div class="container"><iframe src="agents_raw.html" class="iframe"></iframe></div>
+  <img src="assets/img/unified_architecture.png" class="frame img-fluid" alt="Architecture diagram">
+</div></section>
+<section class="section" id="flow"><div class="container">
+  <h2>How orchestration works</h2>
+  <p>We leverage Multi‑Agent‑Orchestration to revolutionize automotive manufacturing.</p>
+  <img src="assets/img/orchestration_flow.png" class="frame img-fluid" alt="Orchestration flow">
+</div></section>
+
 </main>
 <footer class="footer"><div class="container cols">
   <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>

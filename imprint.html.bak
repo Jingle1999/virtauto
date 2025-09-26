@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Imprint – virtauto®</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <link rel="stylesheet" href="assets/styles_unify.css">
-  <link rel="stylesheet" href="style.css?v=home5">
-  <link rel="stylesheet" href="styles_additions.css">
-  <script src="assets/site.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css?v=home5" />
+  <link rel="stylesheet" href="styles_additions.css" />
+
 </head>
 <body>
 <header class="navbar-wrapper">
