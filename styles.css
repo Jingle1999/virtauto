@@ -83,3 +83,119 @@ button, .btn {
 button:hover, .btn:hover {
   background: #0056b3;
 }
+/* ====== Desktop Finetuning ====== */
+:root{
+  --container-w: 1200px;
+  --space-xxl: 72px;
+  --space-xl: 56px;
+  --space-lg: 40px;
+  --space-md: 24px;
+  --radius-md: 8px;
+  --shadow-sm: 0 10px 30px rgba(0,0,0,.12);
+  --shadow-xs: 0 6px 16px rgba(0,0,0,.10);
+}
+
+/* Container & globale Sections */
+.container,
+section .container{
+  max-width: var(--container-w);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+section{
+  padding: var(--space-xl) 0;
+}
+section:first-of-type{
+  padding-top: var(--space-xxl);
+}
+
+/* Typo & Abstände */
+h1{ margin: 0 0 var(--space-md); line-height: 1.2; }
+h2{ margin: var(--space-lg) 0 var(--space-md); line-height: 1.25; }
+p + p{ margin-top: 12px; }
+.lead{ font-size: 1.125rem; opacity: .9; }
+
+/* Hero: zwei Spalten, mittig ausgerichtet */
+.hero{
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr; /* Text : Bild */
+  align-items: center;
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}
+.hero .hero-text{ padding-right: var(--space-md); }
+.hero .hero-actions{ margin-top: var(--space-md); display:flex; gap:12px; }
+.hero img{
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Einheitliche Bilder (allgemein) */
+img.responsive,
+.section img{
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  display: block;
+  margin: 0 auto var(--space-md);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Karten/Frames – z.B. für große Schaubilder */
+.frame,
+.card{
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Navigation (Desktop) */
+nav a{
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+nav a:hover{
+  background: rgba(255,255,255,.06);
+  text-decoration: none;
+}
+nav a.active{
+  background: rgba(255,255,255,.12);
+}
+
+/* Buttons konsistent */
+.btn, button, .btn.primary{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-height: 42px;
+  padding: 0 18px;
+  gap: 8px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.10);
+  transition: transform .08s ease, filter .15s ease, background .15s ease;
+}
+.btn:hover, button:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+/* Sections unten angenehmer Abschluss */
+section:last-of-type{
+  padding-bottom: var(--space-xxl);
+}
+
+/* Footer oben etwas Luft */
+footer{
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+/* Nur Desktop anwenden (>= 1024px) */
+@media (max-width: 1023.98px){
+  /* Keine Änderung hier – Mobile folgt später gezielt */
+}
