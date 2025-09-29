@@ -27,3 +27,59 @@ a:hover{text-decoration:underline}
 .hero .card{padding:24px}
 .kbd{font:600 12px/1 monospace;background:#0b1326;border:1px solid #1f2a44;padding:2px 6px;border-radius:6px;color:#9fb0cc}
 .small{font-size:.95rem;color:#9fb0cc}
+/* General page spacing */
+body {
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  font-family: Arial, sans-serif;
+}
+
+/* Hero section (oben Bild + Intro-Text) */
+.hero {
+  margin-top: 40px;       /* Abstand nach oben */
+  margin-bottom: 60px;    /* Abstand nach unten */
+  text-align: center;     /* Inhalt zentrieren */
+}
+
+/* Einheitliche Bilder */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 20px auto;      /* sorgt für zentrierte Bilder mit Abstand */
+  border-radius: 8px;     /* leichte Rundung für modernen Look */
+}
+
+/* Einheitliche Container für Abschnitte */
+section {
+  max-width: 1100px;      /* Inhalt begrenzen */
+  margin: 0 auto;         /* zentrieren */
+  padding: 40px 20px;     /* Innenabstand */
+}
+
+/* Footer */
+footer {
+  background: #0a0a0a;
+  color: #aaa;
+  text-align: center;
+  padding: 30px 10px;     /* gleichmäßiger Innenabstand */
+  margin-top: 60px;       /* Abstand zum Content */
+  font-size: 14px;
+}
+
+/* Einheitliche Buttons */
+button, .btn {
+  background: #007bff;
+  color: #fff;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.3s ease;
+}
+
+button:hover, .btn:hover {
+  background: #0056b3;
+}
