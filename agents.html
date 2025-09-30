@@ -1,96 +1,79 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Agents · virtauto®</title>
-  <link rel="stylesheet" href="assets/styles.css"/>
-  <script defer src="assets/site.js"></script>
-</head>
-<body>
-<header class="header">
-  <div class="container nav">
-    <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
-    <nav class="menu" id="menu">
-      <a href="index.html">Home</a>
-      <a class="active" href="agents.html">Agents</a>
-      <a href="architecture.html">Architecture</a>
-      <a href="solutions.html">Solutions</a>
-      <a href="status.html">Status</a>
-      <a href="contact.html">Contact</a>
-      <a class="cta" href="solutions.html#george">Meet GEORGE</a>
-    </nav>
-    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
-      <span></span><span></span><span></span>
+ <head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <title>
+   Agents &middot; virtauto&reg;
+  </title>
+  <link href="assets/styles.css" rel="stylesheet">
+  <link href="assets/styles_unify.css" rel="stylesheet">
+  <script defer src="assets/site.js">
+  </script>
+ </head>
+ <body>
+  <header class="header">
+   <div class="container nav">
+    <a class="brand" href="index.html">
+     virtauto
+     <span class="badge">
+      OS
+     </span>
+    </a>
+    <button aria-label="Menu" class="burger" onclick="document.getElementById('menu').classList.toggle('open')">
+     <span>
+     </span>
+     <span>
+     </span>
+     <span>
+     </span>
     </button>
-  </div>
-</header>
-
-<main>
-  <section class="hero">
+   </div>
+  </header>
+  <main>
+   <section class="section">
     <div class="container">
-      <div class="kicker">Agents</div>
-      <h1>From LLMs to Agent Teams</h1>
-      <p class="lead">Agents plan, act with tools, cooperate, and remember. <strong>GEORGE</strong> keeps them aligned and policy‑compliant.</p>
+     <h1>
+      Agents
+     </h1>
+     <p>
+      Agents plan, act with tools, cooperate and remember. GEORGE keeps them aligned and policy‑compliant.
+     </p>
     </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <h2>Agent vs. LLM vs. RAG</h2>
-      <div class="card-grid three">
-        <div class="card"><h3>LLM</h3><p>Reasoning & generation from training data only.</p></div>
-        <div class="card"><h3>RAG</h3><p>Retrieval‑augmented: injects fresh, external knowledge.</p></div>
-        <div class="card"><h3>Agent</h3><p>Decides, plans, calls tools/APIs, and executes workflows.</p></div>
-      </div>
+   </section>
+   <div class="container">
+    <iframe class="iframe" src="agents_raw.html">
+    </iframe>
+   </div>
+  </main>
+  <footer class="footer">
+   <div class="container cols">
+    <div>
+     <strong>
+      virtauto&reg;
+     </strong>
+     <br>
+     <small>
+      The Digital Transformation of the Automotive Industry. When Software builds Hardware.
+     </small>
     </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <h2>Building Blocks</h2>
-      <ul class="list">
-        <li><strong>Role‑playing:</strong> Explicit responsibilities per agent.</li>
-        <li><strong>Focus/Tasks:</strong> Narrow scope, high reliability.</li>
-        <li><strong>Tools:</strong> Custom tools & MCP servers for reuse.</li>
-        <li><strong>Cooperation:</strong> Multi‑agent collaboration patterns.</li>
-        <li><strong>Guardrails:</strong> Validation, limits, fallback/human‑in‑the‑loop.</li>
-        <li><strong>Memory:</strong> Short‑term, long‑term, entity memory.</li>
-      </ul>
+    <div>
+     <small>
+      <a href="blog.html">
+       Blog
+      </a>
+      &middot;
+      <a href="contact.html">
+       Contact
+      </a>
+     </small>
     </div>
-  </section>
-
-  <section class="section" id="george-overview">
-    <div class="container">
-      <h2>GEORGE (Orchestrator) — Overview</h2>
-      <p>GEORGE translates user intents into coordinated multi‑agent plans, governs tool access, enforces guardrails, and maintains memory across flows.</p>
-      <div class="card-grid three">
-        <div class="card"><h3>Task Orchestration</h3><p>Breaks down intents, assigns to domain agents, tracks completion.</p></div>
-        <div class="card"><h3>Policy &amp; Guardrails</h3><p>Constraints for cost/safety/data; human‑in‑the‑loop when needed.</p></div>
-        <div class="card"><h3>Tool &amp; Memory</h3><p>Registers MCP tools, rate‑limits usage; shares scoped context.</p></div>
-      </div>
+    <div class="right">
+     <small>
+      &copy; 2025 virtauto&reg;. All rights reserved.
+     </small>
     </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <h2>Agent of the Week</h2>
-      <div class="card">
-        <span class="eyebrow">#1</span>
-        <h3>Root Cause Agent</h3>
-        <p>Detects quality patterns and proposes corrective actions with expected yield impact.</p>
-        <a class="btn ghost" href="blog.html#agent-of-the-week">Read article</a>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer class="footer">
-  <div class="container cols">
-    <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
-    <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
-    <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
-  </div>
-</footer>
-</body>
+   </div>
+  </footer>
+ </body>
 </html>
