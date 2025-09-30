@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Website Self-Agents – virtauto®</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Nav -->
+  <header class="header">
+    <nav class="nav">
+      <a class="logo" href="index.html">virtauto® <span class="tag">OS</span></a>
+      <div class="spacer"></div>
+      <a href="index.html">Home</a>
+      <a href="agents.html">Agents</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="solutions.html">Solutions</a>
+      <a href="status.html">Status</a>
+      <a href="contact.html">Contact</a>
+      <a class="btn secondary" href="george.html">Meet GEORGE</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <h1>Website Self-Agents</h1>
+      <p>Leichte, spezialisierte Helfer für unsere Website-Pflege:
+         Sie sorgen für einheitliches Layout, saubere Bilder und
+         einen laufenden Healthcheck der Deployments.</p>
+    </section>
+
+    <!-- Cards Grid -->
+    <section class="grid" style="grid-template-columns: repeat(3, minmax(0,1fr)); gap: 20px; max-width:1100px; margin:0 auto 60px;">
+      <article class="card" style="padding:20px;">
+        <h3>Layout Agent</h3>
+        <p>Hält Abstände, Breiten und Raster konsistent.
+           Nutzt die gemeinsame <code>styles.css</code> und vereinheitlicht Hero, Footer und Buttons.</p>
+        <ul>
+          <li>Standardisiert Spacing & Grid</li>
+          <li>Räumt doppelte Sektionen auf</li>
+          <li>Desktop-First, responsive Breakpoints</li>
+        </ul>
+      </article>
+
+      <article class="card" style="padding:20px;">
+        <h3>Image Consistency Agent</h3>
+        <p>Normalisiert Poster/Illustrationen: maximale Breite,
+           gleiche Rundung/Shadow, saubere Retina-Darstellung.</p>
+        <ul>
+          <li>Einheitliche Max-Breite</li>
+          <li>Saubere Ränder/Radius</li>
+          <li>Alt-Texte & Lazy-Loading</li>
+        </ul>
+      </article>
+
+      <article class="card" style="padding:20px;">
+        <h3>Healthcheck Agent</h3>
+        <p>Überwacht Deployments & den Pages-Build, aktualisiert das Status-Dashboard
+           und meldet Auffälligkeiten.</p>
+        <ul>
+          <li>CI/CD-Signal prüfen</li>
+          <li>Statusliste aktualisieren</li>
+          <li>Rollback-Trigger bereit</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-row">
+      <div>virtauto®</div>
+      <div>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</div>
+    </div>
+    <div class="footer-row">
+      <a href="blog.html">Blog</a> · <a href="contact.html">Contact</a>
+    </div>
+    <div class="footer-row small">© 2025 virtauto®. All rights reserved.</div>
+  </footer>
+</body>
+</html>
