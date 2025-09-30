@@ -1,33 +1,64 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>virtauto — GEORGE</title>
-<link href="assets/styles.css" rel="stylesheet"/>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GEORGE · virtauto®</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <script defer src="assets/site.js"></script>
+</head>
 <body>
-<div class="nav"><div class="nav-inner">
-<a class="brand" href="home.html"><em>virt</em>auto</a>
-<a href="home.html">Home</a>
-<a href="solutions.html">Solutions</a>
-<a class="active" href="george.html">GEORGE</a>
-<a href="contact.html">Contact</a>
-<a href="index.html">Status</a>
-<span class="spacer"></span>
-</div></div>
-<div class="container">
-<h2>GEORGE</h2>
-<p>GEORGE is our domain-specific orchestration agent for Engineering &amp; Production. It connects Git, build systems, factory IT (MES/SCADA), data platform and UI.</p>
-<div class="grid">
-<div class="card"><h3>Capabilities</h3><p>CI/CD coordination, quality gates, retries &amp; auto-rollback; routing to specialized agents; least-privilege policy &amp; secrets handling.</p></div>
-<div class="card"><h3>Integrations</h3><p>GitHub Actions/Runners, artifact storage; REST to MES/SCADA/PLC; lake/warehouse; identity &amp; audit.</p></div>
-<div class="card"><h3>UI &amp; APIs</h3><p>Live Status Dashboard, job/event APIs for self-service, context assistants for devs &amp; operators.</p></div>
-</div>
-<h3 style="margin-top:24px">Architecture Overview</h3>
-<div class="kit"><img alt="Architecture" class="img-fluid responsive-img" decoding="async" loading="eager" src="assets/architecture.svg"/></div>
-<hr class="sep"/>
-<div class="footer">© virtauto • Built with agents in mind.</div>
-</div>
-<script src="assets/site.js"></script>
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+    <nav class="menu" id="menu">
+      <a href="index.html">Home</a>
+      <a href="agents.html">Agents</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="solutions.html">Solutions</a>
+      <a class="active" href="george.html">GEORGE</a>
+      <a href="status.html">Status</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <div class="kicker">Orchestrator</div>
+      <h1>GEORGE</h1>
+      <p class="lead">The supervisory brain of virtauto.OS — connects Git, build systems, factory IT (MES/SCADA), data platform and UI.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container card-grid three">
+      <div class="card"><h3>Capabilities</h3><p>CI/CD coordination, quality gates, retries &amp; auto‑rollback; routing to specialized agents; least‑privilege policy &amp; secrets handling.</p></div>
+      <div class="card"><h3>Integrations</h3><p>GitHub Actions/Runners, artifact storage; REST to MES/SCADA/PLC; data lake/warehouse; identity &amp; audit.</p></div>
+      <div class="card"><h3>UI &amp; APIs</h3><p>Live Status Dashboard, job/event APIs for self‑service, context assistants for devs &amp; operators.</p></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <h3>Architecture Overview</h3>
+      <div class="kit">
+        <img class="img-fluid responsive-img" src="assets/architecture.svg" alt="Architecture"/>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container cols">
+    <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
+    <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
+    <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+  </div>
+</footer>
 </body>
 </html>
