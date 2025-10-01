@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home · virtauto®</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/styles_unify.css" />
+  <script defer src="assets/site.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+      <nav id="menu" class="menu">
+        <a class="active" href="index.html">Home</a>
+        <a href="agents.html">Agents</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="solutions.html">Solutions</a>
+        <a href="status.html">Status</a>
+        <a href="contact.html">Contact</a>
+        <a class="cta" href="solutions.html#george">Meet GEORGE</a>
+      </nav>
+      <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container split">
+        <div>
+          <div class="kicker">virtauto.OS</div>
+          <h1>The Operating System for Automotive value creation.</h1>
+          <p class="lead">
+            A modular platform that automates engineering, production and after‑sales processes
+            with <strong>Multi‑Agent Orchestration</strong> — from CI/CD pipelines to the shop floor.
+          </p>
+          <div class="actions">
+            <a class="btn" href="solutions.html">Explore Solutions</a>
+            <a class="btn ghost" href="solutions.html#george">Meet GEORGE</a>
+          </div>
+        </div>
+        <div>
+          <img
+            src="assets/img/smart_factory.jpg"
+            alt="Smart factory"
+            class="elevate img-fluid responsive-img"
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCH POSTER -->
+    <section class="section">
+      <div class="container">
+        <h2>Platform Architecture</h2>
+        <p>Scalable, observable and agent‑driven.</p>
+        <img
+          src="assets/img/unified_architecture.png"
+          alt="Unified Multi‑Agent Architecture"
+          class="frame img-fluid responsive-img"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container cols">
+      <div>
+        <strong>virtauto®</strong><br />
+        <small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small>
+      </div>
+      <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
+      <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+    </div>
+  </footer>
+</body>
+</html>
