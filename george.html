@@ -1,89 +1,153 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
- <head>
-  <meta content="width=device-width, initial-scale=1" name="viewport">
- </head>
- <meta charset="utf-8">
- <meta content="width=device-width, initial-scale=1" name="viewport">
- <title>
-  virtauto &mdash; GEORGE
- </title>
- <link href="assets/styles.css" rel="stylesheet">
- <body>
-  <script src="assets/site.js">
-  </script>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GEORGE – virtauto®</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Local page tweaks (kept light; can be moved to styles.css later) */
+    .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+    .hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: center; }
+    .hero h1 { margin-bottom: 12px; }
+    .hero p.lead { color: var(--muted); line-height: 1.55; }
+    .cta-row { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+    .card { background: rgba(8,13,24,.75); border: 1px solid #14280a; border-radius: 10px; padding: 18px 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+    .list { margin: 8px 0 0 18px; }
+    .list li { margin: 4px 0; }
+    .section { margin-top: 42px; }
+    .poster { display:block; max-width: 900px; width: 100%; height: auto; margin: 12px auto; border-radius: 8px;
+              box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <a href="index.html" class="logo">virtauto<sup>®</sup> <span class="badge">OS</span></a>
+        <div class="spacer"></div>
+        <a href="index.html">Home</a>
+        <a href="agents.html">Agents</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="solutions.html">Solutions</a>
+        <a href="status.html">Status</a>
+        <a href="contact.html">Contact</a>
+        <a class="btn" href="solutions.html#george">Meet GEORGE</a>
+      </nav>
+    </div>
+  </header>
+
   <main>
-   <div class="nav">
-    <div class="nav-inner">
-     <a class="brand" href="home.html">
-      <em>
-       virt
-      </em>
-      auto
-     </a>
-     <a href="home.html">
-      Home
-     </a>
-     <a href="solutions.html">
-      Solutions
-     </a>
-     <a class="active" href="george.html">
-      GEORGE
-     </a>
-     <a href="contact.html">
-      Contact
-     </a>
-     <a href="index.html">
-      Status
-     </a>
-     <span class="spacer">
-     </span>
-    </div>
-   </div>
-   <div class="container">
-    <h2>
-     GEORGE
-    </h2>
-    <p>
-     GEORGE is our domain-specific orchestration agent for Engineering & Production. It connects Git, build systems, factory IT (MES/SCADA), data platform and UI.
-    </p>
-    <div class="grid">
-     <div class="card">
-      <h3>
-       Capabilities
-      </h3>
-      <p>
-       CI/CD coordination, quality gates, retries & auto-rollback; routing to specialized agents; least-privilege policy & secrets handling.
-      </p>
-     </div>
-     <div class="card">
-      <h3>
-       Integrations
-      </h3>
-      <p>
-       GitHub Actions/Runners, artifact storage; REST to MES/SCADA/PLC; lake/warehouse; identity & audit.
-      </p>
-     </div>
-     <div class="card">
-      <h3>
-       UI & APIs
-      </h3>
-      <p>
-       Live Status Dashboard, job/event APIs for self-service, context assistants for devs & operators.
-      </p>
-     </div>
-    </div>
-    <h3 style="margin-top:24px">
-     Architecture Overview
-    </h3>
-    <div class="kit">
-     <img alt="Architecture" class="img-fluid responsive-img" decoding="async" loading="eager" src="assets/architecture.svg">
-    </div>
-    <hr class="sep">
-    <div class="footer">
-     &copy; virtauto &bull; Built with agents in mind.
-    </div>
-   </div>
+    <section class="container hero">
+      <div>
+        <small class="kbd">GEORGE (Orchestrator)</small>
+        <h1>GEORGE — Generic Entity Orchestrating Resources &amp; Gathering Efficiency</h1>
+        <p class="lead">
+          The supervisory brain of virtauto.OS. GEORGE plans, routes, validates and learns across all domain agents.
+        </p>
+        <div class="cta-row">
+          <a class="btn" href="contact.html">Request demo</a>
+          <a class="btn secondary" href="#responsibilities">See responsibilities</a>
+        </div>
+      </div>
+      <div>
+        <!-- Optional poster image: if you add/keep an asset, it will resize nicely -->
+        <!-- <img class="poster" src="images/george_overview.png" alt="GEORGE overview" /> -->
+      </div>
+    </section>
+
+    <section id="responsibilities" class="container section">
+      <h2>Responsibilities</h2>
+      <div class="grid-3">
+        <div class="card">
+          <strong>Task Orchestration</strong>
+          <ul class="list">
+            <li>Break down intents and compose multi‑step plans</li>
+            <li>Assign tasks to domain agents and monitor progress</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Policy &amp; Guardrails</strong>
+          <ul class="list">
+            <li>Enforce constraints for cost, safety and data access</li>
+            <li>Keep a human‑in‑the‑loop where needed</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Tool Governance</strong>
+          <ul class="list">
+            <li>Register MCP tools and external APIs</li>
+            <li>Manage rate‑limits, quotas and audit usage</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid-3 section">
+        <div class="card">
+          <strong>Memory Management</strong>
+          <ul class="list">
+            <li>Short‑term, long‑term and entity memory</li>
+            <li>Share scoped context across teams</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Evidence Tracking</strong>
+          <ul class="list">
+            <li>Collect citations and logs</li>
+            <li>Generate explainable outcomes</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>KPI Feedback</strong>
+          <ul class="list">
+            <li>Measure impact (OEE, yield, lead time)</li>
+            <li>Feed insights back into agent playbooks</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="container section">
+      <h2>Works across domains</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>Manufacturing</strong>
+          <ul class="list">
+            <li>Procurement, Supply Chain, Quality/Root‑Cause</li>
+            <li>MES/ERP connectivity via API layer</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Engineering</strong>
+          <ul class="list">
+            <li>Dev pipelines, simulations, twins and governance</li>
+            <li>Secure data‑plane, policy‑first</li>
+          </ul>
+        </div>
+      </div>
+    </section>
   </main>
- </body>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="grid-2">
+        <div>
+          <strong>virtauto<sup>®</sup></strong><br/>
+          The Digital Transformation of the Automotive Industry. When Software builds Hardware.
+        </div>
+        <div style="text-align:right">
+          <a href="blog.html">Blog</a> · <a href="contact.html">Contact</a><br/>
+          © 2025 virtauto<sup>®</sup>. All rights reserved.
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
 </html>
