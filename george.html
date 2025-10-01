@@ -1,153 +1,64 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GEORGE – virtauto®</title>
-  <link rel="stylesheet" href="styles.css" />
-  <style>
-    /* Local page tweaks (kept light; can be moved to styles.css later) */
-    .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
-    .hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: center; }
-    .hero h1 { margin-bottom: 12px; }
-    .hero p.lead { color: var(--muted); line-height: 1.55; }
-    .cta-row { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
-    .card { background: rgba(8,13,24,.75); border: 1px solid #14280a; border-radius: 10px; padding: 18px 16px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
-    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
-    .list { margin: 8px 0 0 18px; }
-    .list li { margin: 4px 0; }
-    .section { margin-top: 42px; }
-    .poster { display:block; max-width: 900px; width: 100%; height: auto; margin: 12px auto; border-radius: 8px;
-              box-shadow: 0 10px 30px rgba(0,0,0,.35); }
-    @media (max-width: 980px) {
-      .hero { grid-template-columns: 1fr; }
-      .grid-3 { grid-template-columns: 1fr; }
-      .grid-2 { grid-template-columns: 1fr; }
-    }
-  </style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GEORGE · virtauto®</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <script defer src="assets/site.js"></script>
 </head>
 <body>
-  <header class="header">
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+    <nav class="menu" id="menu">
+      <a href="index.html">Home</a>
+      <a href="agents.html">Agents</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="solutions.html">Solutions</a>
+      <a class="active" href="george.html">GEORGE</a>
+      <a href="status.html">Status</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
     <div class="container">
-      <nav class="nav">
-        <a href="index.html" class="logo">virtauto<sup>®</sup> <span class="badge">OS</span></a>
-        <div class="spacer"></div>
-        <a href="index.html">Home</a>
-        <a href="agents.html">Agents</a>
-        <a href="architecture.html">Architecture</a>
-        <a href="solutions.html">Solutions</a>
-        <a href="status.html">Status</a>
-        <a href="contact.html">Contact</a>
-        <a class="btn" href="solutions.html#george">Meet GEORGE</a>
-      </nav>
+      <div class="kicker">Orchestrator</div>
+      <h1>GEORGE</h1>
+      <p class="lead">The supervisory brain of virtauto.OS — connects Git, build systems, factory IT (MES/SCADA), data platform and UI.</p>
     </div>
-  </header>
+  </section>
 
-  <main>
-    <section class="container hero">
-      <div>
-        <small class="kbd">GEORGE (Orchestrator)</small>
-        <h1>GEORGE — Generic Entity Orchestrating Resources &amp; Gathering Efficiency</h1>
-        <p class="lead">
-          The supervisory brain of virtauto.OS. GEORGE plans, routes, validates and learns across all domain agents.
-        </p>
-        <div class="cta-row">
-          <a class="btn" href="contact.html">Request demo</a>
-          <a class="btn secondary" href="#responsibilities">See responsibilities</a>
-        </div>
-      </div>
-      <div>
-        <!-- Optional poster image: if you add/keep an asset, it will resize nicely -->
-        <!-- <img class="poster" src="images/george_overview.png" alt="GEORGE overview" /> -->
-      </div>
-    </section>
+  <section class="section">
+    <div class="container card-grid three">
+      <div class="card"><h3>Capabilities</h3><p>CI/CD coordination, quality gates, retries &amp; auto‑rollback; routing to specialized agents; least‑privilege policy &amp; secrets handling.</p></div>
+      <div class="card"><h3>Integrations</h3><p>GitHub Actions/Runners, artifact storage; REST to MES/SCADA/PLC; data lake/warehouse; identity &amp; audit.</p></div>
+      <div class="card"><h3>UI &amp; APIs</h3><p>Live Status Dashboard, job/event APIs for self‑service, context assistants for devs &amp; operators.</p></div>
+    </div>
+  </section>
 
-    <section id="responsibilities" class="container section">
-      <h2>Responsibilities</h2>
-      <div class="grid-3">
-        <div class="card">
-          <strong>Task Orchestration</strong>
-          <ul class="list">
-            <li>Break down intents and compose multi‑step plans</li>
-            <li>Assign tasks to domain agents and monitor progress</li>
-          </ul>
-        </div>
-        <div class="card">
-          <strong>Policy &amp; Guardrails</strong>
-          <ul class="list">
-            <li>Enforce constraints for cost, safety and data access</li>
-            <li>Keep a human‑in‑the‑loop where needed</li>
-          </ul>
-        </div>
-        <div class="card">
-          <strong>Tool Governance</strong>
-          <ul class="list">
-            <li>Register MCP tools and external APIs</li>
-            <li>Manage rate‑limits, quotas and audit usage</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="grid-3 section">
-        <div class="card">
-          <strong>Memory Management</strong>
-          <ul class="list">
-            <li>Short‑term, long‑term and entity memory</li>
-            <li>Share scoped context across teams</li>
-          </ul>
-        </div>
-        <div class="card">
-          <strong>Evidence Tracking</strong>
-          <ul class="list">
-            <li>Collect citations and logs</li>
-            <li>Generate explainable outcomes</li>
-          </ul>
-        </div>
-        <div class="card">
-          <strong>KPI Feedback</strong>
-          <ul class="list">
-            <li>Measure impact (OEE, yield, lead time)</li>
-            <li>Feed insights back into agent playbooks</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section class="container section">
-      <h2>Works across domains</h2>
-      <div class="grid-2">
-        <div class="card">
-          <strong>Manufacturing</strong>
-          <ul class="list">
-            <li>Procurement, Supply Chain, Quality/Root‑Cause</li>
-            <li>MES/ERP connectivity via API layer</li>
-          </ul>
-        </div>
-        <div class="card">
-          <strong>Engineering</strong>
-          <ul class="list">
-            <li>Dev pipelines, simulations, twins and governance</li>
-            <li>Secure data‑plane, policy‑first</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
+  <section class="section">
     <div class="container">
-      <div class="grid-2">
-        <div>
-          <strong>virtauto<sup>®</sup></strong><br/>
-          The Digital Transformation of the Automotive Industry. When Software builds Hardware.
-        </div>
-        <div style="text-align:right">
-          <a href="blog.html">Blog</a> · <a href="contact.html">Contact</a><br/>
-          © 2025 virtauto<sup>®</sup>. All rights reserved.
-        </div>
+      <h3>Architecture Overview</h3>
+      <div class="kit">
+        <img class="img-fluid responsive-img" src="assets/architecture.svg" alt="Architecture"/>
       </div>
     </div>
-  </footer>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container cols">
+    <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
+    <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
+    <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+  </div>
+</footer>
 </body>
 </html>
