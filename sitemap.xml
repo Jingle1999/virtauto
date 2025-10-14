@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://www.virtauto.de/</loc></url>
-  <url><loc>https://www.virtauto.de/solutions.html</loc></url>
-  <url><loc>https://www.virtauto.de/agents.html</loc></url>
-  <url><loc>https://www.virtauto.de/architecture.html</loc></url>
-  <url><loc>https://www.virtauto.de/blog.html</loc></url>
-  <url><loc>https://www.virtauto.de/contact.html</loc></url>
-  <url><loc>https://www.virtauto.de/imprint.html</loc></url>
-  <url><loc>https://www.virtauto.de/privacy.html</loc></url>
+  <url>
+    <loc>https://www.virtauto.de/</loc>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.virtauto.de/agents.html</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.virtauto.de/architecture.html</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.virtauto.de/solutions.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.virtauto.de/contact.html</loc>
+    <priority>0.5</priority>
+  </url>
 </urlset>
