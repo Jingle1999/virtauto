@@ -1,3 +1,23 @@
+/* --- Compatibility with existing markup (virtauto) --- */
+header.header{
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: saturate(1.1) blur(8px);
+  background: rgba(10,15,28,.75);
+  border-bottom: 1px solid var(--va-border);
+}
+.container.nav{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--va-6); padding: var(--va-4) 0;
+}
+.menu{
+  display: flex; align-items: center; gap: var(--va-4);
+}
+.menu a{
+  padding: .5rem .75rem; border-radius: 12px; transition: background .15s ease;
+}
+.menu a:hover{ background: rgba(56,189,248,.08); }
+.menu a.active{ background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.28); }
+.brand{ display:flex; align-items:center; gap:.5rem; font-weight:700; color:#fff; }
 /* ==========================================================================
    virtauto Clean State 1.0 — Phase 1 (Visual & Layout Refinement)
    Author: ChatGPT for Andreas Braun
