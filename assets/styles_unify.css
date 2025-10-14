@@ -221,3 +221,41 @@ input:focus, textarea:focus { outline: 2px solid var(--va-primary-300); outline-
 
 /* 11) Reduced motion */
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* === Hotfix 2025-10-14: mobile scroll + ruhigeres Hover =================== */
+
+/* 1) Mobil: Scroll erzwingen, keine versehentlichen Locks von Alt-CSS */
+html, body {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* manche Frameworks setzen das auf Sektionen */
+section, main {
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+/* 2) Header soll nicht die Seite „überdecken“ */
+header.header, header.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  pointer-events: auto;
+}
+
+/* 3) Ruhigeres Verhalten auf Desktop */
+.btn:hover    { transform: none; box-shadow: none; filter: none; }
+.card:hover   { transform: none; box-shadow: var(--va-shadow-sm); }
+
+/* Optional: Blur minimal schwächer, wirkt stabiler beim Scrollen */
+header.header, header.site-header {
+  backdrop-filter: saturate(1.05) blur(6px);
+}
+
+/* 4) Hero: sicher kein viewport-lock auf kleinen Screens */
+@media (max-width: 1024px) {
+  .hero { grid-template-columns: 1fr; }
+}
