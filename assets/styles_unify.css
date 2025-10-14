@@ -259,3 +259,46 @@ header.header, header.site-header {
 @media (max-width: 1024px) {
   .hero { grid-template-columns: 1fr; }
 }
+/* === Mobile Nav: Burger sichtbar + Dropdown funktioniert ================== */
+@media (max-width: 992px) {
+  /* Burger-Button sichtbar machen */
+  .burger { 
+    display: inline-flex !important;
+    align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 10px;
+    border: 1px solid var(--va-border);
+    background: rgba(56,189,248,.08);
+    cursor: pointer;
+  }
+  .burger span, .burger span::before, .burger span::after {
+    display: block; width: 18px; height: 2px; background: #fff; position: relative;
+  }
+  .burger span::before, .burger span::after { content:""; position: absolute; left:0; }
+  .burger span::before { top: -6px; }
+  .burger span::after  { top:  6px; }
+
+  /* Menü standardmäßig einklappen */
+  nav .menu, #menu {
+    display: none !important;
+    flex-direction: column; gap: .75rem; 
+    width: 100%;
+    padding-top: .75rem;
+    background: rgba(10,15,28,.92);
+    border-top: 1px solid var(--va-border);
+  }
+
+  /* Beim Öffnen anzeigen (JS toggelt .open) */
+  #menu.open, nav .menu.open { 
+    display: flex !important;
+  }
+
+  /* Links im Dropdown */
+  nav .menu a { 
+    display: block; padding: .75rem 0; 
+    border-radius: 10px; 
+  }
+
+  /* Header über Inhalt halten */
+  header.header, header.site-header { z-index: 100; }
+}
+
