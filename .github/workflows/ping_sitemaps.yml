@@ -1,0 +1,17 @@
+name: Ping Sitemaps
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'sitemap.xml'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify search engines
+        run: |
+          curl -s "https://www.google.com/ping?sitemap=https://www.virtauto.de/sitemap.xml" || true
+          curl -s "https://www.bing.com/ping?sitemap=https://www.virtauto.de/sitemap.xml" || true
