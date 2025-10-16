@@ -1,0 +1,35 @@
+# Self-Agents Registry (proto)
+agents:
+  - key: guardian
+    name: Site Guardian
+    owner: andreas@virtauto.de
+    schedule: daily@04:17Z
+    goals:
+      - Keep Lighthouse scores above thresholds.
+      - Prevent regressions in accessibility/SEO/best-practices.
+    checks:
+      - lighthouse
+      - security_headers
+  - key: link_doctor
+    name: Link Doctor
+    owner: andreas@virtauto.de
+    schedule: daily@04:30Z
+    goals:
+      - No broken internal/external links.
+    checks:
+      - link_checker
+  - key: seo_bot
+    name: SEO & Sitemap Bot
+    owner: andreas@virtauto.de
+    schedule: onChange(sitemap.xml)
+    goals:
+      - Keep sitemap fresh and URLs reachable.
+    checks:
+      - ping_sitemaps
+      - robots_txt_presence
+thresholds:
+  lighthouse:
+    performance: 0.70
+    accessibility: 0.90
+    bestPractices: 0.85
+    seo: 0.90

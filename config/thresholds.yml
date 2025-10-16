@@ -1,0 +1,5 @@
+lighthouse:
+  performance: 0.70
+  accessibility: 0.90
+  bestPractices: 0.85
+  seo: 0.90

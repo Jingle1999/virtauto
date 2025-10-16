@@ -1,0 +1,150 @@
+name: GEORGE Orchestrator
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 4 * * *"   # daily 04:25 UTC
+
+jobs:
+  run_agents:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yq & jq
+        run: |
+          sudo snap install yq
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install LHCI
+        run: npm i -g @lhci/cli@0.14.x
+
+      - name: Prepare dirs
+        run: mkdir -p artifacts
+
+      - name: Read thresholds
+        id: cfg
+        run: |
+          echo "G_PERF=$(yq '.lighthouse.performance' config/thresholds.yml)" >> $GITHUB_OUTPUT
+          echo "G_A11Y=$(yq '.lighthouse.accessibility' config/thresholds.yml)" >> $GITHUB_OUTPUT
+          echo "G_BP=$(yq '.lighthouse.bestPractices' config/thresholds.yml)" >> $GITHUB_OUTPUT
+          echo "G_SEO=$(yq '.lighthouse.seo' config/thresholds.yml)" >> $GITHUB_OUTPUT
+
+      - name: Run Lighthouse across URLs
+        run: |
+          set -e
+          while IFS= read -r u; do
+            [ -z "$u" ] && continue
+            echo "LHCI on $u"
+            lhci collect --url="$u" --numberOfRuns=1 --output=json --quiet || true
+          done < config/urls.txt
+          mkdir -p artifacts/lighthouse && cp -r .lighthouseci/* artifacts/lighthouse/ || true
+
+      - name: Link check (lychee)
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: >
+            --verbose --no-progress --timeout 20
+            --accept 200,204,206,301,302,303,307,308
+            --max-redirects 5
+            --exclude-mail
+            --exclude "linkedin.com"
+            https://www.virtauto.de/
+            https://www.virtauto.de/agents.html
+            https://www.virtauto.de/architecture.html
+            https://www.virtauto.de/solutions.html
+            https://www.virtauto.de/contact.html
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Save lychee raw output
+        if: always()
+        run: |
+          echo "${{ steps.lychee.outputs.lychee_output }}" > artifacts/lychee.txt || true
+
+      - name: Security headers (sample)
+        run: |
+          set -e
+          OUT=artifacts/headers.txt
+          : > "$OUT"
+          while IFS= read -r u; do
+            [ -z "$u" ] && continue
+            echo "---- $u ----" >> "$OUT"
+            curl -sI "$u" | grep -Ei 'content-security-policy|strict-transport-security|x-frame-options|x-content-type-options|referrer-policy|permissions-policy' >> "$OUT" || true
+            echo >> "$OUT"
+          done < config/urls.txt
+
+      - name: Summarize Lighthouse
+        id: lhsummary
+        run: |
+          perf=0; a11y=0; bp=0; seo=0; n=0
+          table="| URL | Perf | A11y | BP | SEO |\n|---|---:|---:|---:|---:|"
+          for f in .lighthouseci/*.json; do
+            [ -e "$f" ] || continue
+            url=$(jq -r '.finalUrl' "$f")
+            p=$(jq -r '.categories.performance.score // 0' "$f")
+            a=$(jq -r '.categories.accessibility.score // 0' "$f")
+            b=$(jq -r '.categories["best-practices"].score // 0' "$f")
+            s=$(jq -r '.categories.seo.score // 0' "$f")
+            perf=$(awk -v x=$perf -v y=$p 'BEGIN{print x+y}')
+            a11y=$(awk -v x=$a11y -v y=$a 'BEGIN{print x+y}')
+            bp=$(awk -v x=$bp -v y=$b 'BEGIN{print x+y}')
+            seo=$(awk -v x=$seo -v y=$s 'BEGIN{print x+y}')
+            n=$((n+1))
+            table="$table\n| $url | $p | $a | $b | $s |"
+          done
+          if [ "$n" -gt 0 ]; then
+            perf=$(awk -v x=$perf -v n=$n 'BEGIN{printf "%.2f", x/n}')
+            a11y=$(awk -v x=$a11y -v n=$n 'BEGIN{printf "%.2f", x/n}')
+            bp=$(awk -v x=$bp -v n=$n 'BEGIN{printf "%.2f", x/n}')
+            seo=$(awk -v x=$seo -v n=$n 'BEGIN{printf "%.2f", x/n}')
+          else
+            perf="0.00"; a11y="0.00"; bp="0.00"; seo="0.00"; table="$table\n(no data)"
+          fi
+          echo "perf=$perf" >> $GITHUB_OUTPUT
+          echo "a11y=$a11y" >> $GITHUB_OUTPUT
+          echo "bp=$bp" >> $GITHUB_OUTPUT
+          echo "seo=$seo" >> $GITHUB_OUTPUT
+          printf "%s" "$table" > artifacts/lh_table.md
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: george-artifacts
+          path: artifacts
+
+      - name: Compose issue body
+        id: compose
+        run: |
+          DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
+          G_PERF="${{ steps.cfg.outputs.G_PERF }}"
+          G_A11Y="${{ steps.cfg.outputs.G_A11Y }}"
+          G_BP="${{ steps.cfg.outputs.G_BP }}"
+          G_SEO="${{ steps.cfg.outputs.G_SEO }}"
+          LH_PERF="${{ steps.lhsummary.outputs.perf }}"
+          LH_A11Y="${{ steps.lhsummary.outputs.a11y }}"
+          LH_BP="${{ steps.lhsummary.outputs.bp }}"
+          LH_SEO="${{ steps.lhsummary.outputs.seo }}"
+          LYCHEE=$(cat artifacts/lychee.txt 2>/dev/null || echo "no link-check output")
+          HEADERS=$(cat artifacts/headers.txt 2>/dev/null || echo "no headers output")
+          TABLE=$(cat artifacts/lh_table.md 2>/dev/null || echo "| URL | Perf | A11y | BP | SEO |\n|---|---:|---:|---:|---:|\n(no data)")
+
+          sed -e "s/{{DATE}}/$DATE/"               -e "s/{{LH_PERF}}/$LH_PERF/"               -e "s/{{LH_A11Y}}/$LH_A11Y/"               -e "s/{{LH_BP}}/$LH_BP/"               -e "s/{{LH_SEO}}/$LH_SEO/"               -e "s/{{G_PERF}}/$G_PERF/"               -e "s/{{G_A11Y}}/$G_A11Y/"               -e "s/{{G_BP}}/$G_BP/"               -e "s/{{G_SEO}}/$G_SEO/"               -e "s|{{LH_TABLE}}|$TABLE|"               -e "s|{{LYCHEE_OUTPUT}}|```
+$LYCHEE
+```|"               -e "s|{{HEADERS_OUTPUT}}|```
+$HEADERS
+```|"               templates/issue_report.md > artifacts/report_issue.md
+
+      - name: Create/Update Issue
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "[GEORGE] Site Health Report"
+          content-filepath: artifacts/report_issue.md
+          labels: report, george, automation
