@@ -123,21 +123,6 @@ jobs:
       - name: Compose issue body
         id: compose
         run: |
-          DATE=$(date -u +'%Y-%m-%d %H:%M UTC')
-          G_PERF="${{ steps.cfg.outputs.G_PERF }}"
-          G_A11Y="${{ steps.cfg.outputs.G_A11Y }}"
-          G_BP="${{ steps.cfg.outputs.G_BP }}"
-          G_SEO="${{ steps.cfg.outputs.G_SEO }}"
-          LH_PERF="${{ steps.lhsummary.outputs.perf }}"
-          LH_A11Y="${{ steps.lhsummary.outputs.a11y }}"
-          LH_BP="${{ steps.lhsummary.outputs.bp }}"
-          LH_SEO="${{ steps.lhsummary.outputs.seo }}"
-          LYCHEE=$(cat artifacts/lychee.txt 2>/dev/null || echo "no link-check output")
-          HEADERS=$(cat artifacts/headers.txt 2>/dev/null || echo "no headers output")
-          TABLE=$(cat artifacts/lh_table.md 2>/dev/null || echo "| URL | Perf | A11y | BP | SEO |\n|---|---:|---:|---:|---:|\n(no data)")
-      - name: Compose issue body
-        id: compose
-        run: |
           DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
           G_PERF="${{ steps.cfg.outputs.G_PERF }}"
           G_ALLY="${{ steps.cfg.outputs.G_ALLY }}"
@@ -149,21 +134,17 @@ jobs:
           LH_SEO="${{ steps.lhsummary.outputs.seo }}"
           LYCHEE=$(cat artifacts/lychee.txt 2>/dev/null || echo "no link-check output")
           HEADERS=$(cat artifacts/headers.txt 2>/dev/null || echo "no headers output")
-          TABLE=$(cat artifacts/lh_table.md 2>/dev/null || echo "no data table")
+          TABLE=$(cat artifacts/lh_table.md 2>/dev/null || echo "| URL | Perf | Ally | BP | SEO |\n|---|---|---|---|---|\n(no data)")
 
           sed -e "s/{{DATE}}/$DATE/" \
               -e "s/{{LH_PERF}}/$LH_PERF/" \
               -e "s/{{LH_ALLY}}/$LH_ALLY/" \
               -e "s/{{LH_BP}}/$LH_BP/" \
               -e "s/{{LH_SEO}}/$LH_SEO/" \
-              -e "s|{{HEADERS_OUTPUT}}|$HEADERS|" \
-              -e "s|{{LYCHEE_OUTPUT}}|$LYCHEE|" \
-              -e "s|{{TABLE_OUTPUT}}|$TABLE|" \
+              -e "s/{{LYCHEE_OUTPUT}}/$LYCHEE/" \
+              -e "s/{{HEADERS_OUTPUT}}/$HEADERS/" \
+              -e "s/{{TABLE_OUTPUT}}/$TABLE/" \
               templates/issue_report.md > artifacts/report_issue.md
 
-      - name: Create or Update Issue
-        uses: peter-evans/create-issue-from-file@v5
-        with:
-          title: "[GEORGE] Site Health Report"
-          content-filepath: artifacts/report_issue.md
-          labels: "report,george,automation"
+
+         
