@@ -33,3 +33,70 @@ thresholds:
     accessibility: 0.90
     bestPractices: 0.85
     seo: 0.90
+
+# Phase 2.1 – Self-Agents registry (starter set)
+version: 1
+
+scope:
+  urls:
+    - https://www.virtauto.de/
+    - https://www.virtauto.de/agents.html
+    - https://www.virtauto.de/architecture.html
+    - https://www.virtauto.de/solutions.html
+    - https://www.virtauto.de/contact.html
+
+owners:
+  default: "Jingle1999"
+
+agents:
+
+  - id: consistency
+    enabled: true
+    description: Ensure headings rhythm, alt/text presence, duplicate titles, empty links.
+    labels: ["agent","consistency","content"]
+    rules:
+      headings:
+        min_h1: 1
+        max_h1: 1
+        allow_h4_plus_without_h2_h3: false
+      images:
+        require_alt: true
+      links:
+        forbid_empty_href: true
+      titles:
+        unique_per_page: true
+        min_length: 20
+        max_length: 70
+
+  - id: seo_basics
+    enabled: true
+    description: Check title/description/og/twitter tags and canonical.
+    labels: ["agent","seo"]
+    rules:
+      meta:
+        require:
+          - "title"
+          - "meta[name=description]"
+          - "link[rel=canonical]"
+          - "meta[property='og:title']"
+          - "meta[property='og:description']"
+          - "meta[property='og:image']"
+          - "meta[name='twitter:card']"
+      description:
+        min_length: 80
+        max_length: 160
+      canonical:
+        must_be_absolute: true
+        must_point_to_https: true
+
+  - id: guardian_links
+    enabled: true
+    description: External + internal link health via lychee (re-use GEORGE’s token).
+    labels: ["agent","guardian","links"]
+    rules:
+      lychee:
+        accept_status: [200,204,206,301,302,303,307,308]
+        max_redirects: 5
+        exclude_mailto: true
+        exclude_domains:
+          - linkedin.com
