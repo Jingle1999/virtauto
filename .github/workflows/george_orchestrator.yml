@@ -1,4 +1,4 @@
-name: george-orchestrator
+name: GEORGE Orchestrator
 
 on:
   workflow_dispatch:
@@ -67,3 +67,4 @@ jobs:
               ref: 'main',
               inputs: {}
             });
+

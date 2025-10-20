@@ -1,0 +1,41 @@
+name: Self Agents
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent:
+        description: "Which agent to run (guardian|link|headers|all)"
+        required: true
+        default: "all"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm i -g @lhci/cli@0.14.x
+      - name: Run by selection
+        run: |
+          set -e
+          AGENT="${{ github.event.inputs.agent }}"
+          echo "Agent: $AGENT"
+          if [ "$AGENT" = "guardian" ] || [ "$AGENT" = "all" ]; then
+            while IFS= read -r u; do
+              [ -z "$u" ] && continue
+              lhci collect --url="$u" --numberOfRuns=1 --output=json --quiet || true
+            done < config/urls.txt
+          fi
+          if [ "$AGENT" = "link" ] || [ "$AGENT" = "all" ]; then
+            curl -sL https://raw.githubusercontent.com/lycheeverse/lychee/main/install.sh | bash -s -- --git lycheeverse/lychee
+            ./lychee --verbose --no-progress $(paste -sd" " config/urls.txt) || true
+          fi
+          if [ "$AGENT" = "headers" ] || [ "$AGENT" = "all" ]; then
+            while IFS= read -r u; do
+              [ -z "$u" ] && continue
+              echo "---- $u ----"
+              curl -sI "$u" | grep -Ei 'content-security-policy|strict-transport-security|x-frame-options|x-content-type-options|referrer-policy|permissions-policy' || true
+              echo
+            done < config/urls.txt
