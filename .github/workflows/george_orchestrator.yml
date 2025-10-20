@@ -1,0 +1,69 @@
+name: george-orchestrator
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"   # montags 06:00 UTC (optional)
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: "george-orchestrator"
+  cancel-in-progress: false
+
+jobs:
+  orchestrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch → content-ingest
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.request('POST /repos/{owner}/{repo}/dispatches', {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'self_ingest'
+            });
+
+      - name: Wait for ingest
+        run: sleep 25
+
+      - name: Dispatch → review-gate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.request('POST /repos/{owner}/{repo}/dispatches', {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'self_review'
+            });
+
+      - name: Wait for review
+        run: sleep 25
+
+      - name: Dispatch → site-audit
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.request('POST /repos/{owner}/{repo}/dispatches', {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              event_type: 'self_audit'
+            });
+
+      - name: Wait for audit
+        run: sleep 25
+
+      - name: Trigger site-deploy (workflow_dispatch)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'site-deploy.yml',
+              ref: 'main',
+              inputs: {}
+            });

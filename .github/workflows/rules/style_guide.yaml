@@ -1,0 +1,12 @@
+tone: concise-technical-optimistic
+frontmatter_required: ["title","description","tags","updated","status","canonical"]
+forbidden_phrases:
+  - "state of the art"
+  - "world's best"
+  - "100% guaranteed"
+h1:
+  max_length: 70
+links:
+  require_canonical_if_external: true
+files:
+  allowed_extensions: [".md",".mdx"]

@@ -1,0 +1,79 @@
+name: content-ingest
+
+on:
+  schedule:
+    - cron: "9 5 * * *"        # täglich morgens (UTC)
+  workflow_dispatch:
+  repository_dispatch:
+    types: [self_ingest]
+
+permissions:
+  contents: write
+
+env:
+  MEDIUM_FEED_URL: https://medium.com/feed/@andreas.braun.2011
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install feedparser python-frontmatter python-slugify
+
+      - name: Pull Medium RSS and create drafts
+        run: |
+          python << 'PY'
+          import os, feedparser, pathlib, re, datetime, frontmatter
+          from slugify import slugify
+
+          FEED = os.environ["MEDIUM_FEED_URL"]
+          out_ingest = pathlib.Path("content/ingest"); out_ingest.mkdir(parents=True, exist_ok=True)
+          out_drafts = pathlib.Path("content/drafts"); out_drafts.mkdir(parents=True, exist_ok=True)
+
+          feed = feedparser.parse(FEED)
+          for entry in feed.entries[:8]:
+              title = entry.title.strip()
+              date = datetime.datetime(*entry.published_parsed[:6]).date()
+              slug = f"{date}-{slugify(title)[:80]}"
+              (out_ingest / f"{slug}.url").write_text(entry.link, encoding="utf-8")
+
+              md_path = out_drafts / f"{slug}.md"
+              if not md_path.exists():
+                  summary = re.sub("<.*?>", "", entry.get("summary",""))
+                  body = (
+                      "# " + title + "\n\n"
+                      "## Key Points\n- TODO\n\n"
+                      "## How this maps to virtauto\n- TODO\n"
+                  )
+                  post = frontmatter.Post(
+                      body,
+                      **{
+                          "title": title,
+                          "description": (summary[:160] or title),
+                          "tags": ["MAS","Industrial AI","virtauto"],
+                          "source": entry.link,
+                          "status": "draft",
+                          "updated": str(date),
+                          "canonical": entry.link
+                      }
+                  )
+                  with open(md_path, "w", encoding="utf-8") as f:
+                      frontmatter.dump(post, f)
+          PY
+
+      - name: Commit drafts
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(content): ingest Medium feed → drafts"
+          file_pattern: |
+            content/ingest/**
+            content/drafts/**

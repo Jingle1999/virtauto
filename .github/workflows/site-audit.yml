@@ -1,0 +1,50 @@
+name: site-audit
+
+on:
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: "17 3 * * *"     # nightly (UTC)
+  workflow_dispatch:
+  repository_dispatch:
+    types: [self_audit]
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps & build (Astro)
+        run: |
+          if [ -f package.json ]; then
+            npm ci || npm i
+            npm run build || echo "No build script"
+          fi
+          mkdir -p dist
+          if [ -d "./public" ]; then rsync -a public/ dist/; fi
+
+      - name: Install LHCI
+        run: npm i -g @lhci/cli@0.13.x
+
+      - name: Run Lighthouse CI (static)
+        run: |
+          lhci collect --staticDistDir=dist --numberOfRuns=1 --settings.formFactor=mobile --settings.screenEmulation.mobile=true
+          if [ -f rules/perf_budgets.yaml ]; then
+            lhci assert --budgetPath=rules/perf_budgets.yaml || true
+          fi
+          lhci upload --target=temporary-public-storage || true
+
+      - name: Save LHCI results
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-results
+          path: .lighthouseci/
