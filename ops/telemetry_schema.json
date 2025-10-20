@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "fields": [
+    "timestamp_utc",
+    "agent",
+    "run_id",
+    "input",
+    "output_hash",
+    "duration_ms",
+    "errors",
+    "decisions",
+    "kpis",
+    "notes"
+  ]
+}

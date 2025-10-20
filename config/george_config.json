@@ -1,0 +1,26 @@
+{
+  "agent_name": "GEORGE",
+  "role": "Website Orchestrator",
+  "version": "0.1.0",
+  "priorities": [
+    "critical-bugs",
+    "availability-performance",
+    "consistency-seo",
+    "content-newness",
+    "features-enhancements"
+  ],
+  "goals_template": [
+    "Fix broken links <= 0.5% of crawled URLs",
+    "Improve pages with missing meta descriptions to <5%",
+    "Add internal links to top 5 orphan pages",
+    "Reduce average response time by 15% (Lighthouse)"
+  ],
+  "human_in_the_loop": {
+    "required_for": [
+      "navigation-changes",
+      "brand-style-updates",
+      "feature-rollouts"
+    ],
+    "approver": "Andreas"
+  }
+}

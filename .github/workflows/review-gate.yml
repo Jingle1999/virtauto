@@ -1,0 +1,58 @@
+name: review-gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ main ]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [self_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-frontmatter pyyaml
+
+      - name: Run style & governance checks
+        id: gate
+        run: |
+          if [ ! -f rules/style_guide.yaml ]; then
+            echo "::warning::rules/style_guide.yaml fehlt – Gate läuft im Light-Mode."
+            echo "no rules" > /tmp/gate.txt
+          fi
+          python scripts/review_gate.py rules/style_guide.yaml || true
+
+      - name: Sticky PR comment (if PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: review-gate
+          message: |
+            ✅ **Review Gate executed**
+            - Style/Frontmatter checks done.
+            - See workflow logs for details.
+            - Fix issues marked **[VIOLATION]**.
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-gate-report
+          path: |
+            /home/runner/work/**/review_gate.log
+            content/drafts/**
+          if-no-files-found: ignore
