@@ -7,8 +7,9 @@ on:
 
 permissions:
   actions: write
-  contents: read
-  workflows: write
+  contents: write
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: "george-orchestrator"
