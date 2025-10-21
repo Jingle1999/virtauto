@@ -2,12 +2,15 @@ name: Deploy website (Pages) + Health & Auto-Rollback
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]      # falls vorhanden – behalten
+  workflow_dispatch:        # <-- WICHTIG für GEORGE
 
+# Für GitHub Pages-Deployments (empfohlen)
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
+
 
 env:
   BACKUP_BRANCH: pages-backup
