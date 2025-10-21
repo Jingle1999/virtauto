@@ -1,0 +1,19 @@
+contrast:
+  normal_text_min: 4.5
+  large_text_min: 3.0
+  pairs_to_test:
+    - ["#0B1220", "#FFFFFF"]   # dark on light
+    - ["#FFFFFF", "#0B1220"]   # light on dark
+    - ["$primary",  "#FFFFFF"]
+    - ["$secondary","#0B1220"]
+    - ["$accent",   "#0B1220"]
+consistency:
+  enforce_tokens: true          # verbietet harte Hex-Farben außerhalb Tokens (außer Bilder)
+  allow_inline_hex: false
+css_search_paths:
+  - "src"
+  - "public"
+  - "styles"
+html_search_paths:
+  - "src"
+  - "public"
