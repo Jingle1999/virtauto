@@ -1,11 +1,9 @@
-name: content-ingest
+name: Content Ingest
 
 on:
-  schedule:
-    - cron: "9 5 * * *"        # täglich morgens (UTC)
-  workflow_dispatch:
   repository_dispatch:
     types: [self_ingest]
+  workflow_dispatch:
 
 permissions:
   contents: write
