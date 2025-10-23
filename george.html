@@ -43,6 +43,33 @@
     </div>
   </section>
 
+  # …
+- name: Dispatch → self-audit
+  uses: actions/github-script@v7
+  with:
+    script: |
+      await github.request('POST /repos/{owner}/{repo}/actions/workflows/{wf}/dispatches', {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        wf: 'self-audit.yml',
+        ref: 'main',
+      });
+
+- name: Wait for self-audit
+  run: sleep 25
+
+- name: Dispatch → self-optimization
+  uses: actions/github-script@v7
+  with:
+    script: |
+      await github.request('POST /repos/{owner}/{repo}/actions/workflows/{wf}/dispatches', {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        wf: 'self-optimization.yml',
+        ref: 'main',
+      });
+
+
   <section class="section">
     <div class="container">
       <h3>Architecture Overview</h3>
