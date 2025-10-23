@@ -53,6 +53,21 @@
   </section>
 </main>
 
+    - name: Plan tool usage (blog+audit)
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const {execSync} = require('child_process');
+          execSync('python .github/workflows/scripts/plan_manager.py --goal publish_blog_and_audit --out ops/current_plan.json', {stdio:'inherit'});
+
+    - name: Execute plan (dispatch & workflow_dispatch)
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const {execSync} = require('child_process');
+          execSync('python .github/workflows/scripts/dag_executor.py --plan ops/current_plan.json', {stdio:'inherit'});
+
+
 <footer class="footer">
   <div class="container cols">
     <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
