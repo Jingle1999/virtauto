@@ -1,0 +1,21 @@
+# core
+requests>=2.32
+pydantic>=2.7
+python-dateutil>=2.9
+pyyaml>=6.0
+jinja2>=3.1
+
+# site quality
+beautifulsoup4>=4.12
+lxml>=5.3
+readability-lxml>=0.8
+markdownify>=0.12
+# lighthouse/psi optional (nur wenn du später Google PSI API nutzt)
+# google-api-python-client>=2.142
+
+# seo & perf
+tqdm>=4.66
+rich>=13.8
+
+# telemetry
+orjson>=3.10
