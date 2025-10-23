@@ -1,0 +1,33 @@
+name: Self Optimization Agent
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "35 1 * * *"   # täglich 01:35
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt
+      - name: Propose tweaks
+        run: python scripts/self_optimization.py
+      - name: Apply tiny safe changes (optional)
+        if: false  # vorerst nur Vorschläge -> PR; automation später
+        run: python scripts/apply_safe_changes.py
+      - name: Create PR with plan
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(self-opt): attach optimization plan"
+          title: "chore(self-opt): automated tweaks (seo/perf/design)"
+          body: "This PR contains an automated optimization plan at `ops/fixes/plan.json`."
+          branch: "chore/self-opt-${{ github.run_id }}"
+          add-paths: |
+            ops/fixes/plan.json
+            logs/telemetry/**

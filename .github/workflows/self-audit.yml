@@ -1,0 +1,29 @@
+name: Self Audit Agent
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Website URL"
+        required: false
+        default: "https://virtauto.de"
+  schedule:
+    - cron: "15 */6 * * *"   # alle 6h
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt
+      - name: Run audit
+        run: python scripts/self_audit.py --url "${{ inputs.url || 'https://virtauto.de' }}" --out ops/reports/self_audit.json
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: self-audit-report
+          path: ops/reports/self_audit.json
