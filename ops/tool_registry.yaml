@@ -1,0 +1,20 @@
+# ops/tool_registry.yaml
+- name: repo_dispatch
+  desc: Sendet repository_dispatch Event (self_* Workflows)
+  inputs: { event_type: string }
+  outputs: { ok: bool }
+  deps: []
+  rate_limit: "30/min"
+
+- name: workflow_dispatch
+  desc: Triggert einen konkreten Workflow auf main
+  inputs: { workflow_file: string, ref: string }
+  outputs: { ok: bool }
+  deps: []
+  rate_limit: "15/min"
+
+- name: noop
+  desc: Platzhalter für Schritte ohne Aktion (z.B. Gate)
+  inputs: {}
+  outputs: {}
+  deps: []
