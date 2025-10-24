@@ -1,0 +1,30 @@
+# rules/engagement.yaml
+version: 1
+description: >
+  Engagement & CTA optimization rules (heuristics).
+  Used by review/design gates to suggest improvements.
+
+checks:
+  min_internal_links:
+    threshold: 6
+    hint: "Mindestens 6 interne Links pro Seite für gute Navigation/SEO."
+
+  cta_presence:
+    selectors: ["a.btn", "button", "[role='button']"]
+    min_per_page: 1
+    hint: "Mindestens eine klare CTA pro Seite (Kontakt, Demo, Angebot)."
+
+  aria_labels:
+    require_for: ["button", "a.btn", "nav a"]
+    hint: "Bedienelemente benötigen sprechende aria-labels für Accessibility."
+
+  hero_section:
+    selector: "section.hero, header.hero"
+    require:
+      - h1
+      - p
+    hint: "Hero braucht klare Headline (H1) und unterstützenden Absatz."
+
+  contact_visibility:
+    selectors_any: ["a[href*='contact']", "a[href*='kontakt']", "footer a[href*='contact']"]
+    hint: "Kontakt-Entry sollte überall leicht auffindbar sein."

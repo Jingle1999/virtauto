@@ -1,15 +1,8 @@
 name: content-ingest
 on:
   workflow_dispatch:
-    inputs:
-      feed_url:
-        description: "RSS/Atom feed URL"
-        required: false
-        default: "https://medium.com/feed/@andreas.braun.2011"
-  repository_dispatch:
-    types: [self_ingest]
   schedule:
-    - cron: "7 5 * * *"
+    - cron: "5 * * * *"    # hourly
 
 permissions:
   contents: write
@@ -20,22 +13,57 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
+
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install feedparser pyyaml
-      - name: Run ingest
+          pip install feedparser markdownify
+
+      - name: Generate new posts from feed(s)
+        id: gen
+        env:
+          FEEDS: https://medium.com/feed/@andreas-braun   # add more feeds by comma
         run: |
-          python scripts/content_ingest.py --feed "${{ inputs.feed_url || 'https://medium.com/feed/@andreas.braun.2011' }}" --out content/drafts
-      - name: Create PR with drafts
+          import os, sys, time, pathlib, feedparser, hashlib
+          from markdownify import markdownify as md
+          root = pathlib.Path(".")
+          outdir = root / "content" / "blog"
+          outdir.mkdir(parents=True, exist_ok=True)
+
+          feeds = [u.strip() for u in os.environ["FEEDS"].split(",") if u.strip()]
+          created = []
+          for url in feeds:
+            d = feedparser.parse(url)
+            for e in d.entries[:5]:
+              title = e.get("title","Untitled")
+              link  = e.get("link","")
+              html  = e.get("content",[{"value": e.get("summary","")}])[0]["value"]
+              body  = md(html)
+              stamp = e.get("published","") or e.get("updated","")
+              slug  = "-".join(title.lower().split())[:60]
+              # dedupe by link hash
+              h = hashlib.sha1(link.encode("utf-8")).hexdigest()[:8]
+              fname = f"{time.strftime('%Y-%m-%d')}-{slug}-{h}.md"
+              path = outdir / fname
+              if path.exists(): 
+                continue
+              path.write_text(f"---\ntitle: \"{title}\"\nsource: \"{link}\"\n---\n\n{body}\n", encoding="utf-8")
+              created.append(fname)
+
+          open(os.environ.get("GITHUB_OUTPUT","/tmp/out"),"a").write(f"created={','.join(created)}\n")
+        shell: python
+
+      - name: Create Pull Request (if changes)
+        if: steps.gen.outputs.created != ''
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "feat(content-ingest): import latest drafts from feed"
-          title: "feat(content-ingest): new drafts from feed"
+          commit-message: "chore(content): ingest new blog posts"
+          title: "Content ingest: new posts"
           body: "Automated content ingest"
-          branch: "feat/content-ingest-${{ github.run_id }}"
-          add-paths: |
-            content/drafts/**
+          branch: "auto/content-ingest"
+          labels: content, automation

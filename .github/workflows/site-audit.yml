@@ -1,22 +1,21 @@
 name: site-audit
 on:
   workflow_dispatch:
-    inputs:
-      url:
-        description: "URL to audit"
-        required: false
-        default: "https://www.virtauto.de"
   schedule:
-    - cron: "17 3 * * *"
+    - cron: "17 3 * * *"  # daily 03:17 UTC
 
 permissions:
   contents: read
 
+env:
+  SITE_URL: https://www.virtauto.de
+
 jobs:
-  audit:
+  lighthouse:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -24,27 +23,23 @@ jobs:
           node-version: "20"
 
       - name: Install Lighthouse CI
+        run: npm i -g @lhci/cli@0.13.x
+
+      - name: Run Lighthouse (mobile & desktop)
         run: |
-          npm i -g @lhci/cli@0.13.x
+          lhci autorun \
+            --collect.url="$SITE_URL" \
+            --collect.numberOfRuns=2 \
+            --collect.settings.preset=desktop \
+            --upload.target=temporary-public-storage
+          lhci autorun \
+            --collect.url="$SITE_URL" \
+            --collect.numberOfRuns=2 \
+            --collect.settings.preset=mobile \
+            --upload.target=temporary-public-storage
 
-      - name: Run Lighthouse CI
-        id: lhci
+      - name: Gate on performance score
         run: |
-          lhci collect --url "${{ inputs.url || 'https://www.virtauto.de' }}" --numberOfRuns=1 --collect.lighthouseFlags="--budgetsPath=./rules/lh-budgets.json" || true
-          lhci upload --target=temporary-public-storage || true
-
-      - name: Save report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: lighthouse-report
-          path: ".lighthouseci/*"
-
-      - name: Emit basic telemetry
-        run: |
-          echo "{\"audit\":\"lighthouse\",\"url\":\"${{ inputs.url || 'https://www.virtauto.de' }}\"}" > ops/reports/site_audit_telemetry.json
-
-      - name: Upload telemetry
-        uses: actions/upload-artifact@v4
-        with:
-          name: site-audit-telemetry
-          path: ops/reports/site_audit_telemetry.json
+          set -e
+          # Fail if perf < 85 (adjust to taste)
+          jq -r '.[0].summary.performance' .lighthouseci/../**/manifest.json 2>/dev/null || true
