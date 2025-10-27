@@ -2,8 +2,9 @@ name: Self Guardian Agent
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 */12 * * *"  # alle 12h
+    schedule:
+      - cron: "0 */12 * * *"  # alle 12h
+  workflow_call: {}
 
 permissions:
   contents: write
