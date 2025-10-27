@@ -1,21 +1,23 @@
 # core
-requests>=2.32
-pydantic>=2.7
-python-dateutil>=2.9
-pyyaml>=6.0
-jinja2>=3.1
+requests==2.32.*
+pydantic==2.*
+python-dateutil==2.9.*
+PyYAML==6.*
+Jinja2==3.1.*
 
 # site quality
-beautifulsoup4>=4.12
-lxml>=5.3
-readability-lxml>=0.8
-markdownify>=0.12
-# lighthouse/psi optional (nur wenn du später Google PSI API nutzt)
-# google-api-python-client>=2.142
+beautifulsoup4==4.12.*
+lxml==5.*
+readability-lxml==0.8.*
+markdownify==0.12.*
 
 # seo & perf
-tqdm>=4.66
-rich>=13.8
+tqdm==4.*
+rich==13.*
 
 # telemetry
-orjson>=3.10
+orjson==3.*
+# google-api-python-client==2.*   # optional, erst aktivieren wenn benötigt
+
+# ganz wichtig: installiert das Repo als Package
+-e .
