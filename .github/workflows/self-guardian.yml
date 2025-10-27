@@ -27,6 +27,20 @@ jobs:
       - name: Ensure fixes dir
         run: mkdir -p ops/fixes
 
+      - name: Create PR if issues
+        if: ${{ hashFiles('ops/fixes/**') != '' }}   # nur wenn Fix-Dateien existieren
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(guardian): compliance fixes suggestions"
+          title: "chore(guardian): compliance suggestions"
+          body: "Automated compliance scan results in `ops/reports/guardian.json`."
+          branch: "chore/guardian-${{ github.run_id }}"
+          add-paths: |
+            ops/reports/guardian.json
+            ops/fixes/**
+            logs/telemetry/**
+
+
 
       - name: Upload report
         uses: actions/upload-artifact@v4
