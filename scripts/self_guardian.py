@@ -1,4 +1,5 @@
 import argparse, os, json, re
+import sys
 from tools.ops.telemetry import emit
 
 CHECKS = [
