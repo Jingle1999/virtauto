@@ -1,52 +1,35 @@
-
-name: Website Self-Agents
-
+name: Self Agents
 on:
-  workflow_dispatch: # manuell aus dem Actions-Tab starten
-  push:
-    paths:
-      - "agents/**"
-      - "tools/**"
-      - "policies/**"
-      - ".github/workflows/self-agents.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: self-agents-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  run-agents:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  audit:
+    name: Self Audit
+    uses: ./.github/workflows/self-audit.yml
+    secrets: inherit
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+  guardian:
+    name: Self Guardian
+    needs: audit
+    uses: ./.github/workflows/self-guardian.yml
+    secrets: inherit
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
+  optimization:
+    name: Self Optimization
+    needs: guardian
+    uses: ./.github/workflows/self-optimization.yml
+    secrets: inherit
 
-      - name: Run Content Agent
-        run: python agents/content_agent.py
-
-      - name: Run UI/UX Agent
-        run: python agents/uiux_agent.py
-
-      - name: Run Consistency Agent
-        run: python agents/consistency_agent.py
-
-      - name: Run Transparency Agent
-        run: python agents/transparency_agent.py
-
-      - name: Run SEO Checker
-        run: python tools/seo_checker.py
-
-      - name: Run Layout Analyzer
-        run: python tools/layout_analyzer.py
-
-      - name: Upload logs
-        uses: actions/upload-artifact@v3
-        with:
-          name: self-agent-logs
-          path: logs/
+  content:
+    name: Self Content
+    needs: optimization
+    uses: ./.github/workflows/self-content.yml
+    secrets: inherit
