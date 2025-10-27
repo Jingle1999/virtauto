@@ -1,0 +1,439 @@
+{
+  "issues": [
+    {
+      "path": "./architecture.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./impressum.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./header_snippet_agents.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./README_PHASE2.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./usecases.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./use-cases.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./index.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./contact.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./agents_raw.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./imprint.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./george.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./solutions.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./solutions_full_template.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./agents_full_template.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./self-agents.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./intelligent-procurement.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./blog.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./README.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./architecture_full_template.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./privacy.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./smart-production.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./header_snippet_architecture.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./index.broken.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./agents.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./header.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./header_snippet_solutions.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./home.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./status.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./404.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./automated-quality.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./TEST.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./footer.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./header_snippet_generic.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./2_Development/Consistency_Agent/consistency_agent_mvp/glossary.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./2_Development/Consistency_Agent/consistency_agent_mvp/README.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./2_Development/Consistency_Agent/consistency_agent_mvp/report.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./virtauto-web/agents/consistency_agent/templates/report.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./virtauto-web/site/src/index.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./tools/image_consistency_agent/README.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./ops/PLAYBOOK.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./website/index.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./website/website-self-agents.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./3_Content/README.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./3_Content/site/index.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./3_Content/site/404.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./content/README.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./agents/guardrails.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./agents/roles.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./governance/readiness_checklist.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./governance/safe_to_operate.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./governance/RASCI.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./governance/value_cases.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./tests/README.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./templates/issue_report.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./1_Agents/virtauto_Self_Agents/README.md",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./demos/root-cause-analysis.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./demos/index.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./demos/agent-orchestration.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./demos/supply-chain-copilot.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./demos/pm/index.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./demos/mix/index.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    },
+    {
+      "path": "./demos/shortage/index.html",
+      "missing": [
+        "DSGVO contact email",
+        "Cookie notice"
+      ]
+    }
+  ],
+  "count": 62
+}
