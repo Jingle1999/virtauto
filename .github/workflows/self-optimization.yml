@@ -24,6 +24,8 @@ jobs:
 
       - name: Propose tweaks
         run: python -m scripts.self_optimization
+      - name: Ensure fixes dir
+        run: mkdir -p ops/fixes
 
       - name: Apply tiny safe changes (optional)
         if: false  # vorerst nur Vorschläge → PR; automation später
