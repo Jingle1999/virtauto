@@ -1,4 +1,5 @@
 name: Self Guardian Agent
+
 on:
   workflow_dispatch:
   schedule:
@@ -11,27 +12,34 @@ permissions:
 jobs:
   guard:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
+        with:
+          python-version: "3.11"
       - run: pip install -r requirements.txt
+
       - name: Run guardian
-        run: python scripts/self_guardian.py --root .
+        run: python -m scripts.self_guardian --root .
+
       - name: Upload report
         uses: actions/upload-artifact@v4
         with:
           name: guardian-report
           path: ops/reports/guardian.json
+
       - name: Create PR if issues
         if: ${{ hashFiles('ops/reports/guardian.json') != '' }}
         run: |
           python - << 'PY'
           import json, os, sys
           rep=json.load(open('ops/reports/guardian.json'))
-          issues = rep.get('count',0)
+          issues = rep.get('count', 0)
           open('ops/fixes/guardian_summary.md','w').write(f"Found {issues} compliance issues.")
           PY
+
       - uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "chore(guardian): compliance fixes suggestions"
