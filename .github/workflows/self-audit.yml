@@ -1,4 +1,5 @@
 name: Self Audit Agent
+
 on:
   workflow_dispatch:
     inputs:
@@ -15,13 +16,21 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
+        with:
+          python-version: "3.11"
       - run: pip install -r requirements.txt
+
       - name: Run audit
-        run: python scripts/self_audit.py --url "${{ inputs.url || 'https://virtauto.de' }}" --out ops/reports/self_audit.json
+        run: |
+          python -m scripts.self_audit \
+            --url "${{ github.event.inputs.url || 'https://virtauto.de' }}" \
+            --out ops/reports/self_audit.json
+
       - name: Upload report
         uses: actions/upload-artifact@v4
         with:
