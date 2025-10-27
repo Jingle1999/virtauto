@@ -9,6 +9,7 @@ on:
         default: "https://virtauto.de"
   schedule:
     - cron: "15 */6 * * *"   # alle 6h
+  workflow_call: {}
 
 permissions:
   contents: write
