@@ -39,31 +39,28 @@ jobs:
           fi
 
       - name: Run Monitoring Agent
+        working-directory: ./
         env:
           BASE_URL: ${{ vars.BASE_URL || 'https://www.virtauto.de' }}
         run: |
           mkdir -p logs ops tests
-          python monitoring/monitoring_agent.py \
-            --base-url "${BASE_URL}" \
-            --max-pages 75 \
-            --output logs/agent_reports.md
+          python monitoring/monitoring_agent.py --output logs/agent_reports.md
 
       # Artefakte hochladen
       - name: Upload report artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: monitoring-report
           path: logs/agent_reports.md
-          if-no-files-found: error
+          if-no-files-found: error   # darf error sein, weil das Script die Datei jetzt garantiert schreibt
 
       - name: Upload telemetry artifact (only if file exists)
-        if: ${{ hashFiles('ops/run_telemetry.json') != '' }}
+        if: hashFiles('ops/run_telemetry.json') != ''
         uses: actions/upload-artifact@v4
         with:
           name: agentops-telemetry
           path: ops/run_telemetry.json
-          if-no-files-found: error
+
 
       - name: Upload tests artifact (optional)
         if: ${{ hashFiles('tests/README.md') != '' }}
