@@ -1,106 +1,85 @@
 # monitoring/monitoring_agent.py
-import argparse
-import json
 import os
-import time
-from datetime import datetime
-
+import sys
+import json
+import datetime
 import requests
 
 
-def ensure_dirs():
-    os.makedirs("logs", exist_ok=True)
-    os.makedirs("ops", exist_ok=True)
-    os.makedirs("tests", exist_ok=True)
+def write_text(path: str, text: str) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text)
 
 
-def check_site(url: str, timeout: float = 10.0) -> dict:
-    t0 = time.perf_counter()
-    try:
-        resp = requests.get(
-            url,
-            timeout=timeout,
-            headers={"User-Agent": "virtauto-monitor/1.0"},
-            allow_redirects=True,
-        )
-        dt_ms = int((time.perf_counter() - t0) * 1000)
-        ok = 200 <= resp.status_code < 400
-        return {
-            "ok": ok,
-            "status_code": resp.status_code,
-            "elapsed_ms": dt_ms,
-            "error": None,
-        }
-    except Exception as e:
-        dt_ms = int((time.perf_counter() - t0) * 1000)
-        return {
-            "ok": False,
-            "status_code": None,
-            "elapsed_ms": dt_ms,
-            "error": str(e),
-        }
+def write_json(path: str, data: dict) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
-def write_report_md(path_md: str, base_url: str, result: dict) -> None:
-    ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-    lines = [
-        f"# Website Monitoring Report",
-        f"- **Time**: {ts}",
-        f"- **URL**: {base_url}",
-        f"- **OK**: {result['ok']}",
-        f"- **HTTP**: {result['status_code']}",
-        f"- **Elapsed**: {result['elapsed_ms']} ms",
-    ]
-    if result["error"]:
-        lines.append(f"- **Error**: `{result['error']}`")
-    with open(path_md, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines) + "\n")
-
-
-def write_telemetry_json(path_json: str, base_url: str, result: dict) -> None:
-    payload = {
-        "timestamp": datetime.utcnow().isoformat(timespec="seconds") + "Z",
-        "base_url": base_url,
-        "ok": result["ok"],
-        "status_code": result["status_code"],
-        "elapsed_ms": result["elapsed_ms"],
-        "error": result["error"],
-        "agent": "website-monitoring",
-        "version": "1.0",
-    }
-    with open(path_json, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
+def parse_args(argv):
+    base_url = None
+    output = None
+    for i in range(len(argv)):
+        if argv[i] == "--base-url" and i + 1 < len(argv):
+            base_url = argv[i + 1]
+        elif argv[i] == "--output" and i + 1 < len(argv):
+            output = argv[i + 1]
+    return base_url, output
 
 
 def main():
-    parser = argparse.ArgumentParser(description="virtauto website monitoring agent")
-    parser.add_argument(
-        "--base-url",
-        dest="base_url",
-        default=os.environ.get("BASE_URL", "https://www.virtauto.de"),
-        help="Target URL to check",
-    )
-    parser.add_argument(
-        "--output",
-        dest="output_md",
-        default="logs/agent_reports.md",
-        help="Path for markdown report",
-    )
-    args = parser.parse_args()
+    # CLI + ENV
+    cli_base_url, output = parse_args(sys.argv)
+    base_url = cli_base_url or os.getenv("BASE_URL") or "https://www.virtauto.de"
+    output = output or "logs/agent_reports.md"
+    telemetry_path = "ops/run_telemetry.json"
 
-    base_url = args.base_url.strip()
-    output_md = args.output_md
+    # Ergebnis-Container
+    now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    telemetry = {
+        "agent": "website_monitoring",
+        "timestamp": now,
+        "base_url": base_url,
+        "status": "unknown",
+        "http": {},
+    }
 
-    ensure_dirs()
+    try:
+        # Health-Check
+        resp = requests.get(base_url, timeout=12)
+        telemetry["http"] = {"code": resp.status_code, "ok": resp.ok}
+        telemetry["status"] = "ok" if resp.ok else "degraded"
 
-    result = check_site(base_url)
-    # Reports
-    write_report_md(output_md, base_url, result)
-    write_telemetry_json("ops/run_telemetry.json", base_url, result)
+        # Markdown-Report
+        report = []
+        report.append(f"# Website Monitoring Report\n")
+        report.append(f"- **Time**: {now}\n")
+        report.append(f"- **URL**: {base_url}\n")
+        report.append(f"- **HTTP**: {resp.status_code} ({'OK' if resp.ok else 'ERROR'})\n")
+        write_text(output, "\n".join(report))
 
-    # Exit code tells GitHub Actions pass/fail
-    return 0 if result["ok"] else 1
+        # Telemetry JSON
+        write_json(telemetry_path, telemetry)
+
+        # Exitcode entsprechend Zustand
+        if resp.ok:
+            return 0
+        else:
+            return 1
+
+    except Exception as e:
+        telemetry["status"] = "error"
+        telemetry["error"] = str(e)
+        # Auch im Fehlerfall Artefakte schreiben
+        write_text(
+            output,
+            f"# Website Monitoring Report\n- **Time**: {now}\n- **URL**: {base_url}\n- **ERROR**: {e}\n",
+        )
+        write_json(telemetry_path, telemetry)
+        return 1
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())
