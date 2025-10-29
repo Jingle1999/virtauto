@@ -23,6 +23,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r monitoring/requirements.txt
 
+      - name: Verify repo layout
+        run: |
+          echo "Checking repo structure..."
+          ls -R
+          if [ ! -f monitoring/monitoring_agent.py ]; then
+            echo "Error: monitoring_agent.py not found!"
+            exit 1
+          fi
+
+- name: Run Monitoring Agent
+  working-directory: monitoring  # <— jetzt direkt im richtigen Ordner starten
+  env:
+    BASE_URL: ${{ vars.BASE_URL || 'https://www.virtauto.de' }}
+  run: |
+    python monitoring_agent.py --base-url "${BASE_URL}" --max-pages 75 --output ../logs/agent_reports.md
+
+
       - name: Run Monitoring Agent
         env:
           BASE_URL: ${{ secrets.SITE_BASE_URL }}
