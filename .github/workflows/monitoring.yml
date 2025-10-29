@@ -41,10 +41,12 @@ jobs:
 
 
       - name: Run Monitoring Agent
+        working-directory: ./  # arbeite vom Repo-Root aus
         env:
-          BASE_URL: ${{ secrets.SITE_BASE_URL }}
+          BASE_URL: ${{ vars.BASE_URL || 'https://www.virtauto.de' }}
         run: |
           python monitoring/monitoring_agent.py --base-url "${BASE_URL}" --max-pages 75 --output logs/agent_reports.md
+
 
       - name: Upload report artifact
         uses: actions/upload-artifact@v4
