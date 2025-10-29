@@ -33,11 +33,11 @@ jobs:
           fi
 
 - name: Run Monitoring Agent
-  working-directory: monitoring  # <— jetzt direkt im richtigen Ordner starten
+  working-directory: ./  # arbeite vom Repo-Root aus
   env:
     BASE_URL: ${{ vars.BASE_URL || 'https://www.virtauto.de' }}
   run: |
-    python monitoring_agent.py --base-url "${BASE_URL}" --max-pages 75 --output ../logs/agent_reports.md
+    python monitoring/monitoring_agent.py --base-url "${BASE_URL}" --max-pages 75 --output logs/agent_reports.md
 
 
       - name: Run Monitoring Agent
