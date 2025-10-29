@@ -59,6 +59,17 @@ jobs:
           path: logs/agent_reports.md
           if-no-files-found: warn
 
+      - name: Show telemetry (if present)
+        run: |
+          if [ -f ops/run_telemetry.json ]; then
+            echo "Telemetry file present:"
+            wc -c ops/run_telemetry.json
+            head -n 20 ops/run_telemetry.json
+          else
+            echo "No telemetry produced by script."
+          fi
+
+
       - name: Upload telemetry artifact
         uses: actions/upload-artifact@v4
         with:
@@ -66,12 +77,13 @@ jobs:
           path: ops/run_telemetry.json
           if-no-files-found: warn
 
-      - name: Upload tests artifact
+      - name: Upload telemetry artifact
+        if: hashFiles('ops/run_telemetry.json') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: baseline-tests
-          path: tests/README.md
-          if-no-files-found: warn
+          name: agentops-telemetry
+          path: ops/run_telemetry.json
+
 
       # Optional: Lighthouse CI später aktivieren
       # - name: Install Lighthouse CI
