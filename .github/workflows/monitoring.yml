@@ -4,11 +4,20 @@ on:
   push:
     branches: [ main, master ]
   schedule:
-    - cron: '0 6 * * 1-5'  # weekdays 06:00 UTC
+    # Werktags 06:00 UTC
+    - cron: "0 6 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   monitoring:
     runs-on: ubuntu-latest
+    env:
+      # Fallback-Reihenfolge: Repo-Variable -> Secret -> Default
+      BASE_URL: ${{ vars.BASE_URL || secrets.SITE_BASE_URL || 'https://www.virtauto.de' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,7 +25,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -25,60 +34,55 @@ jobs:
 
       - name: Verify repo layout
         run: |
-          echo "Checking repo structure..."
-          ls -R
+          echo "Checking repo structure…"
           if [ ! -f monitoring/monitoring_agent.py ]; then
-            echo "Error: monitoring_agent.py not found!"
+            echo "::error file=monitoring/monitoring_agent.py::File not found."
+            echo "Repository tree:"
+            ls -R
             exit 1
           fi
 
-- name: Run Monitoring Agent
-  working-directory: ./  # arbeite vom Repo-Root aus
-  env:
-    BASE_URL: ${{ vars.BASE_URL || 'https://www.virtauto.de' }}
-  run: |
-    python monitoring/monitoring_agent.py --base-url "${BASE_URL}" --max-pages 75 --output logs/agent_reports.md
-
-
       - name: Run Monitoring Agent
-        working-directory: ./  # arbeite vom Repo-Root aus
-        env:
-          BASE_URL: ${{ vars.BASE_URL || 'https://www.virtauto.de' }}
         run: |
-          python monitoring/monitoring_agent.py --base-url "${BASE_URL}" --max-pages 75 --output logs/agent_reports.md
-
+          mkdir -p logs ops tests
+          # Report-Datei anlegen, damit Artifacts nie ins Leere laufen
+          touch logs/agent_reports.md
+          python monitoring/monitoring_agent.py \
+            --base-url "${BASE_URL}" \
+            --max-pages 75 \
+            --output logs/agent_reports.md
 
       - name: Upload report artifact
         uses: actions/upload-artifact@v4
         with:
           name: monitoring-report
           path: logs/agent_reports.md
+          if-no-files-found: warn
 
       - name: Upload telemetry artifact
         uses: actions/upload-artifact@v4
         with:
           name: agentops-telemetry
-          path: ops/run_telemetry.jsonl
+          path: ops/run_telemetry.json
+          if-no-files-found: warn
 
       - name: Upload tests artifact
         uses: actions/upload-artifact@v4
         with:
           name: baseline-tests
           path: tests/README.md
+          if-no-files-found: warn
 
-      # Optional: Lighthouse CI (uncomment after adding LHCI to repo)
+      # Optional: Lighthouse CI später aktivieren
       # - name: Install Lighthouse CI
       #   run: |
       #     npm install -g @lhci/cli@0.14.x
       # - name: Run Lighthouse
       #   run: |
-      #     lhci autorun --collect.url=${{ secrets.SITE_BASE_URL }} --upload.target=filesystem --upload.outputDir=logs/lighthouse
+      #     lhci autorun --collect.url=${{ env.BASE_URL }} --upload.target=filesystem --upload.outputDir=logs/lighthouse
       # - name: Upload Lighthouse results
       #   uses: actions/upload-artifact@v4
       #   with:
       #     name: lighthouse-results
       #     path: logs/lighthouse
-
-
-  # Upload telemetry and tests (post-job)
-  # (You can add pytest later; for now we upload the baseline files.)
+      #     if-no-files-found: warn
