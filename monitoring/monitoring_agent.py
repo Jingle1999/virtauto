@@ -37,3 +37,21 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# --- Telemetry export -------------------------------------------------
+import os, json, time
+
+# Beispielwerte – ersetze durch deine echten Variablen
+telemetry = {
+    "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "base_url": base_url,              # stelle sicher, dass base_url gesetzt ist
+    "pages_crawled": pages_crawled,    # int
+    "errors": total_errors,            # int
+    "avg_ms": avg_ms,                  # float/int
+    "p95_ms": p95_ms if 'p95_ms' in locals() else None
+}
+
+os.makedirs("ops", exist_ok=True)
+with open("ops/run_telemetry.json", "w", encoding="utf-8") as f:
+    json.dump(telemetry, f, ensure_ascii=False, indent=2)
+
