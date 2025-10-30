@@ -12,10 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
-jobs:
-  monitoring:
-    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
