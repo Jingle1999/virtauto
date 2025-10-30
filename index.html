@@ -65,19 +65,60 @@
 
 <script>
 (async () => {
-  const el = document.getElementById('agentic-status');
+  const badgeEl = document.getElementById('agentic-status');
+  const chipsEl = document.getElementById('agent-chips');
+
+  const setBadge = (state, html, title='') => {
+    badgeEl.classList.toggle('ok',    state === 'ok');
+    badgeEl.classList.toggle('issue', state === 'issue');
+    badgeEl.innerHTML = `<span class="dot"></span> ${html}`;
+    if (title) badgeEl.title = title;
+  };
+
+  const chip = (agent) => {
+    const st = (agent.status || '').toLowerCase();
+    const cls = ['agent-chip', st || 'unknown'].join(' ');
+    const code = agent.http?.code ? ` (${agent.http.code})` : '';
+    const note = agent.notes ? ` — ${agent.notes}` : '';
+    const href = '/status/agents.html#' + encodeURIComponent(agent.agent || '').toLowerCase();
+    return `<a class="${cls}" href="${href}" title="${agent.agent}: ${agent.status}${code}${note}">
+              <span class="dot"></span><span>${agent.agent || 'unknown'}</span>
+            </a>`;
+  };
+
   try {
-    const r = await fetch('/status/status.json', {cache:'no-store'});
-    if (!r.ok) throw new Error('status not found');
-    const s = await r.json();
-    const ok = (s?.http?.ok === true) || (s?.http?.code >= 200 && s?.http?.code < 400);
-    const code = s?.http?.code ?? '—';
-    el.textContent = `🧠 Agentic Website — last self-check ${s.ts || '—'} • ${ok ? 'OK' : 'ISSUE'} (${code})`;
-  } catch (e) {
-    el.textContent = '🧠 Agentic Website — status unavailable';
+    const r  = await fetch('/status/status.json', { cache: 'no-store' });
+    if (!r.ok) throw new Error('status.json not found');
+    const data    = await r.json();
+    const agents  = Array.isArray(data.agents) ? data.agents : [];
+    const ts      = agents[0]?.timestamp?.replace(' UTC','') || '';
+    const bad     = agents.filter(a => ['issue','error'].includes((a.status||'').toLowerCase()));
+    const prep    = agents.filter(a => (a.status||'').toLowerCase() === 'preparing');
+    const okAll   = bad.length === 0 && agents.every(a => ['ok','preparing'].includes((a.status||'').toLowerCase()));
+
+    const details = (bad.length ? bad : agents).map(a => {
+      const code = a.http?.code ? ` (${a.http.code})` : '';
+      const note = a.notes ? ` — ${a.notes}` : '';
+      return `${a.agent}: ${a.status}${code}${note}`;
+    }).join(' • ');
+
+    const label = `Agentic Website — last self-check: ${ts || '—'} — ${okAll ? 'OK' : 'ISSUE'}`
+                  + (prep.length ? ` (preparing ${prep.length})` : '');
+
+    setBadge(okAll ? 'ok' : 'issue', label, details || 'all agents healthy');
+
+    if (chipsEl) {
+      const order = { issue: 0, error: 0, preparing: 1, ok: 2 };
+      agents.sort((a,b) => (order[(a.status||'').toLowerCase()] ?? 3) - (order[(b.status||'').toLowerCase()] ?? 3));
+      chipsEl.innerHTML = agents.map(chip).join('');
+    }
+  } catch {
+    setBadge('issue', 'Agentic Website — status unavailable');
+    if (chipsEl) chipsEl.innerHTML = '';
   }
 })();
 </script>
+
 
   
 <body>
