@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>virtauto — Website Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; line-height: 1.45 }
+    .card { border:1px solid #e5e7eb; border-radius:12px; padding:16px; margin:12px 0 }
+    code, pre { background:#f7f7f7; padding:8px; border-radius:8px; display:block; overflow:auto }
+    .badges img { height:20px; margin-right:6px; vertical-align:middle }
+  </style>
+</head>
+<body>
+  <h1>Website Status</h1>
+  <p>This site monitors itself via autonomous agents (monitoring, audit, guardian, deploy).</p>
+
+  <div class="card">
+    <h3>Heartbeat</h3>
+    <div id="hb">loading…</div>
+  </div>
+
+  <div class="card">
+    <h3>Latest Report</h3>
+    <pre id="report">loading…</pre>
+  </div>
+
+  <div class="card badges">
+    <h3>Agent Runs</h3>
+    <img src="https://img.shields.io/github/actions/workflow/status/Jingle1999/virtauto/monitoring.yml?label=monitoring" alt="monitoring" />
+    <img src="https://img.shields.io/github/actions/workflow/status/Jingle1999/virtauto/self-guardian.yml?label=self%20guardian" alt="guardian" />
+    <img src="https://img.shields.io/github/actions/workflow/status/Jingle1999/virtauto/site-audit.yml?label=site%20audit" alt="site-audit" />
+  </div>
+
+  <script>
+  (async () => {
+    const hb = document.getElementById('hb');
+    const rep = document.getElementById('report');
+    try {
+      const r = await fetch('/status/status.json', {cache:'no-store'});
+      const s = r.ok ? await r.json() : null;
+      if (s) {
+        const ok = (s?.http?.ok === true) || (s?.http?.code >= 200 && s?.http?.code < 400);
+        hb.textContent = `Last self-check: ${s.ts || '—'} • ${ok ? 'OK' : 'ISSUE'} (${s?.http?.code ?? '—'})`;
+      } else {
+        hb.textContent = 'Status unavailable';
+      }
+    } catch { hb.textContent = 'Status unavailable'; }
+
+    // Optional: Markdown-Report als Text anzeigen
+    try {
+      const m = await fetch('/status/index.md', {cache:'no-store'});
+      rep.textContent = m.ok ? await m.text() : 'No report yet.';
+    } catch { rep.textContent = 'No report yet.'; }
+  })();
+  </script>
+</body>
+</html>
