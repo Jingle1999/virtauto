@@ -1,10 +1,23 @@
 {
-  "agent": "website_monitoring",
-  "timestamp": "2025-10-30 11:51:08 UTC",
-  "base_url": "https://www.virtauto.de",
-  "status": "ok",
-  "http": {
-    "code": 200,
-    "ok": true
-  }
+  "agents": [
+    {
+      "agent": "website_monitoring",
+      "timestamp": "2025-10-30 11:51:08 UTC",
+      "base_url": "https://www.virtauto.de",
+      "status": "ok",
+      "http": { "code": 200, "ok": true }
+    },
+    {
+      "agent": "self_guardian",
+      "status": "preparing",
+      "timestamp": "2025-10-30 11:55:00 UTC",
+      "notes": "policies & headers checks coming online"
+    },
+    {
+      "agent": "self_audit",
+      "status": "preparing",
+      "timestamp": "2025-10-30 11:55:00 UTC",
+      "notes": "audit trail & diffs coming online"
+    }
+  ]
 }
