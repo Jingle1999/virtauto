@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>virtauto — Self-Agent Dashboard</title>
+  <style>
+    :root { --bg:#0b1220; --card:#121a2b; --muted:#8aa2c0; --ok:#21c36f; --warn:#ffb020; --bad:#ff5563; --chip:#1f2a44; }
+    html,body{margin:0;background:var(--bg);color:#e7f0ff;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}
+    .wrap{max-width:1100px;margin:32px auto;padding:0 16px}
+    h1{font-size:32px;margin:0 0 6px}
+    p.lead{margin:0 0 16px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:18px 0 28px}
+    .card{background:var(--card);border:1px solid #1e2a44;border-radius:14px;padding:16px 14px}
+    .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .agent{font-weight:700}
+    .meta{color:var(--muted);font-size:12px}
+    .status{font-weight:700}
+    .ok{color:var(--ok)} .issue{color:var(--warn)} .down{color:var(--bad)}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .chip{background:var(--chip);border:1px solid #223357;border-radius:999px;padding:6px 10px;font-size:12px}
+    pre{background:#0e1730;border:1px solid #1b2a4a;border-radius:12px;padding:14px;overflow:auto}
+    a{color:#8cc2ff;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .badge-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+    .footer{margin:26px 0 36px;color:#9EB3CD;font-size:12px}
+    .ribbon{display:inline-flex;gap:10px;align-items:center;background:#0ea5e9;color:#001224;
+            padding:10px 14px;border-radius:10px;font-weight:700;margin:20px 0}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="ribbon">🤖 Agentic Website <span style="opacity:.8;font-weight:600">— monitored & maintained by Self-Agents</span></div>
+    <h1>Self-Agent Dashboard</h1>
+    <p class="lead">Live view of autonomous agents operating on virtauto.de. Data from <code>/status/status.json</code> and the latest run report.</p>
+
+    <!-- Agent tiles -->
+    <div id="agents" class="grid">
+      <!-- JS injects cards here -->
+    </div>
+
+    <!-- Latest Markdown report (from monitoring agent) -->
+    <div class="card">
+      <div class="row"><div class="agent">Latest Agent Report</div><div class="meta" id="repMeta"></div></div>
+      <pre id="report">Loading report…</pre>
+    </div>
+
+    <!-- Useful action badges/links -->
+    <div class="card">
+      <div class="agent">Pipelines & Guards</div>
+      <div class="badge-row">
+        <a href="https://github.com/Jingle1999/virtauto/actions/workflows/monitoring.yml">
+          <img src="https://img.shields.io/github/actions/workflow/status/Jingle1999/virtauto/monitoring.yml?label=Monitoring&logo=github" alt="Monitoring status" />
+        </a>
+        <a href="https://github.com/Jingle1999/virtauto/actions/workflows/self-audit.yml">
+          <img src="https://img.shields.io/github/actions/workflow/status/Jingle1999/virtauto/self-audit.yml?label=Audit&logo=github" alt="Audit status" />
+        </a>
+        <a href="https://github.com/Jingle1999/virtauto/actions/workflows/self-guardian.yml">
+          <img src="https://img.shields.io/github/actions/workflow/status/Jingle1999/virtauto/self-guardian.yml?label=Guardian&logo=github" alt="Guardian status" />
+        </a>
+        <a href="https://github.com/Jingle1999/virtauto/actions/workflows/site-deploy.yml">
+          <img src="https://img.shields.io/github/actions/workflow/status/Jingle1999/virtauto/site-deploy.yml?label=Deploy&logo=github" alt="Deploy status" />
+        </a>
+      </div>
+    </div>
+
+    <div class="footer">Auto-refresh every 60s • Source: <code>/status/status.json</code>, <code>/status/agent_reports.md</code>.</div>
+  </div>
+
+  <script>
+    const AGENT_CATALOG = [
+      { id: 'website_monitoring',  name: 'Monitoring Agent',  chips: ['uptime','http','crawl'] },
+      { id: 'self_guardian',       name: 'Guardian Agent',   chips: ['policies','integrity','headers'] },
+      { id: 'self_audit',          name: 'Audit Agent',      chips: ['evidence','controls','links'] },
+      { id: 'site_deploy',         name: 'Deploy Agent',     chips: ['build','publish','rollback'] },
+      { id: 'self_content',        name: 'Content Agent',    chips: ['ingest','draft','review'] },
+    ];
+
+    async function fetchJSON(url){
+      const r = await fetch(url, { cache: "no-store" });
+      if(!r.ok) throw new Error(url + " -> " + r.status);
+      return r.json();
+    }
+    async function fetchText(url){
+      const r = await fetch(url, { cache: "no-store" });
+      if(!r.ok) throw new Error(url + " -> " + r.status);
+      return r.text();
+    }
+
+    function klassByStatus(s){
+      if(s === true || s === 'ok' || s === 'OK') return 'ok';
+      if(s === 'issue' || s === 'warn') return 'issue';
+      return 'down';
+    }
+
+    function renderAgents(snapshot){
+      const root = document.getElementById('agents');
+      root.innerHTML = '';
+
+      // Build a lookup from snapshot
+      // Expected shape (flexible):
+      // {
+      //   agent: "website_monitoring",
+      //   timestamp: "... UTC",
+      //   base_url: "https://www.virtauto.de",
+      //   status: "ok",
+      //   http: { code: 200, ok: true }
+      // }
+      const byId = {};
+      if (snapshot && snapshot.agent) {
+        // support single-agent JSON from monitoring_agent.py
+        byId['website_monitoring'] = snapshot;
+      } else if (Array.isArray(snapshot)) {
+        snapshot.forEach(s => { if(s.agent) byId[s.agent] = s; });
+      } else if (snapshot && snapshot.agents) {
+        snapshot.agents.forEach(s => { if(s.agent) byId[s.agent] = s; });
+      }
+
+      AGENT_CATALOG.forEach(meta => {
+        const s = byId[meta.id] || {};
+        const ts = s.timestamp || '—';
+        const st = (s.status === undefined && s.http && typeof s.http.ok === 'boolean')
+                      ? (s.http.ok ? 'ok' : 'down')
+                      : (s.status ?? 'unknown');
+
+        const cls = klassByStatus(st);
+        const code = s.http?.code ? `HTTP ${s.http.code}` : '';
+        const url  = s.base_url || '';
+
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.innerHTML = `
+          <div class="row">
+            <div>
+              <div class="agent">${meta.name}</div>
+              <div class="meta">${ts}${url ? ` • <a href="${url}" target="_blank" rel="noopener">target</a>` : ''}</div>
+            </div>
+            <div class="status ${cls}">${String(st).toUpperCase()}</div>
+          </div>
+          <div class="chips">
+            ${meta.chips.map(c => `<span class="chip">${c}</span>`).join('')}
+            ${code ? `<span class="chip">${code}</span>` : ''}
+          </div>
+        `;
+        root.appendChild(el);
+      });
+    }
+
+    async function refresh(){
+      try {
+        const snap = await fetchJSON('/status/status.json');
+        renderAgents(snap);
+      } catch (e) {
+        // graceful fallback if file not there yet
+        renderAgents({ agents: [{agent:'website_monitoring', status:'issue', timestamp:'no snapshot found'}] });
+      }
+
+      try {
+        const md = await fetchText('/status/agent_reports.md');
+        document.getElementById('report').textContent = md.trim().slice(0, 4000) || 'Empty report.';
+        document.getElementById('repMeta').textContent = 'from /status/agent_reports.md';
+      } catch {
+        document.getElementById('report').textContent = 'No report available yet.';
+      }
+    }
+
+    refresh();
+    setInterval(refresh, 60000);
+  </script>
+</body>
+</html>
