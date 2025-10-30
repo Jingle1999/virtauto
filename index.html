@@ -54,6 +54,28 @@
   <link rel="stylesheet" href="assets/styles_unify.css" />
   <script defer src="assets/site.js"></script>
 </head>
+
+<footer style="margin-top:48px;padding:12px 0;border-top:1px solid #eaeaea;font-size:14px;color:#555">
+  <small id="agentic-status">🧠 Agentic Website — checking…</small>
+</footer>
+
+<script>
+(async () => {
+  const el = document.getElementById('agentic-status');
+  try {
+    const r = await fetch('/status/status.json', {cache:'no-store'});
+    if (!r.ok) throw new Error('status not found');
+    const s = await r.json();
+    const ok = (s?.http?.ok === true) || (s?.http?.code >= 200 && s?.http?.code < 400);
+    const code = s?.http?.code ?? '—';
+    el.textContent = `🧠 Agentic Website — last self-check ${s.ts || '—'} • ${ok ? 'OK' : 'ISSUE'} (${code})`;
+  } catch (e) {
+    el.textContent = '🧠 Agentic Website — status unavailable';
+  }
+})();
+</script>
+
+  
 <body>
   <header class="header">
     <div class="container nav">
