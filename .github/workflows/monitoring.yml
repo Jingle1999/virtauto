@@ -45,6 +45,21 @@ jobs:
         run: |
           mkdir -p logs ops tests
           python monitoring/monitoring_agent.py --output logs/agent_reports.md
+          
+        - name: Publish status snapshot files
+          run: |
+            mkdir -p status
+            cp ops/run_telemetry.json status/status.json
+            cp logs/agent_reports.md status/agent_reports.md
+        
+        - name: Commit status snapshot
+          uses: stefanzweifel/git-auto-commit-action@v5
+          with:
+            commit_message: "chore(status): update status snapshot [skip ci]"
+            file_pattern: |
+              status/status.json
+              status/agent_reports.md
+
 
       # Artefakte hochladen
       - name: Upload report artifact
