@@ -65,6 +65,21 @@ p + p{margin-top:12px}
 /* Images */
 img.responsive, .section img{max-width:100%; height:auto; border-radius:var(--radius-md); display:block; margin:0 auto var(--space-md); box-shadow:var(--shadow-xs)}
 
+/* Keyframes */
+.agent-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.agent-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;
+  border:1px solid rgba(255,255,255,.12);border-radius:999px;font-size:.85rem;opacity:.95;text-decoration:none}
+.agent-chip .dot{width:8px;height:8px;border-radius:50%;background:#9ca3af}
+.agent-chip.ok{color:#22c55e;border-color:rgba(34,197,94,.35)}
+.agent-chip.ok .dot{background:#22c55e}
+.agent-chip.preparing{color:#eab308;border-color:rgba(234,179,8,.35)}
+.agent-chip.preparing .dot{background:#eab308;animation:pulse 1.2s ease-in-out infinite}
+.agent-chip.issue,.agent-chip.error{color:#ef4444;border-color:rgba(239,68,68,.35)}
+.agent-chip.issue .dot,.agent-chip.error .dot{background:#ef4444;animation:pulse 1.2s ease-in-out infinite}
+/* pulse keyframes (falls noch nicht vorhanden) */
+@keyframes pulse{0%{opacity:.45}50%{opacity:1}100%{opacity:.45}}
+
+
 /* Buttons */
 .btn, button{
   display:inline-flex; align-items:center; justify-content:center;
