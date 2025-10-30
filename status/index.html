@@ -65,7 +65,7 @@
 
     // Optional: Markdown-Report als Text anzeigen
     try {
-      const m = await fetch('/status/index.md', {cache:'no-store'});
+      const m = await fetch('/status/agent_reports.md', {cache:'no-store'});
       rep.textContent = m.ok ? await m.text() : 'No report yet.';
     } catch { rep.textContent = 'No report yet.'; }
   })();
