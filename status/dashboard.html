@@ -1,0 +1,56 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<title>Self-Agent Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{font-family:system-ui,Arial,sans-serif;margin:24px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+  .card{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
+  .title{font-weight:700;margin:0 0 6px}
+  .ok{color:#16a34a}.warn{color:#f59e0b}.bad{color:#dc2626}
+  small{opacity:.8}
+</style>
+<h1>Self-Agent Dashboard</h1>
+<p>Live view of autonomous agents operating on <code>virtauto.de</code>.</p>
+
+<div class="grid">
+  <div class="card">
+    <div class="title">Monitoring Agent</div>
+    <div id="mon-status">Loading…</div>
+    <small><a href="/status/">Status page</a> · <a href="https://github.com/Jingle1999/virtauto/actions/workflows/monitoring.yml">Runs</a></small>
+  </div>
+  <div class="card">
+    <div class="title">Audit Agent</div>
+    <div><img src="https://img.shields.io/github/actions/workflow/status/Jingle1999/virtauto/self-audit.yml?label=Audit" alt="Audit"></div>
+    <small><a href="https://github.com/Jingle1999/virtauto/actions/workflows/self-audit.yml">Runs</a></small>
+  </div>
+  <div class="card">
+    <div class="title">Guardian Agent</div>
+    <div><img src="https://img.shields.io/github/actions/workflow/status/Jingle1999/virtauto/self-guardian.yml?label=Guardian" alt="Guardian"></div>
+    <small><a href="https://github.com/Jingle1999/virtauto/actions/workflows/self-guardian.yml">Runs</a></small>
+  </div>
+  <div class="card">
+    <div class="title">Deploy</div>
+    <div><img src="https://img.shields.io/github/actions/workflow/status/Jingle1999/virtauto/site-deploy.yml?label=Deploy" alt="Deploy"></div>
+    <small><a href="https://github.com/Jingle1999/virtauto/actions/workflows/site-deploy.yml">Runs</a></small>
+  </div>
+</div>
+
+<script>
+(async function(){
+  try{
+    // nutzt das Monitoring-Artefakt, das du schon erzeugst:
+    const res = await fetch('/logs/agent_reports.md'); // falls via Astro/Static served
+    if(res.ok){
+      const txt = await res.text();
+      const ok = /HTTP:\s*200/.test(txt);
+      document.getElementById('mon-status').innerHTML = ok
+        ? '<span class="ok">HTTP 200 (OK)</span>'
+        : '<span class="bad">Issue detected</span>';
+    }else{
+      document.getElementById('mon-status').innerHTML = '<span class="warn">No report yet</span>';
+    }
+  }catch(e){
+    document.getElementById('mon-status').innerHTML = '<span class="warn">Unavailable</span>';
+  }
+})();
+</script>
