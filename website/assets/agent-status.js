@@ -28,7 +28,8 @@
 
   const refresh = async () => {
     try {
-      const r = await fetch(STATUS_URL, { cache: 'no-store' });
+      const base = location.pathname.startsWith('/virtauto') ? '/virtauto' : '';
+      const r = await fetch(`${base}/status/status.json?_=${Date.now()}`, { cache: 'no-store' });
       if (!r.ok) throw new Error('status.json not found');
       const data = await r.json();
       const agents = Array.isArray(data.agents) ? data.agents : [];
