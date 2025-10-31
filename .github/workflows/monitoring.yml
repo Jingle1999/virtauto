@@ -64,13 +64,41 @@ jobs:
           name: agentops-telemetry
           path: ops/run_telemetry.json
 
-
       - name: Upload tests artifact (optional)
         if: ${{ hashFiles('tests/README.md') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: baseline-tests
           path: tests/README.md
+
+      - name: Emit event (deploy start)
+        if: always()
+        run: |
+          TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "{\"ts\":\"$TS\",\"type\":\"ci/deploy-start\",\"source\":\"actions/${{ github.workflow }}\"}" >> website/ops/events.jsonl
+
+      - name: Emit event (deploy success)
+        if: success()
+        run: |
+          TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "{\"ts\":\"$TS\",\"type\":\"ci/deploy-success\",\"source\":\"actions/${{ github.workflow }}\"}" >> website/ops/events.jsonl
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add website/ops/events.jsonl
+          git commit -m "append deploy-success event [skip ci]" || true
+          git push
+
+      - name: Emit event (deploy failed)
+        if: failure()
+        run: |
+          TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "{\"ts\":\"$TS\",\"type\":\"ci/deploy-failed\",\"source\":\"actions/${{ github.workflow }}\"}" >> website/ops/events.jsonl
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add website/ops/events.jsonl
+          git commit -m "append deploy-failed event [skip ci]" || true
+          git push
+
 
       # Optional: Lighthouse CI (wenn später gewünscht/konfiguriert)
       # - name: Install Lighthouse CI
