@@ -1,0 +1,13 @@
+{
+  "$schema":"http://json-schema.org/draft-07/schema#",
+  "type":"object",
+  "required":["ts","type","source","severity","msg"],
+  "properties":{
+    "ts":{"type":"string","format":"date-time"},
+    "type":{"type":"string"},
+    "source":{"type":"string"},
+    "severity":{"type":"string","enum":["ok","info","warn","error"]},
+    "msg":{"type":"string"},
+    "data":{"type":"object"}
+  }
+}
