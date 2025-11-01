@@ -1,0 +1,47 @@
+{
+  "agents": [
+    {
+      "id": "website_monitoring",
+      "name": "Website Monitoring",
+      "owner": "platform",
+      "description": "Uptime & HTTP checks for virtauto.de",
+      "capabilities": ["healthcheck", "telemetry"],
+      "status_key": "website_monitoring",
+      "sla": "99.5%",
+      "schedule": "every 5m",
+      "tags": ["core", "phase1"],
+      "links": {
+        "docs": "/status.html",
+        "runbook": "/ops/runbooks/monitoring.md"
+      }
+    },
+    {
+      "id": "self_guardian",
+      "name": "Self Guardian",
+      "owner": "platform",
+      "description": "Security headers, CSP, robots/sitemap checks",
+      "capabilities": ["policy", "security"],
+      "status_key": "self_guardian",
+      "sla": "n/a",
+      "schedule": "daily",
+      "tags": ["core", "phase1"],
+      "links": {
+        "docs": "/status.html#guardian"
+      }
+    },
+    {
+      "id": "self_audit",
+      "name": "Self Audit",
+      "owner": "platform",
+      "description": "Content & diff audit",
+      "capabilities": ["audit", "content"],
+      "status_key": "self_audit",
+      "sla": "n/a",
+      "schedule": "daily",
+      "tags": ["core", "phase1"],
+      "links": {
+        "docs": "/status.html#audit"
+      }
+    }
+  ]
+}
