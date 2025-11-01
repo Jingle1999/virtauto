@@ -3,8 +3,9 @@
   const $list = document.getElementById('agent-list');
   if (!$list) return;
 
-  const [regRes, stRes] = await Promise.allSettled([
-    fetch('/agents/registry.json', { cache: 'no-store' }),
+  const regText = await (await fetch('/website/registry.yaml', { cache: 'no-store' })).text();
+  const reg = jsyaml.load(regText) || { agents: [] };
+
     fetch('/status/status.json', { cache: 'no-store' })
   ]);
 
