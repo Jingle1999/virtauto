@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "agents": [
+    {
+      "id": "website_monitoring",
+      "name": "Website Monitoring Agent",
+      "owner": "ops",
+      "description": "Checks homepage/endpoints and writes /status/status.json.",
+      "capabilities": ["healthcheck", "http-probe"],
+      "endpoints": { "health": "/status/status.json" },
+      "triggers": [
+        { "on": "schedule", "cron": "*/15 * * * *" },
+        { "on": "event", "type": "ci/deploy-success" }
+      ],
+      "sla": { "rto": "15m", "rpo": "24h" },
+      "tags": ["core", "health"],
+      "status": "preparing"
+    },
+    {
+      "id": "self_guardian",
+      "name": "Guardian Agent",
+      "owner": "governance",
+      "description": "Security headers, CSP, robots/sitemap checks; policy gates.",
+      "capabilities": ["headers-check", "csp-check", "robots", "sitemap"],
+      "triggers": [
+        { "on": "runbook", "file": ".github/workflows/self-guardian.yml" },
+        { "on": "schedule", "cron": "0 * * * *" }
+      ],
+      "sla": { "rto": "1h", "rpo": "24h" },
+      "tags": ["core", "security"],
+      "status": "preparing"
+    },
+    {
+      "id": "self_audit",
+      "name": "Self-Audit Agent",
+      "owner": "quality",
+      "description": "Audits content & diffs; writes audit trail and diffs.",
+      "capabilities": ["diff-audit", "link-check", "image-alt", "content-lint"],
+      "triggers": [
+        { "on": "event", "type": "content/ingest" },
+        { "on": "workflow", "file": ".github/workflows/self-audit.yml" }
+      ],
+      "outputs": ["status/audit.log"],
+      "sla": { "rto": "1h", "rpo": "24h" },
+      "tags": ["quality"],
+      "status": "preparing"
+    }
+  ]
+}
