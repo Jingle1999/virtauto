@@ -1,0 +1,15 @@
+/* Agent list & cards */
+#agent-list{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:24px}
+.agent-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+.agent-card header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.agent-card h3{margin:0;font-size:1.05rem}
+.agent-card .dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+.agent-card.ok .dot{background:#22c55e}
+.agent-card.preparing .dot{background:#eab308}
+.agent-card.issue .dot{background:#f97316;animation:pulse 1.2s ease-in-out infinite}
+.agent-card.error .dot{background:#ef4444;animation:pulse 1.2s ease-in-out infinite}
+.agent-card .desc{opacity:.85;margin:.25rem 0 .5rem}
+.agent-card .meta{font-size:.9rem;opacity:.9;margin:0 0 .25rem}
+.agent-card .caps code{margin-right:6px;opacity:.9}
+.agent-card footer .tag{display:inline-block;font-size:.75rem;opacity:.8;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:2px 8px;margin-right:6px}
+@keyframes pulse{0%{opacity:.45}50%{opacity:1}100%{opacity:.45}}
