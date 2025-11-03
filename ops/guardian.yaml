@@ -1,0 +1,34 @@
+version: 1.0
+agent: self_guardian
+description: Security, CSP, robots/sitemap and cookie policy checks
+schedule: "every 12h"
+
+checks:
+  - id: security_headers
+    type: header
+    url: https://www.virtauto.de/
+    must_include:
+      - "Strict-Transport-Security"
+      - "Content-Security-Policy"
+      - "X-Frame-Options"
+
+  - id: robots_sitemap
+    type: file
+    paths:
+      - /robots.txt
+      - /sitemap.xml
+    must_exist: true
+
+  - id: mixed_content
+    type: scan
+    pattern: "http://"
+    scope: public/
+
+  - id: cookie_consent
+    type: html
+    selector: "#cookie-banner"
+    must_exist: true
+
+alerts:
+  email: ops@virtauto.de
+  webhook: https://status.virtauto.de/hooks/guardian
