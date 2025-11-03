@@ -166,6 +166,28 @@
 
     refresh();
     setInterval(refresh, 60000);
+// --- Status Snapshot Update ---
+async function updateSnapshot() {
+  try {
+    const res = await fetch('/status/status.json', { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      data.timestamp = new Date().toISOString();
+      await fetch('/status/status.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data, null, 2)
+      });
+      console.log("✅ Status snapshot updated:", data.timestamp);
+    }
+  } catch (err) {
+    console.error("❌ Snapshot update failed:", err);
+  }
+}
+
+// alle 60 Sekunden aktualisieren
+setInterval(updateSnapshot, 60000);
+
   </script>
 </body>
 </html>
