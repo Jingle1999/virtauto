@@ -109,5 +109,15 @@ jobs:
             ops/reports/guardian.json
             ops/fixes/guardian_summary.md
             logs/telemetry/**
+          with:
+            commit-message: "chore(guardian): compliance suggestions"
+            title: "chore(guardian): compliance suggestions"
+            body: "Automated compliance scan results."
+            add-paths: |
+              ops/reports/guardian.json
+              ops/fixes/guardian_summary.md
+              logs/telemetry/*
+              status/agent_reports.md
+
 
 token: ${{ secrets.GITHUB_TOKEN }} im create-pull-request-Step.
