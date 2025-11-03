@@ -21,6 +21,33 @@ jobs:
           python-version: "3.11"
       - run: pip install -r requirements.txt
 
+      - name: Check security headers (prod)
+  run: |
+    python tools/guardian/check_headers.py https://www.virtauto.de \
+      --out ops/reports/guardian.json --append
+
+      - name: Check CSP & mixed content
+  run: |
+    python tools/guardian/check_csp.py https://www.virtauto.de \
+      --out ops/reports/guardian.json --append
+    python tools/guardian/check_mixed_content.py https://www.virtauto.de \
+      --out ops/reports/guardian.json --append
+
+      - name: Robots & Sitemap
+  run: |
+    python tools/guardian/check_robots_sitemap.py https://www.virtauto.de \
+      --out ops/reports/guardian.json --append
+
+      - name: (Optional) Link checker (fast)
+  run: |
+    python tools/guardian/check_links.py https://www.virtauto.de --limit 200 \
+      --out ops/reports/guardian.json --append
+
+      - name: Build summary (Markdown)
+  run: |
+    python tools/guardian/summarize.py ops/reports/guardian.json \
+      --md ops/reports/guardian_summary.md --fail-on any
+
       - name: Run guardian
         id: guardian
         run: python -m scripts.self_guardian --root .
