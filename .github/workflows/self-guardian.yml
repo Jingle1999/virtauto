@@ -43,6 +43,27 @@ jobs:
     python tools/guardian/check_links.py https://www.virtauto.de --limit 200 \
       --out ops/reports/guardian.json --append
 
+      - name: Update status snapshot (guardian)
+      if: always()
+      run: |
+        ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        status=$([ "${{ job.status }}" = "success" ] && echo ok || echo issue)
+        jq --arg ts "$ts" \
+           --arg status "$status" \
+           --arg http "" \
+       '
+         .agents = (.agents // []) |
+         (.agents |=
+           map(if .agent=="self_guardian" then
+                 .status=$status | .http={} | .timestamp=$ts
+              else . end)
+         ) |
+         if ([.agents[]?.agent] | index("self_guardian")) then .
+         else .agents += [{"agent":"self_guardian","status":$status,"http":{},"timestamp":$ts}]
+         end
+       '   status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+
+
       - name: Build summary (Markdown)
   run: |
     python tools/guardian/summarize.py ops/reports/guardian.json \
