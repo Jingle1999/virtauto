@@ -1,13 +1,23 @@
 version: 1.0
 chain: guardian_audit
+
+# Welche Felder jeder Audit-Eintrag enthalten soll (fixe Reihenfolge = Hash-Stabilität)
 fields:
-  - timestamp
-  - agent
-  - rule_id
-  - severity
-  - description
-  - hash_previous
-  - hash_current
+  - timestamp        # ISO 8601, UTC
+  - agent            # z.B. self_guardian
+  - rule_id          # policy/check id
+  - severity         # info | low | medium | high | critical
+  - description      # Kurzbeschreibung/Fund
+  - source           # Datei/URL/Seite oder Kontext
+  - run_id           # CI-Run (z.B. GitHub), zur Nachverfolgbarkeit
+  - sha_previous     # Hash des letzten Eintrags (oder Anchor)
+  - sha_current      # Hash dieses Eintrags (über Felder + sha_previous)
+
 integrity:
   algorithm: SHA256
-  anchor: status/audit_anchor.txt
+  # Ein einfacher Anker (fester Startpunkt) – Inhalt kann z.B. "virtauto_audit_anchor_v1" sein
+  anchor_file: status/audit_anchor.txt
+
+storage:
+  # Append-only Logdatei (JSON Lines)
+  audit_log: status/audit.log
