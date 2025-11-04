@@ -22,3 +22,34 @@ policies:
       - /sitemap.xml
     must_exist: true
     severity: medium
+
+version: 1.0
+agent: self_guardian
+updated: "2025-11-04T00:00:00Z"
+
+rules:
+  - id: security_headers
+    type: headers
+    url: "https://www.virtauto.de/"
+    must_include:
+      - "Strict-Transport-Security"
+      - "Content-Security-Policy"
+      - "X-Content-Type-Options"
+    severity: high
+    rollback_on: true
+
+  - id: robots_sitemap
+    type: files
+    paths:
+      - /robots.txt
+      - /sitemap.xml
+    must_exist: true
+    severity: medium
+    rollback_on: false
+
+  - id: mixed_content
+    type: scan
+    pattern: "http://"
+    scope: public/
+    severity: critical
+    rollback_on: true
