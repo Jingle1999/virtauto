@@ -1,0 +1,13 @@
+version: 1.0
+chain: guardian_audit
+fields:
+  - timestamp
+  - agent
+  - rule_id
+  - severity
+  - description
+  - hash_previous
+  - hash_current
+integrity:
+  algorithm: SHA256
+  anchor: status/audit_anchor.txt
