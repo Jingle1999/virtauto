@@ -33,6 +33,12 @@ jobs:
     python tools/guardian/check_mixed_content.py https://www.virtauto.de \
       --out ops/reports/guardian.json --append
 
+      - name: Load external policy definitions
+  run: |
+      echo "Including policies from policies/guardian_policy.yaml"
+      cat policies/guardian_policy.yaml >> ops/guardian.yaml
+
+
       - name: Robots & Sitemap
   run: |
     python tools/guardian/check_robots_sitemap.py https://www.virtauto.de \
