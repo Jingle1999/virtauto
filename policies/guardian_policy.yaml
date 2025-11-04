@@ -1,0 +1,24 @@
+version: 1.0
+last_updated: "2025-11-04T09:00:00Z"
+
+policies:
+  - id: enforce_https
+    description: All requests must use HTTPS.
+    type: security
+    pattern: "^https://"
+    action: block
+    severity: high
+
+  - id: meta_description
+    description: Pages must have meta description and title.
+    selector: "meta[name='description'], title"
+    required: true
+    severity: medium
+
+  - id: robots_sitemap
+    description: Ensure robots.txt and sitemap.xml exist and are valid.
+    paths:
+      - /robots.txt
+      - /sitemap.xml
+    must_exist: true
+    severity: medium
