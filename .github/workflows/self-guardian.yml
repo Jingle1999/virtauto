@@ -38,6 +38,49 @@ jobs:
       echo "Including policies from policies/guardian_policy.yaml"
       cat policies/guardian_policy.yaml >> ops/guardian.yaml
 
+      - name: Summarize guardian report and decide rollback
+        id: decide
+        run: |
+          python - << 'PY'
+          import json,sys,os
+          p="ops/reports/guardian.json"
+          data=json.load(open(p)) if os.path.exists(p) else {"issues":[]}
+          total=len(data.get("issues",[]))
+          # Rollback-eligible = rules mit rollback_on:true ODER severity in {high,critical}
+          elig=[i for i in data.get("issues",[]) 
+                if i.get("rollback_on") or str(i.get("severity","")).lower() in ("high","critical")]
+          out={
+            "total": total,
+            "eligible": len(elig),
+            "run_id": os.environ.get("GITHUB_RUN_ID"),
+            "sha": os.environ.get("GITHUB_SHA"),
+          }
+          print("SUMMARY:", json.dumps(out))
+          with open("ops/reports/guardian_summary.md","a",encoding="utf-8") as f:
+              f.write(f"\n**Guardian Summary**  \nTotal: {total} | Rollback-eligible: {len(elig)} | SHA: {out['sha']}\n")
+          # set outputs
+          print(f"::set-output name=violations_total::{total}")
+          print(f"::set-output name=violations_rb::{len(elig)}")
+          PY
+
+      - name: Trigger auto-rollback if needed
+        if: steps.decide.outputs.violations_rb && steps.decide.outputs.violations_rb != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg run_id "${{ github.run_id }}" \
+            --arg sha "${{ github.sha }}" \
+            --arg branch "${{ github.ref_name }}" \
+            --arg url "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --argjson violations_rb ${{ steps.decide.outputs.violations_rb }} \
+            '{run_id:$run_id, sha:$sha, branch:$branch, url:$url, violations_rb:$violations_rb}')
+          curl -s -X POST \
+            -H "Authorization: token ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/dispatches \
+            -d "{\"event_type\":\"guardian_violation\",\"client_payload\":$PAYLOAD}"
+
 
       - name: Robots & Sitemap
   run: |
