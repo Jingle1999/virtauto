@@ -81,9 +81,9 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/dispatches \
             -d "{\"event_type\":\"guardian_violation\",\"client_payload\":$PAYLOAD}"
 
-      - name: Append Audit Entry
-  run: |
-    python tools/audit_append.py ops/reports/guardian.json ops/audit_chain.yaml
+      - name: Append Audit Entry (hash-chained)
+      run: |
+      python tools/audit_append.py ops/reports/guardian.json ops/audit_chain.yaml
 
 
       - name: Robots & Sitemap
