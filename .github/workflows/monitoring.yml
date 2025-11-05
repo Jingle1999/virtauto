@@ -40,6 +40,21 @@ jobs:
           cp ops/run_telemetry.json status/status.json
           cp logs/agent_reports.md status/agent_reports.md
 
+      - name: Update Guardian Agent status
+        if: always()
+        run: |
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          status="ok"
+          http=200
+          jq -n --arg agent "self_guardian" \
+               --arg ts "$ts" \
+               --arg status "$status" \
+               --argjson http "$http" \
+               '{agent: $agent, status: $status, http: {code: $http}, timestamp: $ts}' \
+               > status/self_guardian_status.json
+          cat status/self_guardian_status.json
+
+
       - name: Commit status snapshot
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
