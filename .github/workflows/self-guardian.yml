@@ -120,20 +120,29 @@ jobs:
       - name: Update status snapshot (guardian)
         if: always()
         run: |
-          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          status="${{ job.status }}"
-          http="https://www.virtauto.de"
+          set -e
+          mkdir -p status
+          ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          agent="self_guardian"
+          status_job="${{ job.status }}"
+          base="https://www.virtauto.de"
 
-          jq --arg ts "$ts" --arg status "$status" --arg http "$http" '
-            .agents = (.agents // [])
-            | .agents |=
-              (map(if .agent == "self_guardian"
-                then .status=$status | .http=$http | .timestamp=$ts
-                else . end)
-              + if any(.agent == "self_guardian") then [] else
-                [{"agent": "self_guardian", "status": $status, "http": $http, "timestamp": $ts}]
-              end)
-          ' status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+          # Falls Datei fehlt, leere JSON erzeugen
+          [ -f status/status.json ] || echo '{}' > status/status.json
+
+          jq --arg agent "$agent" \
+             --arg status "$status_job" \
+             --arg ts "$ts" \
+             --arg base "$base" \
+             '
+             .base_url     = (.base_url // $base) |
+             .last_update  = $ts |
+             .agents       = (
+               ( .agents // [] )
+               | map(select(.agent != $agent))   # alten Eintrag des Agents entfernen
+               + [{agent:$agent, status:$status, timestamp:$ts}]
+             )
+             ' status/status.json > status/status.tmp && mv status/status.tmp status/status.json
 
        '
          .agents = (.agents // []) |
