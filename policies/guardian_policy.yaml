@@ -53,3 +53,29 @@ rules:
     scope: public/
     severity: critical
     rollback_on: true
+
+  - id: https_only
+    type: header
+    url: "https://www.virtauto.de"
+    must_include:
+      - "Strict-Transport-Security"
+    severity: high
+    rollback_on: true
+
+  - id: meta_tags
+    type: html
+    url: "https://www.virtauto.de"
+    selector: "head"
+    must_include_meta:
+      - name: "description"
+      - name: "viewport"
+    severity: medium
+
+  - id: robots_sitemap
+    type: file
+    urls:
+      - "https://www.virtauto.de/robots.txt"
+      - "https://www.virtauto.de/sitemap.xml"
+    must_exist: true
+    severity: high
+    rollback_on: true
