@@ -118,13 +118,24 @@ jobs:
       --out ops/reports/guardian.json --append
 
       - name: Update status snapshot (guardian)
-      if: always()
-      run: |
-        ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        status=$([ "${{ job.status }}" = "success" ] && echo ok || echo issue)
-        jq --arg ts "$ts" \
-           --arg status "$status" \
-           --arg http "" \
+        if: always()
+        run: |
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          status="${{ job.status }}"
+          http="https://www.virtauto.de"
+
+          # Stelle sicher, dass Datei existiert
+          if [ ! -f status/status.json ]; then
+            echo '{"agents":[]}' > status/status.json
+          fi
+
+          # Füge Guardian-Status hinzu (anhängen oder aktualisieren)
+          jq --arg ts "$ts" --arg status "$status" --arg http "$http" '
+            .agents = (.agents // []) |
+            (map(select(.agent != "self_guardian")) + 
+            [{"agent": "self_guardian", "status": $status, "http": $http, "timestamp": $ts}])
+    '       status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+
        '
          .agents = (.agents // []) |
          (.agents |=
