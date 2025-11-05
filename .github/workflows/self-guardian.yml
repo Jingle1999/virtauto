@@ -124,17 +124,16 @@ jobs:
           status="${{ job.status }}"
           http="https://www.virtauto.de"
 
-          # Stelle sicher, dass Datei existiert
-          if [ ! -f status/status.json ]; then
-            echo '{"agents":[]}' > status/status.json
-          fi
-
-          # Füge Guardian-Status hinzu (anhängen oder aktualisieren)
           jq --arg ts "$ts" --arg status "$status" --arg http "$http" '
-            .agents = (.agents // []) |
-            (map(select(.agent != "self_guardian")) + 
-            [{"agent": "self_guardian", "status": $status, "http": $http, "timestamp": $ts}])
-    '       status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+            .agents = (.agents // [])
+            | .agents |=
+              (map(if .agent == "self_guardian"
+                then .status=$status | .http=$http | .timestamp=$ts
+                else . end)
+              + if any(.agent == "self_guardian") then [] else
+                [{"agent": "self_guardian", "status": $status, "http": $http, "timestamp": $ts}]
+              end)
+          ' status/status.json > status/status.tmp && mv status/status.tmp status/status.json
 
        '
          .agents = (.agents // []) |
