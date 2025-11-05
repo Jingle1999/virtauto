@@ -85,6 +85,27 @@ jobs:
       run: |
       python tools/audit_append.py ops/reports/guardian.json ops/audit_chain.yaml
 
+      - name: Self-Validation (Guardian Scoring)
+      env:
+        GV_WEIGHT_CRITICAL: "5"
+        GV_WEIGHT_HIGH:     "3"
+        GV_WEIGHT_MEDIUM:   "2"
+        GV_WEIGHT_LOW:      "1"
+        GV_THRESH_FAIL:     "20"   # ab hier "fail" (block)
+        GV_THRESH_ROLLBACK: "35"   # ab hier rollback empfohlen
+      run: |
+        python tools/self_validation.py ops/reports/guardian.json
+
+    - name: Upload validation artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: guardian-self-validation
+        path: |
+          ops/reports/guardian_score.json
+          ops/reports/self_validation.md
+          ops/reports/guardian_score.sha256
+
 
       - name: Robots & Sitemap
   run: |
