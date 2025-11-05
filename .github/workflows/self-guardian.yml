@@ -127,22 +127,22 @@ jobs:
           status_job="${{ job.status }}"
           base="https://www.virtauto.de"
 
-          # Falls Datei fehlt, leere JSON erzeugen
           [ -f status/status.json ] || echo '{}' > status/status.json
 
           jq --arg agent "$agent" \
              --arg status "$status_job" \
              --arg ts "$ts" \
              --arg base "$base" \
-             '
-             .base_url     = (.base_url // $base) |
-             .last_update  = $ts |
-             .agents       = (
+       '
+             .base_url    = (.base_url // $base) |
+             .last_update = $ts |
+             .agents = (
                ( .agents // [] )
-               | map(select(.agent != $agent))   # alten Eintrag des Agents entfernen
+               | map(select(.agent != $agent))
                + [{agent:$agent, status:$status, timestamp:$ts}]
              )
              ' status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+
 
        '
          .agents = (.agents // []) |
