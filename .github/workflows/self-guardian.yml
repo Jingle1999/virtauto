@@ -142,8 +142,6 @@ jobs:
                + [{agent:$agent, status:$status, timestamp:$ts}]
              )
              ' status/status.json > status/status.tmp && mv status/status.tmp status/status.json
-
-
        '
          .agents = (.agents // []) |
          (.agents |=
@@ -156,6 +154,14 @@ jobs:
          end
        '   status/status.json > status/status.tmp && mv status/status.tmp status/status.json
 
+          - name: Commit status snapshot (guardian)
+            if: always()
+            uses: stefanzweifel/git-auto-commit-action@v5
+            with:
+              commit_message: "chore(guardian): update status snapshot [skip ci]"
+              file_pattern: |
+                status/status.json
+                status/agent_reports.md
 
       - name: Build summary (Markdown)
         run: |
