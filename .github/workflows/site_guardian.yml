@@ -6,13 +6,6 @@ on:
     - cron: '0 6 * * 1-5'
 
 jobs:
-  site_guardian:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-jobs:
   lighthouse:
     runs-on: ubuntu-latest
     steps:
