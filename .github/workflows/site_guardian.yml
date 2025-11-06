@@ -1,11 +1,16 @@
 name: Site Guardian
 
 on:
-  push:
-    branches: [ main ]
-  schedule:
-    - cron: "17 4 * * *"   # täglich 04:17 UTC
   workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1-5'
+
+jobs:
+  site_guardian:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
 jobs:
   lighthouse:
@@ -80,4 +85,4 @@ jobs:
             [{"agent":$agent,"status":$status,"timestamp":$ts}]
       '     status/status.json 2>/dev/null > status/status.tmp || echo '{"agents":[]}' > status/status.tmp
           mv status/status.tmp status/status.json
-
+     
