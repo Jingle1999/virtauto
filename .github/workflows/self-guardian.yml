@@ -158,9 +158,49 @@ jobs:
 
 
       - name: Build summary (Markdown)
-  run: |
-    python tools/guardian/summarize.py ops/reports/guardian.json \
-      --md ops/reports/guardian_summary.md --fail-on any
+        run: |
+        python tools/guardian/summarize.py ops/reports/guardian.json \
+        --md ops/reports/guardian_summary.md --fail-on any
+        
+      - name: Publish Guardian report to /status
+        if: always()
+        run: |
+          mkdir -p status
+          # Kurze, lesbare Zusammenfassung als "Latest Agent Report"
+          cp ops/reports/guardian_summary.md status/agent_reports.md
+
+      - name: Update status snapshot (guardian)
+        if: always()
+        run: |
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          outcome="${{ steps.guardian.outcome }}"
+          status="ok"
+          [ "$outcome" != "success" ] && status="fail"
+
+          mkdir -p status
+          [ -f status/status.json ] || echo '{"agents":[]}' > status/status.json
+
+          jq --arg ts "$ts" --arg status "$status" '
+            .agents = (.agents // []) |
+            (.agents |= (map(
+                if .agent == "self_guardian"
+                  then .status=$status | .timestamp=$ts
+                  else .
+                end
+              ))) |
+            (if ([.agents[].agent] | index("self_guardian")) then . else
+              .agents += [{"agent":"self_guardian","status":$status,"timestamp":$ts}]
+            end)
+        '   status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+
+      - name: Commit dashboard artifacts (guardian)
+        if: always()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(guardian): update dashboard status & latest report [skip ci]"
+          file_pattern: |
+            status/status.json
+            status/agent_reports.md
 
       - name: Run guardian
         id: guardian
