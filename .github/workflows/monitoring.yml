@@ -40,20 +40,32 @@ jobs:
           cp ops/run_telemetry.json status/status.json
           cp logs/agent_reports.md status/agent_reports.md
 
-      - name: Update Guardian Agent status
-        if: always()
-        run: |
-          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          status="ok"
-          http=200
-          jq -n --arg agent "self_guardian" \
-               --arg ts "$ts" \
-               --arg status "$status" \
-               --argjson http "$http" \
-               '{agent: $agent, status: $status, http: {code: $http}, timestamp: $ts}' \
-               > status/self_guardian_status.json
-          cat status/self_guardian_status.json
+          - name: Update status snapshot (monitoring)
+            if: always()
+            run: |
+              ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+              base="${BASE_URL:-https://www.virtauto.de}"
+              http=$(curl -s -o /dev/null -w "%{http_code}" "$base")
+              status="ok"
+              [ "$http" != "200" ] && status="fail"
 
+              mkdir -p status
+              # status.json anlegen, falls nicht vorhanden
+              [ -f status/status.json ] || echo '{"agents":[]}' > status/status.json
+
+              # Eintrag für website_monitoring upserten
+              jq --arg ts "$ts" --arg status "$status" --argjson http "$http" '
+                .agents = (.agents // []) |
+                (.agents |= (map(
+                    if .agent == "website_monitoring"
+                      then .status=$status | .http=$http | .timestamp=$ts
+                      else .
+                    end
+                  ))) |
+                (if ([.agents[].agent] | index("website_monitoring")) then . else
+                  .agents += [{"agent":"website_monitoring","status":$status,"http":$http,"timestamp":$ts}]
+                end)
+        '       status/status.json > status/status.tmp && mv status/status.tmp status/status.json
 
       - name: Commit status snapshot
         uses: stefanzweifel/git-auto-commit-action@v5
