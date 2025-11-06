@@ -66,17 +66,18 @@ jobs:
             echo
           done
           
-        - name: Update Guardian Agent status
+      - name: Update Guardian Agent status
         if: always()
         run: |
-          ts=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          status="ok"
-          agent="self_guardian"
-          echo "Updating Guardian Agent status…"
+          echo "Updating Guardian Agent status..."
           mkdir -p status
-          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
-            '.agents = (.agents // []) |
-             map(select(.agent != $agent)) +
-             [{"agent":$agent,"status":$status,"timestamp":$ts}]' \
-             status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+          ts=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          agent="self_guardian"
+          status="ok"
+          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
+            .agents = (.agents // []) |
+            map(select(.agent != $agent)) +
+            [{"agent":$agent,"status":$status,"timestamp":$ts}]
+      '     status/status.json 2>/dev/null > status/status.tmp || echo '{"agents":[]}' > status/status.tmp
+          mv status/status.tmp status/status.json
 
