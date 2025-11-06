@@ -65,3 +65,18 @@ jobs:
             curl -sI "$u" | grep -Ei 'content-security-policy|strict-transport-security|x-frame-options|x-content-type-options|referrer-policy|permissions-policy' || true
             echo
           done
+          
+        - name: Update Guardian Agent status
+        if: always()
+        run: |
+          ts=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          status="ok"
+          agent="self_guardian"
+          echo "Updating Guardian Agent status…"
+          mkdir -p status
+          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
+            '.agents = (.agents // []) |
+             map(select(.agent != $agent)) +
+             [{"agent":$agent,"status":$status,"timestamp":$ts}]' \
+             status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+
