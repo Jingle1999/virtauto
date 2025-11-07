@@ -269,7 +269,13 @@ token: ${{ secrets.GITHUB_TOKEN }} im create-pull-request-Step.
       ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
       agent="self_guardian"
       status="ok"
-      jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
-        '.agents |= map(if .agent == $agent then .status = $status | .timestamp = $ts else . end)' \
-        status/status.json > status/tmp.json && mv status/tmp.json status/status.json
+      # Falls status.json noch nicht existiert -> leeres Grundgerüst
+      [ -f status/status.json ] || echo '{"agents":[]}' > status/status.json
+      # Agentenstatus aktualisieren/ersetzen
+      jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
+        .agents = (.agents // []) |
+        ( map(select(.agent != $agent)) + [ {agent:$agent, status:$status, timestamp:$ts} ] )
+      ' status/status.json > status/status.tmp
+      mv status/status.tmp status/status.json
+
 
