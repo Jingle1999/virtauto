@@ -1,180 +1,70 @@
-name: Website Monitoring Agent
+name: Self Monitoring
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, master ]
   schedule:
-    - cron: '0 6 * * * *'   # every 6 hours
+    # alle Werktage 06:00 UTC
+    - cron: '0 6 * * 1-5'
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   monitoring:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Ping target(s) and write report
+        shell: bash
         run: |
-          python -m pip install --upgrade pip
-          pip install -r monitoring/requirements.txt
-
-      - name: Run Monitoring Agent
-        working-directory: ./
-        env:
-          BASE_URL: ${{ vars.BASE_URL || 'https://www.virtauto.de' }}
-        run: |
-          mkdir -p logs ops tests
-          python monitoring/monitoring_agent.py --output logs/agent_reports.md
-      
-      - name: Run Monitoring Script
-        run: |
-          python tools/monitor.py || true
-
-      - name: Publish status snapshot files
-        run: |
-          mkdir -p status
-          cp ops/run_telemetry.json status/status.json
-          cp logs/agent_reports.md status/agent_reports.md
-
-      - name: Update status snapshot (monitoring)
-        if: always()
-        run: |
-            ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-            base="${BASE_URL:-https://www.virtauto.de}"
-            http=$(curl -s -o /dev/null -w "%{http_code}" "$base")
-            status="ok"
-            [ "$http" != "200" ] && status="fail"
-
-            mkdir -p status
-            # status.json anlegen, falls nicht vorhanden
-            [ -f status/status.json ] || echo '{"agents":[]}' > status/status.json
-
-            # Eintrag für website_monitoring upserten
-            jq --arg ts "$ts" --arg status "$status" --argjson http "$http" '
-              .agents = (.agents // []) |
-              (.agents |= (map(
-                  if .agent == "website_monitoring"
-                    then .status=$status | .http=$http | .timestamp=$ts
-                    else .
-                  end
-                ))) |
-              (if ([.agents[].agent] | index("website_monitoring")) then . else
-                .agents += [{"agent":"website_monitoring","status":$status,"http":$http,"timestamp":$ts}]
-              end)
-      '       status/status.json > status/status.tmp && mv status/status.tmp status/status.json
-
-      - name: Update status.json for Guardian Agent
-        if: always()
-        run: |
-          echo "Updating Guardian Agent status..."
-          mkdir -p status
+          set -e
+          mkdir -p ops/reports
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          agent="self_guardian"
-          status="ok"
+          target="https://www.virtauto.de"
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$target" || true)
 
-          # Wenn Python-Check-Findings erzeugt hat -> fail
-          if [ -f ops/reports/guardian.json ] && jq -e '.issues | length > 0' ops/reports/guardian.json >/dev/null 2>&1; then
+          status="ok"
+          if [ "$code" != "200" ]; then
             status="fail"
           fi
 
-          # Basisdatei anlegen, falls nicht vorhanden
+          jq -n --arg ts "$ts" --arg target "$target" --arg code "$code" \
+            '{timestamp:$ts, target:$target, http:$code|tonumber}' > ops/reports/monitoring.json
+
+          echo "HTTP $code for $target -> $status"
+          echo "status=$status" >> $GITHUB_ENV
+
+      - name: Update status.json (Monitoring Agent)
+        if: always()
+        shell: bash
+        run: |
+          set -e
+          mkdir -p status
+          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          agent="monitoring"
+          status="${{ env.status || 'fail' }}"
+
+          # Basisdatei anlegen, falls leer/fehlend
           [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
 
-          # Upsert nach Agent-Key (alte entfernen, neuen anhängen)
+          # Upsert: alten 'monitoring'-Eintrag raus, neuen rein
           jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
             '.agents |= ( (. // []) | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}] )' \
             status/status.json > status/status.tmp && mv status/status.tmp status/status.json
 
-          echo "✅ $agent status updated to $status at $ts"
-
-      - name: Commit status update
+      - name: Commit dashboard artifacts (monitoring)
         if: always()
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore(monitoring): update monitoring agent status [skip ci]"
-          file_pattern: status/status.json
-
-
-      - name: Commit status snapshot
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore(status): update status snapshot [skip ci]"
+          commit_message: "chore(monitoring): update dashboard status [skip ci]"
           file_pattern: |
             status/status.json
-            status/agent_reports.md
-
-
-      # Artefakte hochladen
-      - name: Upload report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: monitoring-report
-          path: logs/agent_reports.md
-          if-no-files-found: error   # darf error sein, weil das Script die Datei jetzt garantiert schreibt
-
-      - name: Upload telemetry artifact (only if file exists)
-        if: hashFiles('ops/run_telemetry.json') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: agentops-telemetry
-          path: ops/run_telemetry.json
-
-      - name: Upload tests artifact (optional)
-        if: ${{ hashFiles('tests/README.md') != '' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: baseline-tests
-          path: tests/README.md
-
-      - name: Emit event (deploy start)
-        if: always()
-        run: |
-          TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          echo "{\"ts\":\"$TS\",\"type\":\"ci/deploy-start\",\"source\":\"actions/${{ github.workflow }}\"}" >> website/ops/events.jsonl
-
-      - name: Emit event (deploy success)
-        if: success()
-        run: |
-          TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          echo "{\"ts\":\"$TS\",\"type\":\"ci/deploy-success\",\"source\":\"actions/${{ github.workflow }}\"}" >> website/ops/events.jsonl
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-          git add website/ops/events.jsonl
-          git commit -m "append deploy-success event [skip ci]" || true
-          git push
-
-      - name: Emit event (deploy failed)
-        if: failure()
-        run: |
-          TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          echo "{\"ts\":\"$TS\",\"type\":\"ci/deploy-failed\",\"source\":\"actions/${{ github.workflow }}\"}" >> website/ops/events.jsonl
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-          git add website/ops/events.jsonl
-          git commit -m "append deploy-failed event [skip ci]" || true
-          git push
-
-
-      # Optional: Lighthouse CI (wenn später gewünscht/konfiguriert)
-      # - name: Install Lighthouse CI
-      #   run: |
-      #     npm install -g @lhci/cli@0.14.x
-      # - name: Run Lighthouse
-      #   run: |
-      #     lhci autorun --collect.url=${{ env.BASE_URL }} \
-      #                  --upload.target=filesystem \
-      #                  --upload.outputDir=logs/lighthouse
-      # - name: Upload Lighthouse results
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: lighthouse-results
-      #     path: logs/lighthouse
+            ops/reports/monitoring.json
