@@ -72,23 +72,27 @@ jobs:
               end)
       '       status/status.json > status/status.tmp && mv status/status.tmp status/status.json
 
-      - name: Update status.json for Monitoring Agent
+      - name: Update status.json for Guardian Agent
         if: always()
         run: |
-          echo "Updating Monitoring Agent status..."
+          echo "Updating Guardian Agent status..."
           mkdir -p status
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          agent="monitoring"
+          agent="self_guardian"
           status="ok"
-          if [ "${{ job.status }}" != "success" ]; then status="fail"; fi
 
-          # Falls Datei leer oder ungültig -> Neuaufsetzen
+          # Wenn Python-Check-Findings erzeugt hat -> fail
+          if [ -f ops/reports/guardian.json ] && jq -e '.issues | length > 0' ops/reports/guardian.json >/dev/null 2>&1; then
+            status="fail"
+          fi
+
+          # Basisdatei anlegen, falls nicht vorhanden
           [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
 
-          # jq upsert
+          # Upsert nach Agent-Key (alte entfernen, neuen anhängen)
           jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
             '.agents |= ( (. // []) | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}] )' \
-            status/status.json > status/tmp.json && mv status/tmp.json status/status.json
+            status/status.json > status/status.tmp && mv status/status.tmp status/status.json
 
           echo "✅ $agent status updated to $status at $ts"
 
