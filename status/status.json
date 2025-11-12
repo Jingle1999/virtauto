@@ -1,8 +1,11 @@
 {
-  "agent": "website_monitoring",
-  "timestamp": "2025-11-07T00:00:00Z",
+  "last_update": "",
   "base_url": "https://www.virtauto.de",
-  "status": "ok",
-  "http": { "code": 200, "ok": true },
-  "agents": []
+  "agents": [
+    { "agent": "website_monitoring", "status": "unknown", "timestamp": "", "http": {} },
+    { "agent": "self_guardian",      "status": "unknown", "timestamp": "", "http": {} },
+    { "agent": "audit",               "status": "unknown", "timestamp": "", "http": {} },
+    { "agent": "deploy",              "status": "unknown", "timestamp": "", "http": {} },
+    { "agent": "content",             "status": "unknown", "timestamp": "", "http": {} }
+  ]
 }
