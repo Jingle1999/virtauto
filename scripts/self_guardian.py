@@ -48,7 +48,7 @@ def main():
     print(f"Guardian report saved to {args.out}")
 
     # Optional: non-zero Exit wenn es Findings gibt
-    if report["count"] > 0:
+    if len(report.get("issues", [])) > 0:
         sys.exit(2)
 
 if __name__ == "__main__":
