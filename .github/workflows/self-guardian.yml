@@ -90,29 +90,44 @@ jobs:
           else
             echo "No summarize.py found – writing minimal summary" > status/agent_reports.md
           fi
-
-      # --- Status-Snapshot aktualisieren (kommt VOR dem Commit-Step!) -------
-
+          
+    # ---- Status-Snapshot aktualisieren (kommt VOR dem Commit-Step!) ----
       - name: Update status.json for Guardian Agent
-        if: always()
+        if: ${{ always() }}
         run: |
-          echo "Updating Guardian Agent status..."
+          set -euo pipefail
           mkdir -p status
+
+          echo "Updating Guardian Agent status..."
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           agent="self_guardian"
           status="ok"
-          if [ "${{ steps.guardian.outcome }}" != "success" ]; then status="fail"; fi
-          # Basisdatei anlegen, falls noch nicht vorhanden
-          [ -f status/status.json ] || echo '{"agents":[]}' > status/status.json
-          # Eintrag ersetzen/anhängen
+
+          # If the guardian step failed earlier, mark status as fail
+          if [ "${{ steps.guardian.outcome }}" != "success" ]; then
+            status="fail"
+          fi
+
+          # Ensure a valid JSON file exists
+          if [ -s status/status.json ] && jq empty status/status.json >/dev/null 2>&1; then
+            : # OK
+          else
+            echo '{"agents":[]}' > status/status.json
+          fi
+
+          # Upsert agent entry (insert if missing, else update)
           jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
-            .agents = (.agents // []) |
-            ( map(select(.agent != $agent)) + [ {agent:$agent, status:$status, timestamp:$ts} ] )
+            (.agents // []) as $a
+            | if ($a | map(.agent) | index($agent)) == null then
+                .agents = ($a + [{"agent":$agent,"status":$status,"timestamp":$ts}])
+              else
+                .agents = ($a | map(if .agent==$agent then .status=$status | .timestamp=$ts else . end))
+              end
           ' status/status.json > status/status.tmp
           mv status/status.tmp status/status.json
 
       - name: Commit dashboard artifacts (guardian)
-        if: always()
+        if: ${{ always() }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(guardian): update dashboard status & latest report [skip ci]"
@@ -120,10 +135,9 @@ jobs:
             status/status.json
             status/agent_reports.md
 
-      # --- Bei Findings automatisch PR mit Vorschlägen ----------------------
-
+      # ---- Bei Findings automatisch PR mit Vorschlägen ----------------------
       - name: Create PR if issues
-        if: steps.guardian.outcome == 'failure'
+        if: ${{ steps.guardian.outcome == 'failure' }}
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "chore(guardian): compliance suggestions"
