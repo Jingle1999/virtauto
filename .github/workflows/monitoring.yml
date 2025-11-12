@@ -34,6 +34,10 @@ jobs:
         run: |
           mkdir -p logs ops tests
           python monitoring/monitoring_agent.py --output logs/agent_reports.md
+      
+      - name: Run Monitoring Script
+        run: |
+          python tools/monitor.py || true
 
       - name: Publish status snapshot files
         run: |
