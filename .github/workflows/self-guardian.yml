@@ -94,33 +94,31 @@ jobs:
           
     # ---- Status-Snapshot aktualisieren (kommt VOR dem Commit-Step!) ----
       - name: Update status.json for Guardian Agent
-        if: ${{ always() }}
+        if: always()                              # <— läuft immer
         run: |
           set -euo pipefail
           mkdir -p status
 
-          echo "Updating Guardian Agent status..."
-          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           agent="self_guardian"
-          status="ok"
-
-          # If the guardian step failed earlier, mark status as fail
-          if [ "${{ steps.guardian.outcome }}" != "success" ]; then
-            status="fail"
-          fi
-
-          # Ensure a valid JSON file exists
-          if [ -s status/status.json ] && jq empty status/status.json >/dev/null 2>&1; then
-            : # OK
+          # Wenn der Scan-Step „success“, dann ok, sonst fail
+          if [ "${{ steps.guardian.outcome }}" = "success" ]; then
+            st="ok"
           else
-            echo '{"agents":[]}' > status/status.json
+            st="fail"
           fi
 
-          # Upsert agent entry (insert if missing, else update)
-          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
-            .agents = ((.agents // []) | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}])
+          # Basisdatei sicherstellen
+          [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
+
+          # Upsert nach Agent-Key
+          jq --arg agent "$agent" --arg status "$st" --arg ts "$ts" '
+            .agents = (.agents // []) |
+            (map(select(.agent != $agent)) + [ {agent:$agent, status:$status, timestamp:$ts} ])
           ' status/status.json > status/status.tmp
+
           mv status/status.tmp status/status.json
+
 
 
       - name: Commit dashboard artifacts (guardian)
