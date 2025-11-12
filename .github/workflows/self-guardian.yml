@@ -61,12 +61,11 @@ jobs:
 
       - name: Run guardian
         id: guardian
-        continue-on-error: true   # wir wollen immer weiterlaufen
+        continue-on-error: true        # <— wichtig
         run: |
-          set -e
+          set -euo pipefail
           mkdir -p ops/reports logs/telemetry
-          # Dein eigentlicher Scan – passe an dein Repo an
-          python -m scripts.self_guardian --root . 
+          python -u scripts/self_guardian.py --root . --out ops/reports/guardian.json
 
       - name: Ensure fixes dir
         if: always()
