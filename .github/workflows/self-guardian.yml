@@ -118,9 +118,10 @@ jobs:
           fi
 
           # Upsert agent entry (insert if missing, else update)
-          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
-            '.agents = ((.agents // []) | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}])' \
-            status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
+            .agents = ((.agents // []) | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}])
+          ' status/status.json > status/status.tmp
+          mv status/status.tmp status/status.json
 
 
       - name: Commit dashboard artifacts (guardian)
