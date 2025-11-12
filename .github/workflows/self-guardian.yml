@@ -92,30 +92,29 @@ jobs:
             echo "No summarize.py found – writing minimal summary" > status/agent_reports.md
           fi
           
-    # ---- Status-Snapshot aktualisieren (kommt VOR dem Commit-Step!) ----
+    # ---- Status-Snapshot aktualisieren  ----
       - name: Update status.json for Guardian Agent
-        if: always()                              # <— läuft immer
+        if: always()                              # <— runs always
         run: |
-          set -euo pipefail
+          echo "Updating Guardian Agent status..."
           mkdir -p status
-
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           agent="self_guardian"
-          # Wenn der Scan-Step „success“, dann ok, sonst fail
-          if [ "${{ steps.guardian.outcome }}" = "success" ]; then
-            st="ok"
-          else
-            st="fail"
+          status="ok"
+          # Wenn Python-Check-Findings erzeugt hat, setze fail (oder 'issue')
+          if [ -f ops/reports/guardian.json ] && jq -e '.issues | length > 0' ops/reports/guardian.json > /dev/null; then
+            status="fail"
           fi
-
-          # Basisdatei sicherstellen
           [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
+          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
+             '.agents |= ( (. // []) | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}] )' \
+             status/status.json > status/tmp.json && mv status/tmp.json status/status.json
 
           # Upsert nach Agent-Key
-          jq --arg agent "$agent" --arg status "$st" --arg ts "$ts" '
-            .agents = (.agents // []) |
-            (map(select(.agent != $agent)) + [ {agent:$agent, status:$status, timestamp:$ts} ])
-          ' status/status.json > status/status.tmp
+          jq --arg agent "$agent" --arg status "$st" --arg ts "$ts" 
+                .agents = (.agents // []) |
+                  (map(select(.agent != $agent)) + [ {agent:$agent, status:$status, timestamp:$ts} ])
+                ' status/status.json > status/status.tmp
 
           mv status/status.tmp status/status.json
 
