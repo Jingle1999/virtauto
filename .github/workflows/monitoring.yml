@@ -79,17 +79,18 @@ jobs:
           mkdir -p status
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           agent="monitoring"
-          # wenn vorherige Steps fehlschlugen -> fail, sonst ok
           status="ok"
           if [ "${{ job.status }}" != "success" ]; then status="fail"; fi
 
-          # status.json anlegen falls leer
+          # Falls Datei leer oder ungültig -> Neuaufsetzen
           [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
 
-          # upsert: agent-Eintrag aktualisieren oder hinzufügen
+          # jq upsert
           jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
-             '.agents |= ( (. // []) | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}] )' \
-             status/status.json > status/tmp.json && mv status/tmp.json status/status.json
+            '.agents |= ( (. // []) | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}] )' \
+            status/status.json > status/tmp.json && mv status/tmp.json status/status.json
+
+          echo "✅ $agent status updated to $status at $ts"
 
       - name: Commit status snapshot
         uses: stefanzweifel/git-auto-commit-action@v5
