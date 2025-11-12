@@ -67,6 +67,25 @@ jobs:
                 end)
         '       status/status.json > status/status.tmp && mv status/status.tmp status/status.json
 
+      - name: Update status.json for Monitoring Agent
+        if: always()
+        run: |
+          echo "Updating Monitoring Agent status..."
+          mkdir -p status
+          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          agent="monitoring"
+          # wenn vorherige Steps fehlschlugen -> fail, sonst ok
+          status="ok"
+          if [ "${{ job.status }}" != "success" ]; then status="fail"; fi
+
+          # status.json anlegen falls leer
+          [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
+
+          # upsert: agent-Eintrag aktualisieren oder hinzufügen
+          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
+             '.agents |= ( (. // []) | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}] )' \
+             status/status.json > status/tmp.json && mv status/tmp.json status/status.json
+
       - name: Commit status snapshot
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
