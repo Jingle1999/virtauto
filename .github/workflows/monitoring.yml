@@ -45,32 +45,32 @@ jobs:
           cp ops/run_telemetry.json status/status.json
           cp logs/agent_reports.md status/agent_reports.md
 
-          - name: Update status snapshot (monitoring)
-            if: always()
-            run: |
-              ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-              base="${BASE_URL:-https://www.virtauto.de}"
-              http=$(curl -s -o /dev/null -w "%{http_code}" "$base")
-              status="ok"
-              [ "$http" != "200" ] && status="fail"
+      - name: Update status snapshot (monitoring)
+        if: always()
+        run: |
+            ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            base="${BASE_URL:-https://www.virtauto.de}"
+            http=$(curl -s -o /dev/null -w "%{http_code}" "$base")
+            status="ok"
+            [ "$http" != "200" ] && status="fail"
 
-              mkdir -p status
-              # status.json anlegen, falls nicht vorhanden
-              [ -f status/status.json ] || echo '{"agents":[]}' > status/status.json
+            mkdir -p status
+            # status.json anlegen, falls nicht vorhanden
+            [ -f status/status.json ] || echo '{"agents":[]}' > status/status.json
 
-              # Eintrag für website_monitoring upserten
-              jq --arg ts "$ts" --arg status "$status" --argjson http "$http" '
-                .agents = (.agents // []) |
-                (.agents |= (map(
-                    if .agent == "website_monitoring"
-                      then .status=$status | .http=$http | .timestamp=$ts
-                      else .
-                    end
-                  ))) |
-                (if ([.agents[].agent] | index("website_monitoring")) then . else
-                  .agents += [{"agent":"website_monitoring","status":$status,"http":$http,"timestamp":$ts}]
-                end)
-        '       status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+            # Eintrag für website_monitoring upserten
+            jq --arg ts "$ts" --arg status "$status" --argjson http "$http" '
+              .agents = (.agents // []) |
+              (.agents |= (map(
+                  if .agent == "website_monitoring"
+                    then .status=$status | .http=$http | .timestamp=$ts
+                    else .
+                  end
+                ))) |
+              (if ([.agents[].agent] | index("website_monitoring")) then . else
+                .agents += [{"agent":"website_monitoring","status":$status,"http":$http,"timestamp":$ts}]
+              end)
+      '       status/status.json > status/status.tmp && mv status/status.tmp status/status.json
 
       - name: Update status.json for Monitoring Agent
         if: always()
@@ -91,6 +91,14 @@ jobs:
             status/status.json > status/tmp.json && mv status/tmp.json status/status.json
 
           echo "✅ $agent status updated to $status at $ts"
+
+      - name: Commit status update
+        if: always()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(monitoring): update monitoring agent status [skip ci]"
+          file_pattern: status/status.json
+
 
       - name: Commit status snapshot
         uses: stefanzweifel/git-auto-commit-action@v5
