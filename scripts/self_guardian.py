@@ -42,17 +42,16 @@ def main():
         **result
     }
 
+    # Report schreiben
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
+    print(f"guardian report saved to {args.out}")
 
-    print(f"Guardian report saved to {args.out}")
+    # Exit-Code: 0 = OK, 2 = Findings -> Workflow rot
+    has_issues = len(report.get("issues", [])) > 0
+    print(f"guardian outcome: {'issues' if has_issues else 'ok'}")
+    sys.exit(2 if has_issues else 0)
 
-    # Optional: non-zero Exit wenn es Findings gibt
-    # Exit nur, wenn tatsächlich Probleme gefunden wurden
-    if len(report.get("issues", [])) > 0:
-        sys.exit(2)
-    else:
-        sys.exit(0)
 
 if __name__ == "__main__":
     main()
