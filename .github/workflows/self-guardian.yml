@@ -66,7 +66,7 @@ jobs:
           set -e
           mkdir -p ops/reports logs/telemetry
           # Dein eigentlicher Scan – passe an dein Repo an
-          python -m scripts.self_guardian --root . || true
+          python -m scripts.self_guardian --root . 
 
       - name: Ensure fixes dir
         if: always()
@@ -118,15 +118,10 @@ jobs:
           fi
 
           # Upsert agent entry (insert if missing, else update)
-          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
-            (.agents // []) as $a
-            | if ($a | map(.agent) | index($agent)) == null then
-                .agents = ($a + [{"agent":$agent,"status":$status,"timestamp":$ts}])
-              else
-                .agents = ($a | map(if .agent==$agent then .status=$status | .timestamp=$ts else . end))
-              end
-          ' status/status.json > status/status.tmp
-          mv status/status.tmp status/status.json
+          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
+            '.agents = ((.agents // []) | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}])' \
+            status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+
 
       - name: Commit dashboard artifacts (guardian)
         if: ${{ always() }}
