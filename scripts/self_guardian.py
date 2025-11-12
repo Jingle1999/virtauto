@@ -48,8 +48,11 @@ def main():
     print(f"Guardian report saved to {args.out}")
 
     # Optional: non-zero Exit wenn es Findings gibt
+    # Exit nur, wenn tatsächlich Probleme gefunden wurden
     if len(report.get("issues", [])) > 0:
         sys.exit(2)
+    else:
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()
