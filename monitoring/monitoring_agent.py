@@ -39,7 +39,7 @@ def main():
     # Ergebnis-Container
     now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     telemetry = {
-        "agent": "website_monitoring",
+        "agent": "monitoring",
         "timestamp": now,
         "base_url": base_url,
         "status": "unknown",
