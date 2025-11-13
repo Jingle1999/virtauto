@@ -28,8 +28,8 @@
     },
     {
       "agent": "self_guardian",
-      "status": "ok",
-      "timestamp": "2025-11-13T11:21:28Z"
+      "status": "fail",
+      "timestamp": "2025-11-13T11:35:11Z"
     }
   ]
 }
