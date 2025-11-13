@@ -60,9 +60,13 @@ jobs:
       # --- Guardian-Scan -----------------------------------------------------
 
       - name: Run guardian scan
-        run: |
-          python scripts/self_guardian.py ... || echo "Guardian finished with non-zero exit code (findings or error)"
+        id: guardian_scan
         continue-on-error: true
+        run: |
+          python scripts/self_guardian.py \
+             --root "." \
+            --policy "policies/guardian_policy.yaml" \
+            --out "ops/reports/guardian.json"
 
 
       - name: Ensure fixes dir
