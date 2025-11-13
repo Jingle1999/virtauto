@@ -71,18 +71,14 @@ jobs:
       # --- Guardian-Scan -----------------------------------------------------
 
       - name: Run guardian scan
-        id: guardian_scan
-        continue-on-error: true
         run: |
-          python scripts/self_guardian.py \
-             --root "." \
-            --policy "policies/guardian_policy.yaml" \
-            --out "ops/reports/guardian.json"
-
+          mkdir -p ops/reports logs/telemetry
+          python scripts/self_guardian.py --root . --out ops/reports/guardian.json
 
       - name: Ensure fixes dir
         if: always()
-        run: mkdir -p ops/fixes
+        run: |
+          mkdir -p ops/fixes
 
       - name: Upload report
         if: always()
@@ -91,61 +87,49 @@ jobs:
           name: guardian-report
           path: ops/reports/guardian.json
 
-      # --- Report + Dashboard-Summary ---------------------------------------
-
+      # ---- Report + Dashboard-Summary ---------------------------------------
       - name: Build summary (Markdown)
         if: always()
         run: |
           mkdir -p ops/reports status
           if [ -f tools/guardian/summarize.py ]; then
             python tools/guardian/summarize.py ops/reports/guardian.json \
-              --md ops/reports/guardian_summary.md --fail-on any || true
+              > ops/reports/guardian_summary.md
             cp ops/reports/guardian_summary.md status/agent_reports.md
           else
-            echo "No summarize.py found – writing minimal summary" > status/agent_reports.md
+            echo "No summarize.py found - writing minimal summary" > status/agent_reports.md
           fi
-          
-    # ---- Status-Snapshot aktualisieren  ----
-        - name: Update status.json for Guardian Agent
-          if: always()
-          shell: bash
-          run: |
-            echo "Updating Guardian Agent status..."
+  
+      # ---- Status-Snapshot aktualisieren ------------------------------------
+      - name: Update status.json for Guardian Agent
+        if: always()
+        shell: bash
+        run: |
+          echo "Updating Guardian Agent status..."
 
-            mkdir -p status
+          mkdir -p status
 
-            ts="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-            agent="self_guardian"
-            status="ok"
+          ts="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          agent="self_guardian"
+          status="ok"
 
-            # Wenn Guardian-Findings vorhanden sind → fail
-            if [ -s ops/reports/guardian.json ] && jq -e '.issues | length > 0' ops/reports/guardian.json > /dev/null; then
-              status="fail"
-            fi
+          # Wenn Guardian-Findings vorhanden sind → fail
+          if [ -s ops/reports/guardian.json ] && jq -e '.issues | length > 0' ops/reports/guardian.json > /dev/null; then
+            status="fail"
+          fi
 
-            # Basisdatei anlegen, falls leer/nicht vorhanden
-            [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
-    
-            # Agent-Eintrag aktualisieren oder anhängen
-            jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
-              .agents |= (map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}])
-            ' status/status.json > status/status.tmp
+          # Basisdatei anlegen, falls leer/nicht vorhanden
+          [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
 
-            mv status/status.tmp status/status.json
-
-
-          # Upsert nach Agent-Key
-          jq --arg agent "$agent" --arg status "$st" --arg ts "$ts" 
-                .agents = (.agents // []) |
-                  (map(select(.agent != $agent)) + [ {agent:$agent, status:$status, timestamp:$ts} ])
-                ' status/status.json > status/status.tmp
+          # Agent-Eintrag aktualisieren oder anhängen
+          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
+            .agents |= (map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}])
+          ' status/status.json > status/status.tmp
 
           mv status/status.tmp status/status.json
 
-
-
       - name: Commit dashboard artifacts (guardian)
-        if: ${{ always() }}
+        if: always()
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(guardian): update dashboard status & latest report [skip ci]"
@@ -153,9 +137,8 @@ jobs:
             status/status.json
             status/agent_reports.md
 
-      # ---- Bei Findings automatisch PR mit Vorschlägen ----------------------
       - name: Create PR if issues
-        if: ${{ steps.guardian.outcome == 'failure' }}
+        if: ${{ steps.self_guardian.outcome == 'failure' }}
         uses: peter-evans/create-pull-request@v6
         with:
           commit-message: "chore(guardian): compliance suggestions"
@@ -165,5 +148,95 @@ jobs:
           add-paths: |
             ops/reports/guardian.json
             ops/fixes/**
+            logs/telemetry/**
+            status/agent_reports.md
+
+
+
+        - name: Ensure fixes dir
+          if: always()
+          run: mkdir -p ops/fixes
+  
+        - name: Upload report
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: guardian-report
+            path: ops/reports/guardian.json
+
+        # --- Report + Dashboard-Summary ---------------------------------------
+
+        - name: Build summary (Markdown)
+          if: always()
+          run: |
+            mkdir -p ops/reports status
+            if [ -f tools/guardian/summarize.py ]; then
+              python tools/guardian/summarize.py ops/reports/guardian.json \
+                --md ops/reports/guardian_summary.md --fail-on any || true
+              cp ops/reports/guardian_summary.md status/agent_reports.md
+            else
+              echo "No summarize.py found – writing minimal summary" > status/agent_reports.md
+            fi
+          
+      # ---- Status-Snapshot aktualisieren  ----
+          - name: Update status.json for Guardian Agent
+            if: always()
+            shell: bash
+            run: |
+              echo "Updating Guardian Agent status..."
+
+              mkdir -p status
+
+              ts="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+              agent="self_guardian"
+              status="ok"
+
+              # Wenn Guardian-Findings vorhanden sind → fail
+              if [ -s ops/reports/guardian.json ] && jq -e '.issues | length > 0' ops/reports/guardian.json > /dev/null; then
+                status="fail"
+              fi
+
+              # Basisdatei anlegen, falls leer/nicht vorhanden
+              [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
+    
+              # Agent-Eintrag aktualisieren oder anhängen
+              jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
+                .agents |= (map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}])
+              ' status/status.json > status/status.tmp
+
+              mv status/status.tmp status/status.json
+  
+
+            # Upsert nach Agent-Key
+            jq --arg agent "$agent" --arg status "$st" --arg ts "$ts" 
+                  .agents = (.agents // []) |
+                    (map(select(.agent != $agent)) + [ {agent:$agent, status:$status, timestamp:$ts} ])
+                  ' status/status.json > status/status.tmp
+
+            mv status/status.tmp status/status.json
+  
+
+
+        - name: Commit dashboard artifacts (guardian)
+          if: ${{ always() }}
+          uses: stefanzweifel/git-auto-commit-action@v5
+          with:
+            commit_message: "chore(guardian): update dashboard status & latest report [skip ci]"
+            file_pattern: |
+              status/status.json
+              status/agent_reports.md
+
+        # ---- Bei Findings automatisch PR mit Vorschlägen ----------------------
+        - name: Create PR if issues
+          if: ${{ steps.guardian.outcome == 'failure' }}
+          uses: peter-evans/create-pull-request@v6
+          with:
+            commit-message: "chore(guardian): compliance suggestions"
+            title: "chore(guardian): compliance suggestions"
+            body: "Automated compliance scan results."
+            branch: "chore/guardian-${{ github.run_id }}"
+            add-paths: |
+              ops/reports/guardian.json
+              ops/fixes/**
             logs/telemetry/**
             status/agent_reports.md
