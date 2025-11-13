@@ -29,7 +29,10 @@
     {
       "agent": "self_guardian",
       "status": "fail",
-      "timestamp": "2025-11-13T11:37:03Z"
+      "timestamp": "2025-11-13T12:59:22Z"
     }
-  ]
+  ],
+  "pipelines": {
+    "guardian": "fail"
+  }
 }
