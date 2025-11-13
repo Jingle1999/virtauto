@@ -5,25 +5,25 @@
     {
       "agent": "monitoring",
       "status": "ok",
-      "timestamp": "",
+      "timestamp": "2025-11-13T12:00:00Z",
       "http": {}
     },
     {
       "agent": "audit",
       "status": "unknown",
-      "timestamp": "",
+      "timestamp": "2025-11-13T12:00:00Z",
       "http": {}
     },
     {
       "agent": "deploy",
       "status": "unknown",
-      "timestamp": "",
+      "timestamp": "2025-11-13T12:00:00Z",
       "http": {}
     },
     {
       "agent": "content",
       "status": "unknown",
-      "timestamp": "",
+      "timestamp": "2025-11-13T12:00:00Z",
       "http": {}
     },
     {
