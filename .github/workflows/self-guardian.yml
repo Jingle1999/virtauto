@@ -1,10 +1,16 @@
 name: Self Guardian
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/self-guardian.yml"
+      - "policies/**"
+      - "scripts/self_guardian.py"
   workflow_dispatch:
   schedule:
-    # werktags 06:00 UTC
-    - cron: '0 6 * * 1-5'
+    - cron: "0 6 * * 1-5"
 
 # Damit Commits/PRs vom Workflow geschrieben werden dürfen
 permissions:
