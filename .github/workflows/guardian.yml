@@ -1,0 +1,14 @@
+name: Guardian
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run_guardian:
+    runs-on: ubuntu-latest
+    steps:
+      - name: trigger Self Guardian
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: self-guardian.yml
+          ref: main
