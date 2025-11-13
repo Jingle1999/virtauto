@@ -33,6 +33,6 @@
     }
   ],
   "pipelines": {
-    "guardian": "fail"
+    "guardian": "passing"
   }
 }
