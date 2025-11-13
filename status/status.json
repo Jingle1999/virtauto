@@ -3,8 +3,8 @@
   "base_url": "https://www.virtauto.de",
   "agents": [
     {
-      "agent": "website_monitoring",
-      "status": "unknown",
+      "agent": "monitoring",
+      "status": "ok",
       "timestamp": "",
       "http": {}
     },
@@ -25,11 +25,6 @@
       "status": "unknown",
       "timestamp": "",
       "http": {}
-    },
-    {
-      "agent": "monitoring",
-      "status": "ok",
-      "timestamp": "2025-11-13T06:08:35Z"
     },
     {
       "agent": "self_guardian",
