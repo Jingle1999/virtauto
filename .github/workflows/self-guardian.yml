@@ -97,30 +97,39 @@ jobs:
       # ---- Status-Snapshot aktualisieren ------------------------------------
       - name: Update status.json for Guardian Agent
         if: always()
-        shell: bash
         run: |
           echo "Updating Guardian Agent status..."
-
           mkdir -p status
 
           ts="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-          agent="self_guardian"
+          agent_id="self_guardian"
           status="ok"
 
-          # Wenn Guardian-Findings vorhanden sind → fail
-          if [ -s ops/reports/guardian.json ] && jq -e '.issues | length > 0' ops/reports/guardian.json > /dev/null; then
+          # Wenn ein Report mit Issues existiert -> fail
+          if [ -f ops/reports/guardian.json ] && jq -e '.issues | length > 0' ops/reports/guardian.json >/dev/null; then
             status="fail"
           fi
 
-          # Basisdatei anlegen, falls leer/nicht vorhanden
-          [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
+          # Basis-Datei anlegen, falls noch nicht vorhanden
+          if [ ! -f status/status.json ]; then
+            echo '{"agents":[],"pipelines":{"monitoring":"unknown","audit":"unknown","guardian":"unknown","deploy":"unknown"}}' > status/status.json
+          fi
 
-          # Agent-Eintrag aktualisieren oder anhängen
-          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
-            .agents |= (map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}])
-          ' status/status.json > status/status.tmp
+          jq \
+            --arg agent_id "$agent_id" \
+            --arg status "$status" \
+            --arg ts "$ts" \
+            '
+            .agents = (
+              .agents // [] |
+              map(select(.agent != $agent_id)) +
+              [{agent:$agent_id, status:$status, timestamp:$ts}]
+            )
+            | .pipelines.guardian = $status
+            ' status/status.json > status/status.tmp
 
           mv status/status.tmp status/status.json
+
 
       - name: Commit dashboard artifacts (guardian)
         if: always()
