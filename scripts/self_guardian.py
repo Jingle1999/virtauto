@@ -1,9 +1,21 @@
 import argparse
 import os
+import sys
 import json
 import re
 
-from tools.ops.telemetry import emit
+# Ensure project root is on sys.path so that `tools.*` can be imported
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+try:
+    from tools.ops.telemetry import emit
+except ModuleNotFoundError:
+    # Fallback: simple console-based telemetry
+    def emit(event, data=None):
+        print(f"[guardian-telemetry] {event}: {data}")
+
 
 
 CHECKS = [
