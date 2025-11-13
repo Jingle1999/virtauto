@@ -1,5 +1,5 @@
 {
-  "last_update": "",
+  "last_update": "2025-11-13T12:00:00Z",
   "base_url": "https://www.virtauto.de",
   "agents": [
     {
@@ -27,9 +27,9 @@
       "http": {}
     },
     {
-      "agent": "self_guardian",
-      "status": "fail",
-      "timestamp": "2025-11-13T13:01:13Z"
+      "agent": "guardian",
+      "status": "ok",
+      "timestamp": "2025-11-13T12:00:00Z"
     }
   ],
   "pipelines": {
