@@ -59,13 +59,10 @@ jobs:
 
       # --- Guardian-Scan -----------------------------------------------------
 
-      - name: Run guardian
-        id: guardian
-        continue-on-error: true        # <— wichtig
+      - name: Run guardian scan
         run: |
-          set -euo pipefail
           mkdir -p ops/reports logs/telemetry
-          python -u scripts/self_guardian.py --root . --out ops/reports/guardian.json
+          python scripts/self_guardian.py --root . --out ops/reports/guardian.json
 
       - name: Ensure fixes dir
         if: always()
