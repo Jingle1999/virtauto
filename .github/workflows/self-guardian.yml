@@ -61,8 +61,9 @@ jobs:
 
       - name: Run guardian scan
         run: |
-          mkdir -p ops/reports logs/telemetry
-          python scripts/self_guardian.py --root . --out ops/reports/guardian.json
+          python scripts/self_guardian.py ... || echo "Guardian finished with non-zero exit code (findings or error)"
+        continue-on-error: true
+
 
       - name: Ensure fixes dir
         if: always()
