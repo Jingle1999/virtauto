@@ -1,143 +1,108 @@
-#!/usr/bin/env python3
-"""
-Self Content Agent
-
-Simple content-draft generator for virtauto.de.
-
-Called from the GitHub Actions workflow `self-content.yml` like:
-
-  python -m scripts.self_content \
-      --topic "Industrial MAS – Why Autonomy Matters" \
-      --root . \
-      --out content/drafts
-
-What it does (for now):
-- parses CLI arguments (topic, root, out)
-- creates the output directory if needed
-- generates a timestamped markdown draft with basic front-matter
-- prints the created file path (for debugging)
-
-You can later extend `generate_body()` to actually call an LLM.
-"""
-
 import argparse
-import datetime as dt
+import json
 import os
-from pathlib import Path
-import textwrap
+from datetime import datetime
+
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Self Content Agent – draft generator")
-    parser.add_argument(
-        "--topic",
-        "-t",
-        required=True,
-        help="Topic or working title for the draft (used as title + in slug).",
+# -------------------------
+# Helpers
+# -------------------------
+
+def load_topics(path):
+    """Load list of content topics from config/content_topics.json."""
+    if not os.path.exists(path):
+        return ["Industrial AI", "Autonomous Manufacturing", "Multi-Agent Systems"]
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data.get("topics", [])
+    except Exception:
+        return ["Industrial AI", "Autonomous Manufacturing", "Multi-Agent Systems"]
+
+
+def generate_markdown_post(topic, model="gpt-4.1-mini"):
+    """Generate a markdown blog post using OpenAI."""
+    if OpenAI is None:
+        return f"# Draft Post\n\n## {topic}\n\n(Placeholder — OpenAI client missing)"
+
+    client = OpenAI()
+    prompt = f"""
+    Write a concise, high-quality blog article about:
+    **{topic}**
+    Focus on Industrial AI, Multi-Agent Systems, automotive value chains, and autonomy.
+    """
+
+    response = client.responses.create(
+        model=model,
+        input=prompt
     )
+
+    content = response.output_text
+    return f"# {topic}\n\n{content}"
+
+
+def write_output(md, out_dir):
+    """Write generated markdown file."""
+    os.makedirs(out_dir, exist_ok=True)
+    filename = datetime.utcnow().strftime("%Y%m%d_%H%M_content.md")
+    out_path = os.path.join(out_dir, filename)
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(md)
+
+    return out_path
+
+
+# -------------------------
+# Main CLI logic
+# -------------------------
+
+def main():
+    parser = argparse.ArgumentParser(description="Self Content Agent")
+
+    parser.add_argument(
+        "-t", "--topic",
+        required=True,
+        help="Content topic the agent should write about"
+    )
+
     parser.add_argument(
         "--root",
         default=".",
-        help="Repository root (used as base path when resolving --out).",
+        help="Repository root"
     )
+
     parser.add_argument(
         "--out",
-        default="content/drafts",
-        help="Relative path (from --root) where the draft markdown should be written.",
-    )
-    return parser.parse_args()
-
-
-def slugify(text: str) -> str:
-    text = text.strip().lower()
-    repl = {
-        "ä": "ae",
-        "ö": "oe",
-        "ü": "ue",
-        "ß": "ss",
-        "–": "-",
-        "—": "-",
-        " ": "-",
-        "/": "-",
-        "\\": "-",
-        ":": "",
-        ";": "",
-        ",": "",
-        ".": "",
-        "?": "",
-        "!": "",
-        "\"": "",
-        "'": "",
-        "(": "",
-        ")": "",
-    }
-    for src, dst in repl.items():
-        text = text.replace(src, dst)
-    # nur erlaubte Zeichen
-    return "".join(c for c in text if c.isalnum() or c == "-")
-
-
-def generate_body(topic: str) -> str:
-    """
-    Placeholder body – hier kannst du später echten AI-Content einbauen.
-    Für jetzt nur ein kurzes Template, das deutlich macht, dass der Self Content
-    Agent gearbeitet hat.
-    """
-    return textwrap.dedent(
-        f"""
-        # {topic}
-
-        _Draft created automatically by the **Self Content Agent**._
-
-        This is an initial scaffold for an article on:
-
-        **{topic}**
-
-        Next steps:
-        - Enrich this draft with real content (MAS, Industrial AI, virtauto.OS, etc.)
-        - Review language, structure and add visuals
-        - Publish via the regular virtauto content workflow
-
-        <!-- TODO: Replace this placeholder with AI-generated insights. -->
-        """
-    ).lstrip()
-
-
-def main() -> None:
-    args = parse_args()
-
-    root = Path(args.root).resolve()
-    out_dir = root / args.out
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    now = dt.datetime.utcnow()
-    date_str = now.strftime("%Y-%m-%d")
-    ts_str = now.strftime("%Y%m%d-%H%M%S")
-
-    slug = slugify(args.topic)
-    filename = f"{date_str}-{slug}.md"
-    out_path = out_dir / filename
-
-    front_matter = textwrap.dedent(
-        f"""\
-        ---
-        title: "{args.topic}"
-        date: {date_str}
-        draft: true
-        agent: self_content
-        slug: {slug}
-        ---
-
-        """
+        default="ops/content",
+        help="Output directory for draft content"
     )
 
-    body = generate_body(args.topic)
+    args = parser.parse_args()
 
-    with out_path.open("w", encoding="utf-8") as f:
-        f.write(front_matter)
-        f.write(body)
+    # Load topics if topic = "auto"
+    if args.topic == "auto":
+        topic_list = load_topics(os.path.join(args.root, "config", "content_topics.json"))
+        topic = topic_list[0] if topic_list else "Industrial AI"
+    else:
+        topic = args.topic
 
-    print(f"[Self Content Agent] Draft written to: {out_path}")
+    # Generate markdown
+    md = generate_markdown_post(topic)
+
+    # Write to file
+    out_file = write_output(
+        md,
+        os.path.join(args.root, args.out)
+    )
+
+    print(f"Generated content draft: {out_file}")
 
 
 if __name__ == "__main__":
