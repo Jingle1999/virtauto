@@ -29,13 +29,42 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: Draft post
-        id: draft              
-        continue-on-error: true
-        run:  |
-          python -m scripts.self_content 
+        id: draft
+        run: |
+          python -m scripts.self_content \
             --root . \
-            --out "content/_drafts/auto_post.md \
-            --topic "Industrial MAS – Why Autonomy Matters"
+            --out "content/_drafts/auto_post.md"
+
+
+      - name: Update status.json for Content Agent
+        if: always()
+        run: |
+          mkdir -p status
+
+          ts="$(date -u "+%Y-%m-%dT%H:%M:%SZ")"
+          status="ok"
+
+          # Wenn der Draft-Post-Step nicht erfolgreich war -> fail
+          if [ "${{ steps.draft.outcome }}" != "success" ]; then
+            status="fail"
+          fi
+
+          # Basis-Datei anlegen, falls noch nicht vorhanden
+          if [ ! -f status/status.json ]; then
+            echo '{"agents":[],"pipelines":{"monitoring":"unknown","audit":"unknown","guardian":"unknown","deploy":"unknown","content":"unknown"}}' > status/status.json
+          fi
+
+          jq \
+            --arg agent_id "self_content" \
+            --arg status "$status" \
+            --arg ts "$ts" \
+            '.agents = ((.agents // []) |
+              map(select(.agent != $agent_id)) +
+              [{agent:$agent_id, status:$status, timestamp:$ts}])
+             | .pipelines.content = $status' \
+            status/status.json > status/status.tmp
+
+          mv status/status.tmp status/status.json
 
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
