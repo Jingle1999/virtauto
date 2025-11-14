@@ -65,6 +65,15 @@ jobs:
             status/status.json > status/status.tmp
 
           mv status/status.tmp status/status.json
+      
+      - name: Commit dashboard status (content)
+        if: always()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(content): update content agent status [skip ci]"
+          file_pattern: |
+            status/status.json
+
 
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
