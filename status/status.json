@@ -34,9 +34,15 @@
       "agent": "monitoring",
       "status": "ok",
       "timestamp": "2025-11-14T15:04:09Z"
+    },
+    {
+      "agent": "self_content",
+      "status": "fail",
+      "timestamp": "2025-11-14T19:38:36Z"
     }
   ],
   "pipelines": {
-    "guardian": "fail"
+    "guardian": "fail",
+    "content": "fail"
   }
 }
