@@ -29,7 +29,13 @@ jobs:
       - run: pip install -r requirements.txt
 
       - name: Draft post
-        run: python -m scripts.self_content --topic "Industrial MAS – Why Autonomy Matters"
+        id: draft              
+        continue-on-error: true
+        run:  |
+          python -m scripts.self_content 
+            --root . \
+            --out "content/_drafts/auto_post.md \
+            --topic "Industrial MAS – Why Autonomy Matters"
 
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
