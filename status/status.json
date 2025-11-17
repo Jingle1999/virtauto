@@ -31,14 +31,14 @@
       "timestamp": "2025-11-14T15:02:46Z"
     },
     {
-      "agent": "monitoring",
-      "status": "ok",
-      "timestamp": "2025-11-14T15:04:09Z"
-    },
-    {
       "agent": "self_content",
       "status": "fail",
       "timestamp": "2025-11-17T06:02:52Z"
+    },
+    {
+      "agent": "monitoring",
+      "status": "ok",
+      "timestamp": "2025-11-17T06:09:29Z"
     }
   ],
   "pipelines": {
