@@ -37,12 +37,12 @@
     },
     {
       "agent": "self_content",
-      "status": "fail",
-      "timestamp": "2025-11-17T08:41:09Z"
+      "status": "ok",
+      "timestamp": "2025-11-17T09:54:38Z"
     }
   ],
   "pipelines": {
     "guardian": "fail",
-    "content": "fail"
+    "content": "ok"
   }
 }
