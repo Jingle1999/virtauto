@@ -32,8 +32,10 @@ jobs:
         id: draft
         run: |
           python -m scripts.self_content \
-            --root . \
-            --out "content/_drafts/auto_post.md"
+          --topic "${{ github.event.inputs.topic }}" \
+          --root . \
+          --out "content/_drafts/auto_post.md"
+
 
 
       - name: Update status.json for Content Agent
