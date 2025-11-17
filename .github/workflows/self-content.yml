@@ -34,7 +34,7 @@ jobs:
           python -m scripts.self_content \
           --topic "${{ github.event.inputs.topic }}" \
           --root . \
-          --out "content/_drafts/auto_post.md"
+          --out "content/drafts/auto_post.md"
 
 
 
