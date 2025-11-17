@@ -1,0 +1,2 @@
+Self Content Agent trigger file.
+Änderung = neuer Lauf.
