@@ -8,8 +8,11 @@ on:
         required: false
         default: "Industrial MAS – Why Autonomy Matters"
   schedule:
-    - cron: "0 6 * * 1"      # montags 06:00 UTC
+    - cron: "0 6 * * 1"
   workflow_call: {}
+  push:
+    paths:
+      - 'ops/self-content-trigger.txt'
 
 permissions:
   contents: write
