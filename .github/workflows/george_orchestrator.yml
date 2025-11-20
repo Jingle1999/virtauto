@@ -3,7 +3,7 @@ name: GEORGE Orchestrator
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * 1"   # montags 06:00 UTC (optional)
+    - cron: "0 6 * * 1"  # montags 06:00 UTC (optional)
 
 permissions:
   actions: write
@@ -19,6 +19,12 @@ jobs:
   orchestrate:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run GEORGE orchestrator script
+        run: python ops/george_orchestrator.py
+
       - name: Dispatch → content-ingest
         uses: actions/github-script@v7
         with:
