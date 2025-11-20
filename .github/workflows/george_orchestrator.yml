@@ -111,6 +111,19 @@ jobs:
               workflow_id: "site-deploy.yml",
               ref: "main"
             });
+      
+      # ____________________________________
+      # Monitoring, Deploy, Audit Agent status update
+      
+      - name: Update Monitoring Agent status
+        run: python ops/monitoring_agent.py
+
+      - name: Update Deploy Agent status
+        run: python ops/deploy_agent.py
+
+      - name: Update Audit Agent status
+        run: python ops/audit_agent.py
+
 
       # ─────────────────────────────
       # 6) GEORGE STATUS SCHREIBEN
