@@ -89,3 +89,26 @@ jobs:
               inputs: {}
             });
 
+            # GEORGE Status update
+      - name: Update GEORGE status
+        run: |
+          set -e
+          mkdir -p status ops/reports
+          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          agent="george"
+          status="ok"
+
+          # Separate report for GEORGE
+          jq -n --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
+            '{agent:$agent, status:$status, timestamp:$ts}' \
+            > ops/reports/george.json
+
+          # set up Basis-Statusfile, if missing / empty
+          [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
+
+          # Alten GEORGE-Eintrag entfernen, neuen hinzufügen
+          jq -c --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
+            '.agents |= ( .// [] | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}] )' \
+            status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+
+
