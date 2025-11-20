@@ -80,14 +80,15 @@ jobs:
       - name: Trigger site-deploy (workflow_dispatch)
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: 'site-deploy.yml',
-              ref: 'main',
-              inputs: {}
+              workflow_id: "site-deploy.yml",
+              ref: "main"
             });
+
 
             # GEORGE Status update
       - name: Update GEORGE status
