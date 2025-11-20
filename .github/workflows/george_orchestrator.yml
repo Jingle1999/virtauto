@@ -150,7 +150,7 @@ jobs:
 
       - name: Push changes
         run: |
-          git fetch origin
-          git pull --rebase origin main
-          git push origin main
+          echo "Trying to push GEORGE status changes (non-blocking)…"
+          git push origin main || echo "Non-blocking: push failed (likely concurrent updates to status.json)."
+
 
