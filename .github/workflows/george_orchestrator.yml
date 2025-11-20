@@ -3,7 +3,7 @@ name: GEORGE Orchestrator
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * 1"   # montags 06:00 UTC (optional)
+    - cron: "0 6 * * 1"  # montags 06:00 UTC (optional)
 
 permissions:
   actions: write
@@ -18,7 +18,6 @@ concurrency:
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -26,9 +25,9 @@ jobs:
       - name: Run GEORGE orchestrator script
         run: python ops/george_orchestrator.py
 
-      # -------------------------
-      # CONTENT INGEST
-      # -------------------------
+      # ─────────────────────────────
+      # 1) CONTENT INGEST
+      # ─────────────────────────────
       - name: Dispatch → content-ingest
         uses: actions/github-script@v7
         with:
@@ -38,16 +37,15 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: "self-content.yml",
-              ref: "main",
-              inputs: { event_type: "self_ingest" }
+              ref: "main"
             });
 
       - name: Wait for ingest
         run: sleep 25
 
-      # -------------------------
-      # REVIEW GATE
-      # -------------------------
+      # ─────────────────────────────
+      # 2) REVIEW GATE
+      # ─────────────────────────────
       - name: Dispatch → review-gate
         uses: actions/github-script@v7
         with:
@@ -57,16 +55,15 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: "review-gate.yml",
-              ref: "main",
-              inputs: { event_type: "self_review" }
+              ref: "main"
             });
 
       - name: Wait for review
         run: sleep 25
 
-      # -------------------------
-      # DESIGN GATE
-      # -------------------------
+      # ─────────────────────────────
+      # 3) DESIGN GATE
+      # ─────────────────────────────
       - name: Dispatch → design-gate
         uses: actions/github-script@v7
         with:
@@ -76,16 +73,15 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: "design-gate.yml",
-              ref: "main",
-              inputs: { event_type: "self_design" }
+              ref: "main"
             });
 
       - name: Wait for design
         run: sleep 25
 
-      # -------------------------
-      # SITE AUDIT
-      # -------------------------
+      # ─────────────────────────────
+      # 4) SITE AUDIT
+      # ─────────────────────────────
       - name: Dispatch → site-audit
         uses: actions/github-script@v7
         with:
@@ -94,17 +90,16 @@ jobs:
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: "site-audit.yml",
-              ref: "main",
-              inputs: { event_type: "self_audit" }
+              workflow_id: "self-audit.yml",
+              ref: "main"
             });
 
       - name: Wait for audit
         run: sleep 25
 
-      # -------------------------
-      # TRIGGER DEPLOY
-      # -------------------------
+      # ─────────────────────────────
+      # 5) DEPLOY
+      # ─────────────────────────────
       - name: Trigger site-deploy (workflow_dispatch)
         uses: actions/github-script@v7
         with:
@@ -114,49 +109,46 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: "site-deploy.yml",
-              ref: "main",
-              inputs: {}
+              ref: "main"
             });
 
-      # -------------------------
-      # UPDATE GEORGE STATUS
-      # -------------------------
+      # ─────────────────────────────
+      # 6) GEORGE STATUS SCHREIBEN
+      # ─────────────────────────────
       - name: Update GEORGE status
         run: |
           set -e
-          mkdir -p ops/reports
-
-          ts=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+          mkdir -p status ops/reports
+          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           agent="george"
           status="ok"
 
-          # Write GEORGE report
-          echo "{\"agent\":\"$agent\",\"status\":\"$status\",\"timestamp\":\"$ts\"}" > ops/reports/george.json
+          # Basis-Datei anlegen, falls nicht vorhanden
+          [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
 
-          # Ensure directory for global status exists
-          mkdir -p status
+          # Neuen Eintrag für GEORGE erzeugen
+          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
+            .agents
+            |= (map(select(.agent != $agent))
+                + [{agent:$agent,status:$status,timestamp:$ts}])
+          ' status/status.json > status/status.tmp \
+          && mv status/status.tmp status/status.json
 
-          # Existing status.json?
-          if [ ! -f status/status.json ]; then
-            echo "{\"agents\":[]}" > status/status.json
-          fi
-
-          # Remove old GEORGE entry + append new
-          jq -c --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
-            '.agents = (.agents | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}])' \
-            status/status.json > status/status.tmp
-
-          mv status/status.tmp status/status.json
+          # Kopie ins reports-Verzeichnis
+          cp status/status.json ops/reports/george_status_$ts.json
 
       - name: Commit status updates
         run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git add status/status.json ops/reports/george.json
-          git commit -m "GEORGE: Update status" || echo "No changes to commit"
+          git config user.name "GEORGE Orchestrator"
+          git config user.email "actions@github.com"
+          git add status/status.json ops/reports || true
+          if ! git diff --cached --quiet; then
+            git commit -m "GEORGE: update status summary"
+          else
+            echo "No changes to commit."
+          fi
 
       - name: Push changes
-        uses: ad-m/github-push-action@v0.8.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+        if: success()
+        run: |
+          git push origin main
