@@ -54,3 +54,22 @@ agents:
       rpo: "24h"
     tags: [quality]
     status: preparing
+
+  - id: self_content
+    name: Content Agent
+    owner: content
+    description: Ingests, drafts and updates website content from external feeds (e.g. Medium).
+    capabilities: [ingest, draft, update, link-check]
+    triggers:
+      - on: workflow
+        file: ".github/workflows/self-content.yml"
+      - on: event
+        type: "content/refresh"
+    outputs:
+      - "content/drafts/"
+    sla:
+      rto: "2h"
+      rpo: "24h"
+    tags: [core, content]
+    status: preparing
+
