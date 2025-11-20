@@ -73,3 +73,25 @@ agents:
     tags: [core, content]
     status: preparing
 
+  - id: george
+    name: GEORGE Orchestrator
+    owner: core
+    description: |
+      Central orchestration agent that coordinates all Self-Agents, 
+      routes events, resolves conflicts, triggers workflows and maintains
+      the adaptive autonomy loop.
+    capabilities: [event-routing, conflict-resolution, orchestration, policy-enforce]
+    triggers:
+      - on: schedule
+        cron: "*/10 * * * *"
+      - on: event
+        type: "agent/report"
+    outputs:
+      - "status/george.log"
+    sla:
+      rto: "5m"
+      rpo: "1h"
+    tags: [core, orchestrator]
+    status: preparing
+
+
