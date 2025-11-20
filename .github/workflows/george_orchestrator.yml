@@ -149,6 +149,8 @@ jobs:
           fi
 
       - name: Push changes
-        if: success()
         run: |
+          git fetch origin
+          git pull --rebase origin main
           git push origin main
+
