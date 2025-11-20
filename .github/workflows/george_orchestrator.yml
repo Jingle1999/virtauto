@@ -3,7 +3,7 @@ name: GEORGE Orchestrator
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * 1"  # montags 06:00 UTC (optional)
+    - cron: "0 6 * * 1"   # montags 06:00 UTC (optional)
 
 permissions:
   actions: write
@@ -18,6 +18,7 @@ concurrency:
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -25,58 +26,85 @@ jobs:
       - name: Run GEORGE orchestrator script
         run: python ops/george_orchestrator.py
 
+      # -------------------------
+      # CONTENT INGEST
+      # -------------------------
       - name: Dispatch → content-ingest
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            await github.request('POST /repos/{owner}/{repo}/dispatches', {
+            await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              event_type: 'self_ingest'
+              workflow_id: "self-content.yml",
+              ref: "main",
+              inputs: { event_type: "self_ingest" }
             });
 
       - name: Wait for ingest
         run: sleep 25
 
+      # -------------------------
+      # REVIEW GATE
+      # -------------------------
       - name: Dispatch → review-gate
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            await github.request('POST /repos/{owner}/{repo}/dispatches', {
+            await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              event_type: 'self_review'
+              workflow_id: "review-gate.yml",
+              ref: "main",
+              inputs: { event_type: "self_review" }
             });
 
       - name: Wait for review
         run: sleep 25
 
+      # -------------------------
+      # DESIGN GATE
+      # -------------------------
       - name: Dispatch → design-gate
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            await github.request('POST /repos/{owner}/{repo}/dispatches', {
+            await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              event_type: 'self_design'
+              workflow_id: "design-gate.yml",
+              ref: "main",
+              inputs: { event_type: "self_design" }
             });
+
       - name: Wait for design
         run: sleep 25
 
-
+      # -------------------------
+      # SITE AUDIT
+      # -------------------------
       - name: Dispatch → site-audit
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            await github.request('POST /repos/{owner}/{repo}/dispatches', {
+            await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              event_type: 'self_audit'
+              workflow_id: "site-audit.yml",
+              ref: "main",
+              inputs: { event_type: "self_audit" }
             });
 
       - name: Wait for audit
         run: sleep 25
 
+      # -------------------------
+      # TRIGGER DEPLOY
+      # -------------------------
       - name: Trigger site-deploy (workflow_dispatch)
         uses: actions/github-script@v7
         with:
@@ -86,30 +114,49 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: "site-deploy.yml",
-              ref: "main"
+              ref: "main",
+              inputs: {}
             });
 
-
-            # GEORGE Status update
+      # -------------------------
+      # UPDATE GEORGE STATUS
+      # -------------------------
       - name: Update GEORGE status
         run: |
           set -e
-          mkdir -p status ops/reports
-          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          mkdir -p ops/reports
+
+          ts=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
           agent="george"
           status="ok"
 
-          # Separate report for GEORGE
-          jq -n --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
-            '{agent:$agent, status:$status, timestamp:$ts}' \
-            > ops/reports/george.json
+          # Write GEORGE report
+          echo "{\"agent\":\"$agent\",\"status\":\"$status\",\"timestamp\":\"$ts\"}" > ops/reports/george.json
 
-          # set up Basis-Statusfile, if missing / empty
-          [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
+          # Ensure directory for global status exists
+          mkdir -p status
 
-          # Alten GEORGE-Eintrag entfernen, neuen hinzufügen
+          # Existing status.json?
+          if [ ! -f status/status.json ]; then
+            echo "{\"agents\":[]}" > status/status.json
+          fi
+
+          # Remove old GEORGE entry + append new
           jq -c --arg agent "$agent" --arg status "$status" --arg ts "$ts" \
-            '.agents |= ( .// [] | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}] )' \
-            status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+            '.agents = (.agents | map(select(.agent != $agent)) + [{agent:$agent, status:$status, timestamp:$ts}])' \
+            status/status.json > status/status.tmp
 
+          mv status/status.tmp status/status.json
 
+      - name: Commit status updates
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add status/status.json ops/reports/george.json
+          git commit -m "GEORGE: Update status" || echo "No changes to commit"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
