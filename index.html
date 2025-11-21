@@ -80,7 +80,6 @@
 
 </style>
 
-
 <!-- SEO & Social Metadata -->
 <link rel="canonical" href="https://www.virtauto.de/">
 <meta name="description" content="virtauto — the operating system for automotive value creation. Multi-Agent Orchestration and Cognitive Digital Twins to automate engineering, production, and after-sales.">
@@ -140,6 +139,37 @@
 </footer>
 
 <script>
+// Mini-Dashboard live updater
+async function updateMiniDashboard() {
+  const box = document.getElementById('mini-dashboard');
+  if (!box) return;
+
+  try {
+    const res = await fetch('/status/status.json', { cache: 'no-store' });
+    const data = await res.json();
+
+    const agents = Array.isArray(data.agents) ? data.agents : [];
+
+    const ok = agents.filter(a => (a.status || '').toLowerCase() === 'ok').length;
+    const issue = agents.filter(a => (a.status || '').toLowerCase() === 'issue').length;
+    const unknown = agents.filter(a => !['ok','issue'].includes((a.status||'').toLowerCase())).length;
+
+    box.innerHTML = `
+      <div><strong>${ok}</strong> OK</div>
+      <div class="issue"><strong>${issue}</strong> Issues</div>
+      <div><strong>${unknown}</strong> Unknown</div>
+    `;
+  } catch (err) {
+    box.innerHTML = '<span class="issue">Status unavailable</span>';
+  }
+}
+
+// alle 60s aktualisieren
+updateMiniDashboard();
+setInterval(updateMiniDashboard, 60000);
+</script>
+  
+<script>
 (async () => {
   const badgeEl = document.getElementById('agentic-status');
   const chipsEl = document.getElementById('agent-chips');
@@ -195,8 +225,6 @@
 })();
 </script>
 
-
-  
 <body>
   <header class="header">
     <div class="container nav">
