@@ -26,11 +26,6 @@
       "timestamp": "2025-11-13T12:00:00Z"
     },
     {
-      "agent": "self_guardian",
-      "status": "fail",
-      "timestamp": "2025-11-20T06:11:41Z"
-    },
-    {
       "agent": "self_content",
       "status": "ok",
       "timestamp": "2025-11-20T14:28:58Z"
@@ -39,6 +34,11 @@
       "agent": "monitoring",
       "status": "ok",
       "timestamp": "2025-11-21T06:08:47Z"
+    },
+    {
+      "agent": "self_guardian",
+      "status": "fail",
+      "timestamp": "2025-11-21T06:12:04Z"
     }
   ],
   "pipelines": {
