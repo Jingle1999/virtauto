@@ -47,6 +47,37 @@
     50% { opacity: 0.6; }
     100% { opacity: 1; }
   }
+
+/* Mini-Dashboard unter der Hero-Überschrift */
+.mini-dashboard {
+  margin-top: 12px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #020617;
+  border: 1px solid #1f2937;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #9ca3af;
+}
+
+.mini-dashboard strong {
+  color: #e5e7eb;
+}
+
+.mini-dashboard .issue {
+  color: #f87171;
+}
+
+/* Mobile: untereinander statt nebeneinander */
+@media (max-width: 768px) {
+  .mini-dashboard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 </style>
 
 
