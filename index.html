@@ -5,6 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Home · virtauto®</title>
 
+<style>
+  .agent-chips {
+    display: flex;
+    gap: 8px;
+    margin-left: 20px;
+  }
+
+  .agent-chip {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .agent-chip.ok {
+    background: #0f5132;
+    border-color: #198754;
+  }
+
+  .agent-chip.issue {
+    background: #842029;
+    border-color: #dc3545;
+  }
+
+  .agent-chip.unknown {
+    background: #343a40;
+    border-color: #6c757d;
+  }
+
+  /* Pulsierende Animation für "working agents" */
+  .agent-chip.working {
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+</style>
+
+
 <!-- SEO & Social Metadata -->
 <link rel="canonical" href="https://www.virtauto.de/">
 <meta name="description" content="virtauto — the operating system for automotive value creation. Multi-Agent Orchestration and Cognitive Digital Twins to automate engineering, production, and after-sales.">
