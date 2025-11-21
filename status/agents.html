@@ -37,9 +37,55 @@
 
     <!-- Agent tiles -->
     <div id="agents" class="grid">
-      <!-- JS injects cards here -->
+
+        <!-- ✨ Neuer Agent: Root Cause Agent -->
+        <div class="card">
+            <div class="agent">Root Cause Agent</div>
+            <p class="meta">Identifying the true cause behind system issues</p>
+            <div class="chips">
+                <span class="chip">analysis</span>
+                <span class="chip">patterns</span>
+                <span class="chip">correlation</span>
+            </div>
+            <a href="#" class="status ok">OK</a>
+        </div>
+
+        <!- JS injects cards here -->
     </div>
 
+
+    <style>
+     /* Mini-Dashboard unter der Hero-Überschrift */
+    .mini-dashboard {
+      margin-top: 12px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      background: #202617;
+      border: 1px solid #1f2937;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: #9ca3af;
+    }
+
+    .mini-dashboard strong {
+      color: #e5e7eb;
+    }
+
+    .mini-dashboard .issue {
+      color: #f87171;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .mini-dashboard {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+    </style>
+   
     <!-- Latest Markdown report (from monitoring agent) -->
     <div class="card">
       <div class="row"><div class="agent">Latest Agent Report</div><div class="meta" id="repMeta"></div></div>
