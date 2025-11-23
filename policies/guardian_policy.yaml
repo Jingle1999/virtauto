@@ -79,3 +79,13 @@ rules:
     must_exist: true
     severity: high
     rollback_on: true
+
+  - id: status_files_exist
+    type: file
+    paths:
+      - /status/status.json
+      - /status/agents.html
+    must_exist: true
+    severity: high
+    rollback_on: true
+
