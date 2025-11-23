@@ -1,0 +1,17 @@
+{
+  "website_monitoring": {
+    "role": "system",
+    "allowed_actions": ["read_status", "write_status"],
+    "token": "WEBSITE_MONITORING_V1"
+  },
+  "guardian": {
+    "role": "security",
+    "allowed_actions": ["read_repo", "write_status", "raise_alert"],
+    "token": "SELF_GUARDIAN_V2"
+  },
+  "self_content": {
+    "role": "content",
+    "allowed_actions": ["create_draft_pr"],
+    "token": "SELF_CONTENT_V1"
+  }
+}
