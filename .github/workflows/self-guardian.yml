@@ -22,6 +22,8 @@ permissions:
 jobs:
   self_guardian:
     runs-on: ubuntu-latest
+    env:
+      SELF_GUARDIAN_OVERRIDE: ${{ vars.SELF_GUARDIAN_OVERRIDE || '0' }}
 
     steps:
       - name: Checkout
