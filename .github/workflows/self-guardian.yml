@@ -38,6 +38,17 @@ jobs:
         run: |
           python scripts/self_guardian.py
 
+      - name: Upload Guardian Telemetry (security logs)
+        if: ${{ always() }}
+        run: |
+          echo "📡 Uploading guardian telemetry..."
+          mkdir -p logs
+          if [ -f guardian_log.json ]; then
+            cp guardian_log.json logs/guardian_log.json
+          else
+            echo "{}" > logs/guardian_log.json
+          fi
+
       - name: Install Python deps (tolerant)
         run: |
           python -m pip install --upgrade pip
