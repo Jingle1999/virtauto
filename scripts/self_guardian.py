@@ -57,6 +57,14 @@ def write_log(payload: dict) -> None:
 LOG_FILE = "guardian_log.json"
 OVERRIDE_ENV = "SELF_GUARDIAN_OVERRIDE"
 
+# Checks ranking
+SEVERITY_RANK = {
+    "low": 0,
+    "medium": 1,
+    "high": 2,
+    "critical": 3,
+}
+
 
 # --- Simple Checks Content-------------------------------------------------
 CHECKS = [
