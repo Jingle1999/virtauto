@@ -111,6 +111,34 @@ CHECKS = [
     ),
 ]
 
+    # 4) Privacy Policy / Datenschutzerklärung verlinkt
+    (
+        "Privacy Policy / Datenschutzerklärung",
+        lambda text: (
+            "datenschutz" in text.lower()
+            or "privacy policy" in text.lower()
+            or "/policies/privacy.html" in text.lower()
+        ),
+    ),
+
+    # 5) Impressum / Legal-Pflichtlink vorhanden
+    (
+        "Impressum / Legal",
+        lambda text: (
+            "impressum" in text.lower()
+            or "legal notice" in text.lower()
+            or "/policies/impressum.html" in text.lower()
+        ),
+    ),
+
+    # 6) Security Manifest verlinkt
+    (
+        "Security Manifest verlinkt",
+        lambda text: (
+            "/policies/security.html" in text.lower()
+            or "security manifest" in text.lower()
+        ),
+    ),
 
 
 def scan_dir(root=".", exts=(".html", ".md")):
