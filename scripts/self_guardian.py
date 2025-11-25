@@ -265,64 +265,87 @@ def has_hard_failure(status):
 
 # --- Main logic --------------------------------------------------------------
 
-def main() -> None:
-    """Führt alle Checks aus, schreibt das Log und setzt Exit-Code."""
-    results = scan_dir(".")
+def severity_value(level: str) -> int:
+    """Hilfsfunktion: mappt 'low'/'medium'/... auf eine Zahl."""
+    return SEVERITY_RANK.get(level, 0)
 
-    override = load_override_flag()
 
-    total = len(results)
-    failed = sum(1 for r in results if not r.get("ok", False))
+def main():
+    parser = argparse.ArgumentParser(description="Run Self Guardian checks")
+    parser.add_argument(
+        "--root",
+        default=".",
+        help="Project root directory to scan (default: .)",
+    )
+    args = parser.parse_args()
 
-    # höchste Schwere unter den fehlgeschlagenen Checks bestimmen
-    max_severity_value = 0
-    max_severity = None
-    for r in results:
-        if r.get("ok", False):
-            continue
-        sev = r.get("severity", "low")
-        value = SEVERITY_ORDER.get(sev, 0)
-        if value > max_severity_value:
-            max_severity_value = value
-            max_severity = sev
+    # 1) Checks ausführen
+    results = scan_dir(args.root)
+    failed = [r for r in results if not r.get("ok", False)]
 
-    status = "OK" if failed == 0 else "FAIL"
-    if override and failed > 0:
-        status = "OVERRIDDEN"
+    # 2) Maximalen Schweregrad der fehlgeschlagenen Checks bestimmen
+    max_sev_int = max(
+        (severity_value(r.get("severity", "low")) for r in failed),
+        default=-1,
+    )
+    max_sev_str = None
+    if max_sev_int >= 0:
+        # irgendeinen Check mit diesem Level picken
+        for r in failed:
+            if severity_value(r.get("severity", "low")) == max_sev_int:
+                max_sev_str = r.get("severity", "low")
+                break
+
+    # 3) Override-Flag aus Env lesen
+    override_flag = os.getenv(OVERRIDE_ENV, "0").lower() in {"1", "true", "yes"}
+
+    # 4) Globalen Status bestimmen
+    #    - OVERRIDE  → immer OK für CI (Status wird aber geloggt)
+    #    - ab "medium" → FAIL
+    #    - nur "low" → WARN
+    if override_flag:
+        status = "OVERRIDE"
+    elif max_sev_int >= SEVERITY_RANK["medium"]:
+        status = "FAIL"
+    elif max_sev_int >= 0:
+        status = "WARN"
+    else:
+        status = "OK"
 
     summary = {
-        "total_checks": total,
-        "failed_checks": failed,
-        "max_severity": max_severity,
+        "total_checks": len(results),
+        "failed_checks": len(failed),
+        "max_severity": max_sev_str or "none",
+        "status": status,
     }
 
-    payload = {
+    report = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "status": status,
-        "override_used": override,
+        "override_used": override_flag,
         "summary": summary,
         "results": results,
     }
 
-    # Telemetrie + Log schreiben
+    # Telemetrie + Logfile
+    emit("guardian-run", report)
+
     try:
-        emit("guardian_run", payload)
+        with open(LOG_FILE, "w", encoding="utf-8") as f:
+            json.dump(report, f, ensure_ascii=False, indent=2)
     except Exception as exc:
-        print(f"[guardian] telemetry emit failed: {exc}")
+        print(f"[guardian] Could not write log file {LOG_FILE}: {exc}", file=sys.stderr)
 
-    write_log(payload)
+    # Zusammenfassung in CI-Log
+    print(json.dumps(report, ensure_ascii=False))
 
-    print(
-        f"[guardian] status={status}, failed={failed}, "
-        f"max_severity={max_severity}, override={override}"
-    )
-
-    # Exit-Code setzen: nur bei echtem FAIL abbrechen
+    # 5) Exit-Code:
+    #    - FAIL → 1 (Workflow rot)
+    #    - WARN / OK / OVERRIDE → 0 (Workflow grün)
     if status == "FAIL":
         sys.exit(1)
     else:
         sys.exit(0)
-
 
 if __name__ == "__main__":
     main()
