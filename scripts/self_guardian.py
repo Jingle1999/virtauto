@@ -233,14 +233,14 @@ def check_agents_registry():
     return issues
 
 
-# --- Helper für Status-Aggregation ------------------------------------------
+# --- Helper for Status-Aggregation ------------------------------------------
 
 def determine_overall_status(issues):
     """
     Übersetzt Issues in einen Gesamtstatus.
     - high/critical -> FAIL
-    - nur low/medium -> WARN
-    - keine Issues   -> OK
+    - only low/medium -> WARN
+    - no Issues   -> OK
     """
     if not issues:
         return "OK"
@@ -255,75 +255,65 @@ def has_hard_failure(status):
     return status == "FAIL"
 
 
-# --- Hauptlogik --------------------------------------------------------------
+# --- Main logic --------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--root",
-        default=".",
-        help="Root directory to scan (default: current repo root)",
-    )
-    args = parser.parse_args()
+def main() -> None:
+    """Führt alle Checks aus, schreibt das Log und setzt Exit-Code."""
+    results = scan_dir(".")
 
-    override = os.getenv(OVERRIDE_ENV, "").lower() in {"1", "true", "yes"}
-    emit("guardian_start", {"root": args.root, "override": override})
+    override = load_override_flag()
 
-    issues = []
+    total = len(results)
+    failed = sum(1 for r in results if not r.get("ok", False))
 
-    # 1) Content / HTML Checks
-    issues.extend(scan_dir(root=args.root))
+    # höchste Schwere unter den fehlgeschlagenen Checks bestimmen
+    max_severity_value = 0
+    max_severity = None
+    for r in results:
+        if r.get("ok", False):
+            continue
+        sev = r.get("severity", "low")
+        value = SEVERITY_ORDER.get(sev, 0)
+        if value > max_severity_value:
+            max_severity_value = value
+            max_severity = sev
 
-    # 2) Agent Registry Check
-    issues.extend(check_agents_registry())
-
-    status = determine_overall_status(issues)
-    exit_code = 0
-
-    if has_hard_failure(status):
-        exit_code = 1
-
-    if override and exit_code != 0:
-        emit(
-            "guardian_override",
-            {"reason": "manual override via env", "original_status": status},
-        )
+    status = "OK" if failed == 0 else "FAIL"
+    if override and failed > 0:
         status = "OVERRIDDEN"
-        exit_code = 0
 
-    # Log schreiben
-    log_payload = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
-        "status": status,
-        "override": override,
-        "issue_count": len(issues),
-        "issues": issues,
-        "version": "2.0",
+    summary = {
+        "total_checks": total,
+        "failed_checks": failed,
+        "max_severity": max_severity,
     }
 
-    try:
-        with open(LOG_FILE, "w", encoding="utf-8") as f:
-            json.dump(log_payload, f, indent=2, ensure_ascii=False)
-    except Exception as exc:
-        emit("guardian_log_write_error", {"error": str(exc)})
+    payload = {
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "status": status,
+        "override_used": override,
+        "summary": summary,
+        "results": results,
+    }
 
-    emit(
-        "guardian_end",
-        {"status": status, "exit_code": exit_code, "issues": len(issues)},
+    # Telemetrie + Log schreiben
+    try:
+        emit("guardian_run", payload)
+    except Exception as exc:
+        print(f"[guardian] telemetry emit failed: {exc}")
+
+    write_log(payload)
+
+    print(
+        f"[guardian] status={status}, failed={failed}, "
+        f"max_severity={max_severity}, override={override}"
     )
 
-    # Kurze CLI-Zusammenfassung
-    print(f"[Self_Guardian] Status: {status} – Issues: {len(issues)}")
-    if issues:
-        for i in issues[:10]:
-            print(
-                f" - {i.get('severity','low').upper()} | "
-                f"{i.get('check')} | {i.get('file')}"
-            )
-        if len(issues) > 10:
-            print(f"   … +{len(issues) - 10} weitere Einträge")
-
-    sys.exit(exit_code)
+    # Exit-Code setzen: nur bei echtem FAIL abbrechen
+    if status == "FAIL":
+        sys.exit(1)
+    else:
+        sys.exit(0)
 
 
 if __name__ == "__main__":
