@@ -33,6 +33,26 @@ except ModuleNotFoundError:
     def emit(event, data=None):
         print(f"[guardian-telemetry] {event}: {data or {}}")
 
+SEVERITY_ORDER = {
+    "low": 1,
+    "medium": 2,
+    "high": 3,
+    "critical": 4,
+}
+
+def load_override_flag() -> bool:
+    """Liest das Override-Flag aus der Umgebung."""
+    return os.getenv(OVERRIDE_ENV, "0") == "1"
+
+
+def write_log(payload: dict) -> None:
+    """Schreibt das Guardian-Log als JSON auf die Platte."""
+    try:
+        with open(LOG_FILE, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+    except Exception as exc:
+        print(f"[guardian] failed to write log: {exc}")
+
 
 LOG_FILE = "guardian_log.json"
 OVERRIDE_ENV = "SELF_GUARDIAN_OVERRIDE"
