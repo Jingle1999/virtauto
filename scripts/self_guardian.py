@@ -38,9 +38,9 @@ LOG_FILE = "guardian_log.json"
 OVERRIDE_ENV = "SELF_GUARDIAN_OVERRIDE"
 
 
-# --- Einfache Inhalts-Checks -------------------------------------------------
-
+# --- Simple Checks Content-------------------------------------------------
 CHECKS = [
+    # 1) Legal & DSGVO
     (
         "DSGVO contact email",
         lambda text: "andreas" in text.lower() and "@" in text,
@@ -51,8 +51,38 @@ CHECKS = [
             re.search(r"cookie", text, re.IGNORECASE)
         ),
     ),
-    # Hier kannst du später weitere Checks ergänzen
+    (
+        "Impressum / Legal",
+        lambda text: (
+            "impressum" in text.lower()
+            or "legal notice" in text.lower()
+        ),
+    ),
+    (
+        "Privacy Policy / Datenschutzerklärung",
+        lambda text: (
+            "datenschutzerklärung" in text.lower()
+            or "privacy policy" in text.lower()
+        ),
+    ),
+
+    # 2) Security / Policies
+    (
+        "Security Manifest verlinkt",
+        lambda text: "/policies/security.html" in text,
+    ),
+
+    # 3) RAG-Transparenz (später wichtig für knowledge.html)
+    (
+        "RAG / Retrieval-Augmented AI erwähnt",
+        lambda text: (
+            "retrieval-augmented" in text.lower()
+            or "rag system" in text.lower()
+            or "rag-layer" in text.lower()
+        ),
+    ),
 ]
+
 
 
 def scan_dir(root=".", exts=(".html", ".md")):
