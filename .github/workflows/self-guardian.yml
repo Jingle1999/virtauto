@@ -40,6 +40,14 @@ jobs:
         run: |
           python scripts/self_guardian.py
 
+      - name: Upload guardian log
+        if: always()               # auch bei Fehlern hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: guardian-log
+          path: guardian_log.json
+          if-no-files-found: ignore
+
       - name: Upload Guardian Telemetry (security logs)
         if: ${{ always() }}
         run: |
