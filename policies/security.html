@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security Manifest – virtauto</title>
+
+    <link rel="stylesheet" href="../assets/styles.css" />
+    <link rel="stylesheet" href="../assets/styles_unify.css" />
+</head>
+
+<body>
+<header>
+    <div class="logo">virtauto©</div>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../solutions.html">Solutions</a>
+        <a href="../blog.html">Blog</a>
+        <a href="../contact.html">Contact</a>
+        <a href="../impressum.html">Impressum</a>
+    </nav>
+</header>
+
+<main>
+    <h1>Security Manifest</h1>
+    <p>
+        This Security Manifest defines the principles, controls, and commitments
+        that govern security, incident response, and autonomous agent behavior
+        within the virtauto platform.
+    </p>
+
+    <h2>1. Platform Security Principles</h2>
+    <ul>
+        <li>All external data sources must be authenticated and verified.</li>
+        <li>System components must follow the principle of least privilege.</li>
+        <li>All autonomous agents operate under Self-Guardian supervision.</li>
+        <li>All RAG ingestion pipelines must include validation, filtering, and sanitization.</li>
+        <li>All data transfers must use HTTPS with modern TLS.</li>
+    </ul>
+
+    <h2>2. Autonomous Agent Security</h2>
+    <p>The following rules apply to all virtauto agents:</p>
+    <ul>
+        <li>Agents must authenticate before performing operations.</li>
+        <li>Agents must log all actions for auditability.</li>
+        <li>Security-critical decisions must trigger Self-Guardian checks.</li>
+        <li>Emergency manual override must always be possible.</li>
+    </ul>
+
+    <h2>3. Data Handling & Encryption</h2>
+    <ul>
+        <li>Personal data is only processed where strictly necessary.</li>
+        <li>No sensitive data is stored without encryption.</li>
+        <li>All external feeds must be cryptographically fingerprinted.</li>
+    </ul>
+
+    <h2>4. Incident Detection & Response</h2>
+    <ul>
+        <li>Self-Guardian monitors security anomalies in real time.</li>
+        <li>Anomalies automatically trigger alerts and logging.</li>
+        <li>Emergency rollback and purge procedures are defined.</li>
+    </ul>
+
+    <h2>5. File Integrity & Verification</h2>
+    <ul>
+        <li>All HTML, MD, and template files are scanned for integrity.</li>
+        <li>Unauthorized changes are reverted by the Guardian Agent.</li>
+        <li>Development follows signed and reviewed pull-requests.</li>
+    </ul>
+
+    <h2>6. Contact for Security Incidents</h2>
+    <p>
+        If you believe you have found a security issue, please contact:<br>
+        <strong>andreas.braun.2011@gmail.com</strong>
+    </p>
+</main>
+
+<footer>
+    <p>© 2025 virtauto – Security Manifest</p>
+</footer>
+</body>
+</html>
