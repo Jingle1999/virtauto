@@ -65,8 +65,7 @@ SEVERITY_RANK = {
     "critical": 3,
 }
 
-
-# --- Simple Checks Content-------------------------------------------------
+# --- Simple Checks Content ---------------------------------------------------
 CHECKS = [
     # 1) Legal & DSGVO
     (
@@ -96,8 +95,12 @@ CHECKS = [
 
     # 2) Security / Policies
     (
-        "Security Manifest verlinkt",
-        lambda text: "/policies/security.html" in text,
+        "Security Policy / Manifest erwähnt",
+        lambda text: (
+            "/policies/security.html" in text
+            or "security policy" in text.lower()
+            or "security manifest" in text.lower()
+        ),
     ),
 
     # 3) RAG-Transparenz (später wichtig für knowledge.html)
@@ -109,13 +112,12 @@ CHECKS = [
             or "rag-layer" in text.lower()
         ),
     ),
-]
 
     # 4) Privacy Policy / Datenschutzerklärung verlinkt
     (
-        "Privacy Policy / Datenschutzerklärung",
+        "Privacy Policy / Datenschutzerklärung verlinkt",
         lambda text: (
-            "datenschutz" in text.lower()
+            "datenschutzerklärung" in text.lower()
             or "privacy policy" in text.lower()
             or "/policies/privacy.html" in text.lower()
         ),
@@ -123,7 +125,7 @@ CHECKS = [
 
     # 5) Impressum / Legal-Pflichtlink vorhanden
     (
-        "Impressum / Legal",
+        "Impressum / Legal-Pflichtlink vorhanden",
         lambda text: (
             "impressum" in text.lower()
             or "legal notice" in text.lower()
@@ -131,7 +133,7 @@ CHECKS = [
         ),
     ),
 
-    # 6) Security Manifest verlinkt
+    # 6) Security Manifest linked
     (
         "Security Manifest verlinkt",
         lambda text: (
@@ -139,7 +141,7 @@ CHECKS = [
             or "security manifest" in text.lower()
         ),
     ),
-
+]
 
 def scan_dir(root=".", exts=(".html", ".md")):
     """Scan HTML/MD Dateien und evaluiere CHECKS."""
