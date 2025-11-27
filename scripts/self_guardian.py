@@ -5,7 +5,7 @@ Self_Guardian v2
 - Scans HTML/MD files for basic compliance markers
 - Checks minimal website security / metadata
 - Performs a lightweight agent registry check
-- Writes structured JSON log (guardian_log.json)
+- Writes structured JSON log (guardian_log.json or path from --out)
 - Returns non-zero exit code on FAIL (außer bei Override)
 
 Emergency Override:
@@ -33,12 +33,17 @@ except ModuleNotFoundError:
     def emit(event, data=None):
         print(f"[guardian-telemetry] {event}: {data or {}}")
 
+
+LOG_FILE = "guardian_log.json"
+OVERRIDE_ENV = "SELF_GUARDIAN_OVERRIDE"
+
 SEVERITY_ORDER = {
     "low": 1,
     "medium": 2,
     "high": 3,
     "critical": 4,
 }
+
 
 def load_override_flag() -> bool:
     """Liest das Override-Flag aus der Umgebung."""
@@ -51,11 +56,8 @@ def write_log(payload: dict) -> None:
         with open(LOG_FILE, "w", encoding="utf-8") as f:
             json.dump(payload, f, indent=2, ensure_ascii=False)
     except Exception as exc:
-        print(f"[guardian] failed to write log: {exc}")
+        print(f"[guardian] failed to write log: {exc}", file=sys.stderr)
 
-
-LOG_FILE = "guardian_log.json"
-OVERRIDE_ENV = "SELF_GUARDIAN_OVERRIDE"
 
 # Checks ranking
 SEVERITY_RANK = {
@@ -66,6 +68,7 @@ SEVERITY_RANK = {
 }
 
 # --- Simple Checks Content ---------------------------------------------------
+
 CHECKS = [
     # 1) Legal & DSGVO
     (
@@ -92,7 +95,6 @@ CHECKS = [
             or "privacy policy" in text.lower()
         ),
     ),
-
     # 2) Security / Policies
     (
         "Security Policy / Manifest erwähnt",
@@ -102,7 +104,6 @@ CHECKS = [
             or "security manifest" in text.lower()
         ),
     ),
-
     # 3) RAG-Transparenz (später wichtig für knowledge.html)
     (
         "RAG / Retrieval-Augmented AI erwähnt",
@@ -112,7 +113,6 @@ CHECKS = [
             or "rag-layer" in text.lower()
         ),
     ),
-
     # 4) Privacy Policy / Datenschutzerklärung verlinkt
     (
         "Privacy Policy / Datenschutzerklärung verlinkt",
@@ -122,7 +122,6 @@ CHECKS = [
             or "/policies/privacy.html" in text.lower()
         ),
     ),
-
     # 5) Impressum / Legal-Pflichtlink vorhanden
     (
         "Impressum / Legal-Pflichtlink vorhanden",
@@ -132,7 +131,6 @@ CHECKS = [
             or "/policies/impressum.html" in text.lower()
         ),
     ),
-
     # 6) Security Manifest linked
     (
         "Security Manifest verlinkt",
@@ -143,13 +141,16 @@ CHECKS = [
     ),
 ]
 
+
 def scan_dir(root=".", exts=(".html", ".md")):
     """Scan HTML/MD Dateien und evaluiere CHECKS."""
     results = []
+
     for base, _, files in os.walk(root):
         for fn in files:
             if not fn.endswith(exts):
                 continue
+
             path = os.path.join(base, fn)
             try:
                 with open(path, "r", encoding="utf-8", errors="ignore") as f:
@@ -192,10 +193,12 @@ def scan_dir(root=".", exts=(".html", ".md")):
                             "severity": "low",
                         }
                     )
+
     return results
 
 
 # --- Agent Registry / Status Check (leichtgewichtig) -------------------------
+
 
 def check_agents_registry():
     """
@@ -203,6 +206,7 @@ def check_agents_registry():
     Dieser Check schlägt nur hart fehl, wenn eine kaputte JSON gefunden wird.
     """
     registry_path = os.path.join(ROOT_DIR, "policies", "agents_registry.json")
+
     if not os.path.exists(registry_path):
         return [
             {
@@ -229,6 +233,7 @@ def check_agents_registry():
         ]
 
     issues = []
+
     if not isinstance(data, list):
         issues.append(
             {
@@ -245,6 +250,7 @@ def check_agents_registry():
     for agent in data:
         aid = agent.get("id")
         name = agent.get("name")
+
         if not aid or not name:
             issues.append(
                 {
@@ -256,6 +262,7 @@ def check_agents_registry():
                 }
             )
             continue
+
         if aid in seen_ids:
             issues.append(
                 {
@@ -266,6 +273,7 @@ def check_agents_registry():
                     "severity": "medium",
                 }
             )
+
         seen_ids.add(aid)
 
     return issues
@@ -273,19 +281,23 @@ def check_agents_registry():
 
 # --- Helper for Status-Aggregation ------------------------------------------
 
+
 def determine_overall_status(issues):
     """
     Übersetzt Issues in einen Gesamtstatus.
+
     - high/critical -> FAIL
     - only low/medium -> WARN
-    - no Issues   -> OK
+    - no Issues -> OK
     """
     if not issues:
         return "OK"
 
     severities = {i.get("severity", "low") for i in issues}
+
     if any(s in {"high", "critical"} for s in severities):
         return "FAIL"
+
     return "WARN"
 
 
@@ -295,19 +307,32 @@ def has_hard_failure(status):
 
 # --- Main logic --------------------------------------------------------------
 
+
 def severity_value(level: str) -> int:
-    """Hilfsfunktion: mappt 'low'/'medium'/... auf eine Zahl."""
+    """Hilfsfunktion: mappt 'low'/'medium'/...' auf eine Zahl."""
     return SEVERITY_RANK.get(level, 0)
 
 
 def main():
+    global LOG_FILE
+
     parser = argparse.ArgumentParser(description="Run Self Guardian checks")
     parser.add_argument(
         "--root",
         default=".",
         help="Project root directory to scan (default: .)",
     )
+    parser.add_argument(
+        "--out",
+        default=None,
+        help="Path for JSON report output file (e.g. ops/reports/guardian.json)",
+    )
+
     args = parser.parse_args()
+
+    # Falls ein expliziter Output-Pfad übergeben wird, LOG_FILE darauf setzen
+    if args.out:
+        LOG_FILE = args.out
 
     # 1) Checks ausführen
     results = scan_dir(args.root)
@@ -318,6 +343,7 @@ def main():
         (severity_value(r.get("severity", "low")) for r in failed),
         default=-1,
     )
+
     max_sev_str = None
     if max_sev_int >= 0:
         # irgendeinen Check mit diesem Level picken
@@ -330,9 +356,9 @@ def main():
     override_flag = os.getenv(OVERRIDE_ENV, "0").lower() in {"1", "true", "yes"}
 
     # 4) Globalen Status bestimmen
-    #    - OVERRIDE  → immer OK für CI (Status wird aber geloggt)
-    #    - ab "medium" → FAIL
-    #    - nur "low" → WARN
+    # - OVERRIDE → immer OK für CI (Status wird aber geloggt)
+    # - ab "medium" → FAIL
+    # - nur "low" → WARN
     if override_flag:
         status = "OVERRIDE"
     elif max_sev_int >= SEVERITY_RANK["medium"]:
@@ -359,23 +385,19 @@ def main():
 
     # Telemetrie + Logfile
     emit("guardian-run", report)
-
-    try:
-        with open(LOG_FILE, "w", encoding="utf-8") as f:
-            json.dump(report, f, ensure_ascii=False, indent=2)
-    except Exception as exc:
-        print(f"[guardian] Could not write log file {LOG_FILE}: {exc}", file=sys.stderr)
+    write_log(report)
 
     # Zusammenfassung in CI-Log
     print(json.dumps(report, ensure_ascii=False))
 
     # 5) Exit-Code:
-    #    - FAIL → 1 (Workflow rot)
-    #    - WARN / OK / OVERRIDE → 0 (Workflow grün)
+    # - FAIL → 1 (Workflow rot)
+    # - WARN / OK / OVERRIDE → 0 (Workflow grün)
     if status == "FAIL":
         sys.exit(1)
     else:
         sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
