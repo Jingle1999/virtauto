@@ -74,3 +74,27 @@ p{color:#d1d5db}
 .table tr:last-child td{border-bottom:none}
 .quote{padding:16px;border-left:3px solid var(--accent);background:rgba(96,165,250,.08);border-radius:8px}
 .badge{display:inline-block;padding:2px 8px;border:1px solid rgba(255,255,255,.16);border-radius:999px;color:#9fb3c8;font-size:12px}
+
+.vision-block {
+    padding: 60px 20px;
+    background: #0f1623;
+    color: #c5d1e0;
+}
+
+.vision-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.vision-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+.vision-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
