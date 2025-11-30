@@ -104,27 +104,3 @@ img.responsive, .section img{max-width:100%; height:auto; border-radius:var(--ra
   .burger{display:inline-flex; background:transparent; border:0}
   .menu.open{display:block}
 }
-
-.vision-block {
-    padding: 60px 20px;
-    background: #0f1623;
-    color: #c5d1e0;
-}
-
-.vision-container {
-    max-width: 900px;
-    margin: 0 auto;
-}
-
-.vision-title {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 20px;
-    color: #ffffff;
-}
-
-.vision-text {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    margin-bottom: 20px;
-}
