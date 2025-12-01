@@ -1,0 +1,56 @@
+# GEORGE Orchestrator Rules (V1.0)
+# These rules define how GEORGE routes events to agents.
+
+version: "1.0"
+
+rules:
+
+  - id: "monitoring_failure_guardian_alert"
+    description: "If website monitoring reports a failure, notify Guardian Agent"
+    match:
+      agent: "website_monitoring"
+      event: "status_error"
+    action:
+      target_agent: "guardian"
+      intent: "security_alert"
+      message: "Website unreachable or unhealthy"
+
+  - id: "new_content_trigger_consistency"
+    description: "Whenever Content-Agent creates new content, run consistency check"
+    match:
+      agent: "self_content"
+      event: "content_created"
+    action:
+      target_agent: "consistency"
+      intent: "review"
+      message: "New content requires consistency validation"
+
+  - id: "guardian_security_trigger_log"
+    description: "Guardian security finding should be logged and later trigger audit"
+    match:
+      agent: "guardian"
+      event: "security_warning"
+    action:
+      target_agent: "audit"
+      intent: "deep_scan"
+      message: "Guardian detected security anomaly"
+
+  - id: "medium_article_detected"
+    description: "If a new Medium article is detected, update homepage archive"
+    match:
+      agent: "self_content"
+      event: "external_article_found"
+    action:
+      target_agent: "content"
+      intent: "update_knowledge_base"
+      message: "New external article integrated into KB"
+
+  - id: "deployment_required"
+    description: "If Content or Guardian updates critical files, trigger Deploy-Agent simulation"
+    match:
+      agent: ["self_content", "guardian"]
+      event: "critical_change"
+    action:
+      target_agent: "deploy"
+      intent: "simulate_deploy"
+      message: "Critical update requires simulated CI/CD deploy"
