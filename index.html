@@ -150,6 +150,64 @@ setInterval(updateMiniDashboard, 60000);
 })();
 </script>
 
+<script>
+async function loadActivityFeed() {
+  const list = document.getElementById('activity-list');
+  if (!list) return;
+
+  try {
+    const res = await fetch('/ops/events.jsonl', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    const text = await res.text();
+    const lines = text.split('\n').filter(Boolean);
+    const events = lines.map(line => JSON.parse(line));
+
+    if (!events.length) {
+      list.innerHTML = '<li>No recent events.</li>';
+      return;
+    }
+
+    // Jüngste zuerst sortieren
+    events.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+
+    list.innerHTML = events.slice(0, 10).map(ev => {
+      const ts = ev.timestamp || '';
+      const agent = ev.agent || 'Agent';
+      const evt = ev.event || 'event';
+      const msg = ev.message || '';
+
+      // Status ableiten: status_ok, oder event enthält "error"/"failed"
+      const okFlag =
+        typeof ev.status_ok === 'boolean'
+          ? ev.status_ok
+          : !(String(evt).toLowerCase().includes('error') ||
+              String(evt).toLowerCase().includes('fail'));
+
+      const tagClass = okFlag ? 'tag-ok' : 'tag-issue';
+      const statusLabel = okFlag ? 'OK' : 'ISSUE';
+
+      return `
+        <li>
+          <time>${ts}</time>
+          <strong>${agent}</strong>
+          — ${evt}: ${msg}
+          <span class="tag ${tagClass}">${statusLabel}</span>
+        </li>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('Activity feed error', err);
+    list.innerHTML = '<li>Activity feed unavailable.</li>';
+  }
+}
+
+// Beim Laden und dann alle 60 Sekunden aktualisieren
+loadActivityFeed();
+setInterval(loadActivityFeed, 60000);
+</script>
+
+
 <body>
   <header class="header">
     <div class="container nav">
