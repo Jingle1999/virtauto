@@ -56,6 +56,81 @@ p + p{margin-top:12px}
 .hero .hero-actions{margin-top:var(--space-md); display:flex; gap:12px}
 .hero img{width:100%; height:auto; border-radius:var(--radius-md); box-shadow:var(--shadow-sm); display:block}
 
+<style>
+  .agent-chips {
+    display: flex;
+    gap: 8px;
+    margin-left: 20px;
+  }
+
+  .agent-chip {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .agent-chip.ok {
+    background: #0f5132;
+    border-color: #198754;
+  }
+
+  .agent-chip.issue {
+    background: #842029;
+    border-color: #dc3545;
+  }
+
+  .agent-chip.unknown {
+    background: #343a40;
+    border-color: #6c757d;
+  }
+
+  /* Pulsierende Animation für "working agents" */
+  .agent-chip.working {
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+
+/* Mini-Dashboard unter der Hero-Überschrift */
+.mini-dashboard {
+  margin-top: 12px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #020617;
+  border: 1px solid #1f2937;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #9ca3af;
+}
+
+.mini-dashboard strong {
+  color: #e5e7eb;
+}
+
+.mini-dashboard .issue {
+  color: #f87171;
+}
+
+/* Mobile: untereinander statt nebeneinander */
+@media (max-width: 768px) {
+  .mini-dashboard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+</style>
+
 /* Cards / frames */
 .card{background:linear-gradient(180deg,#0f172a 0%,#0e162b 100%); border:1px solid #15213a; border-radius:16px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.25)}
 .card-grid{display:grid; gap:20px}
