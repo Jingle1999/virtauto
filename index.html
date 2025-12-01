@@ -214,6 +214,69 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(loadActivityFeed, 60000);
 });
 </script>
+
+<script>
+  async function loadActivityFeed() {
+    const list = document.getElementById('activity-list');
+    if (!list) return;
+
+    // Erstes Feedback
+    list.innerHTML = '<li class="activity-item activity-loading">Loading latest events…</li>';
+
+    try {
+      // JSONL von GitHub Pages laden
+      const res = await fetch('/ops/events.jsonl', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const text = await res.text();
+
+      // Zeilenweise JSON-Objekte parsen
+      const lines = text.split('\n').filter(l => l.trim());
+      const events = lines
+        .map(line => {
+          try {
+            return JSON.parse(line);
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean);
+
+      // Neueste zuerst (nach timestamp)
+      events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      const latest = events.slice(0, 10);
+
+      if (!latest.length) {
+        list.innerHTML = '<li class="activity-item activity-empty">No recent events logged.</li>';
+        return;
+      }
+
+      list.innerHTML = latest
+        .map(ev => {
+          const ts = ev.timestamp || '';
+          const agent = ev.agent || ev.source || 'unknown-agent';
+          const evt = ev.event || ev.action || 'event';
+          const msg = ev.message || '';
+
+          return `
+            <li class="activity-item">
+              <span class="activity-meta">${ts} · ${agent} · ${evt}</span>
+              <span class="activity-message">${msg}</span>
+            </li>
+          `;
+        })
+        .join('\n');
+    } catch (err) {
+      console.error('Activity feed error', err);
+      list.innerHTML =
+        '<li class="activity-item activity-error">Activity feed unavailable right now.</li>';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadActivityFeed);
+</script>
+
   
 <body>
   <header class="header">
