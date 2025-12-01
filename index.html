@@ -150,6 +150,71 @@ setInterval(updateMiniDashboard, 60000);
 })();
 </script>
 
+<script>
+// --- Activity Feed Loader (ops/events.jsonl) -------------------------
+
+async function loadActivityFeed() {
+  const list = document.getElementById('activity-list');
+  if (!list) return;
+
+  // Platzhalter
+  list.innerHTML = '<li>Loading latest events…</li>';
+
+  try {
+    const res = await fetch('/ops/events.jsonl', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    const text = await res.text();
+
+    // JSONL -> einzelne Events
+    const lines = text
+      .split('\n')
+      .map(l => l.trim())
+      .filter(l => l.length > 0);
+
+    const events = lines
+      .map(line => {
+        try { return JSON.parse(line); } catch (e) { return null; }
+      })
+      .filter(Boolean)
+      // neueste zuerst
+      .sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
+      .slice(0, 10); // nur die letzten 10 anzeigen
+
+    if (events.length === 0) {
+      list.innerHTML = '<li>No recent activity yet.</li>';
+      return;
+    }
+
+    list.innerHTML = events.map(ev => {
+      const time = (ev.timestamp || '')
+        .replace('T', ' ')
+        .replace('Z', '');
+      const agent = ev.agent || 'Unknown agent';
+      const msg = ev.message || ev.event || '';
+
+      return `
+        <li>
+          <span class="activity-time">${time}</span>
+          <span class="activity-agent">${agent}</span>
+          <span class="activity-message">${msg}</span>
+        </li>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error('Activity feed error', err);
+    list.innerHTML = '<li>Activity feed unavailable.</li>';
+  }
+}
+
+// einmal beim Laden + alle 60 Sekunden aktualisieren
+document.addEventListener('DOMContentLoaded', () => {
+  loadActivityFeed();
+  setInterval(loadActivityFeed, 60000);
+});
+</script>
+  
 <body>
   <header class="header">
     <div class="container nav">
