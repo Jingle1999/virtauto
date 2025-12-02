@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "description": "Schema for virtauto.OS knowledge retrieval between GEORGE, agents, and the RAG layer.",
+  "query": {
+    "type": "object",
+    "properties": {
+      "q": {
+        "type": "string",
+        "description": "Natural language query or keyword search."
+      },
+      "filters": {
+        "type": "object",
+        "description": "Optional filters to narrow down results.",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "source": {
+            "type": "string",
+            "description": "e.g. 'medium', 'virtauto', 'policy', 'note'"
+          }
+        }
+      },
+      "limit": {
+        "type": "integer",
+        "description": "Maximum number of results.",
+        "default": 5
+      }
+    },
+    "required": ["q"]
+  },
+  "result_item": {
+    "type": "object",
+    "properties": {
+      "document_id": { "type": "string" },
+      "title": { "type": "string" },
+      "score": { "type": "number" },
+      "path": { "type": "string" },
+      "source": { "type": "string" },
+      "tags": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "summary": { "type": "string" }
+    },
+    "required": ["document_id", "title", "score", "path"]
+  }
+}
