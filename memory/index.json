@@ -29,6 +29,15 @@
     "tags": ["guardian", "security", "policies", "governance"],
     "summary": "Technical deep dive into the virtauto.de Self-Guardian: roles, workflows, policies, and failure handling."
     }
+    {
+  "id": "doc-004",
+  "title": "virtauto.OS – Cognitive Digital Twin Vision",
+  "type": "cdt",
+  "source": "virtauto",
+  "path": "cdt/virtauto_vision.md",
+  "tags": ["cdt", "vision", "roadmap"],
+  "summary": "Long-term intent, principles, and evolution roadmap of the virtauto.OS Cognitive Digital Twin."}
+
 
   ]
 }
