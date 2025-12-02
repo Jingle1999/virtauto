@@ -1,15 +1,24 @@
 {
   "version": "1.0",
-  "last_updated": "2025-11-XXT00:00:00Z",
+  "last_updated": "2025-12-11T09:00:00Z",
   "documents": [
     {
       "id": "doc-001",
-      "title": "Placeholder – virtauto.de Knowledge Base initialized",
-      "type": "system-note",
+      "title": "hello_world_agentic_website",
+      "path": "memory/documents/hello_world_agentic_website.md",
       "source": "virtauto",
+      "tags": ["hello-world", "agentic_website", "mas", "industrial-ai"],
+      "summary": "A condensed knowledge document describing the world's first Agentic Website and its autonomous MAS-based architecture.",
+      "vectorized": false
+    },
+    {
+      "id": "doc-002",
+      "title": "Placeholder – virtauto.de Knowledge Base initialised",
+      "type": "system-note",
       "path": "memory/documents/README.md",
       "tags": ["system", "rag", "init"],
-      "summary": "Initial placeholder entry for the virtauto.de RAG knowledge index."
+      "summary": "Initial placeholder entry for the virtauto.de RAG knowledge index.",
+      "vectorized": false
     }
   ]
 }
