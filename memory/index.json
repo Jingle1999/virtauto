@@ -1,12 +1,13 @@
 {
   "version": "1.0",
-  "last_updated": "2025-12-11T09:00:00Z",
+  "last_updated": "2025-12-02T10:45:00Z",
   "documents": [
     {
       "id": "doc-001",
-      "title": "hello_world_agentic_website",
-      "path": "memory/documents/hello_world_agentic_website.md",
+      "title": "Hello World – agentic website",
+      "type": "article",
       "source": "virtauto",
+      "path": "memory/documents/hello_world_agentic_website.md",
       "tags": ["hello-world", "agentic_website", "mas", "industrial-ai"],
       "summary": "A condensed knowledge document describing the world's first Agentic Website and its autonomous MAS-based architecture.",
       "vectorized": false
@@ -15,29 +16,31 @@
       "id": "doc-002",
       "title": "Placeholder – virtauto.de Knowledge Base initialised",
       "type": "system-note",
+      "source": "virtauto",
       "path": "memory/documents/README.md",
       "tags": ["system", "rag", "init"],
       "summary": "Initial placeholder entry for the virtauto.de RAG knowledge index.",
       "vectorized": false
-    }
+    },
     {
-    "id": "doc-002",
-    "title": "Self-Guardian – Security & Consistency Architecture",
-    "type": "architecture",
-    "source": "virtauto",
-    "path": "memory/documents/self_guardian_architecture.md",
-    "tags": ["guardian", "security", "policies", "governance"],
-    "summary": "Technical deep dive into the virtauto.de Self-Guardian: roles, workflows, policies, and failure handling."
-    }
+      "id": "doc-003",
+      "title": "Self-Guardian – Security & Consistency Architecture",
+      "type": "architecture",
+      "source": "virtauto",
+      "path": "memory/documents/self_guardian_architecture.md",
+      "tags": ["guardian", "security", "policies", "governance"],
+      "summary": "Technical deep dive into the virtauto.de Self-Guardian: roles, workflows, policies, and failure handling.",
+      "vectorized": false
+    },
     {
-  "id": "doc-004",
-  "title": "virtauto.OS – Cognitive Digital Twin Vision",
-  "type": "cdt",
-  "source": "virtauto",
-  "path": "cdt/virtauto_vision.md",
-  "tags": ["cdt", "vision", "roadmap"],
-  "summary": "Long-term intent, principles, and evolution roadmap of the virtauto.OS Cognitive Digital Twin."}
-
-
+      "id": "doc-004",
+      "title": "virtauto.OS – Cognitive Digital Twin Vision",
+      "type": "vision",
+      "source": "virtauto",
+      "path": "memory/documents/cdt_vision.md",
+      "tags": ["cdt", "vision", "roadmap"],
+      "summary": "Long-term intent, principles, and evolution roadmap of the virtauto.OS Cognitive Digital Twin.",
+      "vectorized": false
+    }
   ]
 }
