@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-12-02T09:15:00Z",
+  "types": {
+    "system_note": {
+      "description": "Internal system notes, initialization files, and MAS-level definitions.",
+      "fields": ["title", "tags", "summary", "path"]
+    },
+    "architecture": {
+      "description": "System architecture documents describing agents, workflows, and governance.",
+      "fields": ["title", "tags", "summary", "path", "agent_roles"]
+    },
+    "knowledge": {
+      "description": "Core knowledge documents used for retrieval (RAG).",
+      "fields": ["title", "tags", "summary", "path", "vectorized"]
+    },
+    "content": {
+      "description": "Content-related files (articles, drafts, autonomous outputs).",
+      "fields": ["title", "tags", "path", "summary", "published", "linked_to"]
+    }
+  },
+  "relations": {
+    "agent_to_doc": {
+      "description": "Which agent owns or uses which documents.",
+      "fields": ["agent", "doc_id", "purpose"]
+    },
+    "doc_links": {
+      "description": "Explicit relationships between knowledge documents.",
+      "fields": ["source_doc", "target_doc", "relation_type"]
+    }
+  }
+}
