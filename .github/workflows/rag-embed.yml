@@ -1,0 +1,38 @@
+name: RAG Embedding Builder
+
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - "memory/documents/**"
+      - "memory/index.json"
+      - "memory/schema/**"
+      - ".github/workflows/rag-embed.yml"
+      - "tools/rag_embed.py"
+
+jobs:
+  build-embeddings:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (none for now)
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Build RAG embeddings
+        run: |
+          python tools/rag_embed.py
+
+      - name: Commit updated embeddings
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update RAG embeddings"
+          file_pattern: "memory/embeddings/*.json"
