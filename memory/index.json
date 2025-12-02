@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-11-XXT00:00:00Z",
+  "documents": [
+    {
+      "id": "doc-001",
+      "title": "Placeholder – virtauto.de Knowledge Base initialized",
+      "type": "system-note",
+      "source": "virtauto",
+      "path": "memory/documents/README.md",
+      "tags": ["system", "rag", "init"],
+      "summary": "Initial placeholder entry for the virtauto.de RAG knowledge index."
+    }
+  ]
+}
