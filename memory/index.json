@@ -20,5 +20,15 @@
       "summary": "Initial placeholder entry for the virtauto.de RAG knowledge index.",
       "vectorized": false
     }
+    {
+    "id": "doc-002",
+    "title": "Self-Guardian – Security & Consistency Architecture",
+    "type": "architecture",
+    "source": "virtauto",
+    "path": "memory/documents/self_guardian_architecture.md",
+    "tags": ["guardian", "security", "policies", "governance"],
+    "summary": "Technical deep dive into the virtauto.de Self-Guardian: roles, workflows, policies, and failure handling."
+    }
+
   ]
 }
