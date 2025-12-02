@@ -1,19 +1,11 @@
 name: RAG Embedding Builder
 
+on:
+  workflow_dispatch:
+
 permissions:
   contents: write
   pull-requests: write
-
-
-on:
-  workflow_dispatch: {}
-  push:
-    paths:
-      - "memory/documents/**"
-      - "memory/index.json"
-      - "memory/schema/**"
-      - ".github/workflows/rag-embed.yml"
-      - "tools/rag_embed.py"
 
 jobs:
   build-embeddings:
@@ -28,26 +20,36 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies (none for now)
+      - name: Install dependencies (if needed)
         run: |
           python -m pip install --upgrade pip
+          # falls dein Skript keine extra Libs braucht,
+          # kannst du diese Zeilen auch weglassen/auskommentieren:
+          # pip install openai tiktoken
 
       - name: Build RAG embeddings
         run: |
           python tools/rag_embed.py
 
-            - name: Create RAG embeddings branch
+      # ---- ab hier: Branch + Commit + PR ----
+
+      - name: Create RAG embeddings branch
         run: |
           BRANCH="rag-embeddings-$(date +'%Y%m%d-%H%M%S')"
           git checkout -b "$BRANCH"
           echo "RAG_BRANCH=$BRANCH" >> $GITHUB_ENV
 
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Commit updated embeddings
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          branch: ${{ env.RAG_BRANCH }}
-          file_pattern: memory/embeddings/*.json
-          commit_message: "chore: update RAG embeddings"
+        run: |
+          git add memory/embeddings/*.json || true
+          # Wenn es nichts zu committen gibt, soll der Job NICHT fehlschlagen:
+          git commit -m "chore: update RAG embeddings" || echo "No changes to commit"
+          git push origin "$RAG_BRANCH"
 
       - name: Open pull request for embeddings
         uses: peter-evans/create-pull-request@v7
@@ -59,4 +61,3 @@ jobs:
           labels: |
             auto
             rag
-
