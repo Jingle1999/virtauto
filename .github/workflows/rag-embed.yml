@@ -36,8 +36,27 @@ jobs:
         run: |
           python tools/rag_embed.py
 
+            - name: Create RAG embeddings branch
+        run: |
+          BRANCH="rag-embeddings-$(date +'%Y%m%d-%H%M%S')"
+          git checkout -b "$BRANCH"
+          echo "RAG_BRANCH=$BRANCH" >> $GITHUB_ENV
+
       - name: Commit updated embeddings
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
+          branch: ${{ env.RAG_BRANCH }}
+          file_pattern: memory/embeddings/*.json
           commit_message: "chore: update RAG embeddings"
-          file_pattern: "memory/embeddings/*.json"
+
+      - name: Open pull request for embeddings
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ${{ env.RAG_BRANCH }}
+          base: main
+          title: "chore: update RAG embeddings"
+          body: "Automated RAG embedding update from RAG Embedding Builder."
+          labels: |
+            auto
+            rag
+
