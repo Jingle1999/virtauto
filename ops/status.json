@@ -1,0 +1,14 @@
+{
+  "autonomy_level": 50.1,
+  "autonomy_target": 60,
+  "agents_online": 4,
+  "agents_total": 7,
+  "agents_online_list": [
+    "guardian",
+    "self_guardian",
+    "monitoring",
+    "self_content"
+  ],
+  "workflows": 17,
+  "last_update": "2025-12-03T20:00:00Z"
+}
