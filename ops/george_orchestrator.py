@@ -46,25 +46,21 @@ def load_rules() -> List[Dict[str, Any]]:
 
 
 def load_latest_event() -> Optional[Dict[str, Any]]:
-    """Liest das letzte (neueste) Event aus events.jsonl."""
+    """Liest das letzte Event aus events.json (JSON-Array)."""
     if not EVENTS_FILE.exists():
         return None
 
-    last_line = None
-    with EVENTS_FILE.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                last_line = line
-
-    if not last_line:
-        return None
-
     try:
-        return json.loads(last_line)
+        with EVENTS_FILE.open("r", encoding="utf-8") as f:
+            data = json.load(f)
     except json.JSONDecodeError:
-        print("Warnung: letzte Zeile in events.jsonl ist kein gültiges JSON.")
+        print("Warnung: events.json ist kein gültiges JSON.")
         return None
+
+    if not isinstance(data, list) or not data:
+        return None
+
+    return data[-1]  # last event in Array
 
 
 def _normalize_to_list(value: Any) -> List[Any]:
@@ -137,13 +133,27 @@ def build_follow_up_events(
 
 
 def append_events(events: List[Dict[str, Any]]) -> None:
-    """Hängt neue Events als JSON-Lines an events.jsonl an."""
+    """Hängt neue Events an events.json (JSON-Array) an."""
     if not events:
         return
 
-    with EVENTS_FILE.open("a", encoding="utf-8") as f:
-        for ev in events:
-            f.write(json.dumps(ev, ensure_ascii=False) + "\n")
+    existing: List[Dict[str, Any]] = []
+    if EVENTS_FILE.exists():
+        try:
+            with EVENTS_FILE.open("r", encoding="utf-8") as f:
+                existing = json.load(f)
+        except json.JSONDecodeError:
+            print("Warnung: Konnte bestehende events.json nicht lesen – starte mit leerem Array.")
+            existing = []
+
+    if not isinstance(existing, list):
+        existing = []
+
+    existing.extend(events)
+
+    with EVENTS_FILE.open("w", encoding="utf-8") as f:
+        json.dump(existing, f, ensure_ascii=False)
+
 
 
 def main() -> None:
