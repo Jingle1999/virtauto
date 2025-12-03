@@ -40,6 +40,15 @@ jobs:
               ref: "main"
             });
 
+      - name: Commit & Push updated events.jsonl
+        run: |
+          git config user.name "GEORGE Orchestrator"
+          git config user.email "george@virtauto.ai"
+          git add ops/events.jsonl
+          git commit -m "GEORGE: update events.jsonl" || echo "No changes to commit"
+          git push
+
+
       - name: Wait for ingest
         run: sleep 25
 
