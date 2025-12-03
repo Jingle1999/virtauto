@@ -5,7 +5,6 @@
   <title>virtauto — Live System Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- wenn du schon eine main.css hast, kannst du das auch weglassen -->
   <style>
     body {
       margin: 0;
@@ -61,6 +60,12 @@
       border-radius: 999px;
       border: 1px solid rgba(148, 163, 184, 0.4);
       background: rgba(15, 23, 42, 0.9);
+      white-space: nowrap;
+    }
+
+    .badge-pill {
+      border-color: rgba(129, 140, 248, 0.7);
+      background: radial-gradient(circle at top left, rgba(129, 140, 248, 0.16), rgba(15, 23, 42, 0.96));
     }
 
     .kpi-grid {
@@ -123,6 +128,19 @@
       background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(8, 47, 73, 0.95));
       border: 1px solid rgba(148, 163, 184, 0.3);
       box-shadow: 0 14px 30px rgba(15, 23, 42, 0.8);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+    }
+
+    .feed-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+    }
+
+    /* GEORGE-Events hervorheben */
+    .feed-item-george {
+      border-color: rgba(56, 189, 248, 0.85);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4), 0 18px 45px rgba(8, 47, 73, 0.9);
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.15), rgba(8, 47, 73, 0.98));
     }
 
     .feed-top-row {
@@ -149,6 +167,45 @@
       background: rgba(15, 23, 42, 0.7);
     }
 
+    /* Agent-Farben */
+    .tag-guardian,
+    .tag-self-guardian {
+      border-color: rgba(34, 197, 94, 0.8);
+      background: rgba(22, 101, 52, 0.6);
+    }
+
+    .tag-monitoring {
+      border-color: rgba(52, 211, 153, 0.85);
+      background: rgba(6, 95, 70, 0.7);
+    }
+
+    .tag-self-content {
+      border-color: rgba(249, 115, 22, 0.9);
+      background: rgba(124, 45, 18, 0.75);
+    }
+
+    .tag-george,
+    .tag-george-orchestrator {
+      border-color: rgba(56, 189, 248, 0.95);
+      background: rgba(12, 74, 110, 0.85);
+    }
+
+    .tag-audit,
+    .tag-audit-agent {
+      border-color: rgba(244, 114, 182, 0.9);
+      background: rgba(131, 24, 67, 0.8);
+    }
+
+    .tag-deploy {
+      border-color: rgba(250, 204, 21, 0.95);
+      background: rgba(113, 63, 18, 0.85);
+    }
+
+    .tag-content {
+      border-color: rgba(129, 140, 248, 0.95);
+      background: rgba(55, 65, 148, 0.85);
+    }
+
     .feed-time {
       font-size: 0.75rem;
       opacity: 0.7;
@@ -173,42 +230,43 @@
 </head>
 
 <body>
-  <!-- Falls du deine bestehende Header-Navigation hast, hier einfügen -->
+  <!-- Deinen globalen Header kannst du hier drüber einfügen, falls vorhanden -->
+
   <main class="live-page">
     <section class="live-hero">
       <div>
         <div class="live-title">virtauto — Live System Dashboard</div>
         <div class="live-subtitle">
           Real-time view on agent activity, deployments, and autonomous operations.
-          Powered by <code>ops/events.jsonl</code> and the virtauto Agent-ecosystem.
+          Powered by <code>ops/events.jsonl</code> and the virtauto Agent ecosystem.
         </div>
         <div class="badge-row">
-          <span class="badge">Agentic Website</span>
-          <span class="badge">Autonomy ≈ 50.1%</span>
-          <span class="badge">4 / 7 core agents live</span>
-          <span class="badge">GEORGE orchestrator MVP</span>
+          <span class="badge badge-pill">Agentic Website</span>
+          <span class="badge" id="badge-autonomy">Autonomy ≈ 50.1%</span>
+          <span class="badge" id="badge-agents">4 / 7 core agents live</span>
+          <span class="badge" id="badge-george">GEORGE orchestrator · MVP</span>
         </div>
       </div>
 
       <div class="kpi-grid">
         <div class="kpi">
           <div class="kpi-label">Autonomy Level</div>
-          <div class="kpi-value">≈ 50.1%</div>
-          <div class="kpi-note">Target: 60% in 7 days</div>
+          <div class="kpi-value" id="kpi-autonomy">≈ 50.1%</div>
+          <div class="kpi-note" id="kpi-autonomy-note">Target: 60% in 7 days</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Agents Online</div>
-          <div class="kpi-value">4 / 7</div>
-          <div class="kpi-note">Guardian · Self-Guardian · Monitoring · Self-Content</div>
+          <div class="kpi-value" id="kpi-agents">4 / 7</div>
+          <div class="kpi-note" id="kpi-agents-note">Guardian · Self-Guardian · Monitoring · Self-Content</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">CI/CD Workflows</div>
-          <div class="kpi-value">17</div>
-          <div class="kpi-note">Self-operating backbone for virtauto.de</div>
+          <div class="kpi-value" id="kpi-workflows">17</div>
+          <div class="kpi-note" id="kpi-workflows-note">Self-operating backbone for virtauto.de</div>
         </div>
         <div class="kpi">
           <div class="kpi-label">Last Update</div>
-          <div class="kpi-value" id="last-update">–</div>
+          <div class="kpi-value" id="kpi-last-update">–</div>
           <div class="kpi-note">Auto-refresh every 30 seconds</div>
         </div>
       </div>
@@ -229,9 +287,24 @@
   </main>
 
   <script>
-    // URL zu deiner events.jsonl im GitHub-Repo (Branch: main)
-    const EVENTS_URL =
-      "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/events.jsonl";
+    // URLs zu den Live-Daten im Repo (Branch: main)
+    const RAW_BASE =
+      "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops";
+
+    const EVENTS_URL = RAW_BASE + "/events.jsonl";
+    const STATUS_URL = RAW_BASE + "/status.json";
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch(STATUS_URL + "?t=" + Date.now());
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        renderStatus(data);
+      } catch (err) {
+        console.error("Error loading status:", err);
+        // falls status.json fehlt, bleiben die Defaultwerte sichtbar
+      }
+    }
 
     async function fetchEvents() {
       try {
@@ -239,13 +312,11 @@
         if (!res.ok) throw new Error("HTTP " + res.status);
         const text = await res.text();
 
-        // JSONL in einzelne Events zerlegen
         const lines = text
           .split("\n")
           .map(l => l.trim())
           .filter(Boolean);
 
-        // letzte 10 Events, neuestes oben
         const lastLines = lines.slice(-10).reverse();
         const events = [];
 
@@ -278,37 +349,108 @@
       });
     }
 
+    function renderStatus(status) {
+      const autonomy = status.autonomy_level ?? 50.1;
+      const autonomyTarget = status.autonomy_target ?? 60;
+      const agentsOnline = status.agents_online ?? 4;
+      const agentsTotal = status.agents_total ?? 7;
+      const workflows = status.workflows ?? 17;
+      const lastUpdate = status.last_update || null;
+      const onlineAgentsList = Array.isArray(status.agents_online_list)
+        ? status.agents_online_list
+        : ["guardian", "self_guardian", "monitoring", "self_content"];
+
+      // KPIs
+      document.getElementById("kpi-autonomy").textContent = `≈ ${autonomy.toFixed(1)}%`;
+      document.getElementById("kpi-autonomy-note").textContent =
+        `Target: ${autonomyTarget}% autonomy in 7–14 days`;
+
+      document.getElementById("kpi-agents").textContent =
+        `${agentsOnline} / ${agentsTotal}`;
+      document.getElementById("kpi-agents-note").textContent =
+        onlineAgentsList.map(a => niceAgentName(a)).join(" · ");
+
+      document.getElementById("kpi-workflows").textContent = `${workflows}`;
+      document.getElementById("kpi-workflows-note").textContent =
+        "Industrial-grade CI/CD workflows online";
+
+      if (lastUpdate) {
+        document.getElementById("kpi-last-update").textContent = formatTime(lastUpdate);
+      }
+
+      // Badges
+      document.getElementById("badge-autonomy").textContent =
+        `Autonomy ≈ ${autonomy.toFixed(1)}%`;
+      document.getElementById("badge-agents").textContent =
+        `${agentsOnline} / ${agentsTotal} core agents live`;
+    }
+
+    function niceAgentName(id) {
+      const map = {
+        guardian: "Guardian",
+        self_guardian: "Self-Guardian",
+        monitoring: "Monitoring",
+        self_monitoring: "Monitoring",
+        self_content: "Self-Content",
+        audit: "Audit Agent",
+        deploy: "Deploy Agent",
+        content: "Content Agent",
+        george: "GEORGE Orchestrator",
+        george_orchestrator: "GEORGE Orchestrator"
+      };
+      return map[id] || id.replace(/[_-]+/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+
     function renderEvents(events) {
       const feed = document.getElementById("feed");
-      const lastUpdateEl = document.getElementById("last-update");
 
       if (!events.length) {
         feed.innerHTML =
           '<div class="feed-empty">No recent events recorded yet.</div>';
-        lastUpdateEl.textContent = "–";
+        // letzte Event-Zeit auch als Last Update nutzen
         return;
       }
 
-      // KPI "Last Update"
-      lastUpdateEl.textContent = formatTime(events[0].timestamp);
+      // Last Update aus dem neuesten Event
+      const latestTs = events[0].timestamp;
+      if (latestTs) {
+        document.getElementById("kpi-last-update").textContent = formatTime(latestTs);
+      }
 
       feed.innerHTML = "";
       for (const ev of events) {
-        const agent = ev.agent || "system";
-        const evt = ev.event || "event";
+        const agent = (ev.agent || "system").toString();
+        const evt = (ev.event || "event").toString();
         const msg =
           ev.message ||
           ev.details ||
           ev.status ||
           "(no details provided)";
+        const intent =
+          ev.intent ||
+          `${agent} · ${evt}`.replace(/\s+/g, " ");
+
+        const agentKey = agent.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        const isGeorge =
+          agentKey === "george" ||
+          agentKey === "george-orchestrator" ||
+          (ev.source_agent &&
+            ev.source_agent.toString().toLowerCase().includes("george"));
 
         const item = document.createElement("article");
-        item.className = "feed-item";
+        item.className = "feed-item" + (isGeorge ? " feed-item-george" : "");
+
+        const ts = formatTime(ev.timestamp);
+
+        const tagClasses = ["feed-tag", `tag-${agentKey}`];
 
         item.innerHTML = `
           <div class="feed-top-row">
             <div class="feed-tags">
-              <span class="feed-tag">${agent}</span>
+              <span class="${tagClasses.join(" ")}">
+                ${niceAgentName(agentKey)}
+                ${isGeorge ? " ⚡" : ""}
+              </span>
               <span class="feed-tag">${evt}</span>
               ${
                 ev.rule_id
@@ -316,15 +458,9 @@
                   : ""
               }
             </div>
-            <div class="feed-time">${formatTime(ev.timestamp)}</div>
+            <div class="feed-time">${ts}</div>
           </div>
-          <div class="feed-title">
-            ${
-              ev.intent
-                ? ev.intent
-                : `${agent} · ${evt}`.replace(/\s+/g, " ")
-            }
-          </div>
+          <div class="feed-title">${intent}</div>
           <div class="feed-message">${msg}</div>
         `;
 
@@ -332,10 +468,15 @@
       }
     }
 
-    // Initial laden + alle 30 Sekunden aktualisieren
+    // Initial Ladezyklen
+    fetchStatus();
     fetchEvents();
-    setInterval(fetchEvents, 30000);
+
+    // Regelmäßig aktualisieren
+    setInterval(fetchStatus, 60000);  // alle 60s Status
+    setInterval(fetchEvents, 30000);  // alle 30s Events
   </script>
 </body>
 </html>
+
 
