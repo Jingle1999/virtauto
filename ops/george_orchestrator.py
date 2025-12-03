@@ -22,7 +22,7 @@ import yaml  # PyYAML
 
 # Pfade relativ zum Repo-Root bestimmen
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-EVENTS_FILE = ROOT / "ops" / "events.json"
+EVENTS_FILE = ROOT / "ops" / "events.jsonl"
 RULES_FILE = ROOT / "ops" / "rules" / "george_rules.yaml"
 
 
