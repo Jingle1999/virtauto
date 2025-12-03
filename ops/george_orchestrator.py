@@ -46,7 +46,7 @@ def load_rules() -> List[Dict[str, Any]]:
 
 
 def load_latest_event() -> Optional[Dict[str, Any]]:
-    """Liest das letzte Event aus events.json (JSON-Array)."""
+    """Liest das letzte Event aus events.jsonl (JSON-Array)."""
     if not EVENTS_FILE.exists():
         return None
 
@@ -54,7 +54,7 @@ def load_latest_event() -> Optional[Dict[str, Any]]:
         with EVENTS_FILE.open("r", encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError:
-        print("Warnung: events.json ist kein gültiges JSON.")
+        print("Warnung: events.jsonl <ist kein gültiges JSON.")
         return None
 
     if not isinstance(data, list) or not data:
@@ -133,7 +133,7 @@ def build_follow_up_events(
 
 
 def append_events(events: List[Dict[str, Any]]) -> None:
-    """Hängt neue Events an events.json (JSON-Array) an."""
+    """Hängt neue Events an events.jsonl (JSON-Array) an."""
     if not events:
         return
 
@@ -143,7 +143,7 @@ def append_events(events: List[Dict[str, Any]]) -> None:
             with EVENTS_FILE.open("r", encoding="utf-8") as f:
                 existing = json.load(f)
         except json.JSONDecodeError:
-            print("Warnung: Konnte bestehende events.json nicht lesen – starte mit leerem Array.")
+            print("Warnung: Konnte bestehende events.jsonl nicht lesen – starte mit leerem Array.")
             existing = []
 
     if not isinstance(existing, list):
