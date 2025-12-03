@@ -2,63 +2,340 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>virtauto — Live System Status</title>
-  <link rel="stylesheet" href="assets/style.css" />
+  <title>virtauto — Live System Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- wenn du schon eine main.css hast, kannst du das auch weglassen -->
   <style>
     body {
-      background: #0b0e18;
-      color: #e6e6e6;
-      font-family: 'Inter', sans-serif;
       margin: 0;
-      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #050816;
+      color: #f9fafb;
     }
 
-    .header {
-      width: 100%;
-      padding: 32px 0;
-      text-align: center;
-      background: linear-gradient(90deg, #0a0f24, #001627);
-      border-bottom: 1px solid #132240;
+    .live-page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 16px 80px;
     }
 
-    .header h1 {
+    .live-hero {
+      display: grid;
+      grid-template-columns: 2fr 3fr;
+      gap: 24px;
+      align-items: flex-start;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 900px) {
+      .live-hero {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .live-title {
       font-size: 2.4rem;
-      margin: 0;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .live-subtitle {
+      font-size: 0.95rem;
+      opacity: 0.8;
+      line-height: 1.5;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .kpi {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: radial-gradient(circle at top left, #1f2937, #020617);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 1.2rem;
       font-weight: 600;
-      color: #5cc6ff;
     }
 
-    .sub {
-      font-size: 1rem;
-      color: #9fb8d0;
-      margin-top: 8px;
+    .kpi-note {
+      font-size: 0.75rem;
+      opacity: 0.7;
     }
 
-    .container {
-      width: 100%;
-      height: calc(100vh - 130px);
-      overflow: hidden;
+    .live-feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 32px 0 16px;
     }
 
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+    .live-feed-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .live-feed-meta {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feed-item {
+      border-radius: 14px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(8, 47, 73, 0.95));
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.8);
+    }
+
+    .feed-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .feed-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .feed-tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .feed-time {
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+
+    .feed-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .feed-message {
+      font-size: 0.85rem;
+      opacity: 0.85;
+    }
+
+    .feed-empty {
+      font-size: 0.9rem;
+      opacity: 0.7;
     }
   </style>
 </head>
+
 <body>
+  <!-- Falls du deine bestehende Header-Navigation hast, hier einfügen -->
+  <main class="live-page">
+    <section class="live-hero">
+      <div>
+        <div class="live-title">virtauto — Live System Dashboard</div>
+        <div class="live-subtitle">
+          Real-time view on agent activity, deployments, and autonomous operations.
+          Powered by <code>ops/events.jsonl</code> and the virtauto Agent-ecosystem.
+        </div>
+        <div class="badge-row">
+          <span class="badge">Agentic Website</span>
+          <span class="badge">Autonomy ≈ 50.1%</span>
+          <span class="badge">4 / 7 core agents live</span>
+          <span class="badge">GEORGE orchestrator MVP</span>
+        </div>
+      </div>
 
-  <div class="header">
-    <h1>virtauto — Live System Dashboard</h1>
-    <div class="sub">Real-time Agent Health, Deployments, and System Status</div>
-  </div>
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-label">Autonomy Level</div>
+          <div class="kpi-value">≈ 50.1%</div>
+          <div class="kpi-note">Target: 60% in 7 days</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Agents Online</div>
+          <div class="kpi-value">4 / 7</div>
+          <div class="kpi-note">Guardian · Self-Guardian · Monitoring · Self-Content</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">CI/CD Workflows</div>
+          <div class="kpi-value">17</div>
+          <div class="kpi-note">Self-operating backbone for virtauto.de</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Last Update</div>
+          <div class="kpi-value" id="last-update">–</div>
+          <div class="kpi-note">Auto-refresh every 30 seconds</div>
+        </div>
+      </div>
+    </section>
 
-  <div class="container">
-    <iframe src="status.html"></iframe>
-  </div>
+    <section>
+      <header class="live-feed-header">
+        <h2 class="live-feed-title">Live Event Stream</h2>
+        <div class="live-feed-meta">
+          Source: <code>ops/events.jsonl</code> &nbsp;•&nbsp; showing latest 10 events
+        </div>
+      </header>
 
+      <div id="feed" class="feed-list">
+        <div class="feed-empty">Loading latest events …</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // URL zu deiner events.jsonl im GitHub-Repo (Branch: main)
+    const EVENTS_URL =
+      "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/events.jsonl";
+
+    async function fetchEvents() {
+      try {
+        const res = await fetch(EVENTS_URL + "?t=" + Date.now());
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const text = await res.text();
+
+        // JSONL in einzelne Events zerlegen
+        const lines = text
+          .split("\n")
+          .map(l => l.trim())
+          .filter(Boolean);
+
+        // letzte 10 Events, neuestes oben
+        const lastLines = lines.slice(-10).reverse();
+        const events = [];
+
+        for (const line of lastLines) {
+          try {
+            events.push(JSON.parse(line));
+          } catch (e) {
+            console.warn("Bad JSON line in events.jsonl:", line);
+          }
+        }
+
+        renderEvents(events);
+      } catch (err) {
+        console.error("Error loading events:", err);
+        const feed = document.getElementById("feed");
+        feed.innerHTML =
+          '<div class="feed-empty">Could not load events (check CORS / network).</div>';
+      }
+    }
+
+    function formatTime(ts) {
+      if (!ts) return "";
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return ts;
+      return d.toLocaleString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+        day: "2-digit",
+        month: "2-digit"
+      });
+    }
+
+    function renderEvents(events) {
+      const feed = document.getElementById("feed");
+      const lastUpdateEl = document.getElementById("last-update");
+
+      if (!events.length) {
+        feed.innerHTML =
+          '<div class="feed-empty">No recent events recorded yet.</div>';
+        lastUpdateEl.textContent = "–";
+        return;
+      }
+
+      // KPI "Last Update"
+      lastUpdateEl.textContent = formatTime(events[0].timestamp);
+
+      feed.innerHTML = "";
+      for (const ev of events) {
+        const agent = ev.agent || "system";
+        const evt = ev.event || "event";
+        const msg =
+          ev.message ||
+          ev.details ||
+          ev.status ||
+          "(no details provided)";
+
+        const item = document.createElement("article");
+        item.className = "feed-item";
+
+        item.innerHTML = `
+          <div class="feed-top-row">
+            <div class="feed-tags">
+              <span class="feed-tag">${agent}</span>
+              <span class="feed-tag">${evt}</span>
+              ${
+                ev.rule_id
+                  ? `<span class="feed-tag">rule: ${ev.rule_id}</span>`
+                  : ""
+              }
+            </div>
+            <div class="feed-time">${formatTime(ev.timestamp)}</div>
+          </div>
+          <div class="feed-title">
+            ${
+              ev.intent
+                ? ev.intent
+                : `${agent} · ${evt}`.replace(/\s+/g, " ")
+            }
+          </div>
+          <div class="feed-message">${msg}</div>
+        `;
+
+        feed.appendChild(item);
+      }
+    }
+
+    // Initial laden + alle 30 Sekunden aktualisieren
+    fetchEvents();
+    setInterval(fetchEvents, 30000);
+  </script>
 </body>
 </html>
 
