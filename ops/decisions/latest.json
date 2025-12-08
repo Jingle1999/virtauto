@@ -1,0 +1,14 @@
+{
+  "id": null,
+  "timestamp": null,
+  "source_event_id": null,
+  "agent": null,
+  "action": null,
+  "intent": null,
+  "confidence": 0.0,
+  "status": "none",
+  "error_message": null,
+  "guardian_flag": null,
+  "follow_up": null,
+  "result_summary": null
+}
