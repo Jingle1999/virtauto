@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GeorgeDecisionEvent",
+  "type": "object",
+  "required": [
+    "id",
+    "timestamp",
+    "source_event_id",
+    "agent",
+    "action",
+    "intent",
+    "confidence",
+    "status"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "source_event_id": { "type": ["string", "null"] },
+    "agent": { "type": "string" },
+    "action": { "type": "string" },
+    "intent": { "type": "string" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "status": { "type": "string", "enum": ["success", "failed", "pending", "blocked"] },
+    "error_message": { "type": ["string", "null"] },
+    "guardian_flag": { "type": ["string", "null"] },
+    "follow_up": { "type": ["string", "null"] },
+    "result_summary": { "type": ["string", "null"] }
+  }
+}
