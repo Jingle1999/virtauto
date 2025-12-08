@@ -165,7 +165,7 @@ class HealthState:
     failed_actions: int = 0
 
     @staticmethod
-    def from_dict(data: Dict[str, Any]) -> "HealthState":
+    def from_dict(cls, data: Dict[str, Any]) -> "HealthState":
         return HealthState(
             agent_response_success_rate=float(data.get("agent_response_success_rate", 0.0)),
             last_autonomous_action=data.get("last_autonomous_action"),
