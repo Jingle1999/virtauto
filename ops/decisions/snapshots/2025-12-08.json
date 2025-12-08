@@ -1,0 +1,23 @@
+{
+  "date": "2025-12-08",
+  "total_decisions": 7,
+  "successful": 6,
+  "failed": 1,
+  "blocked": 0,
+  "by_agent": {
+    "self_content": {
+      "total": 3,
+      "success": 3,
+      "error": 0,
+      "blocked": 0
+    },
+    "deploy_agent": {
+      "total": 2,
+      "success": 1,
+      "error": 1,
+      "blocked": 0
+    }
+  },
+  "last_decision_id": "dec-007",
+  "last_updated": "2025-12-08T23:59:00Z"
+}
