@@ -48,6 +48,18 @@ DECISIONS_LOG = REPORTS_DIR / "george_decisions.jsonl"
 
 REPORTS_DIR.mkdir(exist_ok=True, parents=True)
 
+DECISIONS_DIR = OPS_DIR / "decisions"
+DECISIONS_DIR.mkdir(exist_ok=True, parents=True)
+
+DECISIONS_HISTORY_DIR = DECISIONS_DIR / "history"
+DECISIONS_HISTORY_DIR.mkdir(exist_ok=True, parents=True)
+
+DECISIONS_SNAPSHOTS_DIR = DECISIONS_DIR / "snapshots"
+DECISIONS_SNAPSHOTS_DIR.mkdir(exist_ok=True, parents=True)
+
+DECISIONS_LATEST = DECISIONS_DIR / "latest.json"
+
+
 # ---------------------------------------------------------------------------
 # Utility-Funktionen
 # ---------------------------------------------------------------------------
@@ -220,6 +232,67 @@ def append_events(new_events: List[Event]) -> None:
     existing.extend(ev.to_dict() for ev in new_events)
     save_json(EVENTS_FILE, existing)
 
+def save_decision(decision: dict):
+    today = datetime.date.today().isoformat()
+
+    # 1) Append to history log
+    history_file = os.path.join(BASE, "history", f"{today}.jsonl")
+    with open(history_file, "a") as f:
+        f.write(json.dumps(decision) + "\n")
+
+    # 2) Save latest.json
+    latest_file = os.path.join(BASE, "latest.json")
+    with open(latest_file, "w") as f:
+        json.dump(decision, f, indent=2)
+
+    # 3) Update or create snapshot
+    update_snapshot(today, decision)
+
+def update_snapshot(date: str, decision: dict):
+    snapshot_path = os.path.join(BASE, "snapshots", f"{date}.json")
+
+    # Neues Snapshot?
+    if not os.path.exists(snapshot_path):
+        snapshot = {
+            "date": date,
+            "total_decisions": 0,
+            "successful": 0,
+            "failed": 0,
+            "by_agent": {},
+            "last_decision_id": None,
+            "last_updated": None
+        }
+    else:
+        with open(snapshot_path) as f:
+            snapshot = json.load(f)
+
+    agent = decision["agent"]
+    status = decision["status"]
+
+    # Global Stats
+    snapshot["total_decisions"] += 1
+    if status == "success":
+        snapshot["successful"] += 1
+    if status == "failed":
+        snapshot["failed"] += 1
+
+    # Agent Stats
+    if agent not in snapshot["by_agent"]:
+        snapshot["by_agent"][agent] = {"total": 0, "success": 0, "error": 0, "blocked": 0}
+
+    snapshot["by_agent"][agent]["total"] += 1
+    if status == "success":
+        snapshot["by_agent"][agent]["success"] += 1
+    elif status == "failed":
+        snapshot["by_agent"][agent]["error"] += 1
+    elif status == "blocked":
+        snapshot["by_agent"][agent]["blocked"] += 1
+
+    snapshot["last_decision_id"] = decision["id"]
+    snapshot["last_updated"] = datetime.datetime.utcnow().isoformat()
+
+    with open(snapshot_path, "w") as f:
+        json.dump(snapshot, f, indent=2)
 
 def load_rules() -> List[Dict[str, Any]]:
     """Lädt g
