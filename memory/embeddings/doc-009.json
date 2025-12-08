@@ -1,0 +1,6 @@
+{
+  "document_id": "doc-009",
+  "embedding_model": "text-embedding-3-large",
+  "vector": "PENDING: generate embedding for memory/docs/docs-004_system_kpis.md",
+  "created_at": "2025-12-08T10:05:00Z"
+}
