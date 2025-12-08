@@ -82,8 +82,21 @@ rules:
       intent: "handle_external_issue"
       message: "External monitoring detected issues. Please check uptime, performance, or SEO."
 
+  # 6) Website Monitoring -> Content Agent (Status-Update)
+  # -----------------------------------------------------
+  - id: "monitor-001"
+    description: "When website monitoring reports status_ok, trigger the Content Agent to create a status update."
+    match:
+      agent: "website_monitoring"
+      event: "status_ok"
+    action:
+      target_agent: "self_content"       # passt zu deiner bestehenden content-Regel
+      intent: "create_status_update"
+      message: "Website status is OK. Generate a short system status text for virtauto.de based on the current healthy state."
+
+
   # ------------------------------------------------------------------
-  # 6) Default: Alles andere erstmal nur loggen (No-Op)
+  # 7) Default: Alles andere erstmal nur loggen (No-Op)
   #    (GEORGE schreibt dann nur ein route-Event ohne Folgewirkung)
   # ------------------------------------------------------------------
   - id: "noop-001"
