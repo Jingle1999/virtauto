@@ -1,6 +1,6 @@
 {
-  "version": "1.0",
-  "last_updated": "2025-12-02T10:45:00Z",
+  "version": "1.1",
+  "last_updated": "2025-12-08T10:05:00Z",
   "documents": [
     {
       "id": "doc-001",
@@ -40,6 +40,56 @@
       "path": "memory/documents/cdt_vision.md",
       "tags": ["cdt", "vision", "roadmap"],
       "summary": "Long-term intent, principles, and evolution roadmap of the virtauto.OS Cognitive Digital Twin.",
+      "vectorized": false
+    },
+    {
+      "id": "doc-005",
+      "title": "virtauto RAG Knowledge Agent",
+      "type": "architecture",
+      "source": "virtauto",
+      "path": "memory/documents/rag_knowledge_agent.md",
+      "tags": ["rag", "agent", "knowledge"],
+      "summary": "Design and responsibilities of the virtauto RAG Knowledge Agent, including retrieval flow, context assembly, and handoff to downstream agents.",
+      "vectorized": false
+    },
+    {
+      "id": "doc-006",
+      "title": "virtauto – Architecture Overview",
+      "type": "overview",
+      "source": "virtauto",
+      "path": "memory/docs/docs-001_architecture_overview.md",
+      "tags": ["overview", "architecture", "system"],
+      "summary": "High-level overview of the virtauto system architecture, its main components, and how agents, RAG, and governance fit together.",
+      "vectorized": false
+    },
+    {
+      "id": "doc-007",
+      "title": "virtauto – Agents Overview",
+      "type": "overview",
+      "source": "virtauto",
+      "path": "memory/docs/docs-002_agents_overview.md",
+      "tags": ["agents", "mas", "roles"],
+      "summary": "Overview of the virtauto multi-agent system: agent types, responsibilities, collaboration patterns, and orchestration.",
+      "vectorized": false
+    },
+    {
+      "id": "doc-008",
+      "title": "virtauto – GEORGE Rules",
+      "type": "policies",
+      "source": "virtauto",
+      "path": "memory/docs/docs-003_george_rules.md",
+      "tags": ["george", "rules", "policies", "guardrails"],
+      "summary": "Rules and behavioural guardrails for the GEORGE agent persona, including dos, don'ts, and escalation behaviour.",
+      "vectorized": false
+    },
+    {
+      "id": "doc-009",
+      "title": "virtauto – System KPIs",
+      "type": "metrics",
+      "source": "virtauto",
+      "path": "memory/docs/docs-004_system_kpis.md",
+      "tags": ["kpi", "metrics", "monitoring"],
+      "summary": "Definition of key performance indicators for virtauto.OS, including reliability, safety, latency, and business impact metrics.",
       "vectorized": false
     }
   ]
