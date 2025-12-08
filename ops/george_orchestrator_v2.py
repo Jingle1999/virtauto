@@ -84,6 +84,16 @@ def save_json(path: Path, data: Any) -> None:
     with path.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
+def load_health() -> HealthState:
+    data = load_json(STATUS_FILE, default=None)
+    if not data:
+        return HealthState()
+    return HealthState.from_dict(data)
+
+def save_health(health: HealthState) -> None:
+    data = health.to_dict()
+    save_json(STATUS_FILE, data)
+    append_jsonl(REPORTS_DIR / "health_log.jsonl", data)
 
 def append_jsonl(path: Path, record: Dict[str, Any]) -> None:
     with path.open("a", encoding="utf-8") as f:
