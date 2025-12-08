@@ -22,8 +22,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Run GEORGE orchestrator script
-        run: python ops/george_orchestrator.py
+      - name: Run GEORGE orchestrator V2 script
+      run: python ops/george_orchestrator_v2.py
+
 
       # ─────────────────────────────
       # 1) CONTENT INGEST
