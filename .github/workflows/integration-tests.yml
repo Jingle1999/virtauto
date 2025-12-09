@@ -34,7 +34,7 @@ jobs:
           python scripts/design_gate.py  --dry-run || true
           python scripts/dag_executor.py --plan ops/current_plan.json --dry-run || true
 
-      - name: E2E: homepage renders & has CTA
+      - name: "E2E: homepage renders & has CTA"
         run: |
           python - <<'PY'
           import pathlib, re
