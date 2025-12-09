@@ -1,0 +1,157 @@
+{
+  "version": "1.0",
+  "last_update": "2025-12-09T10:10:00Z",
+
+  "overview": {
+    "system_autonomy_level": 0.51,
+    "target_autonomy_level": 0.60,
+    "core_agents": 7,
+    "active_agents": 4,
+    "notes": "Autonomie-Level basiert auf produktiven Agenten (Guardian, Monitoring, Content, GEORGE). Audit & Deploy in Vorbereitung."
+  },
+
+  "agents": {
+
+    "george": {
+      "status": "mvp",
+      "autonomy": 0.40,
+      "role": "orchestrator",
+      "dependencies": ["monitoring", "guardian"],
+      "actions": [
+        "route_event",
+        "select_agent",
+        "persist_decision",
+        "evaluate_health"
+      ],
+      "failure_thresholds": {
+        "max_consecutive_errors": 3,
+        "auto_escalate": true
+      }
+    },
+
+    "guardian": {
+      "status": "active",
+      "autonomy": 0.20,
+      "role": "security_governor",
+      "dependencies": [],
+      "actions": [
+        "check_policy",
+        "block_unsafe_update",
+        "raise_risk_flag",
+        "halt_system"
+      ],
+      "failure_thresholds": {
+        "max_risk_flags": 2,
+        "system_stop_on_violation": true
+      }
+    },
+
+    "monitoring": {
+      "status": "active",
+      "autonomy": 0.30,
+      "role": "system_observer",
+      "dependencies": [],
+      "actions": [
+        "collect_ci_cd_data",
+        "collect_agent_activity",
+        "track_anomalies",
+        "write_health_signals"
+      ],
+      "failure_thresholds": {
+        "max_missed_cycles": 5
+      }
+    },
+
+    "content": {
+      "status": "active",
+      "autonomy": 0.35,
+      "role": "content_generation",
+      "dependencies": ["monitoring"],
+      "actions": [
+        "create_post",
+        "rewrite_content",
+        "update_live_pages",
+        "submit_pull_request"
+      ],
+      "failure_thresholds": {
+        "max_failed_creations": 2,
+        "trigger_guardian_policy_check": true
+      }
+    },
+
+    "audit": {
+      "status": "planned",
+      "autonomy": 0.10,
+      "role": "compliance_audit",
+      "dependencies": ["guardian"],
+      "actions": [
+        "check_compliance",
+        "validate_changes",
+        "record_audit_log"
+      ],
+      "failure_thresholds": {
+        "max_missing_records": 3
+      }
+    },
+
+    "deploy": {
+      "status": "planned",
+      "autonomy": 0.15,
+      "role": "safe_deployment",
+      "dependencies": ["monitoring", "guardian"],
+      "actions": [
+        "prepare_deployment",
+        "validate_environment",
+        "execute_deployment",
+        "merge_pr_to_main"
+      ],
+      "failure_thresholds": {
+        "max_failed_deploys": 1,
+        "require_manual_review": true
+      }
+    },
+
+    "marketing": {
+      "status": "planned",
+      "autonomy": 0.05,
+      "role": "content_distribution",
+      "dependencies": ["content"],
+      "actions": [
+        "publish_post",
+        "schedule_updates",
+        "sync_linkedin"
+      ],
+      "failure_thresholds": {
+        "max_failed_posts": 2
+      }
+    }
+  },
+
+  "escalation_rules": {
+    "on_agent_failure": {
+      "strategy": "self_heal_first",
+      "retry_count": 2,
+      "escalate_to_guardian_on_failure": true
+    },
+    "on_security_violation": {
+      "halt_updates": true,
+      "require_manual_approval": true
+    },
+    "on_health_drop": {
+      "threshold": 0.25,
+      "notify_guardian": true,
+      "increase_monitoring_frequency": true
+    }
+  },
+
+  "self_healing": {
+    "enabled": true,
+    "strategies": [
+      "retry_action",
+      "refresh_agent_state",
+      "regenerate_missing_files",
+      "restore_last_working_state"
+    ],
+    "fallback": "guardian_takeover"
+  }
+}
