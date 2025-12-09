@@ -85,15 +85,23 @@ def save_json(path: Path, data: Any) -> None:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 def load_health() -> HealthState:
+    """Lädt den letzten Health-Status oder liefert Defaults."""
     data = load_json(STATUS_FILE, default=None)
     if not data:
         return HealthState()
-    return HealthState.from_dict(data)
+    try:
+        return HealthState.from_dict(data)
+    except Exception as exc:
+        print(f"[GEORGE V2] Konnte HealthState nicht rekonstruieren: {exc}", file=sys.stderr)
+        return HealthState()
+
 
 def save_health(health: HealthState) -> None:
+    """Persistiert Health-State + schreibt Logzeile."""
     data = health.to_dict()
     save_json(STATUS_FILE, data)
     append_jsonl(REPORTS_DIR / "health_log.jsonl", data)
+
 
 def append_jsonl(path: Path, record: Dict[str, Any]) -> None:
     with path.open("a", encoding="utf-8") as f:
@@ -162,7 +170,6 @@ class Decision:
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
-
 @dataclass
 class HealthState:
     """Health- & Autonomie-Metriken (MVP)."""
@@ -175,19 +182,27 @@ class HealthState:
     failed_actions: int = 0
 
     @staticmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "HealthState":
+    def from_dict(data: Dict[str, Any]) -> "HealthState":
+        """Robuste Rekonstruktion aus einem Dict."""
         return HealthState(
-            agent_response_success_rate=float(data.get("agent_response_success_rate", 0.0)),
+            agent_response_success_rate=float(
+                data.get("agent_response_success_rate", 0.0)
+            ),
             last_autonomous_action=data.get("last_autonomous_action"),
             self_detection_errors=int(data.get("self_detection_errors", 0)),
-            system_stability_score=float(data.get("system_stability_score", 0.0)),
-            autonomy_level_estimate=float(data.get("autonomy_level_estimate", 0.5)),
+            system_stability_score=float(
+                data.get("system_stability_score", 0.0)
+            ),
+            autonomy_level_estimate=float(
+                data.get("autonomy_level_estimate", 0.5)
+            ),
             total_actions=int(data.get("total_actions", 0)),
             failed_actions=int(data.get("failed_actions", 0)),
         )
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
 
     def register_result(self, success: bool) -> None:
         self.total_actions += 1
@@ -242,48 +257,68 @@ def append_events(new_events: List[Event]) -> None:
     existing.extend(ev.to_dict() for ev in new_events)
     save_json(EVENTS_FILE, existing)
 
-def save_decision(decision: dict):
-    today = datetime.date.today().isoformat()
-
-    # 1) Append to history log
-    history_file = os.path.join(BASE, "history", f"{today}.jsonl")
-    with open(history_file, "a") as f:
-        f.write(json.dumps(decision) + "\n")
-
-    # 2) Save latest.json
-    latest_file = os.path.join(BASE, "latest.json")
-    with open(latest_file, "w") as f:
-        json.dump(decision, f, indent=2)
-
-    # 3) Update or create snapshot
-    update_snapshot(today, decision)
-
-def update_snapshot(date: str, decision: dict):
-    snapshot_path = os.path.join(BASE, "snapshots", f"{date}.json")
-
-    # Neues Snapshot?
-    if not os.path.exists(snapshot_path):
-        snapshot = {
-            "date": date,
-            "total_decisions": 0,
-            "successful": 0,
-            "failed": 0,
-            "by_agent": {},
-            "last_decision_id": None,
-            "last_updated": None
-        }
+def save_decision(decision: Decision | Dict[str, Any]) -> None:
+    """
+    Persistiert eine Decision in:
+    - decisions/history/YYYY-MM-DD.jsonl
+    - decisions/latest.json
+    - decisions/snapshots/YYYY-MM-DD.json
+    """
+    # Immer als Dict arbeiten
+    if isinstance(decision, Decision):
+        dec_dict = decision.to_dict()
     else:
-        with open(snapshot_path) as f:
-            snapshot = json.load(f)
+        dec_dict = dict(decision)
 
-    agent = decision["agent"]
-    status = decision["status"]
+    today = datetime.now(timezone.utc).date().isoformat()
+
+    # 1) History-Log (append)
+    history_file = DECISIONS_HISTORY_DIR / f"{today}.jsonl"
+    with history_file.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(dec_dict, ensure_ascii=False) + "\n")
+
+    # 2) latest.json
+    with DECISIONS_LATEST.open("w", encoding="utf-8") as f:
+        json.dump(dec_dict, f, indent=2, ensure_ascii=False)
+
+    # 3) Snapshot aktualisieren
+    update_snapshot(today, dec_dict)
+
+
+def update_snapshot(date: str, decision: Dict[str, Any]) -> None:
+    """
+    Aktualisiert das Tages-Snapshot:
+    - Gesamte Decisions
+    - Erfolgreiche / fehlgeschlagene
+    - Breakdown nach Agent
+    """
+    snapshot_path = DECISIONS_SNAPSHOTS_DIR / f"{date}.json"
+
+    if snapshot_path.exists():
+        try:
+            with snapshot_path.open("r", encoding="utf-8") as f:
+                snapshot = json.load(f)
+        except json.JSONDecodeError:
+            print(f"[GEORGE V2] Snapshot defekt, initialisiere neu: {snapshot_path}", file=sys.stderr)
+            snapshot = {}
+    else:
+        snapshot = {}
+
+    # Defaults setzen
+    snapshot.setdefault("date", date)
+    snapshot.setdefault("total_decisions", 0)
+    snapshot.setdefault("successful", 0)
+    snapshot.setdefault("failed", 0)
+    snapshot.setdefault("by_agent", {})
+
+    agent = decision.get("agent", "unknown")
+    status = decision.get("status", "unknown")
 
     # Global Stats
     snapshot["total_decisions"] += 1
     if status == "success":
         snapshot["successful"] += 1
-    if status == "failed":
+    elif status == "failed":
         snapshot["failed"] += 1
 
     # Agent Stats
@@ -298,11 +333,24 @@ def update_snapshot(date: str, decision: dict):
     elif status == "blocked":
         snapshot["by_agent"][agent]["blocked"] += 1
 
-    snapshot["last_decision_id"] = decision["id"]
-    snapshot["last_updated"] = datetime.datetime.utcnow().isoformat()
+    snapshot["last_decision_id"] = decision.get("id")
+    snapshot["last_updated"] = now_iso()
 
-    with open(snapshot_path, "w") as f:
-        json.dump(snapshot, f, indent=2)
+    with snapshot_path.open("w", encoding="utf-8") as f:
+        json.dump(snapshot, f, indent=2, ensure_ascii=False)
 
 def load_rules() -> List[Dict[str, Any]]:
-    """Lädt g
+    """Lädt die GEORGE-Rules aus george_rules.yaml."""
+    data = load_yaml(RULES_FILE, default={})
+    if isinstance(data, dict):
+        # Typische Struktur: { version: ..., rules: [...] }
+        rules = data.get("rules", [])
+    else:
+        rules = data or []
+
+    if not isinstance(rules, list):
+        print("[GEORGE V2] Ungültiges Rules-Format in george_rules.yaml", file=sys.stderr)
+        return []
+
+    return rules
+
