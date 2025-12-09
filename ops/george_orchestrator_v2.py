@@ -388,3 +388,127 @@ def load_rules() -> List[Dict[str, Any]]:
 
     return rules
 
+# ---------------------------------------------------------------------------
+# Orchestrierung (MVP) – nutzt Events, Autonomie-Config & Health-State
+# ---------------------------------------------------------------------------
+
+def orchestrate() -> int:
+    """Führt einen Orchestrierungszyklus für das letzte Event aus."""
+
+    # 1) Not-Aus prüfen
+    if emergency_lock_active():
+        print("[GEORGE V2] Emergency-Lock aktiv – keine Aktionen erlaubt.")
+        decision = Decision(
+            id=str(uuid.uuid4()),
+            timestamp=now_iso(),
+            source_event_id=None,
+            agent="george",
+            action="emergency_lock_active",
+            intent=None,
+            confidence=0.0,
+            status="blocked",
+            guardian_flag="emergency_lock",
+            error_message="System locked via emergency_lock.json",
+            follow_up=None,
+            result_summary="Orchestration aborted due to active emergency lock.",
+        )
+        save_decision(decision)
+        health = load_health()
+        health.register_result(success=False)
+        save_health(health)
+        return 1
+
+    # 2) Letztes Event laden
+    event = load_latest_event()
+    if not event:
+        print("[GEORGE V2] Kein Event vorhanden – nichts zu tun.")
+        return 0
+
+    print(f"[GEORGE V2] Verarbeite Event {event.id} von Agent '{event.agent}' – '{event.event}'")
+
+    # 3) Autonomie-Profil des Zielagents laden
+    agent_id = event.agent or "unknown"
+    agent_profile = get_agent_profile(agent_id)
+    autonomy_level = float(agent_profile.get("autonomy", 0.0))
+    status = agent_profile.get("status", "unknown")
+
+    # 4) Entscheidung vorbereiten
+    decision = Decision(
+        id=str(uuid.uuid4()),
+        timestamp=now_iso(),
+        source_event_id=event.id,
+        agent=agent_id,
+        action=event.event,
+        intent=event.intent,
+        confidence=autonomy_level,
+        status="pending",
+        guardian_flag=None,
+        error_message=None,
+        follow_up=None,
+        result_summary=None,
+    )
+
+    # 5) Einfache Guardrails basierend auf Autonomie-Level
+    execution_allowed = True
+    guardian_reason = None
+
+    if status != "active":
+        execution_allowed = False
+        guardian_reason = f"agent_status_{status}"
+
+    elif autonomy_level < 0.3:
+        # Unter 0.3 nur Simulation / Block
+        execution_allowed = False
+        guardian_reason = "autonomy_too_low"
+
+    if not execution_allowed:
+        decision.status = "blocked"
+        decision.guardian_flag = guardian_reason
+        decision.error_message = (
+            f"Execution blocked by autonomy/guardian rules "
+            f"(status={status}, autonomy={autonomy_level:.2f})."
+        )
+        decision.result_summary = "No action executed. Check autonomy.json and guardian rules."
+        success = False
+    else:
+        # 6) (MVP) – Aktion simulieren statt echten Agentenaufruf
+        decision.status = "success"
+        decision.result_summary = (
+            f"Simulated execution for agent '{agent_id}' "
+            f"with autonomy={autonomy_level:.2f} on event '{event.event}'."
+        )
+        success = True
+
+    # 7) Health-Status aktualisieren
+    health = load_health()
+    health.register_result(success=success)
+    if success:
+        health.last_autonomous_action = f"{agent_id}:{event.event}"
+    save_health(health)
+
+    # 8) Decision persistieren (history + latest + snapshots)
+    save_decision(decision)
+
+    # 9) Decision-Event anhängen (für Event-Timeline)
+    decision_event = Event(
+        id=str(uuid.uuid4()),
+        timestamp=now_iso(),
+        agent="george",
+        event="decision_made",
+        intent=event.intent,
+        payload={
+            "decision_id": decision.id,
+            "target_agent": decision.agent,
+            "status": decision.status,
+            "guardian_flag": decision.guardian_flag,
+            "autonomy_level": autonomy_level,
+        },
+        source_event_id=event.id,
+    )
+    append_events([decision_event])
+
+    print(f"[GEORGE V2] Decision {decision.id} – status={decision.status}, success={success}")
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(orchestrate())
