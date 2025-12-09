@@ -28,7 +28,7 @@ jobs:
           if [ -f scripts/requirements.txt ]; then pip install -r scripts/requirements.txt; fi
           pip install pytest requests beautifulsoup4
 
-      - name: Smoke: run gates in dry-run
+      - name: Smoke – run gates in dry-run
         run: |
           python scripts/review_gate.py --dry-run || true
           python scripts/design_gate.py  --dry-run || true
