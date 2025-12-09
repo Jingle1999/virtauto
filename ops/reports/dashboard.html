@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>GEORGE Health Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050816;
+      --bg-card: #0b1020;
+      --bg-card-soft: #111827;
+      --accent: #00e0ff;
+      --accent-soft: #1d4ed8;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --danger: #f87171;
+      --warn: #facc15;
+      --good: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text);
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      color: var(--muted);
+      font-size: 12px;
+      border: 1px solid rgba(148,163,184,0.2);
+      margin-bottom: 10px;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(56,189,248,0.9);
+    }
+
+    .headline-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .headline-row h1 {
+      font-size: 26px;
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .timestamp {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .layout-main {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(15,23,42,0.95);
+      border-radius: 18px;
+      padding: 16px 18px;
+      border: 1px solid rgba(148,163,184,0.15);
+      box-shadow: 0 22px 60px rgba(0,0,0,0.5);
+      backdrop-filter: blur(14px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.35);
+      color: var(--muted);
+    }
+
+    .badge.live {
+      border-color: rgba(56,189,248,0.9);
+      color: #e0f2fe;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-right: 4px;
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34,197,94,0.9);
+      display: inline-block;
+    }
+
+    .kpi-main {
+      font-size: 40px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .kpi-main span {
+      font-size: 20px;
+      margin-left: 4px;
+      color: var(--muted);
+    }
+
+    .kpi-caption {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card-soft);
+      border-radius: 12px;
+      padding: 8px 10px;
+      border: 1px solid rgba(30,64,175,0.55);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .kpi-value {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .kpi-chip {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.3);
+      color: var(--muted);
+    }
+
+    .kpi-good {
+      color: var(--good);
+    }
+    .kpi-warn {
+      color: var(--warn);
+    }
+    .kpi-danger {
+      color: var(--danger);
+    }
+
+    .chart-container {
+      margin-top: 8px;
+      height: 230px;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .table-card {
+      margin-top: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    th, td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    tbody tr:hover {
+      background: rgba(15,23,42,0.6);
+    }
+
+    .status-tag {
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      border: 1px solid rgba(148,163,184,0.3);
+      color: var(--muted);
+    }
+
+    .small-text {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .error {
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 16px;
+      }
+      .layout-main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .headline-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .timestamp {
+        text-align: left;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="page">
+    <div class="pill">
+      <span class="pill-dot"></span>
+      virtauto.OS · GEORGE Orchestrator · Health & Autonomy
+    </div>
+
+    <div class="headline-row">
+      <div>
+        <h1>GEORGE Health Dashboard</h1>
+        <div class="subtitle">
+          Live view on autonomy, stability & self-guardian signals from the last orchestration runs.
+        </div>
+      </div>
+      <div class="timestamp" id="last-updated">
+        Loading live data…
+      </div>
+    </div>
+
+    <div class="layout-main">
+      <!-- LEFT: Autonomy + Trend -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Autonomy & Trend</div>
+          <div class="badge live">
+            <span class="badge-dot"></span> Live from GitHub
+          </div>
+        </div>
+
+        <div id="autonomy-block">
+          <div class="kpi-main" id="autonomy-main">–<span>%</span></div>
+          <div class="kpi-caption" id="autonomy-caption">
+            Waiting for latest GEORGE health state…
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="autonomyChart"></canvas>
+        </div>
+
+        <div class="small-text">
+          Autonomy estimate combines agent success rate, stability score and self-detection errors.
+        </div>
+        <div class="error" id="autonomy-error" style="display:none;"></div>
+      </div>
+
+      <!-- RIGHT: KPIs -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">System KPIs</div>
+          <div class="badge">Current GEORGE health snapshot</div>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">Agent success rate</div>
+            <div class="kpi-value" id="kpi-success">–%</div>
+            <div class="kpi-chip" id="kpi-success-chip">n/a</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">System stability</div>
+            <div class="kpi-value" id="kpi-stability">–%</div>
+            <div class="kpi-chip" id="kpi-stability-chip">n/a</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">Self-detection errors</div>
+            <div class="kpi-value" id="kpi-errors">–</div>
+            <div class="kpi-chip" id="kpi-errors-chip">n/a</div>
+          </div>
+        </div>
+
+        <div class="kpi-row" style="margin-top: 10px;">
+          <div class="kpi-card">
+            <div class="kpi-label">Total actions</div>
+            <div class="kpi-value" id="kpi-total">–</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Failed actions</div>
+            <div class="kpi-value" id="kpi-failed">–</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Last autonomous action</div>
+            <div class="kpi-value" id="kpi-last-action" style="font-size: 13px;">–</div>
+          </div>
+        </div>
+
+        <div class="small-text">
+          Health and autonomy are updated by GEORGE after each orchestration round and persisted in
+          <code>ops/status.json</code> and <code>ops/reports/health_log.jsonl</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent history table -->
+    <div class="card table-card" style="margin-top: 18px;">
+      <div class="card-header">
+        <div class="card-title">Recent Health Snapshots</div>
+        <div class="badge">Latest 20 records</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Autonomy</th>
+            <th>Success</th>
+            <th>Stability</th>
+            <th>Self-Detection</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="history-table">
+          <tr>
+            <td colspan="6">Loading history from GitHub…</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="error" id="history-error" style="display:none;"></div>
+    </div>
+  </div>
+
+  <script>
+    // --- CONFIG: Raw GitHub URLs (live mode) -----------------------------
+    const STATUS_URL = "https://raw.githubusercontent.com/jingle1999/virtuato/main/ops/status.json";
+    const HEALTH_LOG_URL = "https://raw.githubusercontent.com/jingle1999/virtuato/main/ops/reports/health_log.jsonl";
+
+    // --- Helpers ---------------------------------------------------------
+    function pct(value, decimals = 0) {
+      if (value === undefined || value === null || isNaN(value)) return null;
+      const v = Number(value) * 100;
+      return v.toFixed(decimals);
+    }
+
+    function formatTs(ts) {
+      if (!ts) return "–";
+      try {
+        const d = new Date(ts);
+        if (isNaN(d.getTime())) return ts;
+        return d.toISOString().slice(0, 16).replace("T", " ");
+      } catch {
+        return ts;
+      }
+    }
+
+    function classifyKpi(value) {
+      if (value === null) return { cls: "", label: "n/a" };
+      const v = Number(value);
+      if (v >= 80) return { cls: "kpi-good", label: "good" };
+      if (v >= 60) return { cls: "kpi-warn", label: "watch" };
+      return { cls: "kpi-danger", label: "critical" };
+    }
+
+    function parseJsonl(text) {
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      const records = [];
+      for (const line of lines) {
+        try {
+          records.push(JSON.parse(line));
+        } catch (e) {
+          console.warn("Skipping invalid JSONL line", line);
+        }
+      }
+      return records;
+    }
+
+    // --- Chart -----------------------------------------------------------
+    let autonomyChart;
+
+    function buildAutonomyChart(ctx, records) {
+      if (!records || !records.length) return;
+
+      const last40 = records.slice(-40);
+      const labels = last40.map(r => formatTs(r.last_autonomous_action || r.timestamp));
+      const autonomy = last40.map(r => Number(r.autonomy_level_estimate ?? 0) * 100);
+      const success = last40.map(r => Number(r.agent_response_success_rate ?? 0) * 100);
+      const stability = last40.map(r => Number(r.system_stability_score ?? 0) * 100);
+
+      const data = {
+        labels,
+        datasets: [
+          {
+            label: "Autonomy level",
+            data: autonomy,
+            borderColor: "#00e0ff",
+            backgroundColor: "rgba(56,189,248,0.2)",
+            tension: 0.3,
+            fill: true,
+          },
+          {
+            label: "Success rate",
+            data: success,
+            borderColor: "#22c55e",
+            backgroundColor: "rgba(34,197,94,0.15)",
+            tension: 0.3,
+            fill: false,
+          },
+          {
+            label: "Stability",
+            data: stability,
+            borderColor: "#facc15",
+            backgroundColor: "rgba(250,204,21,0.15)",
+            tension: 0.3,
+            fill: false,
+          }
+        ]
+      };
+
+      const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { color: "#9ca3af", callback: (v) => v + "%" },
+            grid: { color: "rgba(55,65,81,0.4)" }
+          },
+          x: {
+            ticks: { color: "#6b7280", maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
+            grid: { display: false }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: { color: "#9ca3af", usePointStyle: true }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`
+            }
+          }
+        }
+      };
+
+      if (autonomyChart) autonomyChart.destroy();
+      autonomyChart = new Chart(ctx, { type: "line", data, options });
+    }
+
+    // --- Rendering -------------------------------------------------------
+    function updateStatusCard(status) {
+      const autonomyMain = document.getElementById("autonomy-main");
+      const autonomyCaption = document.getElementById("autonomy-caption");
+
+      const kSuccess = document.getElementById("kpi-success");
+      const kStability = document.getElementById("kpi-stability");
+      const kErrors = document.getElementById("kpi-errors");
+      const kTotal = document.getElementById("kpi-total");
+      const kFailed = document.getElementById("kpi-failed");
+      const kLastAction = document.getElementById("kpi-last-action");
+
+      const successChip = document.getElementById("kpi-success-chip");
+      const stabilityChip = document.getElementById("kpi-stability-chip");
+      const errorsChip = document.getElementById("kpi-errors-chip");
+
+      const autonomy = pct(status.autonomy_level_estimate ?? 0);
+      const success = pct(status.agent_response_success_rate ?? 0);
+      const stability = pct(status.system_stability_score ?? 0);
+      const selfErrors = status.self_detection_errors ?? 0;
+      const totalActions = status.total_actions ?? 0;
+      const failedActions = status.failed_actions ?? 0;
+      const lastAction = status.last_autonomous_action || status.timestamp;
+
+      autonomyMain.innerHTML = (autonomy ?? "–") + "<span>%</span>";
+      autonomyCaption.textContent = lastAction
+        ? `Estimated autonomy level from last GEORGE run at ${formatTs(lastAction)}.`
+        : "No autonomous run recorded yet.";
+
+      // KPIs
+      kSuccess.textContent = success !== null ? success + "%" : "–";
+      kStability.textContent = stability !== null ? stability + "%" : "–";
+      kErrors.textContent = selfErrors;
+
+      kTotal.textContent = totalActions;
+      kFailed.textContent = failedActions;
+      kLastAction.textContent = formatTs(lastAction);
+
+      // Chips
+      [successChip, stabilityChip, errorsChip].forEach(chip => {
+        chip.classList.remove("kpi-good", "kpi-warn", "kpi-danger");
+      });
+
+      const sc = classifyKpi(success);
+      successChip.textContent = sc.label;
+      if (sc.cls) successChip.classList.add(sc.cls);
+
+      const st = classifyKpi(stability);
+      stabilityChip.textContent = st.label;
+      if (st.cls) stabilityChip.classList.add(st.cls);
+
+      let errCls = "";
+      let errLabel = "n/a";
+      if (selfErrors === 0) {
+        errCls = "kpi-good";
+        errLabel = "clean";
+      } else if (selfErrors < 3) {
+        errCls = "kpi-warn";
+        errLabel = "minor";
+      } else {
+        errCls = "kpi-danger";
+        errLabel = "frequent";
+      }
+      errorsChip.textContent = errLabel;
+      if (errCls) errorsChip.classList.add(errCls);
+
+      const lastUpdated = document.getElementById("last-updated");
+      lastUpdated.textContent = "Last updated · " + new Date().toLocaleString();
+    }
+
+    function updateHistoryTable(records) {
+      const tbody = document.getElementById("history-table");
+      tbody.innerHTML = "";
+
+      if (!records || !records.length) {
+        tbody.innerHTML = "<tr><td colspan='6'>No health history yet.</td></tr>";
+        return;
+      }
+
+      const last20 = records.slice(-20).reverse();
+      for (const r of last20) {
+        const autonomy = pct(r.autonomy_level_estimate ?? 0);
+        const success = pct(r.agent_response_success_rate ?? 0);
+        const stability = pct(r.system_stability_score ?? 0);
+        const errs = r.self_detection_errors ?? 0;
+        const total = r.total_actions ?? 0;
+        const failed = r.failed_actions ?? 0;
+        const ts = formatTs(r.last_autonomous_action || r.timestamp);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${ts}</td>
+          <td>${autonomy !== null ? autonomy + "%" : "–"}</td>
+          <td>${success !== null ? success + "%" : "–"}</td>
+          <td>${stability !== null ? stability + "%" : "–"}</td>
+          <td>${errs}</td>
+          <td>${total} / ${failed}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // --- Main load -------------------------------------------------------
+    async function loadDashboard() {
+      const autonomyError = document.getElementById("autonomy-error");
+      const historyError = document.getElementById("history-error");
+      autonomyError.style.display = "none";
+      historyError.style.display = "none";
+
+      try {
+        const [statusRes, logRes] = await Promise.all([
+          fetch(STATUS_URL, { cache: "no-store" }),
+          fetch(HEALTH_LOG_URL, { cache: "no-store" }),
+        ]);
+
+        if (!statusRes.ok) {
+          throw new Error("Failed to fetch status.json: " + statusRes.status);
+        }
+
+        let statusJson = {};
+        try {
+          statusJson = await statusRes.json();
+        } catch (e) {
+          console.warn("Invalid status.json", e);
+        }
+
+        // status.json kann entweder direkt HealthState sein oder in einem Feld liegen
+        const status = statusJson && statusJson.agent_response_success_rate !== undefined
+          ? statusJson
+          : (statusJson.health || statusJson);
+
+        updateStatusCard(status);
+
+        let records = [];
+        if (logRes.ok) {
+          const text = await logRes.text();
+          records = parseJsonl(text);
+        } else {
+          console.warn("No health_log.jsonl yet");
+        }
+
+        updateHistoryTable(records);
+
+        const ctx = document.getElementById("autonomyChart").getContext("2d");
+        if (records.length) {
+          buildAutonomyChart(ctx, records);
+        } else {
+          autonomyError.style.display = "block";
+          autonomyError.textContent = "No health history yet – run GEORGE orchestrator V2 to generate data.";
+        }
+      } catch (err) {
+        console.error(err);
+        autonomyError.style.display = "block";
+        autonomyError.textContent = "Failed to load live data from GitHub. Check CORS/URLs or try again later.";
+        historyError.style.display = "block";
+        historyError.textContent = "No history available due to fetch error.";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadDashboard();
+      // Optional: alle 5 Minuten aktualisieren
+      setInterval(loadDashboard, 5 * 60 * 1000);
+    });
+  </script>
+</body>
+</html>
