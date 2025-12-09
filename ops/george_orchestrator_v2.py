@@ -389,6 +389,241 @@ def load_rules() -> List[Dict[str, Any]]:
     return rules
 
 # ---------------------------------------------------------------------------
+# Orchestrierungs-Helfer
+# ---------------------------------------------------------------------------
+
+def match_rule_for_event(event: "Event", rules: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """
+    Findet die erste passende Regel aus george_rules.yaml für das Event.
+    Matching ist bewusst tolerant: wenn Felder in 'when' fehlen, werden sie ignoriert.
+    """
+    if not rules:
+        return None
+
+    for rule in rules:
+        when = rule.get("when", {}) or {}
+        # Unterstützte Keys (optional): agent, event, intent, source
+        agent_match = when.get("agent")
+        if agent_match and agent_match != event.agent:
+            continue
+
+        event_match = when.get("event")
+        if event_match and event_match != event.event:
+            continue
+
+        intent_match = when.get("intent")
+        if intent_match and intent_match != (event.intent or ""):
+            continue
+
+        source_match = when.get("source_event_id")
+        if source_match and source_match != (event.source_event_id or ""):
+            continue
+
+        return rule
+
+    return None
+
+
+def guardian_precheck(
+    decision: "Decision",
+    agent_profile: Dict[str, Any],
+    rule: Optional[Dict[str, Any]] = None,
+) -> Tuple[bool, Optional[str]]:
+    """
+    Einfache Guardian-Logik V2 (Precheck):
+    - Prüft, ob der Agent aktiv ist.
+    - Prüft optional min. Autonomie-Level aus der Regel.
+    Gibt (allowed, guardian_flag) zurück.
+    """
+    status = (agent_profile or {}).get("status", "unknown")
+    if status != "active":
+        return False, "agent_inactive"
+
+    # Autonomie-Anforderungen aus Regel
+    required_autonomy = 0.0
+    if rule:
+        then_cfg = rule.get("then", {}) or {}
+        required_autonomy = float(then_cfg.get("min_autonomy", 0.0))
+
+    agent_autonomy = float((agent_profile or {}).get("autonomy", 0.0))
+    if agent_autonomy < required_autonomy:
+        return False, "autonomy_too_low"
+
+    return True, None
+
+
+def execute_agent_action(
+    agent: str,
+    action: str,
+    event: "Event",
+    agent_profile: Dict[str, Any],
+) -> Tuple[bool, str]:
+    """
+    MVP-Ausführung.
+    Aktuell: Simulation – hier können später echte Agent-Adapter eingebaut werden.
+    Rückgabe: (success, result_summary)
+    """
+    # TODO: Echte Adapter einhängen (deploy_agent.py, monitoring_agent.py, audit_agent.py, Content-Agent, ...)
+    # Für jetzt: Wir loggen nur, dass eine Aktion "geplant" wurde.
+    summary = (
+        f"Simulated execution: agent='{agent}', action='{action}', "
+        f"event_id='{event.id}', role='{agent_profile.get('role', 'n/a')}'."
+    )
+    success = True
+    return success, summary
+
+
+def guardian_postcheck(
+    decision: "Decision",
+    agent_profile: Dict[str, Any],
+    health: "HealthState",
+    success: bool,
+) -> Optional[str]:
+    """
+    Vereinfachter Guardian-Postcheck:
+    - Aktualisiert HealthState
+    - Setzt bei Fehlern ein Guardian-Flag, nutzt optional failure_thresholds aus autonomy.json.
+    """
+    health.register_result(success=success)
+
+    if success:
+        health.last_autonomous_action = f"{decision.agent}:{decision.action}"
+        return None
+
+    # Fehlerfall → Guardian-Flag
+    failure_thresholds = (agent_profile or {}).get("failure_thresholds", {}) or {}
+    guardian_flag = "error_detected"
+
+    # Beispiel: wenn 'trigger_guardian_policy_check' konfiguriert ist
+    if failure_thresholds.get("trigger_guardian_policy_check"):
+        guardian_flag = "guardian_policy_check"
+
+    return guardian_flag
+
+
+# ---------------------------------------------------------------------------
+# Haupt-Orchestrierungsfunktion
+# ---------------------------------------------------------------------------
+
+def orchestrate() -> Optional["Decision"]:
+    """
+    Führt einen Orchestrierungszyklus aus:
+    - Holt letztes Event
+    - Wendet GEORGE-Regeln an
+    - Prüft Autonomie/Guardian
+    - Führt Agentenaktion (simuliert) aus
+    - Persistiert Decision + Health + Snapshots
+    """
+    # 1) Not-Aus prüfen
+    if emergency_lock_active():
+        print("[GEORGE V2] Emergency Lock ist aktiv – Orchestrierung gestoppt.", file=sys.stderr)
+        return None
+
+    # 2) Letztes Event laden
+    event = load_latest_event()
+    if not event:
+        # Kein Event ⇒ keine Entscheidung
+        return None
+
+    # 3) Regeln & Autonomie-Config laden
+    rules = load_rules()
+    autonomy_cfg = load_autonomy_config()
+    agent_profile = get_agent_profile(event.agent)
+
+    # 4) Passende Regel suchen
+    rule = match_rule_for_event(event, rules)
+    if rule:
+        then_cfg = rule.get("then", {}) or {}
+        target_agent = then_cfg.get("agent") or event.agent
+        action = then_cfg.get("action") or event.event
+        confidence = float(then_cfg.get("confidence", 0.8))
+    else:
+        # Fallback: Agent & Aktion direkt aus dem Event ableiten
+        target_agent = event.agent
+        action = event.event
+        confidence = 0.5
+
+    target_profile = get_agent_profile(target_agent)
+
+    # 5) Decision-Objekt erzeugen (zunächst pending)
+    decision = Decision(
+        id=str(uuid.uuid4()),
+        timestamp=now_iso(),
+        source_event_id=event.id,
+        agent=target_agent,
+        action=action,
+        intent=event.intent,
+        confidence=confidence,
+        status="pending",
+        error_message=None,
+        guardian_flag=None,
+        follow_up=None,
+        result_summary=None,
+    )
+
+    # 6) Guardian-Precheck
+    allowed, guardian_flag = guardian_precheck(decision, target_profile, rule)
+    if not allowed:
+        decision.status = "blocked"
+        decision.guardian_flag = guardian_flag or "blocked_by_guardian"
+        save_decision(decision)
+        print(f"[GEORGE V2] Decision {decision.id} BLOCKED durch Guardian: {decision.guardian_flag}")
+        return decision
+
+    # 7) Aktion ausführen (aktuell simuliert)
+    success, result_summary = execute_agent_action(
+        agent=target_agent,
+        action=action,
+        event=event,
+        agent_profile=target_profile or {},
+    )
+
+    decision.result_summary = result_summary
+    decision.status = "success" if success else "error"
+    if not success:
+        decision.error_message = "Agent execution failed (simulated)."
+
+    # 8) HealthState laden, Postcheck ausführen, speichern
+    health = load_health()
+    guardian_flag_post = guardian_postcheck(decision, target_profile or {}, health, success)
+    if guardian_flag_post:
+        decision.guardian_flag = guardian_flag_post
+
+    save_health(health)
+
+    # 9) Decision persistieren (History + latest + Snapshot)
+    save_decision(decision)
+
+    print(
+        f"[GEORGE V2] Decision {decision.id}: "
+        f"agent='{decision.agent}', action='{decision.action}', status='{decision.status}'"
+    )
+    return decision
+
+
+# ---------------------------------------------------------------------------
+# CLI Entry Point
+# ---------------------------------------------------------------------------
+
+def main() -> None:
+    """
+    Einmalige Orchestrierungsrunde für CLI / GitHub Actions.
+    """
+    decision = orchestrate()
+    if not decision:
+        print("[GEORGE V2] Keine Decision getroffen (kein Event oder Emergency Lock aktiv).")
+    else:
+        print(
+            f"[GEORGE V2] Fertig – Decision {decision.id} -> {decision.status}, "
+            f"guardian_flag={decision.guardian_flag!r}"
+        )
+
+
+if __name__ == "__main__":
+    main()
+
+
+# ---------------------------------------------------------------------------
 # Orchestrierung (MVP) – nutzt Events, Autonomie-Config & Health-State
 # ---------------------------------------------------------------------------
 
