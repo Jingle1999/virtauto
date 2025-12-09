@@ -402,10 +402,15 @@
     </div>
   </div>
 
-  <script>
-    // --- CONFIG: Raw GitHub URLs (live mode) -----------------------------
-    const STATUS_URL = "https://raw.githubusercontent.com/jingle1999/virtuato/main/ops/status.json";
-    const HEALTH_LOG_URL = "https://raw.githubusercontent.com/jingle1999/virtuato/main/ops/reports/health_log.jsonl";
+  <!-- CONFIG: Raw GitHub URLs (live mode) -->
+<script>
+  const STATUS_URL = "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/status.json";
+  const HEALTH_LOG_URL = "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/reports/health_log.jsonl";
+  const DECISIONS_LATEST_URL = "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/decisions/latest.json";
+
+  // Optional: wie viele Verlaufseinträge im Dashboard angezeigt werden sollen
+  const MAX_HISTORY_ROWS = 20;
+</script>
 
     // --- Helpers ---------------------------------------------------------
     function pct(value, decimals = 0) {
