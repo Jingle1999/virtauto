@@ -59,6 +59,7 @@ DECISIONS_SNAPSHOTS_DIR.mkdir(exist_ok=True, parents=True)
 
 DECISIONS_LATEST = DECISIONS_DIR / "latest.json"
 
+AUTONOMY_FILE = OPS_DIR / "autonomy.json"
 
 # ---------------------------------------------------------------------------
 # Utility-Funktionen
@@ -118,6 +119,39 @@ def load_yaml(path: Path, default: Any) -> Any:
 def emergency_lock_active() -> bool:
     cfg = load_json(EMERGENCY_LOCK_FILE, {})
     return bool(cfg.get("locked", False))
+
+# ---------------------------------------------------------------------------
+# Autonomy-Konfiguration
+# ---------------------------------------------------------------------------
+
+def load_autonomy_config() -> Dict[str, Any]:
+    """Lädt die Autonomie-/Capability-Map aus autonomy.json."""
+    cfg = load_json(AUTONOMY_FILE, default={})
+    if not isinstance(cfg, dict):
+        return {}
+    return cfg
+
+
+def get_agent_profile(agent_id: str) -> Dict[str, Any]:
+    """
+    Liefert das Agent-Profil aus autonomy.json, z.B.:
+
+    {
+      "status": "active",
+      "autonomy": 0.35,
+      "role": "...",
+      "depends_on": [...],
+      "actions": [...],
+      "failure_thresholds": {...}
+    }
+    """
+    cfg = load_autonomy_config()
+    agents = cfg.get("agents", {})
+    profile = agents.get(agent_id, {})
+    if not isinstance(profile, dict):
+        return {}
+    return profile
+
 
 
 # ---------------------------------------------------------------------------
