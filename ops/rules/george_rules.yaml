@@ -106,3 +106,33 @@ rules:
       target_agent: "activity_log"
       intent: "record_event"
       message: "Unknown event type – record in activity feed for later analysis."
+
+  # ------------------------------------------------------------------
+  # 8) Regel 1: Deploy auf Anfrage
+  # ------------------------------------------------------------------
+
+  - name: deploy_on_request
+    when:
+      agent: george
+      event: deploy_requested
+    then:
+      agent: deploy
+      action: orchestrate_deploy
+      min_autonomy: 0.30
+      confidence: 0.90
+      notes: "Trigger Deploy Agent v1 (simulated deploy + healthcheck + rollback hint)."
+
+  # ------------------------------------------------------------------
+  # 9) Regel 2: Content-Check bei „Content-Health low
+  # ------------------------------------------------------------------
+  - name: content_health_low
+    when:
+      agent: monitoring
+      event: content_health_low
+    then:
+      agent: content_creator
+      action: suggest_improvements
+      min_autonomy: 0.20
+      confidence: 0.80
+      notes: "Ask content_creator to propose fixes, new pages and posts."
+
