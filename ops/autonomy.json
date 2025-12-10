@@ -1,80 +1,78 @@
 {
   "version": "1.0",
-  "last_update": "2025-12-09T10:10:00Z",
+  "last_update": "2025-12-10T21:15:00Z",
 
   "overview": {
-    "system_autonomy_level": 0.51,
-    "target_autonomy_level": 0.60,
-    "core_agents": 7,
-    "active_agents": 4,
-    "notes": "Autonomie-Level basiert auf produktiven Agenten (Guardian, Monitoring, Content, GEORGE). Audit & Deploy in Vorbereitung."
+    "system_autonomy_level": 0.50,
+    "target_autonomy_level": 0.70
   },
-
   "agents": {
-
     "george": {
-      "status": "mvp",
-      "autonomy": 0.40,
-      "role": "orchestrator",
-      "dependencies": ["monitoring", "guardian"],
-      "actions": [
-        "route_event",
-        "select_agent",
-        "persist_decision",
-        "evaluate_health"
-      ],
+      "status": "active",
+      "autonomy": 0.50,
+      "role": "Central Orchestrator",
+      "depends_on": ["guardian", "monitoring"],
+      "actions": ["route_events", "make_decisions", "update_health"],
       "failure_thresholds": {
-        "max_consecutive_errors": 3,
-        "auto_escalate": true
+        "max_errors_before_guardian": 1,
+        "trigger_guardian_policy_check": true
       }
     },
-
     "guardian": {
       "status": "active",
-      "autonomy": 0.20,
-      "role": "security_governor",
-      "dependencies": [],
-      "actions": [
-        "check_policy",
-        "block_unsafe_update",
-        "raise_risk_flag",
-        "halt_system"
-      ],
+      "autonomy": 0.40,
+      "role": "Security & Policy Guardian",
+      "depends_on": [],
+      "actions": ["policy_check", "block_action", "raise_alert"],
       "failure_thresholds": {
-        "max_risk_flags": 2,
-        "system_stop_on_violation": true
+        "max_errors_before_guardian": 1,
+        "trigger_guardian_policy_check": false
+      }
+    },
+    "monitoring": {
+      "status": "active",
+      "autonomy": 0.38,
+      "role": "System Monitoring Agent",
+      "depends_on": [],
+      "actions": ["heartbeat", "collect_metrics", "raise_health_alert"],
+      "failure_thresholds": {
+        "max_errors_before_guardian": 3,
+        "trigger_guardian_policy_check": true
       }
     },
 
-    "monitoring": {
+    "deploy": {
       "status": "active",
-      "autonomy": 0.30,
-      "role": "system_observer",
-      "dependencies": [],
-      "actions": [
-        "collect_ci_cd_data",
-        "collect_agent_activity",
-        "track_anomalies",
-        "write_health_signals"
-      ],
+      "autonomy": 0.35,
+      "role": "Deploy Agent",
+      "depends_on": ["monitoring", "guardian"],
+      "actions": ["orchestrate_deploy", "run_healthcheck", "suggest_rollback"],
       "failure_thresholds": {
-        "max_missed_cycles": 5
+        "max_errors_before_guardian": 2,
+        "trigger_guardian_policy_check": true
       }
     },
 
     "content": {
       "status": "active",
-      "autonomy": 0.35,
-      "role": "content_generation",
-      "dependencies": ["monitoring"],
-      "actions": [
-        "create_post",
-        "rewrite_content",
-        "update_live_pages",
-        "submit_pull_request"
-      ],
+      "autonomy": 0.30,
+      "role": "Content Capability (governed by content_creator)",
+      "depends_on": ["monitoring", "content_creator"],
+      "actions": ["improve_site_clarity", "fill_gaps", "keep_messaging_consistent"],
       "failure_thresholds": {
-        "max_failed_creations": 2,
+        "max_errors_before_guardian": 3,
+        "trigger_guardian_policy_check": true
+      }
+    },
+
+    "content_creator": {
+      "status": "active",
+      "autonomy": 0.30,
+      "role": "Content Governor Agent",
+      "depends_on": ["monitoring", "guardian"],
+      "actions": ["scan_content", "suggest_fixes", "propose_posts", "update_changelog"],
+      "failure_thresholds": {
+        "max_errors_before_guardian": 3,
         "trigger_guardian_policy_check": true
       }
     },
@@ -82,50 +80,30 @@
     "audit": {
       "status": "planned",
       "autonomy": 0.10,
-      "role": "compliance_audit",
-      "dependencies": ["guardian"],
-      "actions": [
-        "check_compliance",
-        "validate_changes",
-        "record_audit_log"
-      ],
+      "role": "Audit & Compliance Agent",
+      "depends_on": ["guardian"],
+      "actions": ["record_changes", "check_policies"],
       "failure_thresholds": {
-        "max_missing_records": 3
-      }
-    },
-
-    "deploy": {
-      "status": "planned",
-      "autonomy": 0.15,
-      "role": "safe_deployment",
-      "dependencies": ["monitoring", "guardian"],
-      "actions": [
-        "prepare_deployment",
-        "validate_environment",
-        "execute_deployment",
-        "merge_pr_to_main"
-      ],
-      "failure_thresholds": {
-        "max_failed_deploys": 1,
-        "require_manual_review": true
+        "max_errors_before_guardian": 1,
+        "trigger_guardian_policy_check": true
       }
     },
 
     "marketing": {
       "status": "planned",
       "autonomy": 0.05,
-      "role": "content_distribution",
-      "dependencies": ["content"],
-      "actions": [
-        "publish_post",
-        "schedule_updates",
-        "sync_linkedin"
-      ],
+      "role": "Marketing & Communication Agent",
+      "depends_on": ["content", "guardian"],
+      "actions": ["propose_campaigns", "evaluate_messaging"],
       "failure_thresholds": {
-        "max_failed_posts": 2
+        "max_errors_before_guardian": 2,
+        "trigger_guardian_policy_check": true
       }
     }
-  },
+  }
+}
+
+  
 
   "escalation_rules": {
     "on_agent_failure": {
