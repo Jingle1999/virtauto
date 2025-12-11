@@ -269,6 +269,11 @@
           <div class="kpi-value" id="kpi-last-update">–</div>
           <div class="kpi-note">Auto-refresh every 30 seconds</div>
         </div>
+        <div class="kpi">
+          <div class="kpi-label">Health Score</div>
+          <div class="kpi-value" id="kpi-health">–</div>
+          <div class="kpi-note" id="kpi-health-note">System mode: –</div>
+        </div>
       </div>
     </section>
 
@@ -354,36 +359,62 @@
       const autonomyTarget = status.autonomy_target ?? 60;
       const agentsOnline = status.agents_online ?? 4;
       const agentsTotal = status.agents_total ?? 7;
-      const workflows = status.workflows_total ?? status.workflows ?? 17;
+      const workflows = status.workflows ?? 17;
       const lastUpdate = status.last_update || null;
-      const onlineAgentsList = Array.isArray(status.agents_online_list)
-        ? status.agents_online_list
-        : ["guardian", "self_guardian", "monitoring", "self_content"];
 
-      // KPIs
-      document.getElementById("kpi-autonomy").textContent = `≈ ${autonomy.toFixed(1)}%`;
-      document.getElementById("kpi-autonomy-note").textContent =
-        `Target: ${autonomyTarget}% autonomy in 7–14 days`;
+    // NEW: health + mode
+    const health =
+      status.system_health ??
+      status.system_health_score ??
+      status.health_score ??
+      null;
 
-      document.getElementById("kpi-agents").textContent =
-        `${agentsOnline} / ${agentsTotal}`;
-      document.getElementById("kpi-agents-note").textContent =
-        onlineAgentsList.map(a => niceAgentName(a)).join(" · ");
+    const mode =
+      status.system_mode ||
+      status.system_status ||
+      "DEVELOPING";
 
-      document.getElementById("kpi-workflows").textContent = `${workflows}`;
-      document.getElementById("kpi-workflows-note").textContent =
-        "Industrial-grade CI/CD workflows online";
+    const onlineAgentsList = Array.isArray(status.agents_online_list)
+      ? status.agents_online_list
+      : ["guardian", "self_guardian", "monitoring", "self_content"];
 
-      if (lastUpdate) {
-        document.getElementById("kpi-last-update").textContent = formatTime(lastUpdate);
-      }
+    // Autonomy KPI
+    document.getElementById("kpi-autonomy").textContent =
+      `≈ ${autonomy.toFixed(1)}%`;
+    document.getElementById("kpi-autonomy-note").textContent =
+      `Target: ${autonomyTarget}% autonomy in 7–14 days`;
 
-      // Badges
-      document.getElementById("badge-autonomy").textContent =
-        `Autonomy ≈ ${autonomy.toFixed(1)}%`;
-      document.getElementById("badge-agents").textContent =
-        `${agentsOnline} / ${agentsTotal} core agents live`;
+    // Agents KPI
+    document.getElementById("kpi-agents").textContent =
+      `${agentsOnline} / ${agentsTotal}`;
+    document.getElementById("kpi-agents-note").textContent =
+      onlineAgentsList.map(a => niceAgentName(a)).join(" · ");
+
+    // Workflows KPI
+    document.getElementById("kpi-workflows").textContent = `${workflows}`;
+    document.getElementById("kpi-workflows-note").textContent =
+      "Industrial-grade CI/CD workflows online";
+
+    // Last update (from status.json, will be overwritten by latest event if present)
+    if (lastUpdate) {
+      document.getElementById("kpi-last-update").textContent =
+        formatTime(lastUpdate);
     }
+
+    // NEW: Health + mode
+    if (health !== null) {
+      document.getElementById("kpi-health-value").textContent =
+        `${health.toFixed(1)}%`;
+    }
+    document.getElementById("kpi-health-note").textContent =
+      `System mode: ${mode.toString().replace(/_/g, " ").toLowerCase()}`;
+
+    // Badges in the header
+    document.getElementById("badge-autonomy").textContent =
+      `Autonomy ≈ ${autonomy.toFixed(1)}%`;
+    document.getElementById("badge-agents").textContent =
+      `${agentsOnline} / ${agentsTotal} core agents live`;
+  }
 
     function niceAgentName(id) {
       const map = {
