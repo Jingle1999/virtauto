@@ -354,7 +354,7 @@
       const autonomyTarget = status.autonomy_target ?? 60;
       const agentsOnline = status.agents_online ?? 4;
       const agentsTotal = status.agents_total ?? 7;
-      const workflows = status.workflows ?? 17;
+      const workflows = status.workflows_total ?? status.workflows ?? 17;
       const lastUpdate = status.last_update || null;
       const onlineAgentsList = Array.isArray(status.agents_online_list)
         ? status.agents_online_list
