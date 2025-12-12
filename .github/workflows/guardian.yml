@@ -1,14 +1,45 @@
-name: Guardian
+name: Guardian Advisor
 
 on:
   workflow_dispatch:
+    inputs:
+      decision_id:
+        description: "Decision ID to evaluate"
+        required: true
+      source:
+        description: "Calling orchestrator"
+        required: false
+        default: "GEORGE"
 
 jobs:
-  run_guardian:
+  guardian_advisor:
     runs-on: ubuntu-latest
+
     steps:
-      - name: trigger Self Guardian
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: self-guardian.yml
-          ref: main
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Load latest decision
+        run: |
+          cat ops/decisions/latest.json
+
+      - name: Run Guardian advisory check
+        run: |
+          python ops/guardian_advisor.py \
+            --decision ops/decisions/latest.json \
+            --mode advisor \
+            --output ops/decisions/guardian_advice.json
+
+      - name: Append guardian advice to decision
+        run: |
+          python ops/merge_guardian_advice.py \
+            --decision ops/decisions/latest.json \
+            --advice ops/decisions/guardian_advice.json
+
+      - name: Commit guardian advisory result
+        run: |
+          git config user.name "Guardian Agent"
+          git config user.email "guardian@virtauto.ai"
+          git add ops/decisions/latest.json
+          git commit -m "Guardian advisory evaluation for decision ${{ inputs.decision_id }}" || echo "No changes"
+          git push
