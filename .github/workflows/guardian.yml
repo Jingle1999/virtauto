@@ -50,5 +50,6 @@ jobs:
           git config user.name "Guardian Agent"
           git config user.email "guardian@virtauto.ai"
           git add ops/decisions/latest.json
+          git add ops/decisions/guardian_advice.json || true
           git commit -m "Guardian advisory evaluation for decision ${{ inputs.decision_id }}" || echo "No changes"
           git push
