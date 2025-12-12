@@ -28,6 +28,15 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt found – skipping."
+          fi
+
       - name: Load latest decision
         run: |
           cat ops/decisions/latest.json
