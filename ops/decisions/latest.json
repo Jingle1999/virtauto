@@ -1,27 +1,22 @@
 {
-  "id": 0,
-  "timestamp": "2025-12-08T12:33:00Z",
-  "source_event_id": null,
-  "agent": null,
-  "action": null,
-  "intent": null,
-  "confidence": 0.0,
-  "status": "pending",
-  "error_message": null,
-  "guardian_flag": null,
-  "follow_up": null,
-  "result_summary": null
-}
-{
-  "id": "bootstrap-001",
-  "timestamp": "2025-12-08T12:35:00Z",
+  "schema_version": "2.0",
+  "decision_id": "uuid",
+  "timestamp": "2025-12-12T14:21:00Z",
   "source_event_id": "evt-bootstrap-001",
   "agent": "system",
-  "intent": "bootstrap",
-  "confidence": 1.0,
+  "trigger": "bootstrap",
+  "decision": "proceed",
   "status": "success",
-  "error_message": null,
-  "guardian_flag": null,
+  "confidence": 1.0,
+
+  "reason": "initial_bootstrap",
+  "guardian": {
+    "mode": "advisor",
+    "flag": null,
+    "recommendation": null
+  },
+
+  "alternatives_considered": [],
   "follow_up": null,
   "result_summary": "Initial GEORGE bootstrap event"
 }
