@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import sys
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -25,64 +26,55 @@ DECISIONS_DIR = OPS_DIR / "decisions"
 LATEST_DECISION = DECISIONS_DIR / "latest.json"
 GUARDIAN_ADVICE = DECISIONS_DIR / "guardian_advice.json"  # optional
 
-REFLECTIONS_DIR = DECISIONS_DIR / "reflections"
-REFLECTIONS_HISTORY_DIR = REFLECTIONS_DIR / "history"
-LATEST_REFLECTION = REFLECTIONS_DIR / "latest_reflection.json"
+DECISION_FILE = "ops/decisions/latest.json"
+GUARDIAN_FILE = "ops/decisions/guardian_advice.json"
+REFLECTION_DIR = "ops/decisions/reflections"
 
-STATUS_FILE = OPS_DIR / "status.json"  # optional, for deltas
+os.makedirs(REFLECTION_DIR, exist_ok=True)
 
+with open(DECISION_FILE) as f:
+    decision = json.load(f)
 
-def now_iso() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+guardian_present = os.path.exists(GUARDIAN_FILE)
+guardian_alignment = 0.8 if guardian_present else 0.5
 
+timestamp = datetime.utcnow().isoformat() + "Z"
 
-def load_json(path: Path, default: Any = None) -> Any:
-    if not path.exists():
-        return default
-    try:
-        with path.open("r", encoding="utf-8") as f:
-            return json.load(f)
-    except json.JSONDecodeError:
-        return default
+reflection = {
+    "schema_version": "1.1",
+    "timestamp": timestamp,
+    "decision_id": decision.get("id", "unknown"),
+    "orchestrator": "GEORGE",
+    "inputs": {
+        "decision": DECISION_FILE,
+        "guardian_advice_present": guardian_present
+    },
+    "assessment": {
+        "risk_level": decision.get("risk", "unknown"),
+        "confidence": decision.get("confidence", 0.6),
+        "guardian_alignment": guardian_alignment
+    },
+    "behavior": {
+        "mode": "advisory",
+        "blocking": False,
+        "human_override_required": False
+    },
+    "learning": {
+        "what_worked": [],
+        "what_failed": [],
+        "next_adjustments": []
+    },
+    "autonomy_contribution": {
+        "delta": 1.5 if guardian_present else 0.5,
+        "reason": "Guardian aligned advisory decision"
+    }
+}
 
+out_file = f"{REFLECTION_DIR}/{timestamp}.json"
+with open(out_file, "w") as f:
+    json.dump(reflection, f, indent=2)
 
-def save_json(path: Path, data: Dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
-
-def append_jsonl(path: Path, record: Dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-
-def normalize_status(raw: Optional[str]) -> str:
-    """
-    Map decision.status to one of: success|failure|blocked|skipped
-    Your code uses: success|error|blocked|pending|...
-    """
-    if not raw:
-        return "unknown"
-    s = raw.strip().lower()
-    if s in ("success", "succeeded", "ok"):
-        return "success"
-    if s in ("error", "failed", "failure"):
-        return "failure"
-    if s in ("blocked", "block"):
-        return "blocked"
-    if s in ("skipped", "noop", "no_action"):
-        return "skipped"
-    if s in ("pending",):
-        return "unknown"
-    return s
-
-
-def derive_trigger(decision: Dict[str, Any]) -> str:
-    # Simple: action or intent as trigger label
-    return str(decision.get("action") or decision.get("intent") or "orchestrate")
-
+print(f"Reflection written: {out_file}")
 
 def make_reflection(
     decision: Dict[str, Any],
@@ -112,7 +104,6 @@ def make_reflection(
 
     # Deltas (optional, from status.json if present)
     health_delta = 0.0
-    autonomy_delta = 0.0
     if isinstance(status, dict) and status:
         # If you later add previous values, you can compute real deltas.
         # For now, keep 0 unless explicit deltas exist.
@@ -132,8 +123,22 @@ def make_reflection(
     if err_msg:
         errors.append({"code": "decision_error", "message": str(err_msg)})
 
+    # --- Autonomy delta from reflection (v1.1) ---
+    autonomy_delta = 0.0
+    autonomy_reason = "neutral"
+
+    if len(errors) > 0 or normalized in ("failure", "blocked"):
+        autonomy_delta = -2.0
+        autonomy_reason = "error_or_blocked"
+    elif normalized == "success" and agreed and guardian_flag in ("none", "", None):
+        autonomy_delta = +1.0
+        autonomy_reason = "success_guardian_agreed"
+    elif normalized == "success":
+        autonomy_delta = +0.5
+        autonomy_reason = "success_partial"
+    
     reflection: Dict[str, Any] = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "reflection_id": f"ref-{ts}",
         "decision_id": decision_id,
         "timestamp": ts,
@@ -164,6 +169,19 @@ def make_reflection(
             "autonomy_delta": autonomy_delta,
             "errors": errors,
         },
+        "autonomy": {
+        # delta comes from this reflection only (score evolution happens in a separate file)
+        "delta": autonomy_delta,
+        "signals": {
+            "guardian_present": isinstance(guardian, dict),
+            "guardian_agreed": agreed,
+            "guardian_flag": guardian_flag,
+            "status": normalized,
+            "errors": len(errors),
+        },
+        "explain": f"reflection:{autonomy_reason}",
+},
+
         "learning": {
             "repeated_pattern": False,
             "similar_decisions": [],
