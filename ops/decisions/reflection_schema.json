@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "reflection_id": "uuid",
+  "decision_id": "string",
+  "timestamp": "YYYY-MM-DDTHH:MM:SSZ",
+
+  "context": {
+    "source": "GEORGE|manual|workflow",
+    "trigger": "string",
+    "event_id": "string|null",
+    "branch": "string|null",
+    "run_url": "string|null"
+  },
+
+  "decision_summary": {
+    "selected_action": "string",
+    "selected_agent": "string|null",
+    "status": "success|failure|blocked|skipped",
+    "confidence": 0.0,
+    "reason": "string|null"
+  },
+
+  "guardian_feedback": {
+    "mode": "advisor|blocker",
+    "flag": "none|warn|block",
+    "policy_ids": ["string"],
+    "recommendation": "string|null",
+    "agreed_with_decision": true
+  },
+
+  "outcome": {
+    "observed_effect": "none|positive|negative|mixed|unknown",
+    "health_delta": 0.0,
+    "autonomy_delta": 0.0,
+    "errors": [
+      {
+        "code": "string",
+        "message": "string"
+      }
+    ]
+  },
+
+  "learning": {
+    "repeated_pattern": false,
+    "similar_decisions": ["string"],
+    "rule_hits": [
+      {
+        "rule_id": "string",
+        "result": "matched|not_matched",
+        "weight": 0.0
+      }
+    ],
+    "suggested_rule_changes": [
+      {
+        "rule_id": "string",
+        "change_type": "tune_threshold|add_condition|remove_condition|deprecate_rule",
+        "suggestion": "string",
+        "reason": "string",
+        "confidence": 0.0
+      }
+    ]
+  },
+
+  "notes": {
+    "short": "string|null"
+  }
+}
