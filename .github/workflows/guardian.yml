@@ -35,6 +35,11 @@ jobs:
           python ops/merge_guardian_advice.py \
             --decision ops/decisions/latest.json \
             --advice ops/decisions/guardian_advice.json
+      - name: Guardian Advisor (non-blocking)
+        run: python ops/guardian_advisor.py
+
+      - name: Merge Guardian advice into latest.json
+        run: python ops/merge_guardian_advice.py
 
       - name: Commit guardian advisory result
         run: |
