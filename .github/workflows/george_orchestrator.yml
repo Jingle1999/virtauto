@@ -135,7 +135,9 @@ jobs:
       - name: Update Audit Agent status
         run: python ops/audit_agent.py
 
-
+      - name: Autonomy score evolution
+        run: python ops/autonomy_score_evolution.py
+  
       # ─────────────────────────────
       # 6) GEORGE STATUS SCHREIBEN
       # ─────────────────────────────
@@ -165,6 +167,7 @@ jobs:
         run: |
           git config user.name "GEORGE Orchestrator"
           git config user.email "actions@github.com"
+          git add ops/reports/autonomy_score_evolution.json || true
           git add status/status.json ops/reports || true
           if ! git diff --cached --quiet; then
             git commit -m "GEORGE: update status summary"
