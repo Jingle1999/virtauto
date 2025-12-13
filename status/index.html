@@ -579,19 +579,24 @@
 fetch('/status/status.json', { cache: 'no-store' })
   .then(res => res.json())
   .then(status => {
-    // Health Score
-    if (typeof status.health_score === 'number') {
-      document.getElementById('health-score').textContent =
-        status.health_score.toFixed(1) + '%';
-    } else {
-      document.getElementById('health-score').textContent = '—';
-    }
+    // accept multiple possible keys + accept strings like "80" or "80%"
+    const raw =
+      status.health_score ??
+      status.health ??
+      status.overall_health ??
+      status.system_health ??
+      status.overall_health_score;
 
-    // Optional: Note
-    if (status.system_mode) {
-      document.getElementById('health-note').textContent =
-        'System mode: ' + status.system_mode;
-    }
+    const num = (typeof raw === 'number')
+      ? raw
+      : (typeof raw === 'string' ? parseFloat(raw.replace('%','')) : NaN);
+
+    document.getElementById('health-score').textContent =
+      Number.isFinite(num) ? (num.toFixed(1) + ' %') : '—';
+
+    // optional: show system mode if present (several key variants)
+    const mode = status.system_mode ?? status.mode ?? status.system_status ?? null;
+    if (mode) document.getElementById('health-note').textContent = `System mode: ${mode}`;
   })
   .catch(err => {
     console.warn('Health score not available', err);
