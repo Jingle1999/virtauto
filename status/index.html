@@ -517,6 +517,11 @@
             <div class="kpi-value">34</div>
             <div class="kpi-footnote">High development velocity</div>
           </div>
+          <div class="kpi">
+            <div class="kpi-label">Health Score</div>
+            <div class="kpi-value" id="health-score">—</div>
+            <div class="kpi-footnote" id="health-note">Overall system health</div>
+          </div>
         </div>
 
         <hr style="border: none; border-top: 1px solid var(--border); margin: 1.2rem 0;" />
@@ -570,5 +575,28 @@
       Experiment.
     </footer>
   </div>
+<script>
+fetch('/status/status.json', { cache: 'no-store' })
+  .then(res => res.json())
+  .then(status => {
+    // Health Score
+    if (typeof status.health_score === 'number') {
+      document.getElementById('health-score').textContent =
+        status.health_score.toFixed(1) + '%';
+    } else {
+      document.getElementById('health-score').textContent = '—';
+    }
+
+    // Optional: Note
+    if (status.system_mode) {
+      document.getElementById('health-note').textContent =
+        'System mode: ' + status.system_mode;
+    }
+  })
+  .catch(err => {
+    console.warn('Health score not available', err);
+    document.getElementById('health-score').textContent = '—';
+  });
+</script>
 </body>
 </html>
