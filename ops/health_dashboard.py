@@ -13,6 +13,8 @@ REPORTS_DIR = OPS_DIR / "reports"
 STATUS_FILE = OPS_DIR / "status.json"
 HEALTH_LOG = REPORTS_DIR / "health_log.jsonl"
 OUTPUT_FILE = REPORTS_DIR / "health_dashboard.html"
+AUTONOMY_FILE = OPS_DIR / "autonomy.json"
+EVENTS_FILE = OPS_DIR / "events.jsonl"
 
 
 def load_json(path: Path, default: Any = None) -> Any:
@@ -59,6 +61,9 @@ def format_ts(ts: str | None) -> str:
         return ts
 
 
+def now_iso() -> str:
+    return datetime.utcnow().isoformat() + "Z"
+
 def build_svg_autonomy(history: List[Dict[str, Any]]) -> str:
     """Ein kleines SVG-Linechart für autonomy_level_estimate."""
     if not history:
@@ -104,6 +109,40 @@ def build_svg_autonomy(history: List[Dict[str, Any]]) -> str:
 </svg>
 """
     return svg
+
+def update_status(trigger: str = "manual") -> Dict[str, Any]:
+    """
+    Single writer for ops/status.json.
+    Updates last_update and merges fresh autonomy data (and optionally event-derived signals later).
+    """
+    status: Dict[str, Any] = load_json(STATUS_FILE, default={}) or {}
+    autonomy: Dict[str, Any] = load_json(AUTONOMY_FILE, default={}) or {}
+
+    # ---- merge autonomy -> status (minimal, non-breaking) ----
+    # (Passe die Keys an, falls autonomy.json andere Felder nutzt.)
+    if "autonomy_level" in autonomy:
+        status["autonomy_level"] = autonomy["autonomy_level"]
+    if "autonomy_target" in autonomy:
+        status["autonomy_target"] = autonomy["autonomy_target"]
+
+    # häufige Alternativen (falls autonomy.json eher "level"/"target" nutzt)
+    if "level" in autonomy and "autonomy_level" not in status:
+        status["autonomy_level"] = autonomy["level"]
+    if "target" in autonomy and "autonomy_target" not in status:
+        status["autonomy_target"] = autonomy["target"]
+
+    # Agents / mode / george version (nur wenn vorhanden)
+    for k in ["agents_online", "agents_total", "system_mode", "george_version", "workflows"]:
+        if k in autonomy:
+            status[k] = autonomy[k]
+
+    # ---- always update timestamps ----
+    status["last_update"] = now_iso()
+    status["updated_by"] = f"health_dashboard ({trigger})"
+
+    # Write back (single source of truth)
+    STATUS_FILE.write_text(json.dumps(status, indent=2), encoding="utf-8")
+    return status
 
 
 def generate_dashboard() -> None:
@@ -306,4 +345,6 @@ def generate_dashboard() -> None:
     
 
 if __name__ == "__main__":
+    update_status(trigger="manual")
     generate_dashboard()
+
