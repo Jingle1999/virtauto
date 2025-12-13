@@ -502,11 +502,11 @@
             <div class="kpi-value">4 / 7</div>
             <div class="kpi-footnote">Core agents operational today</div>
           </div>
-          <div class="kpi">
-            <div class="kpi-label">Autonomy Level</div>
-            <div class="kpi-value">≈ 67,5%</div>
-            <div class="kpi-footnote">Target: 90%+ autonomous operations</div>
-          </div>
+        <div class="kpi">
+          <div class="kpi-label">Autonomy Level</div>
+          <div class="kpi-value" id="autonomy-level">—</div>
+          <div class="kpi-footnote" id="autonomy-note">Target: —</div>
+        </div>
           <div class="kpi">
             <div class="kpi-label">CI/CD Workflows</div>
             <div class="kpi-value">17</div>
@@ -598,9 +598,35 @@ fetch('/status/status.json', { cache: 'no-store' })
     const mode = status.system_mode ?? status.mode ?? status.system_status ?? null;
     if (mode) document.getElementById('health-note').textContent = `System mode: ${mode}`;
   })
+  // =========================
+// Autonomy Level
+// =========================
+const autonomyRaw =
+  status.autonomy_level ??
+  status.autonomy ??
+  status.autonomy_level_estimate;
+
+const autonomyNum =
+  typeof autonomyRaw === 'number'
+    ? autonomyRaw
+    : (typeof autonomyRaw === 'string'
+        ? parseFloat(autonomyRaw.replace('%',''))
+        : NaN);
+
+document.getElementById('autonomy-level').textContent =
+  Number.isFinite(autonomyNum)
+    ? autonomyNum.toFixed(1) + ' %'
+    : '—';
+
+// Target (optional)
+if (status.autonomy_target !== undefined) {
+  document.getElementById('autonomy-note').textContent =
+    `Target: ${status.autonomy_target}% autonomous operations`;
+}
   .catch(err => {
     console.warn('Health score not available', err);
     document.getElementById('health-score').textContent = '—';
+    console.warn('Status KPIs not available', err);
   });
 </script>
 </body>
