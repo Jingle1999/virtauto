@@ -629,5 +629,20 @@ if (status.autonomy_target !== undefined) {
     console.warn('Status KPIs not available', err);
   });
 </script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // ✅ quick fix: set static KPI values
+    const autonomy = 67.5;  // <-- HIER anpassen
+    const health   = 80.0;  // <-- HIER anpassen
+
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+
+    set('autonomy-level', `${autonomy.toFixed(1)}%`);
+    set('health-score', `${health.toFixed(1)}%`);
+  });
+</script>
 </body>
 </html>
