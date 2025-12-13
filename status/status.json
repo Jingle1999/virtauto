@@ -1,5 +1,9 @@
 {
-  "last_update": "2025-12-04T10:50:00Z",
+  "last_update": "2025-12-13T10:50:00Z",
+  "overall_health_score": 80.0,
+  "base_url": "https://www.virtauto.de",
+  "agents": [
+
   "base_url": "https://www.virtauto.de",
   "agents": [
     {
