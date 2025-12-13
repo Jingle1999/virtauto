@@ -301,7 +301,7 @@
 
     async function fetchStatus() {
       try {
-        const res = await fetch(STATUS_URL + "?t=" + Date.now());
+        const res = await fetch('/ops/status.json?_=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         renderStatus(data);
@@ -354,40 +354,96 @@
       });
     }
 
-    function renderStatus(status) {
-      // Basiswerte aus status.json
-      const autonomy       = status.autonomy_level  ?? 50.1;
-      const autonomyTarget = status.autonomy_target ?? 60;
-      const agentsOnline   = status.agents_online   ?? 4;
-      const agentsTotal    = status.agents_total    ?? 7;
-      const workflows      = status.workflows       ?? 17;
-      const lastUpdate     = status.last_update     || null;
+    function setText(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = value;
+}
 
-      // NEU: Health Score + System Mode
-      const healthScore = (status.health_score !== undefined && status.health_score !== null)
-        ? Number(status.health_score)
-        : null;
+function safeNumber(v, fallback = null) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
 
-      const systemMode =
-        status.system_mode   ||
-        status.system_status ||
-        status.system_health ||
-        "DEVELOPING";
+function pick(...vals) {
+  for (const v of vals) {
+    if (v !== undefined && v !== null && v !== "") return v;
+  }
+  return null;
+}
 
-      // Liste der aktiven Agenten
-      const onlineAgentsList = Array.isArray(status.agents_online_list)
-        ? status.agents_online_list
-        : ["guardian", "self_guardian", "monitoring", "self_content"];
-  
-      // --- KPIs ---
+function renderStatus(status) {
+  // --- Robust gegen unterschiedliche Keys (ops/status.json vs status/status.json etc.) ---
+  const autonomy = safeNumber(pick(status.autonomy_level, status.autonomy, status.autonomy_level_estimate), null);
+  const autonomyTarget = safeNumber(pick(status.autonomy_target, status.target_autonomy), null);
 
-      // Autonomy
-      const autoEl      = document.getElementById("kpi-autonomy");
-      const autoNoteEl  = document.getElementById("kpi-autonomy-note");
-      if (autoEl && autoNoteEl) {
-        autoEl.textContent     = `≈ ${autonomy.toFixed(1)}%`;
-        autoNoteEl.textContent = `Target: ${autonomyTarget}% autonomy in 7–14 days`;
-      }
+  const agentsOnline = safeNumber(pick(status.agents_online, status.agentsOnline), null);
+  const agentsTotal  = safeNumber(pick(status.agents_total, status.agentsTotal), null);
+
+  const workflows = safeNumber(pick(status.workflows, status.deployments_24h, status.cicd_workflows), null);
+
+  const healthScore = safeNumber(pick(status.health_score, status.health, status.overall_health), null);
+
+  const systemMode = pick(status.system_mode, status.mode, status.system_status, status.system_health, null);
+  const georgeMode = pick(status.george_version, status.george_mode, null);
+
+  const lastUpdateRaw = pick(status.last_update, status.timestamp, null);
+  const lastUpdateFmt = lastUpdateRaw ? formatTime(lastUpdateRaw) : "—";
+
+  const onlineList = Array.isArray(status.agents_online_list)
+    ? status.agents_online_list
+    : (Array.isArray(status.agents) ? status.agents.map(a => a.agent || a.id).filter(Boolean) : null);
+
+  // --- BADGES ---
+  if (autonomy !== null) {
+    setText("badge-autonomy", `Autonomy ≈ ${autonomy.toFixed(1)}%`);
+  } else {
+    setText("badge-autonomy", `Autonomy —`);
+  }
+
+  if (agentsOnline !== null && agentsTotal !== null) {
+    setText("badge-agents", `${agentsOnline} / ${agentsTotal} core agents live`);
+  } else {
+    setText("badge-agents", `Agents —`);
+  }
+
+  if (georgeMode) {
+    setText("badge-george", `GEORGE orchestrator • ${georgeMode}`);
+  } else {
+    setText("badge-george", `GEORGE orchestrator`);
+  }
+
+  // --- KPI: Autonomy ---
+  if (autonomy !== null) setText("kpi-autonomy", `≈ ${autonomy.toFixed(1)}%`);
+  else setText("kpi-autonomy", "—");
+
+  if (autonomyTarget !== null) setText("kpi-autonomy-note", `Target: ${autonomyTarget.toFixed(0)}%`);
+  else setText("kpi-autonomy-note", "Target: —");
+
+  // --- KPI: Agents ---
+  if (agentsOnline !== null && agentsTotal !== null) setText("kpi-agents", `${agentsOnline} / ${agentsTotal}`);
+  else setText("kpi-agents", "—");
+
+  if (onlineList && onlineList.length) setText("kpi-agents-note", onlineList.join(" · "));
+  else setText("kpi-agents-note", "—");
+
+  // --- KPI: Workflows ---
+  if (workflows !== null) setText("kpi-workflows", `${workflows}`);
+  else setText("kpi-workflows", "—");
+
+  setText("kpi-workflows-note", "Self-operating backbone for virtauto.de");
+
+  // --- KPI: Last update ---
+  setText("kpi-last-update", lastUpdateFmt);
+  setText("kpi-last-update-note", "Auto-refresh every 30 seconds");
+
+  // --- KPI: Health ---
+  if (healthScore !== null) setText("kpi-health", `${healthScore.toFixed(1)}%`);
+  else setText("kpi-health", "—");
+
+  setText("kpi-health-note", systemMode ? `System mode: ${systemMode}` : "System mode: —");
+}
+
 
       // Agents
       const agentsEl     = document.getElementById("kpi-agents");
