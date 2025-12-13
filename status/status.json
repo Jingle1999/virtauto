@@ -4,8 +4,6 @@
   "base_url": "https://www.virtauto.de",
   "agents": [
 
-  "base_url": "https://www.virtauto.de",
-  "agents": [
     {
       "agent": "self_audit",
       "status": "completed",
