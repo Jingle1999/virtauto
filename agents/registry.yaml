@@ -73,6 +73,22 @@ agents:
     tags: [core, content]
     status: preparing
 
+  - id: deploy_agent
+    name: Deploy Agent
+    owner: ops
+    description: Executes safe site deployments triggered by GEORGE.
+    capabilities: [deploy, rollback, healthcheck]
+    triggers:
+      - on: event
+        type: "deploy_requested"
+    outputs:
+      - "logs/deploy.log"
+    sla:
+      rto: "15m"
+      rpo: "24h"
+    tags: [core, deploy]
+    status: preparing
+
   - id: george
     name: GEORGE Orchestrator
     owner: core
@@ -93,5 +109,3 @@ agents:
       rpo: "1h"
     tags: [core, orchestrator]
     status: preparing
-
-
