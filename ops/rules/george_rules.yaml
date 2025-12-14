@@ -3,15 +3,15 @@ last_updated: "2025-12-03T08:45:00Z"
 
 meta:
   description: >
-    GEORGE Orchestrator Rules V1.0 for virtauto.de.
+    GEORGE Orchestrator Rules v1.0 for virtauto.de.
     Simple event-based routing between Self-Agents.
   owner: "virtauto.OS"
   tags: ["george", "orchestrator", "routing", "self-agents"]
 
 rules:
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
   # 1) Fehler & Warnungen -> Self-Guardian
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
   - id: "guard-001"
     description: "Route all error/failure events to the Self-Guardian Agent."
     match:
@@ -30,9 +30,9 @@ rules:
       intent: "review_warning"
       message: "GEORGE noticed a degraded or warning state and asks for a review."
 
-  # ------------------------------------------------------------------
-  # 2) Self-Audit -> Content Agent
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
+  # 2) Self-Audit -> Self-Content (Dashboard Copy / Status Snippets)
+  # --------------------------------------------------------------
   - id: "content-001"
     description: "If the Self-Audit Agent completes successfully, trigger the Content Agent."
     match:
@@ -43,9 +43,9 @@ rules:
       intent: "generate_dashboard_copy"
       message: "Use the latest audit findings to update dashboard texts and status snippets."
 
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
   # 3) Self-Content -> Deploy Agent (wenn neue Inhalte fertig)
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
   - id: "deploy-001"
     description: "If the Content Agent marks content as ready, trigger a deploy."
     match:
@@ -54,11 +54,11 @@ rules:
     action:
       target_agent: "deploy_agent"
       intent: "deploy_site_update"
-      message: "New content is ready – please trigger a safe production deployment."
+      message: "New content is ready - please trigger a safe production deployment."
 
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
   # 4) RAG Embedding Builder -> Knowledge Agent
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
   - id: "knowledge-001"
     description: "When RAG embeddings are updated, notify the Knowledge Agent."
     match:
@@ -69,9 +69,9 @@ rules:
       intent: "reload_index"
       message: "New embeddings have been generated. Reload or re-index the RAG knowledge base."
 
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
   # 5) Site-Audit / External Monitoring -> Self-Guardian
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
   - id: "guard-003"
     description: "Route external site-audit issues to Self-Guardian."
     match:
@@ -82,57 +82,52 @@ rules:
       intent: "handle_external_issue"
       message: "External monitoring detected issues. Please check uptime, performance, or SEO."
 
-  # 6) Website Monitoring -> Content Agent (Status-Update)
-  # -----------------------------------------------------
+  # --------------------------------------------------------------
+  # 6) Website Monitoring -> Self-Content (Status-Update)
+  # --------------------------------------------------------------
   - id: "monitor-001"
     description: "When website monitoring reports status_ok, trigger the Content Agent to create a status update."
     match:
       agent: "website_monitoring"
-      event: "status_ok"
+      event: ["status_ok"]
     action:
-      target_agent: "self_content"       # passt zu deiner bestehenden content-Regel
+      target_agent: "self_content"
       intent: "create_status_update"
       message: "Website status is OK. Generate a short system status text for virtauto.de based on the current healthy state."
 
-
-  # ------------------------------------------------------------------
-  # 7) Default: Alles andere erstmal nur loggen (No-Op)
-  #    (GEORGE schreibt dann nur ein route-Event ohne Folgewirkung)
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
+  # 7) Default: Alles andere erstmal nur loggen (Observability / No-Op)
+  # --------------------------------------------------------------
   - id: "noop-001"
     description: "Catch-all for unknown events (for observability only)."
     match: {}
     action:
       target_agent: "activity_log"
       intent: "record_event"
-      message: "Unknown event type – record in activity feed for later analysis."
+      message: "Unknown event type - record in activity feed for later analysis."
 
-  # ------------------------------------------------------------------
-  # 8) Regel 1: Deploy auf Anfrage
-  # ------------------------------------------------------------------
+  # --------------------------------------------------------------
+  # 8) Deploy auf Anfrage (konsolidiert aus dem alten -name/when/then Block)
+  # --------------------------------------------------------------
+  - id: "deploy-req-001"
+    description: "If GEORGE receives a deploy request, route to Deploy Agent."
+    match:
+      agent: "george"
+      event: ["deploy_requested"]
+    action:
+      target_agent: "deploy_agent"
+      intent: "orchestrate_deploy"
+      message: "Deploy requested. Run safe deploy incl. healthcheck + rollback hint."
 
-  - name: deploy_on_request
-    when:
-      agent: george
-      event: deploy_requested
-    then:
-      agent: deploy
-      action: orchestrate_deploy
-      min_autonomy: 0.30
-      confidence: 0.90
-      notes: "Trigger Deploy Agent v1 (simulated deploy + healthcheck + rollback hint)."
-
-  # ------------------------------------------------------------------
-  # 9) Regel 2: Content-Check bei „Content-Health low
-  # ------------------------------------------------------------------
-  - name: content_health_low
-    when:
-      agent: monitoring
-      event: content_health_low
-    then:
-      agent: content_creator
-      action: suggest_improvements
-      min_autonomy: 0.20
-      confidence: 0.80
-      notes: "Ask content_creator to propose fixes, new pages and posts."
-
+  # --------------------------------------------------------------
+  # 9) Content-Check bei 'content_health_low' (konsolidiert)
+  # --------------------------------------------------------------
+  - id: "content-health-001"
+    description: "If monitoring reports low content health, ask Content Agent for improvements."
+    match:
+      agent: "website_monitoring"
+      event: ["content_health_low"]
+    action:
+      target_agent: "self_content"
+      intent: "suggest_improvements"
+      message: "Content health is low. Propose fixes: new posts/pages + updates."
