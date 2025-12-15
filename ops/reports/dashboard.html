@@ -404,7 +404,7 @@
 
   <!-- CONFIG: Raw GitHub URLs (live mode) -->
 <script>
-  const STATUS_URL = "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/status.json";
+  const STATUS_URL = "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/reports/system_status.json";
   const HEALTH_LOG_URL = "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/reports/health_log.jsonl";
   const DECISIONS_LATEST_URL = "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/decisions/latest.json";
 
@@ -451,6 +451,32 @@
       return records;
     }
 
+    function normalizeStatus(raw) {
+      if (!raw) return {};
+
+      // Case A: altes "HealthState"-Format (flat)
+      if (raw.agent_response_success_rate !== undefined) return raw;
+
+      // Case B: neues system_status.json (dein aktuelles)
+      const metrics = raw.health?.metrics || {};
+      return {
+        // KPIs, die updateStatusCard() erwartet
+        autonomy_level_estimate: raw.autonomy?.current_level ?? null,       // 0..1
+        agent_response_success_rate: metrics.agent_response_success_rate ?? null, // 0..1
+        system_stability_score: metrics.system_stability_score ?? null,     // 0..1
+        self_detection_errors: metrics.self_detected_errors_24h ?? null,    // int
+
+        // optional (falls du sie später nutzen willst)
+        total_actions: metrics.total_actions ?? null,
+        failed_actions: metrics.failed_actions ?? null,
+
+        // fürs “last action”/timestamp im Caption-Text
+        last_autonomous_action: raw.autonomy?.last_autonomous_action ?? null,
+        timestamp: raw.generated_at ?? raw.generatedAt ?? raw.timestamp ?? null
+      };
+    }
+
+    
     // --- Chart -----------------------------------------------------------
     let autonomyChart;
 
@@ -549,9 +575,11 @@
       const lastAction = status.last_autonomous_action || status.timestamp;
 
       autonomyMain.innerHTML = (autonomy ?? "–") + "<span>%</span>";
-      autonomyCaption.textContent = lastAction
-        ? `Estimated autonomy level from last GEORGE run at ${formatTs(lastAction)}.`
-        : "No autonomous run recorded yet.";
+      const when = status.timestamp || status.last_autonomous_action;
+      autonomyCaption.textContent = when
+        ? `Latest snapshot: ${formatTs(when)}${status.last_autonomous_action ? ` • last action: ${status.last_autonomous_action}` : ""}`
+        : "No snapshot recorded yet.";
+
 
       // KPIs
       kSuccess.textContent = success !== null ? success + "%" : "–";
@@ -650,10 +678,8 @@
           console.warn("Invalid status.json", e);
         }
 
-        // status.json kann entweder direkt HealthState sein oder in einem Feld liegen
-        const status = statusJson && statusJson.agent_response_success_rate !== undefined
-          ? statusJson
-          : (statusJson.health || statusJson);
+        // status.json might be directly in HealthState or in a separate part
+        const status = normalizeStatus(statusJson);
 
         updateStatusCard(status);
 
