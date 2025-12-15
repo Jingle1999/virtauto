@@ -1,0 +1,46 @@
+name: GEORGE Dry Run
+
+on:
+  push:
+    paths:
+      - "ops/rules/george_rules.yaml"
+      - "ops/george/**"
+      - "ops/reports/system_status.json"
+  pull_request:
+    paths:
+      - "ops/rules/george_rules.yaml"
+      - "ops/george/**"
+      - "ops/reports/system_status.json"
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Run GEORGE on test events
+        run: |
+          set -e
+          for f in ops/george/tests/*.json; do
+            echo "=== Running $f ==="
+            python ops/george/run.py --event "$f" --print
+          done
+
+      - name: Upload decisions as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: george-decisions
+          path: |
+            ops/decisions/latest.json
+            ops/decisions/decisions.jsonl
