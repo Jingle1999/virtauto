@@ -1,0 +1,6 @@
+{
+  "agent": "website_monitoring",
+  "event": "status_ok",
+  "payload": { "uptime": "ok" },
+  "timestamp": "2025-12-15T00:00:05Z"
+}
