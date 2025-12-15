@@ -1,3 +1,30 @@
+# ============================================================
+# GEORGE ORCHESTRATOR – ROLE & NON-GOALS (STABILITY FIRST)
+# ============================================================
+
+# Purpose:
+# GEORGE is the deterministic control core. It routes work to agents based on
+# system state + policies. GEORGE must prefer SAFE STOP over improvisation.
+
+# GEORGE IS:
+# - Orchestrator (selects next step deterministically)
+# - Gatekeeper (enforces hard gates for risky actions)
+# - Prioritizer (security > deploy > content > monitoring > compliance)
+# - Recorder (every decision is logged as a decision record)
+
+# GEORGE IS NOT:
+# - Content generator (agents generate content, not GEORGE)
+# - Problem solver (agents solve tasks; GEORGE selects and bounds them)
+# - Optimizer (no “smart improvements” without explicit policy)
+# - Autonomous actor for external side effects (deploy/external always gated)
+
+# Non-negotiables:
+# 1) Determinism: same input state => same decision (in same mode).
+# 2) Safety: if uncertain => HOLD / ESCALATE, never “best guess”.
+# 3) No silent failure: errors must produce a safe fallback + a log record.
+
+# ============================================================
+
 version: 1.0
 last_updated: "2025-12-15T11:55:00Z"
 
@@ -7,14 +34,20 @@ meta:
     Simple event-based routing between Self-Agents.
   owner: "virtauto.OS"
   tags: ["george", "orchestrator", "routing", "self-agents"]
+  schema: "george_rules/v1"
+  evaluation: "first_match_wins"
+  unknown_event_policy: "log_only"
 
 rules:
-  # --------------------------------------------------------------
-  # 1)  Mistakes & Warnings -> Self-Guardian
-  # --------------------------------------------------------------
+
+  # ----------------------------------------------------------
+  # 1) Errors & Failures → Self-Guardian
+  # ----------------------------------------------------------
+
   - id: "guard-001"
     description: "Route all error/failure events to the Self-Guardian Agent."
     match:
+      agent: ["*"]
       event: ["error", "failed", "failure"]
     action:
       target_agent: "self_guardian"
@@ -22,17 +55,19 @@ rules:
       message: "GEORGE detected a failing workflow and requests a root-cause analysis."
 
   - id: "guard-002"
-    description: "Route pipeline warnings to Self-Guardian for follow-up."
+    description: "Route warnings and degraded states to Self-Guardian."
     match:
+      agent: ["*"]
       event: ["warning", "degraded"]
     action:
       target_agent: "self_guardian"
       intent: "review_warning"
       message: "GEORGE noticed a degraded or warning state and asks for a review."
 
-  # --------------------------------------------------------------
-  # 2) Self-Audit -> Self-Content (Dashboard Copy / Status Snippets)
-  # --------------------------------------------------------------
+  # ----------------------------------------------------------
+  # 2) Self-Audit → Self-Content
+  # ----------------------------------------------------------
+
   - id: "content-001"
     description: "If the Self-Audit Agent completes successfully, trigger the Content Agent."
     match:
@@ -43,11 +78,12 @@ rules:
       intent: "generate_dashboard_copy"
       message: "Use the latest audit findings to update dashboard texts and status snippets."
 
-  # --------------------------------------------------------------
-  # 3) Self-Content -> Deploy Agent (as soon as new content is ready)
-  # --------------------------------------------------------------
+  # ----------------------------------------------------------
+  # 3) Self-Content → GEORGE (Deploy Request)
+  # ----------------------------------------------------------
+
   - id: "deploy-001"
-    description: "If Content is ready, request a deploy via GEORGE (policy gate)."
+    description: "If content is ready, request a deploy via GEORGE (policy gate)."
     match:
       agent: "self_content"
       event: ["content_ready", "page_updated"]
@@ -56,9 +92,10 @@ rules:
       intent: "deploy_requested"
       message: "Content is ready. Please evaluate policies/health and request a safe deployment if allowed."
 
-  # --------------------------------------------------------------
-  # 4) RAG Embedding Builder -> Knowledge Agent
-  # --------------------------------------------------------------
+  # ----------------------------------------------------------
+  # 4) RAG Embedding Builder → Knowledge Agent
+  # ----------------------------------------------------------
+
   - id: "knowledge-001"
     description: "When RAG embeddings are updated, notify the Knowledge Agent."
     match:
@@ -69,11 +106,12 @@ rules:
       intent: "reload_index"
       message: "New embeddings have been generated. Reload or re-index the RAG knowledge base."
 
-  # --------------------------------------------------------------
-  # 5) Site-Audit / External Monitoring -> Self-Guardian
-  # --------------------------------------------------------------
+  # ----------------------------------------------------------
+  # 5) Site Audit / External Monitoring → Self-Guardian
+  # ----------------------------------------------------------
+
   - id: "guard-003"
-    description: "Route external site-audit issues to Self-Guardian."
+    description: "Route external site-audit or monitoring issues to Self-Guardian."
     match:
       agent: ["site_audit", "external_monitor"]
       event: ["issue_detected", "uptime_alert"]
@@ -82,82 +120,101 @@ rules:
       intent: "handle_external_issue"
       message: "External monitoring detected issues. Please check uptime, performance, or SEO."
 
-  # --------------------------------------------------------------
-  # 6) Deploy on request (consolidated from old -name/when/then-block)
-  # --------------------------------------------------------------
-   - id: "deploy-req-001"
-    description: "If GEORGE receives a deploy request, route to Deploy Agent."
+  # ----------------------------------------------------------
+  # 6) Deploy Request (Policy-Gated)
+  # ----------------------------------------------------------
+
+  - id: "deploy-req-001"
+    description: "If GEORGE receives a deploy request and policy gates are green/yellow, route to Deploy Agent."
     preconditions:
       guardian_status: ["green", "yellow"]
       system_health_min: 0.6
-
     match:
       agent: "george"
       event: ["deploy_requested"]
     action:
-      target_agent: "deploy_agent"
+      target_agent: "deploy"
       intent: "orchestrate_deploy"
-      message: "Deploy requested. Run safe deploy incl. healthcheck + rollback hint."
+      message: "Deploy requested. Run safe deploy incl. healthcheck and rollback hint."
 
-  # --------------------------------------------------------------
-  # 7) Create mistakes-to-input-learning
-  # --------------------------------------------------------------
-   - id: "heal-001"
-    description: "If a deploy fails, trigger a controlled retry flow (v0.1) and notify Guardian."
+  - id: "deploy-req-deny-001"
+    description: "If deploy is requested but policy gates fail, route to Self-Guardian."
     match:
-      agent: "deploy_agent"
+      agent: "george"
+      event: ["deploy_requested"]
+    action:
+      target_agent: "self_guardian"
+      intent: "hold_or_escalate_deploy"
+      message: "Deploy requested but policy gates not met. Holding deployment and requesting review."
+    meta:
+      policy_gate: true
+      outcome: "denied"
+
+  # ----------------------------------------------------------
+  # 7) Self-Healing v0.1 (Deploy Failure Handling)
+  # ----------------------------------------------------------
+
+  - id: "heal-001"
+    description: "If a deploy fails, trigger controlled retry (v0.1) and notify Guardian."
+    match:
+      agent: "deploy"
       event: ["deploy_failed", "healthcheck_failed"]
     action:
       target_agent: "self_guardian"
       intent: "investigate_failure"
-      meta:
-        self_healing: true
-        retry_allowed: true
-        max_retries: 1
-    - id: "heal-002"
-      description: "Log rollback completion for observability."
-      match:
-        agent: "deploy_agent"
-        event: ["rollback_completed"]
-      action:
-        target_agent: "activity_log"
-        intent: "record_event"
-        message: "Rollback completed."
+    meta:
+      self_healing: true
+      retry_allowed: true
+      max_retries: 1
 
-  # --------------------------------------------------------------
-  # 8) Website Monitoring -> Self-Content (Status-Update)
-  # --------------------------------------------------------------
+  - id: "heal-002"
+    description: "Log rollback completion for observability."
+    match:
+      agent: "deploy"
+      event: ["rollback_completed"]
+    action:
+      target_agent: "self_audit"
+      intent: "record_event"
+      message: "Rollback completed."
+
+  # ----------------------------------------------------------
+  # 8) Website Monitoring → Self-Content (Status Update)
+  # ----------------------------------------------------------
+
   - id: "monitor-001"
-    description: "When website monitoring reports status_ok, trigger the Content Agent to create a status update."
+    description: "When website monitoring reports status OK, trigger a status update."
     match:
       agent: "website_monitoring"
       event: ["status_ok"]
     action:
       target_agent: "self_content"
       intent: "create_status_update"
-      message: "Website status is OK. Generate a short system status text for virtauto.de based on the current healthy state."
+      message: "Website status is OK. Generate a short system status text for virtauto.de."
 
+  # ----------------------------------------------------------
+  # 9) Content Health Check → Self-Content
+  # ----------------------------------------------------------
 
-  # --------------------------------------------------------------
-  # 9) Content-Check at 'content_health_low' (consolidated)
-  # --------------------------------------------------------------
   - id: "content-health-001"
-    description: "If monitoring reports low content health, ask Content Agent for improvements."
+    description: "If monitoring reports low content health, request improvements."
     match:
       agent: "website_monitoring"
       event: ["content_health_low"]
     action:
       target_agent: "self_content"
       intent: "suggest_improvements"
-      message: "Content health is low. Propose fixes: new posts/pages + updates."
+      message: "Content health is low. Propose fixes: new posts, pages, or updates."
 
-  # --------------------------------------------------------------
-  # 10) Default: log everything else (Observability / No-Op)
-  # --------------------------------------------------------------
+  # ----------------------------------------------------------
+  # 10) Default Fallback (Observability Only)
+  # ----------------------------------------------------------
+
   - id: "noop-001"
     description: "Catch-all for unknown events (observability only)."
-    match: {}
+    match:
+      agent: ["*"]
+      event: ["*"]
     action:
-      target_agent: "george"
-      intent: "log_event"
-      message: "Unknown event type - record in GEORGE log for later analysis."
+      target_agent: "self_audit"
+      intent: "record_event"
+      message: "Unhandled event observed by GEORGE (no-op)."
