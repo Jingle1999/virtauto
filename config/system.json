@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "entrypoints": {
+    "george_config": "config/george_config.json",
+    "thresholds": "config/thresholds.yml",
+    "george_rules": "ops/rules/george_rules.yaml",
+    "autonomy_contract": "ops/autonomy.json",
+    "events_log": "ops/events.jsonl",
+    "status_source": "ops/reports/system_status.json"
+  }
+}
