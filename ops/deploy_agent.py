@@ -19,6 +19,33 @@ REPORT_FILE = Path("status/deploy_agent_report.md")
 AGENT_ID = "deploy"
 AGENT_TITLE = "Deploy Agent v1"
 
+SIMULATION_ONLY = True  # hard default
+
+def is_emergency_lock() -> bool:
+    from pathlib import Path
+    import json
+    p = Path("ops/emergency_lock.json")
+    if not p.exists():
+        return False
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        return bool(data.get("locked", False))
+    except Exception:
+        return True  # fail-safe: treat as locked
+
+def main():
+    if is_emergency_lock():
+        raise SystemExit("EMERGENCY LOCK active. Aborting deploy simulation.")
+
+    # require explicit human override token/flag in status or env
+    import os
+    if os.getenv("HUMAN_OVERRIDE", "").lower() != "true":
+        raise SystemExit("Human override not granted (HUMAN_OVERRIDE=true required).")
+
+    if not SIMULATION_ONLY:
+        raise SystemExit("SIMULATION_ONLY is false. This agent is not allowed to run real deploy yet.")
+
+
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
