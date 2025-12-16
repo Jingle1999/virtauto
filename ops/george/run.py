@@ -54,8 +54,14 @@ def load_json(path: Path) -> Dict[str, Any]:
 
 def write_json(path: Path, data: Dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as f:
+
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with tmp.open("w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+    # Atomic replace (same filesystem)
+    tmp.replace(path)
+
 
 
 def append_jsonl(path: Path, obj: Dict[str, Any]) -> None:
