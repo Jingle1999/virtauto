@@ -83,14 +83,14 @@ rules:
   # ----------------------------------------------------------
 
   - id: "deploy-001"
-    description: "If content is ready, request a deploy via GEORGE (policy gate)."
+    description: "If self-audit completed successfully, request a deploy via GEORGE."
     match:
       agent: "self_content"
       event: ["content_ready", "page_updated", "content_updated", "content_done"]
     action:
       target_agent: "george"
-      intent: "deploy_requested"
-      message: "Content is ready. Please evaluate policies/health and request a safe deployment if allowed."
+      event: "deploy_requested"
+      message: "Self-audit completed. Please evaluate policies and system health for a safe deployment."
 
   # ----------------------------------------------------------
   # 4) RAG Embedding Builder → Knowledge Agent
