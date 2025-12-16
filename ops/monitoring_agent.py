@@ -62,7 +62,7 @@ def trigger_health_dashboard():
             cwd=str(REPO_ROOT),
             capture_output=True,
             text=True,
-            check=False
+            check=False,
             timeout=60
         )
         if res.returncode != 0:
