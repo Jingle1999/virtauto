@@ -1,5 +1,5 @@
 {
-  "emergency_lock": false,
+  "locked": false,
   "reason": "",
   "activated_by": "",
   "activated_at": ""
