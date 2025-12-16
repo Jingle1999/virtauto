@@ -4,4 +4,5 @@
 {"timestamp":"2025-12-03T09:00:00Z","agent":"self_audit","event":"completed","details":"Test event from Andreas"}
 {"agent":"system_status","status":"updated","message":"Status.json updated – health=52.8%, autonomy=50.1%.","timestamp":"2025-12-11T08:05:00+01:00"}
 {"timestamp": "2025-12-16T11:35:00Z","agent": "self_content", "event": "content_done","message": "Dashboard content updated based on latest audit."}
+{"timestamp":"2025-12-16T20:59:00Z","agent":"george","event":"deploy_requested","message":"SIMULATION: deploy requested after content update (health below threshold)","mode":"simulation"}
 
