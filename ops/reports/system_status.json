@@ -20,8 +20,8 @@
   },
 
   "health": {
-    "overall_score": 0.80,
-    "signal": "green",
+    "overall_score": 0.52,
+    "signal": "yellow",
     "metrics": {
       "agent_response_success_rate": 0.96,
       "system_stability_score": 0.82,
