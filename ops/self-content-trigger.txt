@@ -1,2 +1,13 @@
-Self Content Agent trigger file.
-Änderung = neuer Lauf.
+trigger: manual
+agent: self_content
+reason: dashboard_update_after_self_audit
+requested_by: george
+scope:
+  - system_status
+  - health_dashboard
+  - autonomy_metrics
+expected_output:
+  - updated_dashboard_copy
+  - status_snippets_refreshed
+notes:
+  Use latest self-audit and system health signals only.
