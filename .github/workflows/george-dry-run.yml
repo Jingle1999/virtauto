@@ -1,6 +1,7 @@
 name: GEORGE Dry Run
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - "ops/rules/george_rules.yaml"
