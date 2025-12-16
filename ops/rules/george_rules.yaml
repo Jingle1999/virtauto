@@ -203,3 +203,21 @@ rules:
       target_agent: "self_audit"
       intent: "record_event"
       message: "Unhandled event observed by GEORGE (no-op)."
+
+  - id: "deploy-sim-001"
+    description: "Deploy simulation only (no real deploy). Requires human override approval flag."
+    preconditions:
+    guardian_status: ["green", "yellow"]
+    system_health_min: 0.6
+    emergency_lock: false
+    require_human_override: true
+
+  match:
+    agent: "george"
+    event: ["deploy_requested"]
+
+  action:
+    target_agent: "deploy"
+    intent: "simulate_deploy"
+    mode: "simulation"
+    message: "SIMULATION ONLY. Run deploy agent read-only: healthcheck + rollback recommendation + report. No workflow dispatch to production."
