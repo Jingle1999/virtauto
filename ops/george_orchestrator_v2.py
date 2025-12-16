@@ -425,10 +425,10 @@ def match_rule_for_event(event: "Event", rules: List[Dict[str, Any]]) -> Optiona
 
         if rule:
             if "then" in rule:
-            then_cfg = rule.get("then", {}) or {}
-            target_agent = then_cfg.get("agent") or event.agent
-            action = then_cfg.get("action") or event.event
-            confidence = float(then_cfg.get("confidence", 0.8))
+                then_cfg = rule.get("then", {}) or {}
+                target_agent = then_cfg.get("agent") or event.agent
+                action = then_cfg.get("action") or event.event
+                confidence = float(then_cfg.get("confidence", 0.8))
         else:
             # V1 action format
             act = rule.get("action") or {}
