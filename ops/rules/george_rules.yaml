@@ -47,8 +47,8 @@ rules:
   - id: "guard-001"
     description: "Route all error/failure events to the Self-Guardian Agent."
     match:
-      agent: ["*"]
       event: ["error", "failed", "failure"]
+
     action:
       target_agent: "self_guardian"
       intent: "investigate_failure"
@@ -57,8 +57,8 @@ rules:
   - id: "guard-002"
     description: "Route warnings and degraded states to Self-Guardian."
     match:
-      agent: ["*"]
       event: ["warning", "degraded"]
+
     action:
       target_agent: "self_guardian"
       intent: "review_warning"
@@ -86,7 +86,7 @@ rules:
     description: "If content is ready, request a deploy via GEORGE (policy gate)."
     match:
       agent: "self_content"
-      event: ["content_ready", "page_updated"]
+      event: ["content_ready", "page_updated", "content_updated", "content_done"]
     action:
       target_agent: "george"
       intent: "deploy_requested"
@@ -136,19 +136,6 @@ rules:
       target_agent: "deploy"
       intent: "orchestrate_deploy"
       message: "Deploy requested. Run safe deploy incl. healthcheck and rollback hint."
-
-  - id: "deploy-req-deny-001"
-    description: "If deploy is requested but policy gates fail, route to Self-Guardian."
-    match:
-      agent: "george"
-      event: ["deploy_requested"]
-    action:
-      target_agent: "self_guardian"
-      intent: "hold_or_escalate_deploy"
-      message: "Deploy requested but policy gates not met. Holding deployment and requesting review."
-    meta:
-      policy_gate: true
-      outcome: "denied"
 
   # ----------------------------------------------------------
   # 7) Self-Healing v0.1 (Deploy Failure Handling)
@@ -211,9 +198,7 @@ rules:
 
   - id: "noop-001"
     description: "Catch-all for unknown events (observability only)."
-    match:
-      agent: ["*"]
-      event: ["*"]
+    match: {}
     action:
       target_agent: "self_audit"
       intent: "record_event"
