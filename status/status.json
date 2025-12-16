@@ -3,7 +3,6 @@
   "overall_health_score": 80.0,
   "base_url": "https://www.virtauto.de",
   "agents": [
-
     {
       "agent": "self_audit",
       "status": "completed",
@@ -23,11 +22,6 @@
       "http": {}
     },
     {
-      "agent": "self_content",
-      "status": "ok",
-      "timestamp": "2025-11-24T06:07:02Z"
-    },
-    {
       "agent": "website_monitoring",
       "status": "ok",
       "timestamp": "2025-10-31T20:10:00Z"
@@ -36,6 +30,11 @@
       "agent": "self_guardian",
       "status": "ok",
       "timestamp": "2025-12-03T06:12:32Z"
+    },
+    {
+      "agent": "self_content",
+      "status": "ok",
+      "timestamp": "2025-12-16T10:43:53Z"
     }
   ],
   "pipelines": {
