@@ -26,3 +26,10 @@
     - orchestrate_deploy
     - rollback
     - healthcheck
+
+- name: deploy_simulation
+  desc: Runs ops/deploy_agent.py in simulation mode (read-only). No dispatch.
+  inputs: {}
+  outputs: { ok: bool }
+  deps: []
+  rate_limit: "5/min"
