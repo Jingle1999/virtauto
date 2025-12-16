@@ -34,7 +34,7 @@ import yaml as PYYAML  # PyYAML
 OPS_DIR = Path(__file__).resolve().parent
 ROOT_DIR = OPS_DIR.parents[0]
 
-EVENTS_FILE = OPS_DIR / "events.json"
+EVENTS_FILE = OPS_DIR / "events.jsonl"
 EVENT_SCHEMA_FILE = OPS_DIR / "event.schema.json"
 
 RULES_FILE = OPS_DIR / "rules" / "george_rules.yaml"
@@ -266,30 +266,34 @@ class HealthState:
 # ---------------------------------------------------------------------------
 
 def load_latest_event() -> Optional[Event]:
-    """Liest das letzte Event aus events.json (Array)."""
+    """Liest das letzte Event aus events.jsonl (eine JSON-Zeile pro Event)."""
     if not EVENTS_FILE.exists():
-        print("[GEORGE V2] Keine events.json gefunden.")
+        print("[GEORGE V2] Keine events.jsonl gefunden.")
+        return None
+
+    last = None
+    with EVENTS_FILE.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                last = line
+    if not last:
+        print("[GEORGE V2] events.jsonl ist leer.")
         return None
 
     try:
-        data = load_json(EVENTS_FILE, [])
-        if not isinstance(data, list) or not data:
-            print("[GEORGE V2] events.json ist leer.")
-            return None
-        latest_raw = data[-1]
-        return Event.from_dict(latest_raw)
+        return Event.from_dict(json.loads(last))
     except Exception as exc:
-        print(f"[GEORGE V2] Fehler beim Laden von events.json: {exc}", file=sys.stderr)
+        print(f"[GEORGE V2] Fehler beim Laden letztes JSONL-Event: {exc}", file=sys.stderr)
         return None
 
 
 def append_events(new_events: List[Event]) -> None:
-    """Hängt Events an events.json an (Array-Append)."""
-    existing = load_json(EVENTS_FILE, [])
-    if not isinstance(existing, list):
-        existing = []
-    existing.extend(ev.to_dict() for ev in new_events)
-    save_json(EVENTS_FILE, existing)
+    """Hängt Events an events.jsonl an."""
+    with EVENTS_FILE.open("a", encoding="utf-8") as f:
+        for ev in new_events:
+            f.write(json.dumps(ev.to_dict(), ensure_ascii=False) + "\n")
+
 
 def save_decision(decision: Decision | Dict[str, Any]) -> None:
     """
