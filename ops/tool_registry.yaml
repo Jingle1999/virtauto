@@ -18,3 +18,11 @@
   inputs: {}
   outputs: {}
   deps: []
+
+- name: deploy
+  agent: deploy
+  entrypoint: deploy_agent.py
+  capabilities:
+    - orchestrate_deploy
+    - rollback
+    - healthcheck
