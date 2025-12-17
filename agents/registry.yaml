@@ -203,12 +203,10 @@ agents:
     deploy:
       type: execution
       status: simulation
-      description: "Deploy Agent (simulation-only, guarded)"
+      mode: simulation_only
+      description: "Deploy Agent (simulation-only, explicitly non-operational)"
       entrypoint: "agents/deploy_agent.py"
-      permissions:
-        - read_intent
-        - write_decision
-      side_effects: false
+
   
 
 
