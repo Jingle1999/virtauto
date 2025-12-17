@@ -28,6 +28,24 @@ jobs:
       - name: Install validator dependencies
         run: pip install pyyaml
 
+      - name: Install validator dependencies
+        run: pip install pyyaml jsonschema
+
+      # (4) NEW: validate registry parses cleanly (and optionally schema)
+      - name: Validate registry.yaml parses
+        run: |
+          python - <<'PY'
+          import yaml, sys
+          p = "agents/registry.yaml"
+          with open(p, "r", encoding="utf-8") as f:
+            yaml.safe_load(f)
+          print("OK: registry.yaml parses")
+          PY
+
+      - name: Validate system status vs registry
+        run: python ops/validate_status.py
+
+
       - name: Validate system status vs registry
         run: python ops/validate_status.py
 
@@ -54,3 +72,5 @@ jobs:
           path: |
             design_gate_report.txt
           if-no-files-found: ignore
+
+      
