@@ -196,6 +196,7 @@ agents:
       requires_guardian_green: true
       requires_health_score_min: 0.80
       requires_human_override_for_prod: true
+      allows_simulation: true
     sla:
       rto: "15m"
       rpo: "24h"
