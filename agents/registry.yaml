@@ -52,6 +52,7 @@ agents:
     status: active
     description: >
       Policy gatekeeper. Runs security/compliance checks and blocks unsafe changes before production.
+      Explicitly blocks any production deploys. Allows simulation-only deploy intents for validation and orchestration testing.
     capabilities: [policy-gate, headers-check, csp-check, robots, sitemap]
     signal_sources:
       workflows:
