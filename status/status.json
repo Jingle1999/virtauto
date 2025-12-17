@@ -1,6 +1,10 @@
 {
   "last_update": "2025-12-13T10:50:00Z",
   "overall_health_score": 80.0,
+  "system_health": 0.80,
+
+  "autonomy_level": null,
+  "agent_health": "4/7",
   "base_url": "https://www.virtauto.de",
   "agents": [
     {
