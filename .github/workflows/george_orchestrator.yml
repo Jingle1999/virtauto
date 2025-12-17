@@ -3,11 +3,12 @@ name: GEORGE Orchestrator
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * 1"  # montags 06:00 UTC (optional)
+    # montags 06:00 UTC (optional)
+    - cron: "0 6 * * 1"
 
 permissions:
-  actions: write
   contents: write
+  actions: write
   issues: write
   pull-requests: write
 
@@ -18,48 +19,49 @@ concurrency:
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
       - name: Run GEORGE orchestrator V2 script
-        run: python ops/george_orchestrator_v2.py
+        run: |
+          python ops/george_orchestrator_v2.py
 
-
-      # ─────────────────────────────
+      # ----------------------------------------------------------------------
       # 1) CONTENT INGEST
-      # ─────────────────────────────
+      # ----------------------------------------------------------------------
       - name: Dispatch → content-ingest
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: "self-content.yml",
+              workflow_id: "content-ingest.yml",
               ref: "main"
             });
-
-      - name: Commit & Push updated events.jsonl
-        run: |
-          git config user.name "GEORGE Orchestrator"
-          git config user.email "george@virtauto.ai"
-          git add ops/events.jsonl
-          git commit -m "GEORGE: update events.jsonl" || echo "No changes to commit"
-          git push
-
 
       - name: Wait for ingest
         run: sleep 25
 
-      # ─────────────────────────────
+      # ----------------------------------------------------------------------
       # 2) REVIEW GATE
-      # ─────────────────────────────
+      # ----------------------------------------------------------------------
       - name: Dispatch → review-gate
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
@@ -71,13 +73,13 @@ jobs:
       - name: Wait for review
         run: sleep 25
 
-      # ─────────────────────────────
+      # ----------------------------------------------------------------------
       # 3) DESIGN GATE
-      # ─────────────────────────────
+      # ----------------------------------------------------------------------
       - name: Dispatch → design-gate
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
@@ -89,31 +91,31 @@ jobs:
       - name: Wait for design
         run: sleep 25
 
-      # ─────────────────────────────
+      # ----------------------------------------------------------------------
       # 4) SITE AUDIT
-      # ─────────────────────────────
+      # ----------------------------------------------------------------------
       - name: Dispatch → site-audit
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: "self-audit.yml",
+              workflow_id: "site-audit.yml",
               ref: "main"
             });
 
       - name: Wait for audit
         run: sleep 25
 
-      # ─────────────────────────────
-      # 5) DEPLOY
-      # ─────────────────────────────
+      # ----------------------------------------------------------------------
+      # 5) DEPLOY (pipeline trigger only; real production deploy remains protected elsewhere)
+      # ----------------------------------------------------------------------
       - name: Trigger site-deploy (workflow_dispatch)
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
@@ -122,75 +124,102 @@ jobs:
               ref: "main"
             });
 
-      
-      # ____________________________________
-      # Monitoring, Deploy, Audit Agent status update
-      
+      # ----------------------------------------------------------------------
+      # 6) Update Agent Status (Monitoring / Deploy / Audit)
+      # ----------------------------------------------------------------------
       - name: Update Monitoring Agent status
-        run: python ops/monitoring_agent.py
+        run: |
+          python ops/monitoring_agent.py
 
+      # Deploy-Agent bleibt “simulated” und kann zusätzlich HUMAN_OVERRIDE verlangen (wie in deinem Script)
       - name: Update Deploy Agent status
-        run: python ops/deploy_agent.py
+        env:
+          # OPTIONAL: wenn du willst, hier explizit false lassen.
+          # HUMAN_OVERRIDE: "true"
+          HUMAN_OVERRIDE: "false"
+        run: |
+          python ops/deploy_agent.py || true
 
       - name: Update Audit Agent status
-        run: python ops/audit_agent.py
+        run: |
+          python ops/audit_agent.py
 
       - name: Autonomy score evolution
-        run: python ops/autonomy_score_evolution.py
-  
-      # ─────────────────────────────
-      # 6) GEORGE STATUS SCHREIBEN
-      # ─────────────────────────────
+        run: |
+          python ops/autonomy_score_evolution.py || true
+
+      # ----------------------------------------------------------------------
+      # 7) Update GEORGE status snapshot
+      # ----------------------------------------------------------------------
       - name: Update GEORGE status
         run: |
           set -e
           mkdir -p status ops/reports
+
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           agent="george"
           status="ok"
 
-          # Basis-Datei anlegen, falls nicht vorhanden
-          [ -s status/status.json ] || echo '{"agents":[]}' > status/status.json
-
-          # Neuen Eintrag für GEORGE erzeugen
-          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
-            .agents
-            |= (map(select(.agent != $agent))
-                + [{agent:$agent,status:$status,timestamp:$ts}])
-          ' status/status.json > status/status.tmp \
-          && mv status/status.tmp status/status.json
-
-          # Kopie ins reports-Verzeichnis
-          cp status/status.json ops/reports/george_status_$ts.json
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      # ─────────────────────────────
-      # 7) GEORGE REFLECTION SCHREIBEN
-      # ─────────────────────────────
-
-      - name: Write reflection from latest decision
-        run: python3 ops/reflection_writer.py || echo "No reflection written (non-blocking)"
-
-      - name: Commit status updates
-        run: |
-          git config user.name "GEORGE Orchestrator"
-          git config user.email "actions@github.com"
-          git add ops/reports/autonomy_score_evolution.json || true
-          git add status/status.json ops/reports || true
-          git add ops/decisions/reflections || true
-          if ! git diff --cached --quiet; then
-            git commit -m "GEORGE: update status summary"
-          else
-            echo "No changes to commit."
+          # Ensure base file exists
+          if [ ! -f status/status.json ]; then
+            echo '{"agents":[]}' > status/status.json
           fi
 
-      - name: Push changes
+          # Append/Upsert entry for george (requires jq)
+          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
+            .agents = ([.agents[] | select(.agent != $agent)] + [{agent:$agent,status:$status,timestamp:$ts}])
+          ' status/status.json > status/status.tmp && mv status/status.tmp status/status.json
+
+          cp status/status.json "ops/reports/george_status_${ts}.json" || true
+
+      # ----------------------------------------------------------------------
+      # 8) Reflection (non-blocking)
+      # ----------------------------------------------------------------------
+      - name: Write reflection from latest decision
         run: |
-          echo "Trying to push GEORGE status changes (non-blocking)…"
-          git push origin main || echo "Non-blocking: push failed (likely concurrent updates to status.json)."
+          python3 ops/reflection_writer.py || echo "No reflection written (non-blocking)"
 
+      # ----------------------------------------------------------------------
+      # 9) Commit & Push updates (robust against concurrent runs)
+      # ----------------------------------------------------------------------
+      - name: Commit status updates
+        run: |
+          set -e
+          git config user.name "GEORGE Orchestrator"
+          git config user.email "george@virtauto.ai"
 
+          # Stage only relevant auto-generated artifacts (adjust if needed)
+          git add ops/events.jsonl || true
+          git add ops/reports/system_status.json || true
+          git add ops/reports/george_status_*.json || true
+          git add ops/reports/autonomy_score_evolution.jsonl || true
+          git add status/status.json || true
+          git add status/deploy_agent_report.md || true
+          git add ops/decisions/reflections || true
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "GEORGE: update status summary"
+
+      - name: Push changes (with rebase retry)
+        run: |
+          set -e
+          # If commit step produced no commit, nothing to push.
+          if git log -1 --pretty=%B | grep -q "GEORGE: update status summary"; then
+            for i in 1 2 3; do
+              echo "Push attempt $i..."
+              git pull --rebase origin main || true
+              if git push origin main; then
+                echo "Push succeeded."
+                exit 0
+              fi
+              sleep 3
+            done
+            echo "Push failed after retries (likely concurrent updates)."
+            exit 0
+          else
+            echo "No new GEORGE commit created. Skipping push."
+          fi
