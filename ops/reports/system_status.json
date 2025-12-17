@@ -12,7 +12,7 @@
   },
 
   "autonomy": {
-    "current_level": 0.675,
+    "current_level": 0.738,
     "target_level": 0.80,
     "trend": "stable",
     "last_autonomous_action": "content-ingest",
@@ -30,6 +30,14 @@
     }
   },
 
+  "policy": {
+  "deploy_requires_human_approval": true,
+  "hard_stop": {
+    "health_min_score": 0.70,
+    "require_system_online": true,
+    "require_self_guardian_green": true
+  },
+    
   "agents": {
     "george": {
       "status": "active",
@@ -37,6 +45,13 @@
       "last_action": "route_decision",
       "health": "green"
     },
+
+    "deployment": {
+      "mode": "simulation_only",
+      "last_request": null,
+      "human_approved": false
+    }
+
     "guardian": {
       "status": "active",
       "role": "security_guard",
