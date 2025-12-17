@@ -36,11 +36,6 @@ agents:
       - "ops/reports/system_status.json"
     metrics:
       - id: "system_health_score"
-        unit: "ratio"
-        target: ">= 0.80"
-      - id: "agent_response_success_rate"
-        unit: "ratio"
-        target: ">= 0.95"
     triggers:
       - on: schedule
         cron: "*/15 * * * *"
@@ -205,4 +200,16 @@ agents:
       rto: "15m"
       rpo: "24h"
     tags: [core, deploy]
+    deploy:
+      type: execution
+      status: simulation
+      description: "Deploy Agent (simulation-only, guarded)"
+      entrypoint: "agents/deploy_agent.py"
+      permissions:
+        - read_intent
+        - write_decision
+      side_effects: false
+  
+
+
 
