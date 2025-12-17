@@ -212,12 +212,12 @@ rules:
     emergency_lock: false
     require_human_override: true
 
-  match:
-    agent: "george"
-    event: ["deploy_requested"]
+    match:
+      agent: "george"
+      event: ["deploy_requested"]
 
-  action:
-    target_agent: "deploy"
-    intent: "simulate_deploy"
-    mode: "simulation"
-    message: "SIMULATION ONLY. Run deploy agent read-only: healthcheck + rollback recommendation + report. No workflow dispatch to production."
+    action:
+      target_agent: "deploy"
+      intent: "simulate_deploy"
+      mode: "simulation"
+      message: "SIMULATION ONLY. Run deploy agent read-only: healthcheck + rollback recommendation + report. No workflow dispatch to production."
