@@ -1,111 +1,208 @@
 # agents/registry.yaml
-version: 1
-updated: "2025-10-31T21:15:00Z"
+version: 2
+updated: "2025-12-17T10:30:00Z"
+
+status_enum: [active, mvp, preparing, planned, disabled]
+execution_mode_enum: [manual, supervised, autonomous]
+agent_roles: [orchestrator, guardian, observer, executor]
 
 agents:
+
   - id: website_monitoring
-    name: Website Monitoring Agent
+    aliases: [self_monitoring]
+    name: Self-Monitoring Agent
     owner: ops
-    description: Checks homepage/endpoints and writes /status/status.json.
-    capabilities: [healthcheck, http-probe]
+    role: observer
+    execution_mode: supervised
+    status: active
+    description: >
+      Observability layer for virtauto.de. Tracks workflow activity, basic health signals,
+      and writes/updates status artifacts used by the status page.
+    capabilities: [healthcheck, http-probe, status-snapshot]
+    signal_sources:
+      workflows:
+        - file: ".github/workflows/monitoring.yml"
+          purpose: "health + status signals (if present)"
+        - file: ".github/workflows/site-deploy.yml"
+          purpose: "post-deploy health signal (if present)"
+      events:
+        - type: "ci/deploy-success"
+        - type: "agent/report"
     endpoints:
-      health: "/status/status.json"
+      status: "/status/"
+      status_json: "/status/status.json"
+    state_files:
+      - "status/status.json"
+      - "ops/reports/system_status.json"
+    metrics:
+      - id: "system_health_score"
+        unit: "ratio"
+        target: ">= 0.80"
+      - id: "agent_response_success_rate"
+        unit: "ratio"
+        target: ">= 0.95"
     triggers:
       - on: schedule
         cron: "*/15 * * * *"
-      - on: event
-        type: "ci/deploy-success"
     sla:
       rto: "15m"
       rpo: "24h"
-    tags: [core, health]
-    status: preparing
+    tags: [core, health, observability]
 
   - id: self_guardian
-    name: Guardian Agent
+    name: Self-Guardian
     owner: governance
-    description: Security headers, CSP, robots/sitemap checks; policy gates.
-    capabilities: [headers-check, csp-check, robots, sitemap]
+    role: guardian
+    execution_mode: supervised
+    status: active
+    description: >
+      Policy gatekeeper. Runs security/compliance checks and blocks unsafe changes before production.
+    capabilities: [policy-gate, headers-check, csp-check, robots, sitemap]
+    signal_sources:
+      workflows:
+        - file: ".github/workflows/guardian.yml"
+          purpose: "main policy gate (if present)"
+        - file: ".github/workflows/self-guardian.yml"
+          purpose: "policy gate (legacy/alternate)"
+      events:
+        - type: "pr/opened"
+        - type: "pr/synchronize"
+        - type: "ci/pre-deploy"
+    policy:
+      hard_stop:
+        require_security_gate: true
+        require_status_schema_valid: true
     triggers:
-      - on: runbook
-        file: ".github/workflows/self-guardian.yml"
       - on: schedule
         cron: "0 * * * *"
     sla:
       rto: "1h"
       rpo: "24h"
-    tags: [core, security]
-    status: preparing
-
-  - id: self_audit
-    name: Self-Audit Agent
-    owner: quality
-    description: Audits content & diffs; writes audit trail and diffs.
-    capabilities: [diff-audit, link-check, image-alt, content-lint]
-    triggers:
-      - on: event
-        type: "content/ingest"
-      - on: workflow
-        file: ".github/workflows/self-audit.yml"
-    outputs:
-      - "status/audit.log"
-    sla:
-      rto: "1h"
-      rpo: "24h"
-    tags: [quality]
-    status: preparing
+    tags: [core, security, governance]
 
   - id: self_content
-    name: Content Agent
+    name: Self-Content Agent
     owner: content
-    description: Ingests, drafts and updates website content from external feeds (e.g. Medium).
+    role: executor
+    execution_mode: supervised
+    status: active
+    description: >
+      Ingests external sources (e.g., Medium), produces drafts and proposes updates via PRs.
+      No autonomous publishing.
     capabilities: [ingest, draft, update, link-check]
-    triggers:
-      - on: workflow
-        file: ".github/workflows/self-content.yml"
-      - on: event
-        type: "content/refresh"
+    signal_sources:
+      workflows:
+        - file: ".github/workflows/content-ingest.yml"
+          purpose: "ingest + draft generation (if present)"
+        - file: ".github/workflows/self-content.yml"
+          purpose: "content agent workflow (legacy/alternate)"
+      events:
+        - type: "content/refresh"
     outputs:
       - "content/drafts/"
+    governance:
+      requires_human_approval: true
+      allowed_actions: [draft, propose_pr]
+      forbidden_actions: [auto_publish, auto_merge]
+    triggers:
+      - on: schedule
+        cron: "0 */6 * * *"
     sla:
       rto: "2h"
       rpo: "24h"
     tags: [core, content]
-    status: preparing
-
-  - id: deploy_agent
-    name: Deploy Agent
-    owner: ops
-    description: Executes safe site deployments triggered by GEORGE.
-    capabilities: [deploy, rollback, healthcheck]
-    triggers:
-      - on: event
-        type: "deploy_requested"
-    outputs:
-      - "logs/deploy.log"
-    sla:
-      rto: "15m"
-      rpo: "24h"
-    tags: [core, deploy]
-    status: preparing
 
   - id: george
     name: GEORGE Orchestrator
     owner: core
-    description: |
-      Central orchestration agent that coordinates all Self-Agents, 
-      routes events, resolves conflicts, triggers workflows and maintains
-      the adaptive autonomy loop.
+    role: orchestrator
+    execution_mode: supervised
+    status: mvp
+    description: >
+      Central orchestration brain. Routes events, applies policies, triggers workflows,
+      and maintains a traceable decision loop.
     capabilities: [event-routing, conflict-resolution, orchestration, policy-enforce]
+    signal_sources:
+      workflows:
+        - file: ".github/workflows/george_orchestrator.yml"
+          purpose: "scheduled orchestration + dispatch chain"
+        - file: ".github/workflows/george-dry-run.yml"
+          purpose: "safe testing run (if present)"
+      events:
+        - type: "agent/report"
+        - type: "content/ingest"
+        - type: "deploy_requested"
+    state_files:
+      - "ops/events.jsonl"
+      - "ops/decisions/"
+      - "ops/reports/system_status.json"
+    outputs:
+      - "ops/reports/"
+    decision_trace:
+      required: true
+      format: "jsonl"
+      path: "ops/decisions/decisions.jsonl"
     triggers:
       - on: schedule
         cron: "*/10 * * * *"
-      - on: event
-        type: "agent/report"
-    outputs:
-      - "status/george.log"
     sla:
       rto: "5m"
       rpo: "1h"
     tags: [core, orchestrator]
-    status: preparing
+
+  - id: self_audit
+    name: Audit Agent
+    owner: quality
+    role: observer
+    execution_mode: supervised
+    status: planned
+    description: >
+      Audits diffs, links, content linting and writes an auditable trail.
+      Activate only when workflow + outputs are wired end-to-end.
+    capabilities: [diff-audit, link-check, image-alt, content-lint]
+    signal_sources:
+      workflows:
+        - file: ".github/workflows/self-audit.yml"
+          purpose: "audit workflow (if present)"
+      events:
+        - type: "content/ingest"
+        - type: "pr/merged"
+    outputs:
+      - "ops/reports/audit/"
+      - "status/audit.log"
+    sla:
+      rto: "1h"
+      rpo: "24h"
+    tags: [quality, audit]
+
+  - id: deploy_agent
+    name: Deploy Agent
+    owner: ops
+    role: executor
+    execution_mode: supervised
+    status: planned
+    description: >
+      Executes guarded deployments (health-gated) and provides rollback hints.
+      Stays planned until deploy workflow is fully wired and non-simulated.
+    capabilities: [deploy, rollback, healthcheck]
+    signal_sources:
+      workflows:
+        - file: ".github/workflows/site-deploy.yml"
+          purpose: "deploy pipeline (triggered by orchestration)"
+        - file: ".github/workflows/manual-rollback.yml"
+          purpose: "rollback fallback (if present)"
+      events:
+        - type: "deploy_requested"
+        - type: "ci/pre-deploy"
+    outputs:
+      - "status/deploy_agent_report.md"
+      - "logs/deploy.log"
+    policy:
+      requires_guardian_green: true
+      requires_health_score_min: 0.80
+      requires_human_override_for_prod: true
+    sla:
+      rto: "15m"
+      rpo: "24h"
+    tags: [core, deploy]
+
