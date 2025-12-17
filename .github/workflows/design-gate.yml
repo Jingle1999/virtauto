@@ -20,15 +20,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Install deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyyaml
+      - name: Install validator dependencies
+        run: pip install pyyaml
+
+      - name: Validate system status vs registry
+        run: python ops/validate_status.py
 
       - name: Run Design Gate
         id: gate
