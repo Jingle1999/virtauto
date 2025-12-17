@@ -3,6 +3,9 @@
   "generated_at": "2025-12-15T12:30:00Z",
   "source": "GEORGE",
   "environment": "production",
+  "execution_mode": "supervised_mvp",
+  "deploy_mode": "simulation_only"
+
 
   "system_state": {
     "status": "online",
