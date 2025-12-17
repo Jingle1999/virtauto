@@ -205,4 +205,14 @@ agents:
       rto: "15m"
       rpo: "24h"
     tags: [core, deploy]
+ deploy:
+  type: execution
+  status: simulation
+  description: "Deploy Agent (simulation-only, guarded)"
+  entrypoint: "agents/deploy_agent.py"
+  permissions:
+    - read_intent
+    - write_decision
+  side_effects: false
+ 
 
