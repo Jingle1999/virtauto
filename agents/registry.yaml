@@ -114,9 +114,31 @@ agents:
     role: orchestrator
     execution_mode: supervised
     status: mvp
+
+    authority:
+      mode: governor
+      version: v1
+      override_allowed: true
+
+    decision_classes:
+      - deploy
+
+    thresholds:
+      health_score_min: 80.0   # oder 0.80 – aber bitte EINHEITLICH definieren
+
+    fail_safe:
+      block_if_status_endpoint_unavailable: true
+      block_if_guardian_not_ok: true
+
+    decision_trace:
+      required: true
+      format: jsonl
+      path: "ops/decisions/decisions.jsonl"
+
     description: >
       Central orchestration brain. Routes events, applies policies, triggers workflows,
       and maintains a traceable decision loop.
+
     capabilities: [event-routing, conflict-resolution, orchestration, policy-enforce]
     signal_sources:
       workflows:
@@ -124,27 +146,6 @@ agents:
           purpose: "scheduled orchestration + dispatch chain"
         - file: ".github/workflows/george-dry-run.yml"
           purpose: "safe testing run (if present)"
-      events:
-        - type: "agent/report"
-        - type: "content/ingest"
-        - type: "deploy_requested"
-    state_files:
-      - "ops/events.jsonl"
-      - "ops/decisions/"
-      - "ops/reports/system_status.json"
-    outputs:
-      - "ops/reports/"
-    decision_trace:
-      required: true
-      format: "jsonl"
-      path: "ops/decisions/decisions.jsonl"
-    triggers:
-      - on: schedule
-        cron: "*/10 * * * *"
-    sla:
-      rto: "5m"
-      rpo: "1h"
-    tags: [core, orchestrator]
 
   - id: self_audit
     name: Audit Agent
