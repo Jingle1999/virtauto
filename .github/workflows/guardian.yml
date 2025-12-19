@@ -1,9 +1,6 @@
 name: Guardian Advisor
 
 on:
-permissions:
-  contents: write
-  
   workflow_dispatch:
     inputs:
       decision_id:
@@ -14,6 +11,15 @@ permissions:
         required: false
         default: "GEORGE"
 
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  guardian_advisor:
+    runs-on: ubuntu-latest
+    steps:
+      ...
 
 jobs:
   guardian_advisor:
