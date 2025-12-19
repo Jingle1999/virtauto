@@ -211,7 +211,7 @@ jobs:
         run: |
           python ops/runtime_gate.py \
             ops/decisions/latest.json \
-            ops/policies/runtime_gate.yaml \
+            ops/policies/runtime_gate.yml \
             ops/decisions/gate_result.json
 
       - name: Print gate decision
