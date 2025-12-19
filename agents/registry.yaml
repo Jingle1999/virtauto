@@ -1,41 +1,37 @@
 # agents/registry.yaml
 version: 2
-updated: "2025-12-17T10:30:00Z"
+updated: "2025-12-19T09:30:00Z"
 
 status_enum: [active, mvp, preparing, planned, disabled]
 execution_mode_enum: [manual, supervised, autonomous]
-agent_roles: [orchestrator, guardian, observer, executor]
+agent_roles: [governor, orchestrator, guardian, observer, executor]
 
 agents:
 
   - id: website_monitoring
-    aliases: [self_monitoring]
     name: Self-Monitoring Agent
     owner: ops
     role: observer
     execution_mode: supervised
     status: active
     description: >
-      Observability layer for virtauto.de. Tracks workflow activity, basic health signals,
-      and writes/updates status artifacts used by the status page.
-    capabilities: [healthcheck, http-probe, status-snapshot]
-    signal_sources:
-      workflows:
-        - file: ".github/workflows/monitoring.yml"
-          purpose: "health + status signals (if present)"
-        - file: ".github/workflows/site-deploy.yml"
-          purpose: "post-deploy health signal (if present)"
-      events:
-        - type: "ci/deploy-success"
-        - type: "agent/report"
-    endpoints:
-      status: "/status/"
-      status_json: "/status/status.json"
-    state_files:
-      - "status/status.json"
-      - "ops/reports/system_status.json"
+      Observability layer for virtauto.de. Tracks workflow activity,
+      basic health signals, and writes artifacts for system status.
+    capabilities:
+      - healthcheck
+      - http_probe
+      - status_snapshot
+    workflows:
+      - file: ".github/workflows/monitoring.yml"
+        purpose: "health + status signals"
+    events:
+      - type: "ci/deploy-success"
+      - type: "agent/report"
+    outputs:
+      - "/status/status.json"
+      - "/ops/reports/system_status.json"
     metrics:
-      - id: "system_health_score"
+      - id: system_health_score
     triggers:
       - on: schedule
         cron: "*/15 * * * *"
@@ -51,23 +47,24 @@ agents:
     execution_mode: supervised
     status: active
     description: >
-      Policy gatekeeper. Runs security/compliance checks and blocks unsafe changes before production.
-      Explicitly blocks any production deploys. Allows simulation-only deploy intents for validation and orchestration testing.
-    capabilities: [policy-gate, headers-check, csp-check, robots, sitemap]
-    signal_sources:
-      workflows:
-        - file: ".github/workflows/guardian.yml"
-          purpose: "main policy gate (if present)"
-        - file: ".github/workflows/self-guardian.yml"
-          purpose: "policy gate (legacy/alternate)"
-      events:
-        - type: "pr/opened"
-        - type: "pr/synchronize"
-        - type: "ci/pre-deploy"
-    policy:
-      hard_stop:
-        require_security_gate: true
-        require_status_schema_valid: true
+      Policy gatekeeper. Enforces security and compliance rules and
+      blocks unsafe changes before production.
+    capabilities:
+      - policy_gate
+      - headers_check
+      - csp_check
+      - robots_check
+      - sitemap_check
+    workflows:
+      - file: ".github/workflows/guardian.yml"
+        purpose: "primary policy gate"
+    events:
+      - type: "pr/opened"
+      - type: "pr/synchronize"
+      - type: "ci/pre-deploy"
+    hard_stop:
+      require_security_gate: true
+      require_status_schema_valid: true
     triggers:
       - on: schedule
         cron: "0 * * * *"
@@ -83,19 +80,20 @@ agents:
     execution_mode: supervised
     status: active
     description: >
-      Ingests external sources (e.g., Medium), produces drafts and proposes updates via PRs.
+      Ingests external sources and produces drafts and PR proposals.
       No autonomous publishing.
-    capabilities: [ingest, draft, update, link-check]
-    signal_sources:
-      workflows:
-        - file: ".github/workflows/content-ingest.yml"
-          purpose: "ingest + draft generation (if present)"
-        - file: ".github/workflows/self-content.yml"
-          purpose: "content agent workflow (legacy/alternate)"
-      events:
-        - type: "content/refresh"
+    capabilities:
+      - ingest
+      - draft
+      - update
+      - link_check
+    workflows:
+      - file: ".github/workflows/content-ingest.yml"
+        purpose: "draft generation"
+    events:
+      - type: "content/refresh"
     outputs:
-      - "content/drafts/"
+      - "/content/drafts/"
     governance:
       requires_human_approval: true
       allowed_actions: [draft, propose_pr]
@@ -109,9 +107,9 @@ agents:
     tags: [core, content]
 
   - id: george
-    name: GEORGE Orchestrator
+    name: GEORGE Executive Governor
     owner: core
-    role: orchestrator
+    role: governor
     execution_mode: supervised
     status: mvp
 
@@ -121,10 +119,22 @@ agents:
       override_allowed: true
 
     decision_classes:
+      - safety_critical
+      - operational
+      - strategic
       - deploy
 
+    authority_chain:
+      safety_critical: [guardian, george, human]
+      operational: [george, guardian, human]
+      strategic: [human, guardian, george]
+
+    golden_rules:
+      human_default: false
+      exception_only: true
+
     thresholds:
-      health_score_min: 80.0   # oder 0.80 – aber bitte EINHEITLICH definieren
+      health_score_min: 0.80
 
     fail_safe:
       block_if_status_endpoint_unavailable: true
@@ -132,21 +142,51 @@ agents:
 
     decision_trace:
       required: true
-      format: jsonl
-      path: "ops/decisions/decisions.jsonl"
+      format: json
+      path: "/ops/decisions/decisions.jsonl"
 
     description: >
-      Central orchestration brain. Routes events, applies policies, triggers workflows,
-      and maintains a traceable decision loop.
+      Central executive governor. Routes events, applies authority rules,
+      enforces policies, and maintains a traceable decision loop.
+      Human intervention is exception-based, not default.
 
-    capabilities: [event-routing, conflict-resolution, orchestration, policy-enforce]
+    capabilities:
+      - event_routing
+      - conflict_resolution
+      - orchestration
+      - policy_enforcement
+      - authority_block
+      - escalation
+
     signal_sources:
-      workflows:
-        - file: ".github/workflows/george_orchestrator.yml"
-          purpose: "scheduled orchestration + dispatch chain"
-        - file: ".github/workflows/george-dry-run.yml"
-          purpose: "safe testing run (if present)"
+      - "/status/status.json"
+      - "/ops/reports/system_status.json"
 
+    workflows:
+      - file: ".github/workflows/george_orchestrator.yml"
+        purpose: "scheduled orchestration and authority enforcement"
+      - file: ".github/workflows/george_dry_run.yml"
+        purpose: "safe simulation runs"
+
+    events:
+      - type: "agent/report"
+      - type: "content/ingest"
+      - type: "deploy_requested"
+
+    outputs:
+      - "/ops/reports/"
+      - "/ops/decisions/"
+
+    triggers:
+      - on: schedule
+        cron: "*/10 * * * *"
+
+    sla:
+      rto: "5m"
+      rpo: "1h"
+
+    tags: [core, governor, executive]
+   
   - id: self_audit
     name: Audit Agent
     owner: quality
@@ -161,9 +201,9 @@ agents:
       workflows:
         - file: ".github/workflows/self-audit.yml"
           purpose: "audit workflow (if present)"
-      events:
-        - type: "content/ingest"
-        - type: "pr/merged"
+    events:
+      - type: "content/ingest"
+      - type: "pr/merged"
     outputs:
       - "ops/reports/audit/"
       - "status/audit.log"
@@ -179,38 +219,32 @@ agents:
     execution_mode: supervised
     status: planned
     description: >
-      Executes guarded deployments (health-gated) and provides rollback hints.
-      Stays planned until deploy workflow is fully wired and non-simulated.
-    capabilities: [deploy, rollback, healthcheck]
-    signal_sources:
-      workflows:
-        - file: ".github/workflows/site-deploy.yml"
-          purpose: "deploy pipeline (triggered by orchestration)"
-        - file: ".github/workflows/manual-rollback.yml"
-          purpose: "rollback fallback (if present)"
-      events:
-        - type: "deploy_requested"
-        - type: "ci/pre-deploy"
+      Executes guarded deployments and provides rollback hints.
+      Remains simulation-only until governance is fully enforced.
+    capabilities:
+      - deploy
+      - rollback
+      - healthcheck
+    workflows:
+      - file: ".github/workflows/site-deploy.yml"
+        purpose: "deployment pipeline (triggered by GEORGE)"
+      - file: ".github/workflows/manual-rollback.yml"
+        purpose: "rollback fallback"
+    events:
+      - type: "deploy_requested"
     outputs:
-      - "status/deploy_agent_report.md"
-      - "logs/deploy.log"
+      - "/status/deploy_agent_report.md"
+      - "/logs/deploy.log"
     policy:
       requires_guardian_green: true
       requires_health_score_min: 0.80
       requires_human_override_for_prod: true
       allows_simulation: true
-    sla:
-      rto: "15m"
-      rpo: "24h"
-    tags: [core, deploy]
     deploy:
       type: execution
       status: simulation
       mode: simulation_only
-      description: "Deploy Agent (simulation-only, explicitly non-operational)"
-      entrypoint: "agents/deploy_agent.py"
-
-  
-
-
-
+    sla:
+      rto: "15m"
+      rpo: "24h"
+    tags: [core, deploy]
