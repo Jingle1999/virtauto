@@ -204,6 +204,32 @@ jobs:
 
           git commit -m "GEORGE: update status summary"
 
+      # ----------------------------------------------------------------------
+      # 10) Enforce runtime authority Gate
+      # ----------------------------------------------------------------------
+      - name: Runtime authority gate (enforce)
+        run: |
+          python ops/runtime_gate.py \
+            ops/decisions/latest.json \
+            ops/policies/runtime_gate.yaml \
+            ops/decisions/gate_result.json
+
+      - name: Print gate decision
+        run: cat ops/decisions/gate_result.json
+
+      # If you want HARD blocking at workflow level:
+      - name: Stop if gate blocks
+        run: |
+          python - << 'PY'
+          import json, sys
+          r = json.load(open("ops/decisions/gate_result.json"))
+          v = r["verdict"]
+          if v == "BLOCK":
+              print("Gate verdict BLOCK -> stopping workflow")
+              sys.exit(1)
+          print("Gate verdict:", v)
+          PY
+
       - name: Push changes (with rebase retry)
         run: |
           set -e
