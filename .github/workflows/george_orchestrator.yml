@@ -220,9 +220,16 @@ jobs:
             ops/policies/runtime_gate.yml \
             ops/decisions/gate_result.json
 
+      - name: Debug: list policy + decisions
+        run: |
+          ls -la ops/policies || true
+          ls -la ops/decisions || true
+          echo "---- policy file ----"
+          sed -n '1,120p' ops/policies/runtime_gate.yml || true
+
       - name: Print gate decision
         run: cat ops/decisions/gate_result.json
-
+    
       # If you want HARD blocking at workflow level:
       - name: Stop if gate blocks
         run: |
