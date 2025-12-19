@@ -1,17 +1,24 @@
 schema_version: "1.0"
+version: 1
 
-mode: enforce
+thresholds:
+  min_health_score: 0.80
+  health_score_min_for_deploy: 0.80
+  require_decision_trace: true
 
+enforcement:
+  mode: enforced        # enforced | advisory
+  allow_human_override: true
+  default_action: block # block | escalate
+
+# High-level class behavior (nice for dashboards / quick reading)
 classes:
   safety_critical: HARD_BLOCK
   deploy: HARD_BLOCK
   operational: ADVISORY
   strategic: ADVISORY
 
-thresholds:
-  health_score_min_for_deploy: 0.80
-  require_decision_trace: true
-
+# Guardian routing: required vs advisory by decision class
 guardian:
   required_for:
     - safety_critical
@@ -20,11 +27,7 @@ guardian:
     - operational
     - strategic
 
-enforcement:
-  mode: enforced              # enforced | advisory
-  allow_human_override: true  # if true, "ESCALATE" is possible
-  default_action: block       # block | escalate
-
+# Detailed gate checks per class (used by runtime_gate.py)
 decision_classes:
   safety_critical:
     require_guardian_ok: true
