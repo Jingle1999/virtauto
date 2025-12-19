@@ -20,6 +20,11 @@ guardian:
     - operational
     - strategic
 
+enforcement:
+  mode: enforced              # enforced | advisory
+  allow_human_override: true  # if true, "ESCALATE" is possible
+  default_action: block       # block | escalate
+
 decision_classes:
   safety_critical:
     require_guardian_ok: true
