@@ -186,6 +186,31 @@ agents:
       rpo: "1h"
 
     tags: [core, governor, executive]
+   
+  - id: self_audit
+    name: Audit Agent
+    owner: quality
+    role: observer
+    execution_mode: supervised
+    status: planned
+    description: >
+      Audits diffs, links, content linting and writes an auditable trail.
+      Activate only when workflow + outputs are wired end-to-end.
+    capabilities: [diff-audit, link-check, image-alt, content-lint]
+    signal_sources:
+      workflows:
+        - file: ".github/workflows/self-audit.yml"
+          purpose: "audit workflow (if present)"
+    events:
+      - type: "content/ingest"
+      - type: "pr/merged"
+    outputs:
+      - "ops/reports/audit/"
+      - "status/audit.log"
+    sla:
+      rto: "1h"
+      rpo: "24h"
+    tags: [quality, audit]
 
   - id: deploy_agent
     name: Deploy Agent
