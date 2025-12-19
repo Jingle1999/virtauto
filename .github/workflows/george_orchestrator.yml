@@ -186,32 +186,7 @@ jobs:
           python3 ops/reflection_writer.py || echo "No reflection written (non-blocking)"
 
       # ----------------------------------------------------------------------
-      # 9) Commit & Push updates (robust against concurrent runs)
-      # ----------------------------------------------------------------------
-      - name: Commit status updates
-        run: |
-          set -e
-          git config user.name "GEORGE Orchestrator"
-          git config user.email "george@virtauto.ai"
-
-          # Stage only relevant auto-generated artifacts (adjust if needed)
-          git add ops/events.jsonl || true
-          git add ops/reports/system_status.json || true
-          git add ops/reports/george_status_*.json || true
-          git add ops/reports/autonomy_score_evolution.jsonl || true
-          git add status/status.json || true
-          git add status/deploy_agent_report.md || true
-          git add ops/decisions/reflections || true
-
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-            exit 0
-          fi
-
-          git commit -m "GEORGE: update status summary"
-
-      # ----------------------------------------------------------------------
-      # 10) Enforce runtime authority Gate
+      # 9) Enforce runtime authority Gate
       # ----------------------------------------------------------------------
       - name: Runtime authority gate (enforce)
         run: |
@@ -242,6 +217,31 @@ jobs:
               sys.exit(1)
           print("Gate verdict:", v)
           PY
+      
+      # ----------------------------------------------------------------------
+      #10) Commit & Push updates (robust against concurrent runs)
+      # ----------------------------------------------------------------------
+      - name: Commit status updates
+        run: |
+          set -e
+          git config user.name "GEORGE Orchestrator"
+          git config user.email "george@virtauto.ai"
+
+          # Stage only relevant auto-generated artifacts (adjust if needed)
+          git add ops/events.jsonl || true
+          git add ops/reports/system_status.json || true
+          git add ops/reports/george_status_*.json || true
+          git add ops/reports/autonomy_score_evolution.jsonl || true
+          git add status/status.json || true
+          git add status/deploy_agent_report.md || true
+          git add ops/decisions/reflections || true
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "GEORGE: update status summary"
 
       - name: Push changes (with rebase retry)
         run: |
@@ -262,3 +262,4 @@ jobs:
           else
             echo "No new GEORGE commit created. Skipping push."
           fi
+
