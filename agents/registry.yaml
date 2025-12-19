@@ -116,13 +116,19 @@ agents:
     authority:
       mode: governor
       version: v1
-      override_allowed: true
+      enforcement: runtime
+      override_allowed: false
 
     decision_classes:
       - safety_critical
       - operational
       - strategic
       - deploy
+
+    decision_policies:
+      operational:
+      requires_authority: george
+      block_without_decision: true
 
     authority_chain:
       safety_critical: [guardian, george, human]
@@ -137,8 +143,9 @@ agents:
       health_score_min: 0.80
 
     fail_safe:
-      block_if_status_endpoint_unavailable: true
+      block_if_status_endpoint_unavailable: true  
       block_if_guardian_not_ok: true
+      block_if_authority_missing: true
 
     decision_trace:
       required: true
