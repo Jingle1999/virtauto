@@ -19,13 +19,6 @@ jobs:
   guardian_advisor:
     runs-on: ubuntu-latest
     steps:
-      ...
-
-jobs:
-  guardian_advisor:
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -40,12 +33,17 @@ jobs:
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           else
-            echo "No requirements.txt found – skipping."
+            echo "No requirements.txt found - skipping."
           fi
 
       - name: Load latest decision
         run: |
-          cat ops/decisions/latest.json
+          if [ -f ops/decisions/latest.json ]; then
+            cat ops/decisions/latest.json
+          else
+            echo '{}' > ops/decisions/latest.json
+            echo "Created empty ops/decisions/latest.json"
+          fi
 
       - name: Run Guardian advisory check
         run: |
@@ -59,12 +57,12 @@ jobs:
           python ops/merge_guardian_advice.py \
             --decision ops/decisions/latest.json \
             --advice ops/decisions/guardian_advice.json
-      
+
       - name: Commit guardian advisory result
         run: |
           git config user.name "Guardian Agent"
           git config user.email "guardian@virtauto.ai"
           git add ops/decisions/latest.json
           git add ops/decisions/guardian_advice.json || true
-          git commit -m "Guardian advisory evaluation for decision ${{ inputs.decision_id }}" || echo "No changes"
+          git commit -m "Guardian: advisory update (decision ${{ inputs.decision_id }})" || echo "No changes"
           git push
