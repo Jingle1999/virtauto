@@ -1,5 +1,7 @@
-// ⚠️ DEPRECATED — DO NOT USE AS SOURCE OF TRUTH
-// Reads moved to ops/reports/system_status.json
+{
+  "deprecated": true,
+  "moved_to": "ops/reports/system_status.json"
+}
 
 {
   "autonomy_level": 50.1,
