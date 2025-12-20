@@ -1,7 +1,3 @@
-// ⚠️ DEPRECATED — DO NOT USE AS SOURCE OF TRUTH
-// Reads moved to ops/reports/system_status.json
-
-
 // assets/status.js
 (async () => {
   const root = document.getElementById("status-app");
@@ -9,7 +5,7 @@
 
   try {
     // Statusdaten aus ops/status.json holen
-    const res = await fetch("ops/status.json", { cache: "no-store" });
+    const res = await fetch("ops/reports/system_status.json", { cache: "no-store" });
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
