@@ -1,3 +1,6 @@
+// ⚠️ DEPRECATED — DO NOT USE AS SOURCE OF TRUTH
+// Reads moved to ops/reports/system_status.json
+
 <script>
 // --- Agent dashboard wiring (reads /status/status.json + /status/agent_reports.md) ---
 
