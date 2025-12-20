@@ -1,12 +1,9 @@
-// ⚠️ DEPRECATED — DO NOT USE AS SOURCE OF TRUTH
-// Reads moved to ops/reports/system_status.json
-
 (async () => {
   const badgeEl = document.getElementById('agent-chips');
   if (!badgeEl) return;
 
   try {
-    const r = await fetch('/status/status.json', { cache: 'no-store' });
+    const r = await fetch('/ops/reports/system_status.json', { cache: 'no-store' });
     const data = await r.json();
     const agents = data.agents || [];
 

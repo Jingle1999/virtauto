@@ -1,6 +1,3 @@
-// ⚠️ DEPRECATED — DO NOT USE AS SOURCE OF TRUTH
-// Reads moved to ops/reports/system_status.json
-
 <script>
 // --- Agent dashboard wiring (reads /status/status.json + /status/agent_reports.md) ---
 
@@ -47,7 +44,7 @@ async function refreshDashboard() {
   // 4a) status.json laden
   let status = { agents: [] };
   try {
-    const r = await fetch("/status/status.json", { cache: "no-store" });
+    const r = await fetch("/ops/reports/system_status.json", { cache: "no-store" });
     if (r.ok) status = await r.json();
   } catch (_) {}
 
