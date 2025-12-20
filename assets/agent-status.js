@@ -1,3 +1,6 @@
+// ⚠️ DEPRECATED — DO NOT USE AS SOURCE OF TRUTH
+// Reads moved to ops/reports/system_status.json
+
 (async () => {
   const badgeEl = document.getElementById('agent-chips');
   if (!badgeEl) return;
