@@ -1,3 +1,6 @@
+// ⚠️ DEPRECATED — DO NOT USE AS SOURCE OF TRUTH
+// Reads moved to ops/reports/system_status.json
+
 {
   "last_update": "2025-12-13T10:50:00Z",
   "overall_health_score": 80.0,
