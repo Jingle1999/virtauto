@@ -1,3 +1,7 @@
+// ⚠️ DEPRECATED — DO NOT USE AS SOURCE OF TRUTH
+// Reads moved to ops/reports/system_status.json
+
+
 // assets/status.js
 (async () => {
   const root = document.getElementById("status-app");
