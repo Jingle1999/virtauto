@@ -30,33 +30,37 @@
 
   "agents": {
     "george": {
-      "status": "ACTIVE",
+      "status": "ok",
       "state": "ACTIVE",
       "autonomy": "SUPERVISED",
       "role": "orchestrator"
-    }
-,
+    },
     "self_guardian": {
+      "status": "ok",
       "state": "ACTIVE",
       "autonomy": "AUTONOMOUS",
       "role": "guardian"
     },
     "website_monitoring": {
+      "status": "ok",
       "state": "ACTIVE",
       "autonomy": "AUTONOMOUS",
       "role": "observer"
     },
     "self_content": {
+      "status": "ok",
       "state": "ACTIVE",
       "autonomy": "SUPERVISED",
       "role": "executor"
     },
     "deploy_agent": {
+      "status": "ok",
       "state": "PLANNED",
       "autonomy": "MANUAL",
       "role": "executor"
     },
     "self_audit": {
+      "status": "ok",
       "state": "PLANNED",
       "autonomy": "MANUAL",
       "role": "observer"
