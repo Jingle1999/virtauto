@@ -7,17 +7,12 @@ Ziele:
 - Guardian-Checks vor und nach der Ausführung
 - Agenten-Aktionen ausführen (oder simulieren, falls kein Adapter vorhanden)
 - Persistenzschicht für Decisions + Health-Metriken + Events
-- Basis für 60–70 % Autonomie (Self-Healing & Guardrails ready)
-
-V1 (george_orchestrator.py) bleibt bestehen. V2 ist bewusst modular
-und kann parallel getestet werden.
+- Decision Trace (Step 3): lückenlose, maschinenlesbare Nachverfolgbarkeit
 """
 
 from __future__ import annotations
 
 import json
-import math
-import os
 import sys
 import uuid
 from dataclasses import dataclass, asdict
@@ -42,11 +37,16 @@ GUARDIAN_FILE = OPS_DIR / "guardian.yaml"
 GEORGE_CONFIG_FILE = OPS_DIR / "george.json"
 EMERGENCY_LOCK_FILE = OPS_DIR / "emergency_lock.json"
 
+# Legacy status.json bleibt bestehen (wird von dir schon als deprecated behandelt).
+# Health-Persistenz für V2:
 STATUS_FILE = OPS_DIR / "status.json"
-REPORTS_DIR = OPS_DIR / "reports"
-DECISIONS_LOG = REPORTS_DIR / "george_decisions.jsonl"
 
+REPORTS_DIR = OPS_DIR / "reports"
 REPORTS_DIR.mkdir(exist_ok=True, parents=True)
+
+DECISIONS_LOG = REPORTS_DIR / "george_decisions.jsonl"
+DECISION_TRACE_LOG = REPORTS_DIR / "decision_trace.jsonl"
+HEALTH_LOG = REPORTS_DIR / "health_log.jsonl"
 
 DECISIONS_DIR = OPS_DIR / "decisions"
 DECISIONS_DIR.mkdir(exist_ok=True, parents=True)
@@ -85,26 +85,9 @@ def save_json(path: Path, data: Any) -> None:
     with path.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-def load_health() -> HealthState:
-    """Lädt den letzten Health-Status oder liefert Defaults."""
-    data = load_json(STATUS_FILE, default=None)
-    if not data:
-        return HealthState()
-    try:
-        return HealthState.from_dict(data)
-    except Exception as exc:
-        print(f"[GEORGE V2] Konnte HealthState nicht rekonstruieren: {exc}", file=sys.stderr)
-        return HealthState()
-
-
-def save_health(health: HealthState) -> None:
-    """Persistiert Health-State + schreibt Logzeile."""
-    data = health.to_dict()
-    save_json(STATUS_FILE, data)
-    append_jsonl(REPORTS_DIR / "health_log.jsonl", data)
-
 
 def append_jsonl(path: Path, record: Dict[str, Any]) -> None:
+    path.parent.mkdir(exist_ok=True, parents=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
@@ -120,39 +103,17 @@ def emergency_lock_active() -> bool:
     cfg = load_json(EMERGENCY_LOCK_FILE, {})
     return bool(cfg.get("locked", False))
 
-# ---------------------------------------------------------------------------
-# Autonomy-Konfiguration
-# ---------------------------------------------------------------------------
 
-def load_autonomy_config() -> Dict[str, Any]:
-    """Lädt die Autonomie-/Capability-Map aus autonomy.json."""
-    cfg = load_json(AUTONOMY_FILE, default={})
-    if not isinstance(cfg, dict):
-        return {}
-    return cfg
-
-
-def get_agent_profile(agent_id: str) -> Dict[str, Any]:
+def append_trace(record: Dict[str, Any]) -> None:
     """
-    Liefert das Agent-Profil aus autonomy.json, z.B.:
-
-    {
-      "status": "active",
-      "autonomy": 0.35,
-      "role": "...",
-      "depends_on": [...],
-      "actions": [...],
-      "failure_thresholds": {...}
-    }
+    Decision Trace (Step 3):
+    - JSONL
+    - Keine Interpretation, nur Fakten / Inputs / Outputs
     """
-    cfg = load_autonomy_config()
-    agents = cfg.get("agents", {})
-    profile = agents.get(agent_id, {})
-    if not isinstance(profile, dict):
-        return {}
-    return profile
-
-
+    record = dict(record)
+    record.setdefault("ts", now_iso())
+    record.setdefault("trace_version", "v1")
+    append_jsonl(DECISION_TRACE_LOG, record)
 
 # ---------------------------------------------------------------------------
 # Datenmodelle
@@ -204,6 +165,7 @@ class Decision:
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
+
 @dataclass
 class HealthState:
     """Health- & Autonomie-Metriken (MVP)."""
@@ -219,24 +181,17 @@ class HealthState:
     def from_dict(data: Dict[str, Any]) -> "HealthState":
         """Robuste Rekonstruktion aus einem Dict."""
         return HealthState(
-            agent_response_success_rate=float(
-                data.get("agent_response_success_rate", 0.0)
-            ),
+            agent_response_success_rate=float(data.get("agent_response_success_rate", 0.0)),
             last_autonomous_action=data.get("last_autonomous_action"),
             self_detection_errors=int(data.get("self_detection_errors", 0)),
-            system_stability_score=float(
-                data.get("system_stability_score", 0.0)
-            ),
-            autonomy_level_estimate=float(
-                data.get("autonomy_level_estimate", 0.5)
-            ),
+            system_stability_score=float(data.get("system_stability_score", 0.0)),
+            autonomy_level_estimate=float(data.get("autonomy_level_estimate", 0.5)),
             total_actions=int(data.get("total_actions", 0)),
             failed_actions=int(data.get("failed_actions", 0)),
         )
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
-
 
     def register_result(self, success: bool) -> None:
         self.total_actions += 1
@@ -249,20 +204,61 @@ class HealthState:
                 (self.total_actions - self.failed_actions) / self.total_actions
             )
 
-        # Simple Heuristik für Systemstabilität & Autonomie
+        # Simple Heuristik für Stabilität & Autonomie
         self.system_stability_score = max(
             0.0,
             min(1.0, self.agent_response_success_rate * (1.0 - 0.1 * self.self_detection_errors)),
         )
-        # Autonomie grob an Stabilität koppeln
         self.autonomy_level_estimate = max(
             0.0,
             min(1.0, 0.4 + 0.6 * self.system_stability_score),
         )
 
+# ---------------------------------------------------------------------------
+# Health Persistenz
+# ---------------------------------------------------------------------------
+
+def load_health() -> HealthState:
+    """Lädt den letzten Health-Status oder liefert Defaults."""
+    data = load_json(STATUS_FILE, default=None)
+    if not data:
+        return HealthState()
+    try:
+        return HealthState.from_dict(data)
+    except Exception as exc:
+        print(f"[GEORGE V2] Konnte HealthState nicht rekonstruieren: {exc}", file=sys.stderr)
+        return HealthState()
+
+
+def save_health(health: HealthState) -> None:
+    """Persistiert Health-State + schreibt Logzeile."""
+    data = health.to_dict()
+    save_json(STATUS_FILE, data)
+    append_jsonl(HEALTH_LOG, data)
 
 # ---------------------------------------------------------------------------
-# Loading latest event & rules
+# Autonomy-Konfiguration
+# ---------------------------------------------------------------------------
+
+def load_autonomy_config() -> Dict[str, Any]:
+    """Lädt die Autonomie-/Capability-Map aus autonomy.json."""
+    cfg = load_json(AUTONOMY_FILE, default={})
+    if not isinstance(cfg, dict):
+        return {}
+    return cfg
+
+
+def get_agent_profile(agent_id: str) -> Dict[str, Any]:
+    """Liefert das Agent-Profil aus autonomy.json."""
+    cfg = load_autonomy_config()
+    agents = cfg.get("agents", {})
+    profile = agents.get(agent_id, {})
+    if not isinstance(profile, dict):
+        return {}
+    return profile
+
+# ---------------------------------------------------------------------------
+# Events / Rules
 # ---------------------------------------------------------------------------
 
 def load_latest_event() -> Optional[Event]:
@@ -271,18 +267,19 @@ def load_latest_event() -> Optional[Event]:
         print("[GEORGE V2] Keine events.jsonl gefunden.")
         return None
 
-    last = None
+    last_line = None
     with EVENTS_FILE.open("r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:
-                last = line
-    if not last:
+                last_line = line
+
+    if not last_line:
         print("[GEORGE V2] events.jsonl ist leer.")
         return None
 
     try:
-        return Event.from_dict(json.loads(last))
+        return Event.from_dict(json.loads(last_line))
     except Exception as exc:
         print(f"[GEORGE V2] Fehler beim Laden letztes JSONL-Event: {exc}", file=sys.stderr)
         return None
@@ -295,14 +292,32 @@ def append_events(new_events: List[Event]) -> None:
             f.write(json.dumps(ev.to_dict(), ensure_ascii=False) + "\n")
 
 
+def load_rules() -> List[Dict[str, Any]]:
+    """Lädt die GEORGE-Rules aus george_rules.yaml."""
+    data = load_yaml(RULES_FILE, default={})
+    if isinstance(data, dict):
+        rules = data.get("rules", [])
+    else:
+        rules = data or []
+
+    if not isinstance(rules, list):
+        print("[GEORGE V2] Ungültiges Rules-Format in george_rules.yaml", file=sys.stderr)
+        return []
+
+    return rules
+
+# ---------------------------------------------------------------------------
+# Decision Persistenz
+# ---------------------------------------------------------------------------
+
 def save_decision(decision: Decision | Dict[str, Any]) -> None:
     """
     Persistiert eine Decision in:
-    - decisions/history/YYYY-MM-DD.jsonl
-    - decisions/latest.json
-    - decisions/snapshots/YYYY-MM-DD.json
+    - reports/george_decisions.jsonl (zentral, append)
+    - decisions/history/YYYY-MM-DD.jsonl (append)
+    - decisions/latest.json (overwrite)
+    - decisions/snapshots/YYYY-MM-DD.json (aggregate)
     """
-    # Immer als Dict arbeiten
     if isinstance(decision, Decision):
         dec_dict = decision.to_dict()
     else:
@@ -310,10 +325,12 @@ def save_decision(decision: Decision | Dict[str, Any]) -> None:
 
     today = datetime.now(timezone.utc).date().isoformat()
 
+    # 0) Zentraler Log
+    append_jsonl(DECISIONS_LOG, dec_dict)
+
     # 1) History-Log (append)
     history_file = DECISIONS_HISTORY_DIR / f"{today}.jsonl"
-    with history_file.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(dec_dict, ensure_ascii=False) + "\n")
+    append_jsonl(history_file, dec_dict)
 
     # 2) latest.json
     with DECISIONS_LATEST.open("w", encoding="utf-8") as f:
@@ -325,9 +342,9 @@ def save_decision(decision: Decision | Dict[str, Any]) -> None:
 
 def update_snapshot(date: str, decision: Dict[str, Any]) -> None:
     """
-    Aktualisiert das Tages-Snapshot:
-    - Gesamte Decisions
-    - Erfolgreiche / fehlgeschlagene
+    Tages-Snapshot:
+    - total_decisions
+    - successful / error / blocked
     - Breakdown nach Agent
     """
     snapshot_path = DECISIONS_SNAPSHOTS_DIR / f"{date}.json"
@@ -342,31 +359,31 @@ def update_snapshot(date: str, decision: Dict[str, Any]) -> None:
     else:
         snapshot = {}
 
-    # Defaults setzen
     snapshot.setdefault("date", date)
     snapshot.setdefault("total_decisions", 0)
     snapshot.setdefault("successful", 0)
-    snapshot.setdefault("failed", 0)
+    snapshot.setdefault("error", 0)
+    snapshot.setdefault("blocked", 0)
     snapshot.setdefault("by_agent", {})
 
     agent = decision.get("agent", "unknown")
     status = decision.get("status", "unknown")
 
-    # Global Stats
     snapshot["total_decisions"] += 1
     if status == "success":
         snapshot["successful"] += 1
-    elif status == "failed":
-        snapshot["failed"] += 1
+    elif status == "error":
+        snapshot["error"] += 1
+    elif status == "blocked":
+        snapshot["blocked"] += 1
 
-    # Agent Stats
     if agent not in snapshot["by_agent"]:
         snapshot["by_agent"][agent] = {"total": 0, "success": 0, "error": 0, "blocked": 0}
 
     snapshot["by_agent"][agent]["total"] += 1
     if status == "success":
         snapshot["by_agent"][agent]["success"] += 1
-    elif status == "failed":
+    elif status == "error":
         snapshot["by_agent"][agent]["error"] += 1
     elif status == "blocked":
         snapshot["by_agent"][agent]["blocked"] += 1
@@ -377,36 +394,22 @@ def update_snapshot(date: str, decision: Dict[str, Any]) -> None:
     with snapshot_path.open("w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2, ensure_ascii=False)
 
-def load_rules() -> List[Dict[str, Any]]:
-    """Lädt die GEORGE-Rules aus george_rules.yaml."""
-    data = load_yaml(RULES_FILE, default={})
-    if isinstance(data, dict):
-        # Typische Struktur: { version: ..., rules: [...] }
-        rules = data.get("rules", [])
-    else:
-        rules = data or []
-
-    if not isinstance(rules, list):
-        print("[GEORGE V2] Ungültiges Rules-Format in george_rules.yaml", file=sys.stderr)
-        return []
-
-    return rules
-
 # ---------------------------------------------------------------------------
 # Orchestrierungs-Helfer
 # ---------------------------------------------------------------------------
 
-def match_rule_for_event(event: "Event", rules: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+def match_rule_for_event(event: Event, rules: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """
     Findet die erste passende Regel aus george_rules.yaml für das Event.
-    Matching ist bewusst tolerant: wenn Felder in 'when' fehlen, werden sie ignoriert.
+    Tolerant: wenn Felder in 'when' fehlen, werden sie ignoriert.
+    Unterstützte Keys (optional): agent, event, intent, source_event_id
     """
     if not rules:
         return None
 
     for rule in rules:
         when = rule.get("when", {}) or {}
-        # Unterstützte Keys (optional): agent, event, intent, source
+
         agent_match = when.get("agent")
         if agent_match and agent_match != event.agent:
             continue
@@ -423,40 +426,25 @@ def match_rule_for_event(event: "Event", rules: List[Dict[str, Any]]) -> Optiona
         if source_match and source_match != (event.source_event_id or ""):
             continue
 
-        if rule:
-            if "then" in rule:
-                then_cfg = rule.get("then", {}) or {}
-                target_agent = then_cfg.get("agent") or event.agent
-                action = then_cfg.get("action") or event.event
-                confidence = float(then_cfg.get("confidence", 0.8))
-        else:
-            # V1 action format
-            act = rule.get("action") or {}
-            target_agent = act.get("target_agent") or event.agent
-            action = act.get("type") or event.event
-            confidence = float(rule.get("confidence", 0.8)) if rule.get("confidence") else 0.8
-
         return rule
 
     return None
 
 
 def guardian_precheck(
-    decision: "Decision",
+    decision: Decision,
     agent_profile: Dict[str, Any],
     rule: Optional[Dict[str, Any]] = None,
 ) -> Tuple[bool, Optional[str]]:
     """
-    Einfache Guardian-Logik V2 (Precheck):
-    - Prüft, ob der Agent aktiv ist.
-    - Prüft optional min. Autonomie-Level aus der Regel.
-    Gibt (allowed, guardian_flag) zurück.
+    Guardian Precheck (MVP):
+    - Agent muss active sein
+    - optional: min_autonomy aus Regel (then.min_autonomy)
     """
     status = (agent_profile or {}).get("status", "unknown")
     if status != "active":
         return False, "agent_inactive"
 
-    # Autonomie-Anforderungen aus Regel
     required_autonomy = 0.0
     if rule:
         then_cfg = rule.get("then", {}) or {}
@@ -472,34 +460,30 @@ def guardian_precheck(
 def execute_agent_action(
     agent: str,
     action: str,
-    event: "Event",
+    event: Event,
     agent_profile: Dict[str, Any],
 ) -> Tuple[bool, str]:
     """
-    MVP-Ausführung.
-    Aktuell: Simulation – hier können später echte Agent-Adapter eingebaut werden.
-    Rückgabe: (success, result_summary)
+    MVP-Ausführung (aktuell Simulation).
+    Später: echte Adapter hier einhängen.
     """
-    # TODO: Echte Adapter einhängen (deploy_agent.py, monitoring_agent.py, audit_agent.py, Content-Agent, ...)
-    # Für jetzt: Wir loggen nur, dass eine Aktion "geplant" wurde.
     summary = (
         f"Simulated execution: agent='{agent}', action='{action}', "
         f"event_id='{event.id}', role='{agent_profile.get('role', 'n/a')}'."
     )
-    success = True
-    return success, summary
+    return True, summary
 
 
 def guardian_postcheck(
-    decision: "Decision",
+    decision: Decision,
     agent_profile: Dict[str, Any],
-    health: "HealthState",
+    health: HealthState,
     success: bool,
 ) -> Optional[str]:
     """
-    Vereinfachter Guardian-Postcheck:
-    - Aktualisiert HealthState
-    - Setzt bei Fehlern ein Guardian-Flag, nutzt optional failure_thresholds aus autonomy.json.
+    Guardian Postcheck (MVP):
+    - aktualisiert HealthState
+    - setzt bei Fehlern guardian_flag (optional thresholds aus autonomy.json)
     """
     health.register_result(success=success)
 
@@ -507,62 +491,66 @@ def guardian_postcheck(
         health.last_autonomous_action = f"{decision.agent}:{decision.action}"
         return None
 
-    # Fehlerfall → Guardian-Flag
     failure_thresholds = (agent_profile or {}).get("failure_thresholds", {}) or {}
     guardian_flag = "error_detected"
 
-    # Beispiel: wenn 'trigger_guardian_policy_check' konfiguriert ist
     if failure_thresholds.get("trigger_guardian_policy_check"):
         guardian_flag = "guardian_policy_check"
 
     return guardian_flag
 
-
 # ---------------------------------------------------------------------------
 # Haupt-Orchestrierungsfunktion
 # ---------------------------------------------------------------------------
 
-def orchestrate() -> Optional["Decision"]:
+def orchestrate() -> Optional[Decision]:
     """
-    Führt einen Orchestrierungszyklus aus:
-    - Holt letztes Event
-    - Wendet GEORGE-Regeln an
-    - Prüft Autonomie/Guardian
-    - Führt Agentenaktion (simuliert) aus
-    - Persistiert Decision + Health + Snapshots
+    Orchestrierungszyklus:
+    - Not-Aus prüfen
+    - letztes Event lesen
+    - Regel matchen
+    - Guardian Precheck
+    - Aktion ausführen (simuliert)
+    - Guardian Postcheck
+    - Persistenz + Decision Trace
     """
-    # 1) Not-Aus prüfen
     if emergency_lock_active():
+        append_trace({
+            "actor": "george_v2",
+            "phase": "emergency_lock",
+            "result": "stopped",
+            "reason": "emergency_lock_active",
+        })
         print("[GEORGE V2] Emergency Lock ist aktiv – Orchestrierung gestoppt.", file=sys.stderr)
         return None
 
-    # 2) Letztes Event laden
     event = load_latest_event()
     if not event:
-        # Kein Event ⇒ keine Entscheidung
+        append_trace({
+            "actor": "george_v2",
+            "phase": "load_event",
+            "result": "no_event",
+        })
         return None
 
-    # 3) Regeln & Autonomie-Config laden
     rules = load_rules()
-    autonomy_cfg = load_autonomy_config()
-    agent_profile = get_agent_profile(event.agent)
-
-    # 4) Passende Regel suchen
     rule = match_rule_for_event(event, rules)
+
     if rule:
         then_cfg = rule.get("then", {}) or {}
         target_agent = then_cfg.get("agent") or event.agent
         action = then_cfg.get("action") or event.event
         confidence = float(then_cfg.get("confidence", 0.8))
+        matched_rule_id = rule.get("id")
     else:
-        # Fallback: Agent & Aktion direkt aus dem Event ableiten
         target_agent = event.agent
         action = event.event
         confidence = 0.5
+        matched_rule_id = None
 
     target_profile = get_agent_profile(target_agent)
 
-    # 5) Decision-Objekt erzeugen (zunächst pending)
+    # Decision anlegen
     decision = Decision(
         id=str(uuid.uuid4()),
         timestamp=now_iso(),
@@ -578,16 +566,58 @@ def orchestrate() -> Optional["Decision"]:
         result_summary=None,
     )
 
-    # 6) Guardian-Precheck
+    # TRACE: Routing
+    append_trace({
+        "actor": "george_v2",
+        "phase": "route",
+        "event": {
+            "id": event.id,
+            "agent": event.agent,
+            "event": event.event,
+            "intent": event.intent,
+            "source_event_id": event.source_event_id,
+        },
+        "matched_rule_id": matched_rule_id,
+        "decision": {
+            "id": decision.id,
+            "target_agent": target_agent,
+            "action": action,
+            "confidence": confidence,
+            "status": decision.status,
+        },
+        "result": "routed",
+    })
+
+    # Guardian Precheck
     allowed, guardian_flag = guardian_precheck(decision, target_profile, rule)
     if not allowed:
         decision.status = "blocked"
         decision.guardian_flag = guardian_flag or "blocked_by_guardian"
         save_decision(decision)
+
+        append_trace({
+            "actor": "guardian",
+            "phase": "precheck",
+            "decision_id": decision.id,
+            "result": "blocked",
+            "guardian_flag": decision.guardian_flag,
+            "target_agent": target_agent,
+            "action": action,
+        })
+
         print(f"[GEORGE V2] Decision {decision.id} BLOCKED durch Guardian: {decision.guardian_flag}")
         return decision
 
-    # 7) Aktion ausführen (aktuell simuliert)
+    append_trace({
+        "actor": "guardian",
+        "phase": "precheck",
+        "decision_id": decision.id,
+        "result": "allowed",
+        "target_agent": target_agent,
+        "action": action,
+    })
+
+    # Aktion ausführen (simuliert)
     success, result_summary = execute_agent_action(
         agent=target_agent,
         action=action,
@@ -600,7 +630,17 @@ def orchestrate() -> Optional["Decision"]:
     if not success:
         decision.error_message = "Agent execution failed (simulated)."
 
-    # 8) HealthState laden, Postcheck ausführen, speichern
+    append_trace({
+        "actor": "executor",
+        "phase": "execute",
+        "decision_id": decision.id,
+        "target_agent": target_agent,
+        "action": action,
+        "result": "success" if success else "error",
+        "result_summary": (result_summary or "")[:500],
+    })
+
+    # Health + Postcheck
     health = load_health()
     guardian_flag_post = guardian_postcheck(decision, target_profile or {}, health, success)
     if guardian_flag_post:
@@ -608,8 +648,31 @@ def orchestrate() -> Optional["Decision"]:
 
     save_health(health)
 
-    # 9) Decision persistieren (History + latest + Snapshot)
+    append_trace({
+        "actor": "guardian",
+        "phase": "postcheck",
+        "decision_id": decision.id,
+        "result": "ok" if success else "flagged",
+        "guardian_flag": decision.guardian_flag,
+        "health": {
+            "agent_response_success_rate": health.agent_response_success_rate,
+            "system_stability_score": health.system_stability_score,
+            "autonomy_level_estimate": health.autonomy_level_estimate,
+            "total_actions": health.total_actions,
+            "failed_actions": health.failed_actions,
+        },
+    })
+
+    # Decision persistieren
     save_decision(decision)
+
+    append_trace({
+        "actor": "george_v2",
+        "phase": "finalize",
+        "decision_id": decision.id,
+        "result": decision.status,
+        "guardian_flag": decision.guardian_flag,
+    })
 
     print(
         f"[GEORGE V2] Decision {decision.id}: "
@@ -617,15 +680,12 @@ def orchestrate() -> Optional["Decision"]:
     )
     return decision
 
-
 # ---------------------------------------------------------------------------
 # CLI Entry Point
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    """
-    Einmalige Orchestrierungsrunde für CLI / GitHub Actions.
-    """
+    """Einmalige Orchestrierungsrunde für CLI / GitHub Actions."""
     decision = orchestrate()
     if not decision:
         print("[GEORGE V2] Keine Decision getroffen (kein Event oder Emergency Lock aktiv).")
