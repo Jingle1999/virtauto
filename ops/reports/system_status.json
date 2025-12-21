@@ -30,10 +30,12 @@
 
   "agents": {
     "george": {
+      "status": "OK",
       "state": "ACTIVE",
       "autonomy": "SUPERVISED",
       "role": "orchestrator"
-    },
+    }
+,
     "self_guardian": {
       "state": "ACTIVE",
       "autonomy": "AUTONOMOUS",
