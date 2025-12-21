@@ -3,14 +3,13 @@ name: GEORGE Orchestrator
 on:
   workflow_dispatch:
   schedule:
-    # montags 06:00 UTC (optional)
     - cron: "0 6 * * 1"
 
 permissions:
   contents: write
+  pull-requests: write
   actions: write
   issues: write
-  pull-requests: write
 
 concurrency:
   group: "george-orchestrator"
@@ -26,7 +25,6 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -38,7 +36,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --no-cache-dir pyyaml
           python -c "import yaml; print('PyYAML OK:', yaml.__version__)"
-   
+
       - name: Run GEORGE orchestrator V2 script
         run: |
           python ops/george_orchestrator_v2.py
@@ -116,7 +114,7 @@ jobs:
         run: sleep 25
 
       # ----------------------------------------------------------------------
-      # 5) DEPLOY (pipeline trigger only; real production deploy remains protected elsewhere)
+      # 5) DEPLOY (trigger only)
       # ----------------------------------------------------------------------
       - name: Trigger site-deploy (workflow_dispatch)
         uses: actions/github-script@v7
@@ -131,17 +129,14 @@ jobs:
             });
 
       # ----------------------------------------------------------------------
-      # 6) Update Agent Status (Monitoring / Deploy / Audit)
+      # 6) Update Agent Status
       # ----------------------------------------------------------------------
       - name: Update Monitoring Agent status
         run: |
           python ops/monitoring_agent.py
 
-      # Deploy-Agent bleibt “simulated” und kann zusätzlich HUMAN_OVERRIDE verlangen (wie in deinem Script)
       - name: Update Deploy Agent status
         env:
-          # OPTIONAL: wenn du willst, hier explizit false lassen.
-          # HUMAN_OVERRIDE: "true"
           HUMAN_OVERRIDE: "false"
         run: |
           python ops/deploy_agent.py || true
@@ -166,12 +161,10 @@ jobs:
           agent="george"
           status="ok"
 
-          # Ensure base file exists
           if [ ! -f status/status.json ]; then
             echo '{"agents":[]}' > status/status.json
           fi
 
-          # Append/Upsert entry for george (requires jq)
           jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
             .agents = ([.agents[] | select(.agent != $agent)] + [{agent:$agent,status:$status,timestamp:$ts}])
           ' status/status.json > status/status.tmp && mv status/status.tmp status/status.json
@@ -195,39 +188,30 @@ jobs:
             ops/policies/runtime_gate.yml \
             ops/decisions/gate_result.json
 
-      - name: Debug: list policy + decisions
-        run: |
-          ls -la ops/policies || true
-          ls -la ops/decisions || true
-          echo "---- policy file ----"
-          sed -n '1,120p' ops/policies/runtime_gate.yml || true
-
       - name: Print gate decision
         run: cat ops/decisions/gate_result.json
-    
-      # If you want HARD blocking at workflow level:
+
       - name: Stop if gate blocks
         run: |
           python - << 'PY'
           import json, sys
           r = json.load(open("ops/decisions/gate_result.json"))
-          v = r["verdict"]
+          v = r.get("verdict")
           if v == "BLOCK":
               print("Gate verdict BLOCK -> stopping workflow")
               sys.exit(1)
           print("Gate verdict:", v)
           PY
-      
+
       # ----------------------------------------------------------------------
-      #10) Commit & Push updates (robust against concurrent runs)
+      # 10) Commit changes locally
       # ----------------------------------------------------------------------
-      - name: Commit status updates
+      - name: Commit status updates (local)
         run: |
           set -e
           git config user.name "GEORGE Orchestrator"
           git config user.email "george@virtauto.ai"
 
-          # Stage only relevant auto-generated artifacts (adjust if needed)
           git add ops/events.jsonl || true
           git add ops/reports/system_status.json || true
           git add ops/reports/george_status_*.json || true
@@ -235,6 +219,9 @@ jobs:
           git add status/status.json || true
           git add status/deploy_agent_report.md || true
           git add ops/decisions/reflections || true
+          git add ops/decisions/latest.json || true
+          git add ops/decisions/history || true
+          git add ops/decisions/snapshots || true
 
           if git diff --cached --quiet; then
             echo "No changes to commit."
@@ -243,23 +230,21 @@ jobs:
 
           git commit -m "GEORGE: update status summary"
 
-      - name: Push changes (with rebase retry)
-        run: |
-          set -e
-          # If commit step produced no commit, nothing to push.
-          if git log -1 --pretty=%B | grep -q "GEORGE: update status summary"; then
-            for i in 1 2 3; do
-              echo "Push attempt $i..."
-              git pull --rebase origin main || true
-              if git push origin main; then
-                echo "Push succeeded."
-                exit 0
-              fi
-              sleep 3
-            done
-            echo "Push failed after retries (likely concurrent updates)."
-            exit 0
-          else
-            echo "No new GEORGE commit created. Skipping push."
-          fi
-
+      # ----------------------------------------------------------------------
+      # 11) Create PR instead of pushing to protected main
+      # ----------------------------------------------------------------------
+      - name: Create Pull Request (protected main safe)
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ github.token }}
+          branch: george/auto-status
+          delete-branch: true
+          title: "GEORGE: update status summary"
+          commit-message: "GEORGE: update status summary"
+          body: |
+            Automated update created by GEORGE Orchestrator.
+            - status snapshots
+            - decisions logs
+            - system status report
+          base: main
+          labels: automation, george
