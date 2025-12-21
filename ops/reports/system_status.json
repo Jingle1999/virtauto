@@ -30,7 +30,7 @@
 
   "agents": {
     "george": {
-      "status": "OK",
+      "status": "ACTIVE",
       "state": "ACTIVE",
       "autonomy": "SUPERVISED",
       "role": "orchestrator"
