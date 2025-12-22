@@ -90,7 +90,12 @@ def main() -> None:
             warn(f"agents['{agent_name}'] is not an object/dict")
             continue
 
-        raw_status = agent_obj.get("status")
+        raw_status = (
+            agent_obj.get("status")
+            or agent_obj.get("state")
+            or agent_obj.get("health")
+        )
+
         if raw_status is None:
             warn(f"agents['{agent_name}'] missing 'status' (allowed, but recommended)")
             continue
