@@ -65,6 +65,7 @@ AUTONOMY_FILE = OPS_DIR / "autonomy.json"
 # Utility-Funktionen
 # ---------------------------------------------------------------------------
 
+
 def now_iso() -> str:
     """UTC-Zeitstempel im ISO-Format."""
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -114,6 +115,7 @@ def append_trace(record: Dict[str, Any]) -> None:
     record.setdefault("ts", now_iso())
     record.setdefault("trace_version", "v1")
     append_jsonl(DECISION_TRACE_LOG, record)
+
 
 # ---------------------------------------------------------------------------
 # Datenmodelle
@@ -214,6 +216,7 @@ class HealthState:
             min(1.0, 0.4 + 0.6 * self.system_stability_score),
         )
 
+
 # ---------------------------------------------------------------------------
 # Health Persistenz
 # ---------------------------------------------------------------------------
@@ -236,6 +239,7 @@ def save_health(health: HealthState) -> None:
     save_json(STATUS_FILE, data)
     append_jsonl(HEALTH_LOG, data)
 
+
 # ---------------------------------------------------------------------------
 # Autonomy-Konfiguration
 # ---------------------------------------------------------------------------
@@ -256,6 +260,7 @@ def get_agent_profile(agent_id: str) -> Dict[str, Any]:
     if not isinstance(profile, dict):
         return {}
     return profile
+
 
 # ---------------------------------------------------------------------------
 # Events / Rules
@@ -305,6 +310,7 @@ def load_rules() -> List[Dict[str, Any]]:
         return []
 
     return rules
+
 
 # ---------------------------------------------------------------------------
 # Decision Persistenz
@@ -394,6 +400,7 @@ def update_snapshot(date: str, decision: Dict[str, Any]) -> None:
     with snapshot_path.open("w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2, ensure_ascii=False)
 
+
 # ---------------------------------------------------------------------------
 # Orchestrierungs-Helfer
 # ---------------------------------------------------------------------------
@@ -457,6 +464,35 @@ def guardian_precheck(
     return True, None
 
 
+def authority_enforcement(
+    decision: Decision,
+    event: Event,
+    agent_profile: Dict[str, Any],
+    rule: Optional[Dict[str, Any]] = None,
+) -> Tuple[bool, Optional[str], Optional[str]]:
+    """
+    Runtime Authority Enforcement (MVP) – BLOCKING Hook.
+    Returns: (allowed, block_reason, required_authority)
+
+    Aktueller MVP-Policy-Entscheid:
+    - decision_class "deploy" oder "safety" => block (requires human)
+    - sonst => allow
+    """
+    # 1) Decision-Class bestimmen (erst rule, dann event.intent, fallback)
+    decision_class = None
+    if rule:
+        then_cfg = rule.get("then", {}) or {}
+        decision_class = then_cfg.get("decision_class")
+
+    decision_class = (decision_class or event.intent or "operational").lower()
+
+    # 2) Policy (MVP)
+    if decision_class in {"deploy", "safety"}:
+        return False, "authority_requires_human", "human"
+
+    return True, None, None
+
+
 def execute_agent_action(
     agent: str,
     action: str,
@@ -499,6 +535,7 @@ def guardian_postcheck(
 
     return guardian_flag
 
+
 # ---------------------------------------------------------------------------
 # Haupt-Orchestrierungsfunktion
 # ---------------------------------------------------------------------------
@@ -510,6 +547,7 @@ def orchestrate() -> Optional[Decision]:
     - letztes Event lesen
     - Regel matchen
     - Guardian Precheck
+    - Authority Enforcement (blocking)
     - Aktion ausführen (simuliert)
     - Guardian Postcheck
     - Persistenz + Decision Trace
@@ -617,6 +655,35 @@ def orchestrate() -> Optional[Decision]:
         "action": action,
     })
 
+    # --- Authority Enforcement (BLOCKING) ---
+    allowed_auth, reason, required = authority_enforcement(decision, event, target_profile, rule)
+    if not allowed_auth:
+        decision.status = "blocked"
+        decision.guardian_flag = reason or "blocked_by_authority"
+        decision.follow_up = f"Requires approval: {required}" if required else "Requires approval"
+        save_decision(decision)
+
+        append_trace({
+            "actor": "authority",
+            "phase": "enforcement",
+            "decision_id": decision.id,
+            "result": "blocked",
+            "reason": reason,
+            "required_authority": required,
+            "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
+        })
+
+        print(f"[GEORGE V2] Decision {decision.id} BLOCKED by Authority: {reason} (required={required})")
+        return decision
+
+    append_trace({
+        "actor": "authority",
+        "phase": "enforcement",
+        "decision_id": decision.id,
+        "result": "allowed",
+        "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
+    })
+
     # Aktion ausführen (simuliert)
     success, result_summary = execute_agent_action(
         agent=target_agent,
@@ -679,6 +746,7 @@ def orchestrate() -> Optional[Decision]:
         f"agent='{decision.agent}', action='{decision.action}', status='{decision.status}'"
     )
     return decision
+
 
 # ---------------------------------------------------------------------------
 # CLI Entry Point
