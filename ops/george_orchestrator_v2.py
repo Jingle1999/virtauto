@@ -608,6 +608,35 @@ def orchestrate() -> Optional[Decision]:
         print(f"[GEORGE V2] Decision {decision.id} BLOCKED durch Guardian: {decision.guardian_flag}")
         return decision
 
+    # --- Authority Enforcement (BLOCKING) ---
+    allowed_auth, reason, required = authority_enforcement(decision, event, target_profile, rule)
+    if not allowed_auth:
+        decision.status = "blocked"
+        decision.guardian_flag = reason or "blocked_by_authority"
+        decision.follow_up = f"Requires approval: {required}" if required else "Requires approval"
+        save_decision(decision)
+
+        append_trace({
+            "actor": "authority",
+            "phase": "enforcement",
+            "decision_id": decision.id,
+            "result": "blocked",
+            "reason": reason,
+            "required_authority": required,
+            "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
+        })
+
+        print(f"[GEORGE V2] Decision {decision.id} BLOCKED by Authority: {reason} (required={required})")
+        return decision
+
+    append_trace({
+        "actor": "authority",
+        "phase": "enforcement",
+        "decision_id": decision.id,
+        "result": "allowed",
+        "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
+    })
+
     append_trace({
         "actor": "guardian",
         "phase": "precheck",
@@ -617,6 +646,32 @@ def orchestrate() -> Optional[Decision]:
         "action": action,
     })
 
+    def authority_enforcement(
+        decision: Decision,
+        event: Event,
+        agent_profile: Dict[str, Any],
+        rule: Optional[Dict[str, Any]] = None,
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
+        """
+        Runtime Authority Enforcement (MVP):
+        Returns: (allowed, block_reason, required_authority)
+        """
+        # 1) Decision-Class bestimmen (erst rule, dann event.intent, fallback)
+        decision_class = None
+        if rule:
+            then_cfg = rule.get("then", {}) or {}
+            decision_class = then_cfg.get("decision_class")
+
+        decision_class = (decision_class or event.intent or "operational").lower()
+
+        # 2) Policy (MVP) – bis du echte Authority-Config hast:
+        #    - alles "deploy" und "safety" -> blocken (requires human)
+        #    - operational/strategic -> allow (oder später guardian/human chain)
+        if decision_class in {"deploy", "safety"}:
+            return False, "authority_requires_human", "human"
+
+        return True, None, None
+ 
     # Aktion ausführen (simuliert)
     success, result_summary = execute_agent_action(
         agent=target_agent,
