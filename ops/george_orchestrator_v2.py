@@ -8,6 +8,7 @@ Ziele:
 - Agenten-Aktionen ausführen (oder simulieren, falls kein Adapter vorhanden)
 - Persistenzschicht für Decisions + Health-Metriken + Events
 - Decision Trace (Step 3): lückenlose, maschinenlesbare Nachverfolgbarkeit
+- Runtime Authority Enforcement (BLOCKING): advisory -> governing (MVP)
 """
 
 from __future__ import annotations
@@ -457,6 +458,43 @@ def guardian_precheck(
     return True, None
 
 
+def authority_enforcement(
+    decision: Decision,
+    event: Event,
+    agent_profile: Dict[str, Any],
+    rule: Optional[Dict[str, Any]] = None,
+) -> Tuple[bool, Optional[str], Optional[str], str]:
+    """
+    Runtime Authority Enforcement (MVP) – BLOCKING Hook.
+    Returns: (allowed, block_reason, required_authority, decision_class)
+
+    Policy (robust & konservativ):
+    - decision_class "deploy" oder "safety" => BLOCK (requires human)
+    - außerdem: falls action wie deploy/publish wirkt => BLOCK
+    - sonst => ALLOW
+    """
+    # 1) decision_class bestimmen (rule > intent > fallback)
+    decision_class = None
+    if rule:
+        then_cfg = rule.get("then", {}) or {}
+        decision_class = then_cfg.get("decision_class")
+
+    decision_class = (decision_class or event.intent or "operational").strip().lower()
+
+    # 2) action-heuristik (falls intent fehlt)
+    action_l = (decision.action or "").strip().lower()
+    agent_l = (decision.agent or "").strip().lower()
+
+    risky_action = any(k in action_l for k in ["deploy", "release", "publish", "prod", "production"])
+    risky_agent = any(k in agent_l for k in ["deploy", "release"])
+
+    # 3) harte policy
+    if decision_class in {"deploy", "safety"} or risky_action or risky_agent:
+        return False, "authority_requires_human", "human", decision_class
+
+    return True, None, None, decision_class
+
+
 def execute_agent_action(
     agent: str,
     action: str,
@@ -510,6 +548,7 @@ def orchestrate() -> Optional[Decision]:
     - letztes Event lesen
     - Regel matchen
     - Guardian Precheck
+    - Authority Enforcement (blocking)
     - Aktion ausführen (simuliert)
     - Guardian Postcheck
     - Persistenz + Decision Trace
@@ -615,6 +654,37 @@ def orchestrate() -> Optional[Decision]:
         "result": "allowed",
         "target_agent": target_agent,
         "action": action,
+    })
+
+    # Authority Enforcement (BLOCKING)
+    allowed_auth, reason, required, decision_class = authority_enforcement(decision, event, target_profile, rule)
+    if not allowed_auth:
+        decision.status = "blocked"
+        decision.guardian_flag = reason or "blocked_by_authority"
+        decision.follow_up = f"Requires approval: {required}" if required else "Requires approval"
+        save_decision(decision)
+
+        append_trace({
+            "actor": "authority",
+            "phase": "enforcement",
+            "decision_id": decision.id,
+            "result": "blocked",
+            "reason": reason,
+            "required_authority": required,
+            "decision_class": decision_class,
+            "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
+        })
+
+        print(f"[GEORGE V2] Decision {decision.id} BLOCKED by Authority: {reason} (required={required})")
+        return decision
+
+    append_trace({
+        "actor": "authority",
+        "phase": "enforcement",
+        "decision_id": decision.id,
+        "result": "allowed",
+        "decision_class": decision_class,
+        "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
     })
 
     # Aktion ausführen (simuliert)
