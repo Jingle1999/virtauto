@@ -1,30 +1,78 @@
-name: GEORGE Dry Run
+name: dry-run
 
 on:
   workflow_dispatch:
-  pull_request:
   push:
     paths:
-      - "ops/**"
-      - ".github/workflows/george-dry-run.yml"
+      - "ops/rules/george_rules.yaml"
+      - "ops/george/**"
+      - "ops/reports/system_status.json"
+  pull_request:
+    paths:
+      - "ops/rules/george_rules.yaml"
+      - "ops/george/**"
+      - "ops/reports/system_status.json"
+
+permissions:
+  contents: read
+  statuses: write
 
 jobs:
   dry-run:
+    name: dry-run
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - run: |
+      - name: Install deps
+        run: |
           python -m pip install --upgrade pip
           pip install pyyaml
 
-      - name: Run GEORGE Orchestrator (dry)
+      - name: Run GEORGE on test events
         run: |
-          python ops/george_orchestrator_v2.py
+          set -e
+          for f in ops/george/tests/*.json; do
+            echo "== Running $f =="
+            python ops/george/run.py --event "$f" --print
+          done
 
-      - name: Report success
-        run: echo "dry-run passed"
+      - name: Upload decisions as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: george-decisions
+          path: |
+            ops/decisions/latest.json
+            ops/decisions/decisions.jsonl
+
+      # IMPORTANT: This reports the *required* status context exactly as "dry-run"
+      - name: Report required status "dry-run"
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          JOB_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const isPR = !!context.payload.pull_request;
+            const sha = isPR ? context.payload.pull_request.head.sha : context.sha;
+
+            const state = process.env.JOB_STATUS === "success" ? "success" : "failure";
+            const description = process.env.JOB_STATUS === "success"
+              ? "dry-run passed"
+              : "dry-run failed";
+
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha,
+              state,
+              context: "dry-run",
+              description
+            });
