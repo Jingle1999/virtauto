@@ -62,6 +62,8 @@ DECISIONS_LATEST = DECISIONS_DIR / "latest.json"
 
 AUTONOMY_FILE = OPS_DIR / "autonomy.json"
 
+AUTHORITY_MATRIX_FILE = OPS_DIR / "authority_matrix.yaml"
+
 # ---------------------------------------------------------------------------
 # Utility-Funktionen
 # ---------------------------------------------------------------------------
@@ -285,13 +287,15 @@ def load_latest_event() -> Optional[Event]:
         print(f"[GEORGE V2] Fehler beim Laden letztes JSONL-Event: {exc}", file=sys.stderr)
         return None
 
+def load_authority_matrix() -> Dict[str, Any]:
+    cfg = load_yaml(AUTHORITY_MATRIX_FILE, default={})
+    return cfg if isinstance(cfg, dict) else {}
 
 def append_events(new_events: List[Event]) -> None:
     """Hängt Events an events.jsonl an."""
     with EVENTS_FILE.open("a", encoding="utf-8") as f:
         for ev in new_events:
             f.write(json.dumps(ev.to_dict(), ensure_ascii=False) + "\n")
-
 
 def load_rules() -> List[Dict[str, Any]]:
     """Lädt die GEORGE-Rules aus george_rules.yaml."""
@@ -431,6 +435,15 @@ def match_rule_for_event(event: Event, rules: List[Dict[str, Any]]) -> Optional[
 
     return None
 
+def resolve_decision_class(event: Event, rule: Optional[Dict[str, Any]]) -> str:
+    if rule:
+        then_cfg = rule.get("then", {}) or {}
+        dc = then_cfg.get("decision_class")
+        if dc:
+            return str(dc).lower()
+    if event.intent:
+        return str(event.intent).lower()
+    return "operational"
 
 def guardian_precheck(
     decision: Decision,
@@ -457,43 +470,39 @@ def guardian_precheck(
 
     return True, None
 
-
 def authority_enforcement(
     decision: Decision,
     event: Event,
     agent_profile: Dict[str, Any],
     rule: Optional[Dict[str, Any]] = None,
-) -> Tuple[bool, Optional[str], Optional[str], str]:
+) -> Tuple[bool, Optional[str], Optional[str]]:
     """
-    Runtime Authority Enforcement (MVP) – BLOCKING Hook.
-    Returns: (allowed, block_reason, required_authority, decision_class)
-
-    Policy (robust & konservativ):
-    - decision_class "deploy" oder "safety" => BLOCK (requires human)
-    - außerdem: falls action wie deploy/publish wirkt => BLOCK
-    - sonst => ALLOW
+    Runtime Authority Enforcement – BLOCKING Hook (Matrix-driven)
+    Returns: (allowed, block_reason, required_authority)
     """
-    # 1) decision_class bestimmen (rule > intent > fallback)
-    decision_class = None
-    if rule:
-        then_cfg = rule.get("then", {}) or {}
-        decision_class = then_cfg.get("decision_class")
+    matrix = load_authority_matrix()
 
-    decision_class = (decision_class or event.intent or "operational").strip().lower()
+    decision_class = resolve_decision_class(event, rule)
 
-    # 2) action-heuristik (falls intent fehlt)
-    action_l = (decision.action or "").strip().lower()
-    agent_l = (decision.agent or "").strip().lower()
+    default_cfg = (matrix.get("default") or {}) if isinstance(matrix.get("default"), dict) else {}
+    classes_cfg = (matrix.get("classes") or {}) if isinstance(matrix.get("classes"), dict) else {}
+    agents_cfg = (matrix.get("agents") or {}) if isinstance(matrix.get("agents"), dict) else {}
 
-    risky_action = any(k in action_l for k in ["deploy", "release", "publish", "prod", "production"])
-    risky_agent = any(k in agent_l for k in ["deploy", "release"])
+    class_cfg = (classes_cfg.get(decision_class) or {}) if isinstance(classes_cfg.get(decision_class), dict) else {}
+    required = str(class_cfg.get("require") or default_cfg.get("require") or "human").lower()
 
-    # 3) harte policy
-    if decision_class in {"deploy", "safety"} or risky_action or risky_agent:
-        return False, "authority_requires_human", "human", decision_class
+    # Agent override: darf der Agent diese Klasse überhaupt?
+    agent_id = decision.agent
+    agent_override = agents_cfg.get(agent_id, {}) if isinstance(agents_cfg.get(agent_id), dict) else {}
+    allowed_classes = agent_override.get("allowed_classes")
+    if isinstance(allowed_classes, list) and decision_class not in [str(x).lower() for x in allowed_classes]:
+        return False, "agent_not_allowed_for_decision_class", "human"
 
-    return True, None, None, decision_class
+    # required authority enforcement
+    if required in {"human", "manual"}:
+        return False, "authority_requires_human", "human"
 
+    return True, None, None
 
 def execute_agent_action(
     agent: str,
