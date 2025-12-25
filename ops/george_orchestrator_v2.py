@@ -8,6 +8,7 @@ Ziele:
 - Agenten-Aktionen ausführen (oder simulieren, falls kein Adapter vorhanden)
 - Persistenzschicht für Decisions + Health-Metriken + Events
 - Decision Trace (Step 3): lückenlose, maschinenlesbare Nachverfolgbarkeit
+- Runtime Authority Enforcement (BLOCKING): advisory -> governing (MVP)
 """
 
 from __future__ import annotations
@@ -60,6 +61,8 @@ DECISIONS_SNAPSHOTS_DIR.mkdir(exist_ok=True, parents=True)
 DECISIONS_LATEST = DECISIONS_DIR / "latest.json"
 
 AUTONOMY_FILE = OPS_DIR / "autonomy.json"
+
+AUTHORITY_MATRIX_FILE = OPS_DIR / "authority_matrix.yaml"
 
 # ---------------------------------------------------------------------------
 # Utility-Funktionen
@@ -284,13 +287,15 @@ def load_latest_event() -> Optional[Event]:
         print(f"[GEORGE V2] Fehler beim Laden letztes JSONL-Event: {exc}", file=sys.stderr)
         return None
 
+def load_authority_matrix() -> Dict[str, Any]:
+    cfg = load_yaml(AUTHORITY_MATRIX_FILE, default={})
+    return cfg if isinstance(cfg, dict) else {}
 
 def append_events(new_events: List[Event]) -> None:
     """Hängt Events an events.jsonl an."""
     with EVENTS_FILE.open("a", encoding="utf-8") as f:
         for ev in new_events:
             f.write(json.dumps(ev.to_dict(), ensure_ascii=False) + "\n")
-
 
 def load_rules() -> List[Dict[str, Any]]:
     """Lädt die GEORGE-Rules aus george_rules.yaml."""
@@ -430,6 +435,15 @@ def match_rule_for_event(event: Event, rules: List[Dict[str, Any]]) -> Optional[
 
     return None
 
+def resolve_decision_class(event: Event, rule: Optional[Dict[str, Any]]) -> str:
+    if rule:
+        then_cfg = rule.get("then", {}) or {}
+        dc = then_cfg.get("decision_class")
+        if dc:
+            return str(dc).lower()
+    if event.intent:
+        return str(event.intent).lower()
+    return "operational"
 
 def guardian_precheck(
     decision: Decision,
@@ -456,6 +470,39 @@ def guardian_precheck(
 
     return True, None
 
+def authority_enforcement(
+    decision: Decision,
+    event: Event,
+    agent_profile: Dict[str, Any],
+    rule: Optional[Dict[str, Any]] = None,
+) -> Tuple[bool, Optional[str], Optional[str]]:
+    """
+    Runtime Authority Enforcement – BLOCKING Hook (Matrix-driven)
+    Returns: (allowed, block_reason, required_authority)
+    """
+    matrix = load_authority_matrix()
+
+    decision_class = resolve_decision_class(event, rule)
+
+    default_cfg = (matrix.get("default") or {}) if isinstance(matrix.get("default"), dict) else {}
+    classes_cfg = (matrix.get("classes") or {}) if isinstance(matrix.get("classes"), dict) else {}
+    agents_cfg = (matrix.get("agents") or {}) if isinstance(matrix.get("agents"), dict) else {}
+
+    class_cfg = (classes_cfg.get(decision_class) or {}) if isinstance(classes_cfg.get(decision_class), dict) else {}
+    required = str(class_cfg.get("require") or default_cfg.get("require") or "human").lower()
+
+    # Agent override: darf der Agent diese Klasse überhaupt?
+    agent_id = decision.agent
+    agent_override = agents_cfg.get(agent_id, {}) if isinstance(agents_cfg.get(agent_id), dict) else {}
+    allowed_classes = agent_override.get("allowed_classes")
+    if isinstance(allowed_classes, list) and decision_class not in [str(x).lower() for x in allowed_classes]:
+        return False, "agent_not_allowed_for_decision_class", "human"
+
+    # required authority enforcement
+    if required in {"human", "manual"}:
+        return False, "authority_requires_human", "human"
+
+    return True, None, None
 
 def execute_agent_action(
     agent: str,
@@ -510,6 +557,7 @@ def orchestrate() -> Optional[Decision]:
     - letztes Event lesen
     - Regel matchen
     - Guardian Precheck
+    - Authority Enforcement (blocking)
     - Aktion ausführen (simuliert)
     - Guardian Postcheck
     - Persistenz + Decision Trace
@@ -615,6 +663,37 @@ def orchestrate() -> Optional[Decision]:
         "result": "allowed",
         "target_agent": target_agent,
         "action": action,
+    })
+
+    # Authority Enforcement (BLOCKING)
+    allowed_auth, reason, required, decision_class = authority_enforcement(decision, event, target_profile, rule)
+    if not allowed_auth:
+        decision.status = "blocked"
+        decision.guardian_flag = reason or "blocked_by_authority"
+        decision.follow_up = f"Requires approval: {required}" if required else "Requires approval"
+        save_decision(decision)
+
+        append_trace({
+            "actor": "authority",
+            "phase": "enforcement",
+            "decision_id": decision.id,
+            "result": "blocked",
+            "reason": reason,
+            "required_authority": required,
+            "decision_class": decision_class,
+            "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
+        })
+
+        print(f"[GEORGE V2] Decision {decision.id} BLOCKED by Authority: {reason} (required={required})")
+        return decision
+
+    append_trace({
+        "actor": "authority",
+        "phase": "enforcement",
+        "decision_id": decision.id,
+        "result": "allowed",
+        "decision_class": decision_class,
+        "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
     })
 
     # Aktion ausführen (simuliert)
