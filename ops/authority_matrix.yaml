@@ -1,0 +1,28 @@
+version: 1
+default:
+  require: human
+  reason: "default_requires_human"
+
+# Decision classes (welche Art Entscheidung ist das?)
+classes:
+  operational:
+    require: system
+  content:
+    require: system
+  governance:
+    require: human
+  deploy:
+    require: human
+  safety:
+    require: human
+  security:
+    require: human
+
+# Optional: Agent-spezifische Overrides
+agents:
+  george_v2:
+    allowed_classes: ["operational", "content"]
+  website:
+    allowed_classes: ["content"]
+  deployer:
+    allowed_classes: []
