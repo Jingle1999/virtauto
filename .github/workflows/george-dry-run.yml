@@ -1,4 +1,4 @@
-name: GEORGE Dry Run
+name: dry-run
 
 on:
   workflow_dispatch:
@@ -109,7 +109,35 @@ jobs:
 
       - name: Run GEORGE orchestrator v2
         run: |
-          python ops/george_orchestrator_v2.py
+          set -e
+          for f in ops/george/tests/*.json; do
+            echo "== Running $f =="
+            python ops/george/run.py --event "$f" --print
+          done
+
+      - name: Upload decisions as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: george-decisions
+          path: |
+            ops/decisions/latest.json
+            ops/decisions/decisions.jsonl
+
+      # IMPORTANT: This reports the *required* status context exactly as "dry-run"
+      - name: Report required status "dry-run"
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          JOB_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const isPR = !!context.payload.pull_request;
+            const sha = isPR ? context.payload.pull_request.head.sha : context.sha;
+
+            const state = process.env.JOB_STATUS === "success" ? "success" : "failure";
+            const description = process.env.JOB_STATUS === "success"
+              ? "dry-run passed"
+              : "dry-run failed";
 
       - name: Upload orchestrator outputs
         if: always()
