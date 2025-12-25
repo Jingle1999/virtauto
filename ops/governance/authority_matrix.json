@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "system": "virtauto",
+    "component": "authority_matrix",
+    "version": "v1",
+    "mode": "runtime_enforced",
+    "owner": "GEORGE",
+    "description": "Defines binding authority levels and enforcement rules for all system decisions"
+  },
+  "authority_levels": {
+    "human": {
+      "level": 0,
+      "label": "human_final",
+      "can_override": true,
+      "notes": "Ultimate authority, only invoked on explicit escalation"
+    },
+    "guardian": {
+      "level": 1,
+      "label": "guardian_protective",
+      "can_override": true,
+      "notes": "Protective authority, can block but not execute changes"
+    },
+    "george": {
+      "level": 2,
+      "label": "system_enforced",
+      "can_override": false,
+      "notes": "Primary operational authority with runtime enforcement"
+    }
+  },
+  "decision_classes": [
+    {
+      "decision_type": "merge_permission",
+      "required_authority": "george",
+      "guardian_review": true,
+      "human_override": true,
+      "enforcement": "hard",
+      "fallback": "human"
+    },
+    {
+      "decision_type": "deployment_trigger",
+      "required_authority": "george",
+      "guardian_review": true,
+      "human_override": true,
+      "enforcement": "hard",
+      "fallback": "guardian"
+    },
+    {
+      "decision_type": "workflow_execution",
+      "required_authority": "george",
+      "guardian_review": false,
+      "human_override": true,
+      "enforcement": "hard",
+      "fallback": "human"
+    },
+    {
+      "decision_type": "policy_violation_block",
+      "required_authority": "guardian",
+      "guardian_review": true,
+      "human_override": true,
+      "enforcement": "hard",
+      "fallback": "human"
+    },
+    {
+      "decision_type": "autonomy_score_update",
+      "required_authority": "george",
+      "guardian_review": false,
+      "human_override": false,
+      "enforcement": "hard",
+      "fallback": "none"
+    },
+    {
+      "decision_type": "status_publication",
+      "required_authority": "george",
+      "guardian_review": false,
+      "human_override": false,
+      "enforcement": "hard",
+      "fallback": "none"
+    }
+  ],
+  "rules": {
+    "default_enforcement": "hard",
+    "missing_definition_behavior": "deny",
+    "unclassified_decision_behavior": "escalate_to_human",
+    "logging_required": true,
+    "decision_trace_required": true
+  }
+}
