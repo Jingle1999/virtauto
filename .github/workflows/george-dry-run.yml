@@ -17,8 +17,13 @@ on:
       - "ops/reports/system_status.json"
       - ".github/workflows/george-dry-run.yml"
 
+# Needed:
+# - actions:write -> upload-artifact
+# - statuses:write -> createCommitStatus for required context "dry-run"
 permissions:
   contents: read
+  actions: write
+  statuses: write
 
 concurrency:
   group: "george-dry-run-${{ github.ref }}"
@@ -59,11 +64,12 @@ jobs:
             python ops/george/run.py --event "$f" --print
           done
 
+      # IMPORTANT: artifact names must be UNIQUE per workflow run.
       - name: Upload decisions as artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name:  george-decisions-dry-run
+          name: george-decisions-dry-run
           path: |
             ops/decisions/latest.json
             ops/decisions/decisions.jsonl
@@ -108,20 +114,19 @@ jobs:
           python -m pip install --no-cache-dir pyyaml
 
       - name: Run GEORGE orchestrator v2
+        shell: bash
         run: |
-          set -e
-          for f in ops/george/tests/*.json; do
+          set -euo pipefail
+          shopt -s nullglob
+          files=(ops/george/tests/*.json)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No test events found under ops/george/tests/*.json"
+            exit 1
+          fi
+          for f in "${files[@]}"; do
             echo "== Running $f =="
             python ops/george/run.py --event "$f" --print
           done
-
-      - name: Upload decisions as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: george-decisions-dry-run
-          path: |
-            ops/decisions/latest.json
-            ops/decisions/decisions.jsonl
 
       # IMPORTANT: This reports the *required* status context exactly as "dry-run"
       - name: Report required status "dry-run"
@@ -139,6 +144,16 @@ jobs:
               ? "dry-run passed"
               : "dry-run failed";
 
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha,
+              state,
+              context: "dry-run",
+              description,
+            });
+
+      # IMPORTANT: artifact name must be UNIQUE per workflow run (different from george-decisions-dry-run)
       - name: Upload orchestrator outputs
         if: always()
         uses: actions/upload-artifact@v4
