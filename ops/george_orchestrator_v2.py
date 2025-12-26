@@ -9,6 +9,12 @@ Ziele:
 - Persistenzschicht für Decisions + Health-Metriken + Events
 - Decision Trace (Step 3): lückenlose, maschinenlesbare Nachverfolgbarkeit
 - Runtime Authority Enforcement (BLOCKING): advisory -> governing (MVP)
+
+Fixes (für runtime authority gate):
+- authority_enforcement() liefert konsistent (allowed, reason, required_authority, decision_class)
+- Authority-Hierarchie + Agent-Authority aus autonomy.json (role/authority) wird ausgewertet
+- Decision enthält decision_class + required_authority + granted_authority (für Gate/Policy-Auswertung)
+- Robuster: fehlende Matrix/Agentprofile blocken sauber mit erklärbarem reason
 """
 
 from __future__ import annotations
@@ -68,6 +74,7 @@ AUTHORITY_MATRIX_FILE = OPS_DIR / "authority_matrix.yaml"
 # Utility-Funktionen
 # ---------------------------------------------------------------------------
 
+
 def now_iso() -> str:
     """UTC-Zeitstempel im ISO-Format."""
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -85,6 +92,7 @@ def load_json(path: Path, default: Any) -> Any:
 
 
 def save_json(path: Path, data: Any) -> None:
+    path.parent.mkdir(exist_ok=True, parents=True)
     with path.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -118,13 +126,16 @@ def append_trace(record: Dict[str, Any]) -> None:
     record.setdefault("trace_version", "v1")
     append_jsonl(DECISION_TRACE_LOG, record)
 
+
 # ---------------------------------------------------------------------------
 # Datenmodelle
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class Event:
     """Eingehende/ausgehende Events (kompatibel zu V1, aber erweitert)."""
+
     id: str
     timestamp: str
     agent: str
@@ -152,18 +163,24 @@ class Event:
 @dataclass
 class Decision:
     """GEORGE-Entscheidungen mit Persistenz und Guardian-Hooks."""
+
     id: str
     timestamp: str
     source_event_id: Optional[str]
-    agent: str                # Ziel-Agent
+    agent: str  # Ziel-Agent
     action: str
     intent: Optional[str]
     confidence: float
-    status: str               # pending | success | error | blocked
+    status: str  # pending | success | error | blocked
     error_message: Optional[str] = None
     guardian_flag: Optional[str] = None
     follow_up: Optional[str] = None
     result_summary: Optional[str] = None
+
+    # --- Authority metadata (wichtig fürs runtime gate) ---
+    decision_class: Optional[str] = None
+    required_authority: Optional[str] = None
+    granted_authority: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -172,6 +189,7 @@ class Decision:
 @dataclass
 class HealthState:
     """Health- & Autonomie-Metriken (MVP)."""
+
     agent_response_success_rate: float = 0.0
     last_autonomous_action: Optional[str] = None
     self_detection_errors: int = 0
@@ -217,9 +235,11 @@ class HealthState:
             min(1.0, 0.4 + 0.6 * self.system_stability_score),
         )
 
+
 # ---------------------------------------------------------------------------
 # Health Persistenz
 # ---------------------------------------------------------------------------
+
 
 def load_health() -> HealthState:
     """Lädt den letzten Health-Status oder liefert Defaults."""
@@ -239,9 +259,11 @@ def save_health(health: HealthState) -> None:
     save_json(STATUS_FILE, data)
     append_jsonl(HEALTH_LOG, data)
 
+
 # ---------------------------------------------------------------------------
 # Autonomy-Konfiguration
 # ---------------------------------------------------------------------------
+
 
 def load_autonomy_config() -> Dict[str, Any]:
     """Lädt die Autonomie-/Capability-Map aus autonomy.json."""
@@ -260,9 +282,11 @@ def get_agent_profile(agent_id: str) -> Dict[str, Any]:
         return {}
     return profile
 
+
 # ---------------------------------------------------------------------------
 # Events / Rules
 # ---------------------------------------------------------------------------
+
 
 def load_latest_event() -> Optional[Event]:
     """Liest das letzte Event aus events.jsonl (eine JSON-Zeile pro Event)."""
@@ -287,15 +311,18 @@ def load_latest_event() -> Optional[Event]:
         print(f"[GEORGE V2] Fehler beim Laden letztes JSONL-Event: {exc}", file=sys.stderr)
         return None
 
+
 def load_authority_matrix() -> Dict[str, Any]:
     cfg = load_yaml(AUTHORITY_MATRIX_FILE, default={})
     return cfg if isinstance(cfg, dict) else {}
+
 
 def append_events(new_events: List[Event]) -> None:
     """Hängt Events an events.jsonl an."""
     with EVENTS_FILE.open("a", encoding="utf-8") as f:
         for ev in new_events:
             f.write(json.dumps(ev.to_dict(), ensure_ascii=False) + "\n")
+
 
 def load_rules() -> List[Dict[str, Any]]:
     """Lädt die GEORGE-Rules aus george_rules.yaml."""
@@ -311,9 +338,11 @@ def load_rules() -> List[Dict[str, Any]]:
 
     return rules
 
+
 # ---------------------------------------------------------------------------
 # Decision Persistenz
 # ---------------------------------------------------------------------------
+
 
 def save_decision(decision: Decision | Dict[str, Any]) -> None:
     """
@@ -399,9 +428,11 @@ def update_snapshot(date: str, decision: Dict[str, Any]) -> None:
     with snapshot_path.open("w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2, ensure_ascii=False)
 
+
 # ---------------------------------------------------------------------------
 # Orchestrierungs-Helfer
 # ---------------------------------------------------------------------------
+
 
 def match_rule_for_event(event: Event, rules: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """
@@ -435,15 +466,24 @@ def match_rule_for_event(event: Event, rules: List[Dict[str, Any]]) -> Optional[
 
     return None
 
+
 def resolve_decision_class(event: Event, rule: Optional[Dict[str, Any]]) -> str:
+    """
+    Entscheidungsklasse (für Authority-Matrix).
+    Priorität:
+    1) then.decision_class aus Rule
+    2) event.intent
+    3) fallback: operational
+    """
     if rule:
         then_cfg = rule.get("then", {}) or {}
         dc = then_cfg.get("decision_class")
         if dc:
-            return str(dc).lower()
+            return str(dc).strip().lower()
     if event.intent:
-        return str(event.intent).lower()
+        return str(event.intent).strip().lower()
     return "operational"
+
 
 def guardian_precheck(
     decision: Decision,
@@ -470,39 +510,94 @@ def guardian_precheck(
 
     return True, None
 
+
+def _norm_authority(value: Optional[str]) -> str:
+    if not value:
+        return "operational"
+    v = str(value).strip().lower()
+    # tolerante Aliases
+    if v in {"manual", "human"}:
+        return "human"
+    if v in {"gov", "governance", "governing"}:
+        return "governing"
+    if v in {"adv", "advisory"}:
+        return "advisory"
+    if v in {"op", "operational"}:
+        return "operational"
+    return v
+
+
+def _authority_level(value: str) -> int:
+    """
+    Authority-Hierarchie (MVP):
+    operational < advisory < governing < human
+    """
+    v = _norm_authority(value)
+    return {
+        "operational": 0,
+        "advisory": 1,
+        "governing": 2,
+        "human": 3,
+    }.get(v, 0)
+
+
+def _get_agent_authority(agent_profile: Dict[str, Any]) -> str:
+    """
+    Agent authority aus autonomy.json:
+    - bevorzugt: profile.authority
+    - fallback: profile.role
+    - fallback: operational
+    """
+    if not isinstance(agent_profile, dict):
+        return "operational"
+    return _norm_authority(agent_profile.get("authority") or agent_profile.get("role") or "operational")
+
+
 def authority_enforcement(
     decision: Decision,
     event: Event,
     agent_profile: Dict[str, Any],
     rule: Optional[Dict[str, Any]] = None,
-) -> Tuple[bool, Optional[str], Optional[str]]:
+) -> Tuple[bool, Optional[str], Optional[str], str]:
     """
     Runtime Authority Enforcement – BLOCKING Hook (Matrix-driven)
-    Returns: (allowed, block_reason, required_authority)
+
+    Returns: (allowed, block_reason, required_authority, decision_class)
     """
     matrix = load_authority_matrix()
+    if not matrix:
+        # Ohne Matrix lieber blocken (damit Gate konsistent ist)
+        dc = resolve_decision_class(event, rule)
+        return False, "authority_matrix_missing", "human", dc
 
     decision_class = resolve_decision_class(event, rule)
 
-    default_cfg = (matrix.get("default") or {}) if isinstance(matrix.get("default"), dict) else {}
-    classes_cfg = (matrix.get("classes") or {}) if isinstance(matrix.get("classes"), dict) else {}
-    agents_cfg = (matrix.get("agents") or {}) if isinstance(matrix.get("agents"), dict) else {}
+    default_cfg = matrix.get("default") if isinstance(matrix.get("default"), dict) else {}
+    classes_cfg = matrix.get("classes") if isinstance(matrix.get("classes"), dict) else {}
+    agents_cfg = matrix.get("agents") if isinstance(matrix.get("agents"), dict) else {}
 
-    class_cfg = (classes_cfg.get(decision_class) or {}) if isinstance(classes_cfg.get(decision_class), dict) else {}
-    required = str(class_cfg.get("require") or default_cfg.get("require") or "human").lower()
+    class_cfg = classes_cfg.get(decision_class) if isinstance(classes_cfg.get(decision_class), dict) else {}
+    required = _norm_authority(class_cfg.get("require") or default_cfg.get("require") or "human")
 
     # Agent override: darf der Agent diese Klasse überhaupt?
     agent_id = decision.agent
-    agent_override = agents_cfg.get(agent_id, {}) if isinstance(agents_cfg.get(agent_id), dict) else {}
+    agent_override = agents_cfg.get(agent_id) if isinstance(agents_cfg.get(agent_id), dict) else {}
     allowed_classes = agent_override.get("allowed_classes")
-    if isinstance(allowed_classes, list) and decision_class not in [str(x).lower() for x in allowed_classes]:
-        return False, "agent_not_allowed_for_decision_class", "human"
+    if isinstance(allowed_classes, list):
+        allowed_norm = [str(x).strip().lower() for x in allowed_classes]
+        if decision_class not in allowed_norm:
+            return False, "agent_not_allowed_for_decision_class", required, decision_class
 
-    # required authority enforcement
-    if required in {"human", "manual"}:
-        return False, "authority_requires_human", "human"
+    # Required authority enforcement
+    if required == "human":
+        return False, "authority_requires_human", required, decision_class
 
-    return True, None, None
+    granted = _get_agent_authority(agent_profile)
+    if _authority_level(granted) < _authority_level(required):
+        return False, "authority_too_low", required, decision_class
+
+    return True, None, required, decision_class
+
 
 def execute_agent_action(
     agent: str,
@@ -546,9 +641,11 @@ def guardian_postcheck(
 
     return guardian_flag
 
+
 # ---------------------------------------------------------------------------
 # Haupt-Orchestrierungsfunktion
 # ---------------------------------------------------------------------------
+
 
 def orchestrate() -> Optional[Decision]:
     """
@@ -563,22 +660,26 @@ def orchestrate() -> Optional[Decision]:
     - Persistenz + Decision Trace
     """
     if emergency_lock_active():
-        append_trace({
-            "actor": "george_v2",
-            "phase": "emergency_lock",
-            "result": "stopped",
-            "reason": "emergency_lock_active",
-        })
+        append_trace(
+            {
+                "actor": "george_v2",
+                "phase": "emergency_lock",
+                "result": "stopped",
+                "reason": "emergency_lock_active",
+            }
+        )
         print("[GEORGE V2] Emergency Lock ist aktiv – Orchestrierung gestoppt.", file=sys.stderr)
         return None
 
     event = load_latest_event()
     if not event:
-        append_trace({
-            "actor": "george_v2",
-            "phase": "load_event",
-            "result": "no_event",
-        })
+        append_trace(
+            {
+                "actor": "george_v2",
+                "phase": "load_event",
+                "result": "no_event",
+            }
+        )
         return None
 
     rules = load_rules()
@@ -612,29 +713,34 @@ def orchestrate() -> Optional[Decision]:
         guardian_flag=None,
         follow_up=None,
         result_summary=None,
+        decision_class=None,
+        required_authority=None,
+        granted_authority=None,
     )
 
     # TRACE: Routing
-    append_trace({
-        "actor": "george_v2",
-        "phase": "route",
-        "event": {
-            "id": event.id,
-            "agent": event.agent,
-            "event": event.event,
-            "intent": event.intent,
-            "source_event_id": event.source_event_id,
-        },
-        "matched_rule_id": matched_rule_id,
-        "decision": {
-            "id": decision.id,
-            "target_agent": target_agent,
-            "action": action,
-            "confidence": confidence,
-            "status": decision.status,
-        },
-        "result": "routed",
-    })
+    append_trace(
+        {
+            "actor": "george_v2",
+            "phase": "route",
+            "event": {
+                "id": event.id,
+                "agent": event.agent,
+                "event": event.event,
+                "intent": event.intent,
+                "source_event_id": event.source_event_id,
+            },
+            "matched_rule_id": matched_rule_id,
+            "decision": {
+                "id": decision.id,
+                "target_agent": target_agent,
+                "action": action,
+                "confidence": confidence,
+                "status": decision.status,
+            },
+            "result": "routed",
+        }
+    )
 
     # Guardian Precheck
     allowed, guardian_flag = guardian_precheck(decision, target_profile, rule)
@@ -643,58 +749,76 @@ def orchestrate() -> Optional[Decision]:
         decision.guardian_flag = guardian_flag or "blocked_by_guardian"
         save_decision(decision)
 
-        append_trace({
-            "actor": "guardian",
-            "phase": "precheck",
-            "decision_id": decision.id,
-            "result": "blocked",
-            "guardian_flag": decision.guardian_flag,
-            "target_agent": target_agent,
-            "action": action,
-        })
+        append_trace(
+            {
+                "actor": "guardian",
+                "phase": "precheck",
+                "decision_id": decision.id,
+                "result": "blocked",
+                "guardian_flag": decision.guardian_flag,
+                "target_agent": target_agent,
+                "action": action,
+            }
+        )
 
         print(f"[GEORGE V2] Decision {decision.id} BLOCKED durch Guardian: {decision.guardian_flag}")
         return decision
 
-    append_trace({
-        "actor": "guardian",
-        "phase": "precheck",
-        "decision_id": decision.id,
-        "result": "allowed",
-        "target_agent": target_agent,
-        "action": action,
-    })
+    append_trace(
+        {
+            "actor": "guardian",
+            "phase": "precheck",
+            "decision_id": decision.id,
+            "result": "allowed",
+            "target_agent": target_agent,
+            "action": action,
+        }
+    )
 
     # Authority Enforcement (BLOCKING)
-    allowed_auth, reason, required, decision_class = authority_enforcement(decision, event, target_profile, rule)
+    allowed_auth, reason, required, decision_class = authority_enforcement(
+        decision, event, target_profile, rule
+    )
+
+    decision.decision_class = decision_class
+    decision.required_authority = required
+    decision.granted_authority = _get_agent_authority(target_profile or {})
+
     if not allowed_auth:
         decision.status = "blocked"
         decision.guardian_flag = reason or "blocked_by_authority"
         decision.follow_up = f"Requires approval: {required}" if required else "Requires approval"
         save_decision(decision)
 
-        append_trace({
-            "actor": "authority",
-            "phase": "enforcement",
-            "decision_id": decision.id,
-            "result": "blocked",
-            "reason": reason,
-            "required_authority": required,
-            "decision_class": decision_class,
-            "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
-        })
+        append_trace(
+            {
+                "actor": "authority",
+                "phase": "enforcement",
+                "decision_id": decision.id,
+                "result": "blocked",
+                "reason": reason,
+                "required_authority": required,
+                "granted_authority": decision.granted_authority,
+                "decision_class": decision_class,
+                "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
+            }
+        )
 
         print(f"[GEORGE V2] Decision {decision.id} BLOCKED by Authority: {reason} (required={required})")
         return decision
 
-    append_trace({
-        "actor": "authority",
-        "phase": "enforcement",
-        "decision_id": decision.id,
-        "result": "allowed",
-        "decision_class": decision_class,
-        "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
-    })
+    append_trace(
+        {
+            "actor": "authority",
+            "phase": "enforcement",
+            "decision_id": decision.id,
+            "result": "allowed",
+            "required_authority": required,
+            "granted_authority": decision.granted_authority,
+            "decision_class": decision_class,
+            "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
+        }
+    )
 
     # Aktion ausführen (simuliert)
     success, result_summary = execute_agent_action(
@@ -709,15 +833,17 @@ def orchestrate() -> Optional[Decision]:
     if not success:
         decision.error_message = "Agent execution failed (simulated)."
 
-    append_trace({
-        "actor": "executor",
-        "phase": "execute",
-        "decision_id": decision.id,
-        "target_agent": target_agent,
-        "action": action,
-        "result": "success" if success else "error",
-        "result_summary": (result_summary or "")[:500],
-    })
+    append_trace(
+        {
+            "actor": "executor",
+            "phase": "execute",
+            "decision_id": decision.id,
+            "target_agent": target_agent,
+            "action": action,
+            "result": "success" if success else "error",
+            "result_summary": (result_summary or "")[:500],
+        }
+    )
 
     # Health + Postcheck
     health = load_health()
@@ -727,41 +853,51 @@ def orchestrate() -> Optional[Decision]:
 
     save_health(health)
 
-    append_trace({
-        "actor": "guardian",
-        "phase": "postcheck",
-        "decision_id": decision.id,
-        "result": "ok" if success else "flagged",
-        "guardian_flag": decision.guardian_flag,
-        "health": {
-            "agent_response_success_rate": health.agent_response_success_rate,
-            "system_stability_score": health.system_stability_score,
-            "autonomy_level_estimate": health.autonomy_level_estimate,
-            "total_actions": health.total_actions,
-            "failed_actions": health.failed_actions,
-        },
-    })
+    append_trace(
+        {
+            "actor": "guardian",
+            "phase": "postcheck",
+            "decision_id": decision.id,
+            "result": "ok" if success else "flagged",
+            "guardian_flag": decision.guardian_flag,
+            "health": {
+                "agent_response_success_rate": health.agent_response_success_rate,
+                "system_stability_score": health.system_stability_score,
+                "autonomy_level_estimate": health.autonomy_level_estimate,
+                "total_actions": health.total_actions,
+                "failed_actions": health.failed_actions,
+            },
+        }
+    )
 
     # Decision persistieren
     save_decision(decision)
 
-    append_trace({
-        "actor": "george_v2",
-        "phase": "finalize",
-        "decision_id": decision.id,
-        "result": decision.status,
-        "guardian_flag": decision.guardian_flag,
-    })
+    append_trace(
+        {
+            "actor": "george_v2",
+            "phase": "finalize",
+            "decision_id": decision.id,
+            "result": decision.status,
+            "guardian_flag": decision.guardian_flag,
+            "decision_class": decision.decision_class,
+            "required_authority": decision.required_authority,
+            "granted_authority": decision.granted_authority,
+        }
+    )
 
     print(
         f"[GEORGE V2] Decision {decision.id}: "
-        f"agent='{decision.agent}', action='{decision.action}', status='{decision.status}'"
+        f"agent='{decision.agent}', action='{decision.action}', status='{decision.status}', "
+        f"class='{decision.decision_class}', required='{decision.required_authority}', granted='{decision.granted_authority}'"
     )
     return decision
+
 
 # ---------------------------------------------------------------------------
 # CLI Entry Point
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     """Einmalige Orchestrierungsrunde für CLI / GitHub Actions."""
