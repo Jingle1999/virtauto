@@ -63,7 +63,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: george-decisions
+          name:  george-decisions-dry-run
           path: |
             ops/decisions/latest.json
             ops/decisions/decisions.jsonl
@@ -118,7 +118,7 @@ jobs:
       - name: Upload decisions as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: george-decisions
+          name: george-decisions-dry-run
           path: |
             ops/decisions/latest.json
             ops/decisions/decisions.jsonl
@@ -143,7 +143,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: george-orchestrator-outputs
+          name: george-orchestrator-outputs-dry-run
           path: |
             ops/reports/george_decisions.jsonl
             ops/reports/decision_trace.jsonl
