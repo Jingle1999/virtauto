@@ -9,14 +9,6 @@ Ziele:
 - Persistenzschicht für Decisions + Health-Metriken + Events
 - Decision Trace (Step 3): lückenlose, maschinenlesbare Nachverfolgbarkeit
 - Runtime Authority Enforcement (BLOCKING): advisory -> governing (MVP)
-
-Fixes (für das Runtime Authority Gate):
-- authority_enforcement liefert jetzt konsistent 4 Rückgabewerte (inkl. decision_class)
-- Authority-Logik ist matrix-driven + agent-level-aware (role/authority in autonomy.json)
-- Default-Verhalten ist *nicht* "alles human blocken", sondern:
-  - "human/manual" blockt
-  - sonst wird anhand Agent-Level vs. Required-Level entschieden
-- Decision speichert decision_class + required_authority, damit runtime_gate/policy sauber auswerten kann
 """
 
 from __future__ import annotations
@@ -70,7 +62,7 @@ DECISIONS_LATEST = DECISIONS_DIR / "latest.json"
 
 AUTONOMY_FILE = OPS_DIR / "autonomy.json"
 
-# Wichtig: authority matrix liegt unter ops/authority_matrix.yaml (kein /authority Ordner)
+# Achtung: liegt (wie du gezeigt hast) direkt unter ops/
 AUTHORITY_MATRIX_FILE = OPS_DIR / "authority_matrix.yaml"
 
 # ---------------------------------------------------------------------------
@@ -175,9 +167,10 @@ class Decision:
     follow_up: Optional[str] = None
     result_summary: Optional[str] = None
 
-    # --- Runtime authority gate friendliness (optional/BC-safe) ---
+    # Authority-Metadaten (wichtig fürs Runtime-Gate)
     decision_class: Optional[str] = None
     required_authority: Optional[str] = None
+    authority_reason: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -307,14 +300,6 @@ def load_authority_matrix() -> Dict[str, Any]:
     return cfg if isinstance(cfg, dict) else {}
 
 
-def append_events(new_events: List[Event]) -> None:
-    """Hängt Events an events.jsonl an."""
-    EVENTS_FILE.parent.mkdir(exist_ok=True, parents=True)
-    with EVENTS_FILE.open("a", encoding="utf-8") as f:
-        for ev in new_events:
-            f.write(json.dumps(ev.to_dict(), ensure_ascii=False) + "\n")
-
-
 def load_rules() -> List[Dict[str, Any]]:
     """Lädt die GEORGE-Rules aus george_rules.yaml."""
     data = load_yaml(RULES_FILE, default={})
@@ -356,9 +341,7 @@ def save_decision(decision: Decision | Dict[str, Any]) -> None:
     append_jsonl(history_file, dec_dict)
 
     # 2) latest.json
-    DECISIONS_LATEST.parent.mkdir(exist_ok=True, parents=True)
-    with DECISIONS_LATEST.open("w", encoding="utf-8") as f:
-        json.dump(dec_dict, f, indent=2, ensure_ascii=False)
+    save_json(DECISIONS_LATEST, dec_dict)
 
     # 3) Snapshot aktualisieren
     update_snapshot(today, dec_dict)
@@ -415,7 +398,6 @@ def update_snapshot(date: str, decision: Dict[str, Any]) -> None:
     snapshot["last_decision_id"] = decision.get("id")
     snapshot["last_updated"] = now_iso()
 
-    snapshot_path.parent.mkdir(exist_ok=True, parents=True)
     with snapshot_path.open("w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2, ensure_ascii=False)
 
@@ -457,12 +439,6 @@ def match_rule_for_event(event: Event, rules: List[Dict[str, Any]]) -> Optional[
 
 
 def resolve_decision_class(event: Event, rule: Optional[Dict[str, Any]]) -> str:
-    """
-    Decision Class:
-    - bevorzugt rule.then.decision_class
-    - sonst event.intent
-    - sonst "operational"
-    """
     if rule:
         then_cfg = rule.get("then", {}) or {}
         dc = then_cfg.get("decision_class")
@@ -499,83 +475,41 @@ def guardian_precheck(
     return True, None
 
 
-def _normalize_authority_level(value: Optional[str]) -> str:
-    if not value:
-        return "operational"
-    v = str(value).strip().lower()
-    aliases = {
-        "ops": "operational",
-        "operational": "operational",
-        "advice": "advisory",
-        "advisor": "advisory",
-        "advisory": "advisory",
-        "governance": "governing",
-        "governing": "governing",
-        "human": "human",
-        "manual": "human",
-    }
-    return aliases.get(v, v)
-
-
-def _authority_rank(level: str) -> int:
-    # niedrig -> hoch
-    order = {
-        "operational": 0,
-        "advisory": 1,
-        "governing": 2,
-        "human": 3,
-    }
-    return order.get(level, 3)
-
-
 def authority_enforcement(
     decision: Decision,
     event: Event,
     agent_profile: Dict[str, Any],
     rule: Optional[Dict[str, Any]] = None,
-) -> Tuple[bool, Optional[str], Optional[str], str]:
+) -> Tuple[bool, Optional[str], str, str]:
     """
     Runtime Authority Enforcement – BLOCKING Hook (Matrix-driven)
-
     Returns: (allowed, block_reason, required_authority, decision_class)
     """
     matrix = load_authority_matrix()
     decision_class = resolve_decision_class(event, rule)
 
-    # Wenn keine Matrix vorhanden ist: NICHT hart blocken (Gate soll weiter funktionieren).
-    if not matrix:
-        return True, None, None, decision_class
+    default_cfg = (matrix.get("default") or {}) if isinstance(matrix.get("default"), dict) else {}
+    classes_cfg = (matrix.get("classes") or {}) if isinstance(matrix.get("classes"), dict) else {}
+    agents_cfg = (matrix.get("agents") or {}) if isinstance(matrix.get("agents"), dict) else {}
 
-    default_cfg = matrix.get("default") if isinstance(matrix.get("default"), dict) else {}
-    classes_cfg = matrix.get("classes") if isinstance(matrix.get("classes"), dict) else {}
-    agents_cfg = matrix.get("agents") if isinstance(matrix.get("agents"), dict) else {}
-
-    class_cfg = classes_cfg.get(decision_class) if isinstance(classes_cfg.get(decision_class), dict) else {}
-    required_raw = class_cfg.get("require") or default_cfg.get("require") or "operational"
-    required = _normalize_authority_level(required_raw)
+    class_cfg = (classes_cfg.get(decision_class) or {}) if isinstance(classes_cfg.get(decision_class), dict) else {}
+    required = str(class_cfg.get("require") or default_cfg.get("require") or "human").lower()
 
     # Agent override: darf der Agent diese Klasse überhaupt?
     agent_id = decision.agent
-    agent_override = agents_cfg.get(agent_id) if isinstance(agents_cfg.get(agent_id), dict) else {}
+    agent_override = agents_cfg.get(agent_id, {}) if isinstance(agents_cfg.get(agent_id), dict) else {}
     allowed_classes = agent_override.get("allowed_classes")
-
     if isinstance(allowed_classes, list):
-        allowed_norm = {str(x).strip().lower() for x in allowed_classes}
+        allowed_norm = [str(x).lower() for x in allowed_classes]
         if decision_class not in allowed_norm:
             return False, "agent_not_allowed_for_decision_class", "human", decision_class
 
-    # Human/manual blockt immer
-    if required in {"human"}:
+    # required authority enforcement
+    if required in {"human", "manual"}:
         return False, "authority_requires_human", "human", decision_class
 
-    # Agent authority bestimmen: profile.authority > profile.role > fallback operational
-    agent_level_raw = agent_profile.get("authority") or agent_profile.get("role") or "operational"
-    agent_level = _normalize_authority_level(agent_level_raw)
-
-    if _authority_rank(agent_level) < _authority_rank(required):
-        return False, "insufficient_authority", required, decision_class
-
-    return True, None, None, decision_class
+    # Alles erlaubt (MVP: alles außer human/manual)
+    return True, None, required, decision_class
 
 
 def execute_agent_action(
@@ -672,9 +606,6 @@ def orchestrate() -> Optional[Decision]:
 
     target_profile = get_agent_profile(target_agent)
 
-    # Decision Class früh bestimmen (damit Gate zuverlässig Daten hat)
-    decision_class = resolve_decision_class(event, rule)
-
     # Decision anlegen
     decision = Decision(
         id=str(uuid.uuid4()),
@@ -689,8 +620,9 @@ def orchestrate() -> Optional[Decision]:
         guardian_flag=None,
         follow_up=None,
         result_summary=None,
-        decision_class=decision_class,
+        decision_class=None,
         required_authority=None,
+        authority_reason=None,
     )
 
     # TRACE: Routing
@@ -711,7 +643,6 @@ def orchestrate() -> Optional[Decision]:
             "action": action,
             "confidence": confidence,
             "status": decision.status,
-            "decision_class": decision_class,
         },
         "result": "routed",
     })
@@ -747,8 +678,10 @@ def orchestrate() -> Optional[Decision]:
 
     # Authority Enforcement (BLOCKING)
     allowed_auth, reason, required, decision_class = authority_enforcement(decision, event, target_profile, rule)
+
     decision.decision_class = decision_class
     decision.required_authority = required
+    decision.authority_reason = reason
 
     if not allowed_auth:
         decision.status = "blocked"
@@ -775,6 +708,7 @@ def orchestrate() -> Optional[Decision]:
         "phase": "enforcement",
         "decision_id": decision.id,
         "result": "allowed",
+        "required_authority": required,
         "decision_class": decision_class,
         "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
     })
@@ -834,14 +768,11 @@ def orchestrate() -> Optional[Decision]:
         "decision_id": decision.id,
         "result": decision.status,
         "guardian_flag": decision.guardian_flag,
-        "decision_class": decision.decision_class,
-        "required_authority": decision.required_authority,
     })
 
     print(
         f"[GEORGE V2] Decision {decision.id}: "
-        f"agent='{decision.agent}', action='{decision.action}', status='{decision.status}', "
-        f"decision_class='{decision.decision_class}', required_authority='{decision.required_authority}'"
+        f"agent='{decision.agent}', action='{decision.action}', status='{decision.status}'"
     )
     return decision
 
