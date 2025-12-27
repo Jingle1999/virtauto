@@ -183,30 +183,48 @@ jobs:
           python ops/george_orchestrator_v2.py
 
       # ----------------------------------------------------------------------
-      # 9) Enforce runtime authority Gate  (MUSS HIERHIN)
+      # 9) Enforce runtime authority Gate
       # ----------------------------------------------------------------------
       - name: Runtime authority gate (enforce)
+        continue-on-error: true
         run: |
           python ops/runtime_gate.py \
             ops/decisions/latest.json \
             ops/policies/runtime_gate.yml \
             ops/decisions/gate_result.json
+          echo "runtime_gate exit code: $?"
 
-      - name: Print gate decision
+      - name: Debug decisions folder + files (always)
+        if: always()
         run: |
+          echo "PWD:" && pwd
+          echo "---- ops/decisions ls ----"
           ls -la ops/decisions || true
-          cat ops/decisions/gate_result.json
+          echo "---- latest.json ----"
+          cat ops/decisions/latest.json || true
+          echo "---- gate_result.json ----"
+          cat ops/decisions/gate_result.json || true
 
-      - name: Stop if gate blocks
+      - name: Stop if gate blocks (authoritative)
+        if: always()
         run: |
           python - << 'PY'
           import json, sys
-          r = json.load(open("ops/decisions/gate_result.json"))
-          v = r.get("verdict") or r.get("decision")  # beide Varianten akzeptieren
-          if v in ("BLOCK", "ESCALATE"):
-              print(f"Gate verdict {v} -> stopping workflow")
+          p="ops/decisions/gate_result.json"
+          try:
+              r=json.load(open(p))
+          except Exception as e:
+              print(f"Gate result missing/unreadable: {e}")
               sys.exit(1)
-          print("Gate verdict:", v)
+
+          v = (r.get("verdict") or r.get("decision") or "").upper()
+          code = r.get("exit_code")
+
+          print("Gate verdict:", v, "exit_code:", code)
+
+          if v in ("BLOCK","ESCALATE") or code in (10,20):
+              sys.exit(1)
+          sys.exit(0)
           PY
 
       # ----------------------------------------------------------------------
