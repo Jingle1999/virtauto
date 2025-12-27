@@ -2,11 +2,13 @@
 """
 GEORGE Orchestrator V2 – Autonomous Edition
 
-Fixes (incl. gate output):
-- Writes a runtime_gate.py compatible ops/decisions/latest.json structure
-- Ensures required Gate fields are present for *all* exits (success / blocked / error)
-- Adds top-level keys commonly enforced by gate policies: signals, guardian, trace
-- authority_enforcement() returns 4 values (allowed, reason, required, decision_class)
+Fixes / Updates (Output Fix):
+- Writes a runtime_gate-compatible ops/decisions/latest.json structure
+- Ensures BOTH keys exist: `decision_trace` AND `trace` (some gate versions require `trace`)
+- authority_enforcement() returns 4 values (allowed, reason, required, decision_class) to match caller
+- Always includes required fields: decision_id, decision_class, authority_source, health_context,
+  decision_trace, trace, execution_context
+- Adds helpful gate-friendly sections: signals, guardian
 """
 
 from __future__ import annotations
@@ -78,9 +80,6 @@ def load_json(path: Path, default: Any) -> Any:
     except json.JSONDecodeError:
         print(f"[WARN] Konnte JSON nicht laden: {path} – verwende Default.", file=sys.stderr)
         return default
-    except Exception as exc:
-        print(f"[WARN] Konnte JSON nicht laden: {path} – {exc} – verwende Default.", file=sys.stderr)
-        return default
 
 
 def save_json(path: Path, data: Any) -> None:
@@ -109,7 +108,7 @@ def emergency_lock_active() -> bool:
 
 def append_trace(record: Dict[str, Any]) -> None:
     """
-    Decision Trace:
+    Decision Trace (Step 3):
     - JSONL
     - Keine Interpretation, nur Fakten / Inputs / Outputs
     """
@@ -119,17 +118,9 @@ def append_trace(record: Dict[str, Any]) -> None:
     append_jsonl(DECISION_TRACE_LOG, record)
 
 
-def _clamp01(x: float) -> float:
-    try:
-        return max(0.0, min(1.0, float(x)))
-    except Exception:
-        return 0.0
-
-
 # ---------------------------------------------------------------------------
 # Datenmodelle
 # ---------------------------------------------------------------------------
-
 
 @dataclass
 class Event:
@@ -166,17 +157,15 @@ class Decision:
     action: str
     intent: Optional[str]
     confidence: float
-    status: str  # pending | success | error | blocked
+    status: str               # pending | success | error | blocked
     error_message: Optional[str] = None
     guardian_flag: Optional[str] = None
     follow_up: Optional[str] = None
     result_summary: Optional[str] = None
 
-    # Gate relevant
-    decision_class: str = "operational"  # safety_critical|operational|strategic|deploy
-    authority_source: str = "george"  # george|human|guardian|...
-
-    # Optional enriched contexts
+    # Gate-relevant (runtime_gate.py)
+    decision_class: str = "operational"          # safety_critical|operational|strategic|deploy
+    authority_source: str = "george"             # george|human|guardian|...
     health_context: Optional[Dict[str, Any]] = None
     decision_trace: Optional[Dict[str, Any]] = None
     execution_context: Optional[Dict[str, Any]] = None
@@ -217,19 +206,23 @@ class HealthState:
             self.self_detection_errors += 1
 
         if self.total_actions > 0:
-            self.agent_response_success_rate = (self.total_actions - self.failed_actions) / self.total_actions
+            self.agent_response_success_rate = (
+                (self.total_actions - self.failed_actions) / self.total_actions
+            )
 
         self.system_stability_score = max(
             0.0,
             min(1.0, self.agent_response_success_rate * (1.0 - 0.1 * self.self_detection_errors)),
         )
-        self.autonomy_level_estimate = max(0.0, min(1.0, 0.4 + 0.6 * self.system_stability_score))
+        self.autonomy_level_estimate = max(
+            0.0,
+            min(1.0, 0.4 + 0.6 * self.system_stability_score),
+        )
 
 
 # ---------------------------------------------------------------------------
 # Health Persistenz
 # ---------------------------------------------------------------------------
-
 
 def load_health() -> HealthState:
     data = load_json(STATUS_FILE, default=None)
@@ -252,7 +245,6 @@ def save_health(health: HealthState) -> None:
 # Autonomy-Konfiguration
 # ---------------------------------------------------------------------------
 
-
 def load_autonomy_config() -> Dict[str, Any]:
     cfg = load_json(AUTONOMY_FILE, default={})
     return cfg if isinstance(cfg, dict) else {}
@@ -268,7 +260,6 @@ def get_agent_profile(agent_id: str) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Events / Rules / Authority
 # ---------------------------------------------------------------------------
-
 
 def load_latest_event() -> Optional[Event]:
     if not EVENTS_FILE.exists():
@@ -312,132 +303,104 @@ def load_rules() -> List[Dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# Gate Output Helpers
+# Decision Persistenz (gate-kompatibel)
 # ---------------------------------------------------------------------------
 
+def _health_pct_fallback() -> int:
+    try:
+        h = load_health()
+        return int(round(h.system_stability_score * 100))
+    except Exception:
+        return 50
 
-def _ensure_gate_contexts(dec: Decision, health: Optional[HealthState], execution_path: List[str]) -> None:
-    """
-    Ensure the Decision carries all contexts we want to emit into latest.json.
-    This runs for success *and* blocked/error paths.
-    """
-    if health is None:
-        health = load_health()
 
-    sys_score = _clamp01(health.system_stability_score)
-    sys_pct = int(round(sys_score * 100))
-
-    guardian_ok = dec.status != "error" and (dec.guardian_flag in (None, "", "ok", "OK"))
-    guardian_status = "OK" if guardian_ok else "WARNING"
-
-    # Gate-friendly health_context
-    dec.health_context = dec.health_context or {
-        "system_health": sys_pct,
-        "guardian_status": guardian_status,
-        "performance_metrics": {
-            "agent_response_success_rate": float(health.agent_response_success_rate),
-            "total_actions": int(health.total_actions),
-            "failed_actions": int(health.failed_actions),
-        },
+def _gate_default_health(dec: Decision) -> Dict[str, Any]:
+    sys_health_pct = _health_pct_fallback()
+    return {
+        "system_health": sys_health_pct,
+        "guardian_status": "OK" if dec.status != "error" else "WARNING",
+        "performance_metrics": {},
     }
 
-    # Gate-friendly decision trace
-    # Some gate implementations look for "trace", some for "decision_trace" -> we emit both in latest.json.
-    dec.decision_trace = dec.decision_trace or {
+
+def _gate_default_trace(dec: Decision) -> Dict[str, Any]:
+    return {
         "complete": True,
         "trace_id": dec.id,
-        "execution_path": list(execution_path),
+        "execution_path": ["george", "decision_engine", "authority_enforcer", "executor"],
     }
 
-    # Execution context
-    dec.execution_context = dec.execution_context or {
+
+def _gate_default_execution_context() -> Dict[str, Any]:
+    return {
         "latency_ms": 0,
         "dependencies": [],
         "security_context": {"authenticated": True, "authorization_level": "standard"},
+    }
+
+
+def _gate_trace_alias(decision_trace: Dict[str, Any], dec: Decision) -> Dict[str, Any]:
+    """
+    Some runtime_gate versions look for top-level `trace` (not `decision_trace`).
+    Provide both, with a robust normalized structure.
+    """
+    trace_id = decision_trace.get("trace_id") or dec.id
+    path = decision_trace.get("execution_path") or decision_trace.get("path") or ["george"]
+    # normalize into gate-friendly `trace`
+    return {
+        "complete": bool(decision_trace.get("complete", True)),
+        "id": trace_id,
+        "trace_id": trace_id,
+        "path": list(path) if isinstance(path, list) else [str(path)],
+        "execution_path": list(path) if isinstance(path, list) else [str(path)],
     }
 
 
 def _gate_view_of_decision(dec: Decision) -> Dict[str, Any]:
     """
     runtime_gate.py-kompatible Sicht auf latest.json.
-
-    We emit:
-    - required keys: decision_id, decision_class, authority_source, health_context, decision_trace, execution_context
-    - plus common policy keys: signals, guardian, trace (top-level)
+    Wichtig: Wir liefern die erwarteten Keys.
+    Zusätzlich liefern wir `trace` als Alias zu `decision_trace`, um Gate-Versionen abzufangen,
+    die explizit `trace` verlangen.
     """
-    # Health derived (defensive)
+    health_ctx = dec.health_context or _gate_default_health(dec)
+    decision_trace = dec.decision_trace or _gate_default_trace(dec)
+    exec_ctx = dec.execution_context or _gate_default_execution_context()
+
+    # alias that many gates expect
+    trace_alias = _gate_trace_alias(decision_trace, dec)
+
+    # derive helpful signals/guardian blocks (harmless, useful)
+    sys_health_score = None
     try:
-        h = load_health()
-        sys_score = _clamp01(h.system_stability_score)
+        sys_health_score = float(load_health().system_stability_score)
     except Exception:
-        sys_score = 0.5
-
-    sys_pct = int(round(sys_score * 100))
-    guardian_ok = dec.status != "error" and (dec.guardian_flag in (None, "", "ok", "OK"))
-    guardian_status = "OK" if guardian_ok else "WARNING"
-
-    health_context = dec.health_context or {
-        "system_health": sys_pct,
-        "guardian_status": guardian_status,
-        "performance_metrics": {},
-    }
-
-    decision_trace = dec.decision_trace or {
-        "complete": True,
-        "trace_id": dec.id,
-        "execution_path": ["george", "decision_engine", "authority_enforcer", "executor"],
-    }
-
-    execution_context = dec.execution_context or {
-        "latency_ms": 0,
-        "dependencies": [],
-        "security_context": {"authenticated": True, "authorization_level": "standard"},
-    }
-
-    # Top-level policy-friendly fields
-    signals = {
-        # What many gate policies look for:
-        "system_health_score": float(sys_score),  # 0..1
-        "system_health_percent": int(sys_pct),    # 0..100
-        "guardian_ok": bool(guardian_ok),
-        "decision_trace_present": True,
-    }
-
-    guardian = {
-        "ok": bool(guardian_ok),
-        "status": guardian_status,
-        "flag": dec.guardian_flag,
-        "recommendation": dec.follow_up,
-    }
-
-    # Some gate policies require "trace" and/or check its "complete"
-    trace = {
-        "complete": bool(decision_trace.get("complete", True)),
-        "id": dec.id,
-        "trace_id": decision_trace.get("trace_id", dec.id),
-        "path": decision_trace.get("execution_path", []) or [],
-        "execution_path": decision_trace.get("execution_path", []) or [],
-    }
+        sys_health_score = None
 
     gate_doc: Dict[str, Any] = {
-        # Optional schema marker (harmless if ignored)
-        "schema_version": "2.0",
-
         # Gate expects these:
         "decision_id": dec.id,
         "decision_class": (dec.decision_class or "operational"),
         "authority_source": (dec.authority_source or "george"),
-
-        "health_context": health_context,
+        "health_context": health_ctx,
         "decision_trace": decision_trace,
-        "execution_context": execution_context,
+        "trace": trace_alias,
+        "execution_context": exec_ctx,
 
-        # Common policy keys:
-        "signals": signals,
-        "guardian": guardian,
-        "trace": trace,
+        # Optional but often used by gates/pipelines:
+        "signals": {
+            "system_health_score": sys_health_score,
+            "system_health_percent": health_ctx.get("system_health"),
+            "guardian_ok": True if health_ctx.get("guardian_status") == "OK" else False,
+        },
+        "guardian": {
+            "ok": True if health_ctx.get("guardian_status") == "OK" else False,
+            "status": health_ctx.get("guardian_status"),
+            "flag": dec.guardian_flag,
+            "recommendation": dec.follow_up,
+        },
 
-        # Keep legacy/diagnostic fields too (useful for debugging)
+        # Keep legacy/diagnostic fields too (harmless for gate, useful for debugging)
         "id": dec.id,
         "timestamp": dec.timestamp,
         "source_event_id": dec.source_event_id,
@@ -454,52 +417,41 @@ def _gate_view_of_decision(dec: Decision) -> Dict[str, Any]:
     return gate_doc
 
 
-# ---------------------------------------------------------------------------
-# Decision Persistenz
-# ---------------------------------------------------------------------------
-
-
 def save_decision(decision: Decision | Dict[str, Any]) -> None:
     if isinstance(decision, Decision):
         dec_dict = decision.to_dict()
         gate_latest = _gate_view_of_decision(decision)
     else:
         dec_dict = dict(decision)
+
+        # fallback: minimal + gate structure + trace alias
+        decision_id = dec_dict.get("decision_id") or dec_dict.get("id") or str(uuid.uuid4())
+        decision_class = dec_dict.get("decision_class") or "operational"
+        authority_source = dec_dict.get("authority_source") or "george"
+
+        health_context = dec_dict.get("health_context") or {"system_health": 50, "guardian_status": "OK", "performance_metrics": {}}
+        decision_trace = dec_dict.get("decision_trace") or {"complete": True, "trace_id": decision_id, "execution_path": ["george"]}
+        execution_context = dec_dict.get("execution_context") or {"latency_ms": 0, "dependencies": [], "security_context": {"authenticated": True}}
+
         gate_latest = dict(dec_dict)
-
-        # fallback: also write minimal gate structure
-        did = gate_latest.get("decision_id") or gate_latest.get("id") or str(uuid.uuid4())
-        gate_latest.setdefault("schema_version", "2.0")
-        gate_latest.setdefault("decision_id", did)
-        gate_latest.setdefault("decision_class", (gate_latest.get("decision_class") or "operational"))
-        gate_latest.setdefault("authority_source", (gate_latest.get("authority_source") or "george"))
-
-        gate_latest.setdefault(
-            "health_context",
-            {"system_health": 50, "guardian_status": "OK", "performance_metrics": {}},
-        )
-        gate_latest.setdefault(
-            "decision_trace",
-            {"complete": True, "trace_id": did, "execution_path": ["george"]},
-        )
-        gate_latest.setdefault(
-            "execution_context",
-            {"latency_ms": 0, "dependencies": [], "security_context": {"authenticated": True}},
-        )
-
-        # policy-friendly duplicates
-        gate_latest.setdefault(
-            "signals",
-            {"system_health_score": 0.5, "system_health_percent": 50, "guardian_ok": True, "decision_trace_present": True},
-        )
-        gate_latest.setdefault(
-            "guardian",
-            {"ok": True, "status": "OK", "flag": gate_latest.get("guardian_flag"), "recommendation": gate_latest.get("follow_up")},
-        )
-        gate_latest.setdefault(
-            "trace",
-            {"complete": True, "id": did, "trace_id": did, "path": ["george"], "execution_path": ["george"]},
-        )
+        gate_latest["decision_id"] = decision_id
+        gate_latest["decision_class"] = decision_class
+        gate_latest["authority_source"] = authority_source
+        gate_latest["health_context"] = health_context
+        gate_latest["decision_trace"] = decision_trace
+        gate_latest["trace"] = _gate_trace_alias(decision_trace, Decision(
+            id=decision_id,
+            timestamp=dec_dict.get("timestamp") or now_iso(),
+            source_event_id=dec_dict.get("source_event_id"),
+            agent=dec_dict.get("agent", "unknown"),
+            action=dec_dict.get("action", "unknown"),
+            intent=dec_dict.get("intent"),
+            confidence=float(dec_dict.get("confidence", 0.0)),
+            status=dec_dict.get("status", "unknown"),
+        ))
+        gate_latest["execution_context"] = execution_context
+        gate_latest.setdefault("signals", {"system_health_percent": health_context.get("system_health"), "guardian_ok": health_context.get("guardian_status") == "OK"})
+        gate_latest.setdefault("guardian", {"ok": health_context.get("guardian_status") == "OK", "status": health_context.get("guardian_status")})
 
     today = datetime.now(timezone.utc).date().isoformat()
 
@@ -567,7 +519,6 @@ def update_snapshot(date: str, decision: Dict[str, Any]) -> None:
 # Orchestrierungs-Helfer
 # ---------------------------------------------------------------------------
 
-
 def match_rule_for_event(event: Event, rules: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     if not rules:
         return None
@@ -606,20 +557,17 @@ def resolve_decision_class(event: Event, rule: Optional[Dict[str, Any]]) -> str:
         dc = then_cfg.get("decision_class")
         if dc:
             dc = str(dc).lower().strip()
+            # normalize common aliases
             if dc in {"critical", "safety", "safety-critical", "safetycritical"}:
                 return "safety_critical"
             if dc in {"ops", "operation"}:
                 return "operational"
-            if dc in {"deployment"}:
-                return "deploy"
             return dc
 
     if event.intent:
         dc = str(event.intent).lower().strip()
         if dc in {"critical", "safety", "safety-critical", "safetycritical"}:
             return "safety_critical"
-        if dc in {"deployment"}:
-            return "deploy"
         return dc
 
     return "operational"
@@ -718,17 +666,14 @@ def guardian_postcheck(
 # Haupt-Orchestrierungsfunktion
 # ---------------------------------------------------------------------------
 
-
 def orchestrate() -> Optional[Decision]:
     if emergency_lock_active():
-        append_trace(
-            {
-                "actor": "george_v2",
-                "phase": "emergency_lock",
-                "result": "stopped",
-                "reason": "emergency_lock_active",
-            }
-        )
+        append_trace({
+            "actor": "george_v2",
+            "phase": "emergency_lock",
+            "result": "stopped",
+            "reason": "emergency_lock_active",
+        })
         print("[GEORGE V2] Emergency Lock ist aktiv – Orchestrierung gestoppt.", file=sys.stderr)
         return None
 
@@ -768,29 +713,27 @@ def orchestrate() -> Optional[Decision]:
         authority_source="george",
     )
 
-    append_trace(
-        {
-            "actor": "george_v2",
-            "phase": "route",
-            "event": {
-                "id": event.id,
-                "agent": event.agent,
-                "event": event.event,
-                "intent": event.intent,
-                "source_event_id": event.source_event_id,
-            },
-            "matched_rule_id": matched_rule_id,
-            "decision": {
-                "id": decision.id,
-                "decision_class": decision.decision_class,
-                "target_agent": target_agent,
-                "action": action,
-                "confidence": confidence,
-                "status": decision.status,
-            },
-            "result": "routed",
-        }
-    )
+    append_trace({
+        "actor": "george_v2",
+        "phase": "route",
+        "event": {
+            "id": event.id,
+            "agent": event.agent,
+            "event": event.event,
+            "intent": event.intent,
+            "source_event_id": event.source_event_id,
+        },
+        "matched_rule_id": matched_rule_id,
+        "decision": {
+            "id": decision.id,
+            "decision_class": decision.decision_class,
+            "target_agent": target_agent,
+            "action": action,
+            "confidence": confidence,
+            "status": decision.status,
+        },
+        "result": "routed",
+    })
 
     # Guardian Precheck
     allowed, guardian_flag = guardian_precheck(decision, target_profile, rule)
@@ -798,38 +741,29 @@ def orchestrate() -> Optional[Decision]:
         decision.status = "blocked"
         decision.guardian_flag = guardian_flag or "blocked_by_guardian"
         decision.authority_source = "guardian"
-
-        # ensure gate contexts even on blocked exits
-        health = load_health()
-        _ensure_gate_contexts(decision, health=health, execution_path=["george", "guardian"])
-
         save_decision(decision)
 
-        append_trace(
-            {
-                "actor": "guardian",
-                "phase": "precheck",
-                "decision_id": decision.id,
-                "result": "blocked",
-                "guardian_flag": decision.guardian_flag,
-                "target_agent": target_agent,
-                "action": action,
-            }
-        )
+        append_trace({
+            "actor": "guardian",
+            "phase": "precheck",
+            "decision_id": decision.id,
+            "result": "blocked",
+            "guardian_flag": decision.guardian_flag,
+            "target_agent": target_agent,
+            "action": action,
+        })
 
         print(f"[GEORGE V2] Decision {decision.id} BLOCKED durch Guardian: {decision.guardian_flag}")
         return decision
 
-    append_trace(
-        {
-            "actor": "guardian",
-            "phase": "precheck",
-            "decision_id": decision.id,
-            "result": "allowed",
-            "target_agent": target_agent,
-            "action": action,
-        }
-    )
+    append_trace({
+        "actor": "guardian",
+        "phase": "precheck",
+        "decision_id": decision.id,
+        "result": "allowed",
+        "target_agent": target_agent,
+        "action": action,
+    })
 
     # Authority Enforcement (BLOCKING)
     allowed_auth, reason, required, decision_class = authority_enforcement(decision, event, target_profile, rule)
@@ -840,38 +774,30 @@ def orchestrate() -> Optional[Decision]:
         decision.guardian_flag = reason or "blocked_by_authority"
         decision.follow_up = f"Requires approval: {required}" if required else "Requires approval"
         decision.authority_source = "human" if required else "guardian"
-
-        health = load_health()
-        _ensure_gate_contexts(decision, health=health, execution_path=["george", "guardian", "authority"])
-
         save_decision(decision)
 
-        append_trace(
-            {
-                "actor": "authority",
-                "phase": "enforcement",
-                "decision_id": decision.id,
-                "result": "blocked",
-                "reason": reason,
-                "required_authority": required,
-                "decision_class": decision_class,
-                "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
-            }
-        )
+        append_trace({
+            "actor": "authority",
+            "phase": "enforcement",
+            "decision_id": decision.id,
+            "result": "blocked",
+            "reason": reason,
+            "required_authority": required,
+            "decision_class": decision_class,
+            "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
+        })
 
         print(f"[GEORGE V2] Decision {decision.id} BLOCKED by Authority: {reason} (required={required})")
         return decision
 
-    append_trace(
-        {
-            "actor": "authority",
-            "phase": "enforcement",
-            "decision_id": decision.id,
-            "result": "allowed",
-            "decision_class": decision_class,
-            "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
-        }
-    )
+    append_trace({
+        "actor": "authority",
+        "phase": "enforcement",
+        "decision_id": decision.id,
+        "result": "allowed",
+        "decision_class": decision_class,
+        "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
+    })
 
     # Aktion ausführen (simuliert)
     success, result_summary = execute_agent_action(
@@ -886,17 +812,15 @@ def orchestrate() -> Optional[Decision]:
     if not success:
         decision.error_message = "Agent execution failed (simulated)."
 
-    append_trace(
-        {
-            "actor": "executor",
-            "phase": "execute",
-            "decision_id": decision.id,
-            "target_agent": target_agent,
-            "action": action,
-            "result": "success" if success else "error",
-            "result_summary": (result_summary or "")[:500],
-        }
-    )
+    append_trace({
+        "actor": "executor",
+        "phase": "execute",
+        "decision_id": decision.id,
+        "target_agent": target_agent,
+        "action": action,
+        "result": "success" if success else "error",
+        "result_summary": (result_summary or "")[:500],
+    })
 
     # Health + Postcheck
     health = load_health()
@@ -906,37 +830,51 @@ def orchestrate() -> Optional[Decision]:
 
     save_health(health)
 
-    # Ensure contexts for gate (this is the important part)
-    _ensure_gate_contexts(decision, health=health, execution_path=["george", "guardian", "authority", "executor"])
+    # Attach gate-required contexts (so latest.json is always compliant)
+    decision.health_context = {
+        "system_health": int(round(health.system_stability_score * 100)),
+        "guardian_status": "OK" if decision.guardian_flag in (None, "", "ok") else "WARNING",
+        "performance_metrics": {
+            "agent_response_success_rate": health.agent_response_success_rate,
+            "total_actions": health.total_actions,
+            "failed_actions": health.failed_actions,
+        },
+    }
+    decision.decision_trace = {
+        "complete": True,
+        "trace_id": decision.id,
+        "execution_path": ["george", "guardian", "authority", "executor"],
+    }
+    decision.execution_context = {
+        "latency_ms": 0,
+        "dependencies": [],
+        "security_context": {"authenticated": True, "authorization_level": "standard"},
+    }
 
-    append_trace(
-        {
-            "actor": "guardian",
-            "phase": "postcheck",
-            "decision_id": decision.id,
-            "result": "ok" if success else "flagged",
-            "guardian_flag": decision.guardian_flag,
-            "health": {
-                "agent_response_success_rate": health.agent_response_success_rate,
-                "system_stability_score": health.system_stability_score,
-                "autonomy_level_estimate": health.autonomy_level_estimate,
-                "total_actions": health.total_actions,
-                "failed_actions": health.failed_actions,
-            },
-        }
-    )
+    append_trace({
+        "actor": "guardian",
+        "phase": "postcheck",
+        "decision_id": decision.id,
+        "result": "ok" if success else "flagged",
+        "guardian_flag": decision.guardian_flag,
+        "health": {
+            "agent_response_success_rate": health.agent_response_success_rate,
+            "system_stability_score": health.system_stability_score,
+            "autonomy_level_estimate": health.autonomy_level_estimate,
+            "total_actions": health.total_actions,
+            "failed_actions": health.failed_actions,
+        },
+    })
 
     save_decision(decision)
 
-    append_trace(
-        {
-            "actor": "george_v2",
-            "phase": "finalize",
-            "decision_id": decision.id,
-            "result": decision.status,
-            "guardian_flag": decision.guardian_flag,
-        }
-    )
+    append_trace({
+        "actor": "george_v2",
+        "phase": "finalize",
+        "decision_id": decision.id,
+        "result": decision.status,
+        "guardian_flag": decision.guardian_flag,
+    })
 
     print(
         f"[GEORGE V2] Decision {decision.id}: "
@@ -948,7 +886,6 @@ def orchestrate() -> Optional[Decision]:
 # ---------------------------------------------------------------------------
 # CLI Entry Point
 # ---------------------------------------------------------------------------
-
 
 def main() -> None:
     decision = orchestrate()
