@@ -178,8 +178,12 @@ jobs:
         run: |
           python3 ops/reflection_writer.py || echo "No reflection written (non-blocking)"
 
+      - name: Run GEORGE orchestrator V2 script
+        run: |
+          python ops/george_orchestrator_v2.py
+
       # ----------------------------------------------------------------------
-      # 9) Enforce runtime authority Gate
+      # 9) Enforce runtime authority Gate  (MUSS HIERHIN)
       # ----------------------------------------------------------------------
       - name: Runtime authority gate (enforce)
         run: |
@@ -189,16 +193,18 @@ jobs:
             ops/decisions/gate_result.json
 
       - name: Print gate decision
-        run: cat ops/decisions/gate_result.json
+        run: |
+          ls -la ops/decisions || true
+          cat ops/decisions/gate_result.json
 
       - name: Stop if gate blocks
         run: |
           python - << 'PY'
           import json, sys
           r = json.load(open("ops/decisions/gate_result.json"))
-          v = r.get("verdict")
-          if v == "BLOCK":
-              print("Gate verdict BLOCK -> stopping workflow")
+          v = r.get("verdict") or r.get("decision")  # beide Varianten akzeptieren
+          if v in ("BLOCK", "ESCALATE"):
+              print(f"Gate verdict {v} -> stopping workflow")
               sys.exit(1)
           print("Gate verdict:", v)
           PY
