@@ -1,0 +1,59 @@
+{
+  "schema_version": "3.0",
+  "produced_at": "2025-12-28T21:00:00Z",
+  "produced_by": "george_orchestrator_v2",
+
+  "decision_id": "uuid",
+  "timestamp": "2025-12-12T14:21:00Z",
+  "source_event_id": "evt-bootstrap-001",
+
+  "agent": "system",
+  "trigger": "bootstrap",
+  "decision": "proceed",
+  "status": "success",
+  "confidence": 1.0,
+
+  "decision_class": "operational",
+  "authority_source": "george",
+
+  "reason": "initial_bootstrap",
+
+  "guardian": {
+    "mode": "advisor",
+    "flag": null,
+    "recommendation": null
+  },
+
+  "health_context": {
+    "system_health": 80,
+    "guardian_status": "OK",
+    "performance_metrics": {}
+  },
+
+  "decision_trace": {
+    "complete": true,
+    "trace_id": "uuid",
+    "execution_path": ["george", "guardian", "authority", "executor"],
+    "inputs": {
+      "event_id": "evt-bootstrap-001",
+      "agent": "system",
+      "trigger": "bootstrap"
+    },
+    "outputs": {
+      "status": "success"
+    }
+  },
+
+  "execution_context": {
+    "latency_ms": 0,
+    "dependencies": [],
+    "security_context": {
+      "authenticated": true,
+      "authorization_level": "standard"
+    }
+  },
+
+  "alternatives_considered": [],
+  "follow_up": null,
+  "result_summary": "Initial GEORGE bootstrap event"
+}
