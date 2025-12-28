@@ -1,15 +1,14 @@
 {
   "version": "1.0",
   "last_update": "2025-12-10T21:15:00Z",
-
   "overview": {
-    "system_autonomy_level": 0.50,
-    "target_autonomy_level": 0.70
+    "system_autonomy_level": 0.5,
+    "target_autonomy_level": 0.7
   },
   "agents": {
     "george": {
       "status": "active",
-      "autonomy": 0.50,
+      "autonomy": 0.5,
       "role": "Central Orchestrator",
       "depends_on": ["guardian", "monitoring"],
       "actions": ["route_events", "make_decisions", "update_health"],
@@ -20,7 +19,7 @@
     },
     "guardian": {
       "status": "active",
-      "autonomy": 0.40,
+      "autonomy": 0.4,
       "role": "Security & Policy Guardian",
       "depends_on": [],
       "actions": ["policy_check", "block_action", "raise_alert"],
@@ -40,7 +39,6 @@
         "trigger_guardian_policy_check": true
       }
     },
-
     "deploy": {
       "status": "active",
       "autonomy": 0.35,
@@ -52,10 +50,9 @@
         "trigger_guardian_policy_check": true
       }
     },
-
     "content": {
       "status": "active",
-      "autonomy": 0.30,
+      "autonomy": 0.3,
       "role": "Content Capability (governed by content_creator)",
       "depends_on": ["monitoring", "content_creator"],
       "actions": ["improve_site_clarity", "fill_gaps", "keep_messaging_consistent"],
@@ -64,10 +61,9 @@
         "trigger_guardian_policy_check": true
       }
     },
-
     "content_creator": {
       "status": "active",
-      "autonomy": 0.30,
+      "autonomy": 0.3,
       "role": "Content Governor Agent",
       "depends_on": ["monitoring", "guardian"],
       "actions": ["scan_content", "suggest_fixes", "propose_posts", "update_changelog"],
@@ -76,10 +72,9 @@
         "trigger_guardian_policy_check": true
       }
     },
-
     "audit": {
       "status": "planned",
-      "autonomy": 0.10,
+      "autonomy": 0.1,
       "role": "Audit & Compliance Agent",
       "depends_on": ["guardian"],
       "actions": ["record_changes", "check_policies"],
@@ -88,7 +83,6 @@
         "trigger_guardian_policy_check": true
       }
     },
-
     "marketing": {
       "status": "planned",
       "autonomy": 0.05,
@@ -100,11 +94,7 @@
         "trigger_guardian_policy_check": true
       }
     }
-  }
-}
-
-  
-
+  },
   "escalation_rules": {
     "on_agent_failure": {
       "strategy": "self_heal_first",
@@ -121,7 +111,6 @@
       "increase_monitoring_frequency": true
     }
   },
-
   "self_healing": {
     "enabled": true,
     "strategies": [
