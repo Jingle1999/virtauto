@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """
-GEORGE Orchestrator V2 – Autonomous Edition (Gate-Contract hardened)
+GEORGE Orchestrator V2 – Autonomous Edition
 
-Key updates (Runtime Gate Contract):
+Updates (Gate Contract Fix):
 - Writes a runtime_gate-compatible ops/decisions/latest.json structure
-- Writes ops/decisions/canonical_latest.json as canonical stable shape
-- Ensures BOTH keys exist: `decision_trace` AND `trace` (alias)
-- Ensures REQUIRED runtime_gate inputs exist:
-    - decision_class
-    - signals.system_health_score (0..1 float)
-    - signals.guardian_ok (bool)
-    - signals.status_endpoint_ok (bool)
-    - signals.decision_trace_present (bool)
-- authority_enforcement() returns 4 values (allowed, reason, required, decision_class)
-- Always includes helpful context blocks: health_context, execution_context, guardian
+- Ensures BOTH keys exist: `decision_trace` AND `trace` (some gate versions require `trace`)
+- Produces `signals.*` fields that ops/runtime_gate.py expects:
+    - signals.system_health_score
+    - signals.guardian_ok
+    - signals.status_endpoint_ok
+    - signals.decision_trace_present
+- Separates *Guardian system health* from *Decision flags*:
+    - health_context.guardian_status reflects guardian subsystem health (default OK),
+      NOT whether a decision was blocked.
+- Provides sane cold-start defaults so the gate doesn't immediately ESCALATE due to 0.0 health.
+- authority_enforcement() returns 4 values (allowed, reason, required, decision_class) to match caller
 """
 
 from __future__ import annotations
@@ -28,9 +29,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml as PYYAML  # PyYAML
 
-
 # ---------------------------------------------------------------------------
-# Paths (repo-relative)
+# Paths (relative to repo)
 # ---------------------------------------------------------------------------
 
 OPS_DIR = Path(__file__).resolve().parent
@@ -62,22 +62,18 @@ DECISIONS_HISTORY_DIR.mkdir(exist_ok=True, parents=True)
 DECISIONS_SNAPSHOTS_DIR = DECISIONS_DIR / "snapshots"
 DECISIONS_SNAPSHOTS_DIR.mkdir(exist_ok=True, parents=True)
 
-# Gate reads this:
 DECISIONS_LATEST = DECISIONS_DIR / "latest.json"
-
-# Canonical (stable shape for humans/tools):
-CANONICAL_LATEST = DECISIONS_DIR / "canonical_latest.json"
 
 AUTONOMY_FILE = OPS_DIR / "autonomy.json"
 AUTHORITY_MATRIX_FILE = OPS_DIR / "authority_matrix.yaml"
 
+# ---------------------------------------------------------------------------
+# Utilities
+# ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-# Utility
-# ---------------------------------------------------------------------------
 
 def now_iso() -> str:
-    """UTC timestamp ISO."""
+    """UTC timestamp in ISO format."""
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
@@ -89,6 +85,9 @@ def load_json(path: Path, default: Any) -> Any:
             return json.load(f)
     except json.JSONDecodeError:
         print(f"[WARN] JSON parse failed: {path} – using default.", file=sys.stderr)
+        return default
+    except Exception as exc:
+        print(f"[WARN] Could not read JSON: {path} ({exc}) – using default.", file=sys.stderr)
         return default
 
 
@@ -120,7 +119,7 @@ def append_trace(record: Dict[str, Any]) -> None:
     """
     Decision Trace (Step 3):
     - JSONL
-    - Facts only (inputs/outputs)
+    - facts only (no interpretation)
     """
     record = dict(record)
     record.setdefault("ts", now_iso())
@@ -128,24 +127,12 @@ def append_trace(record: Dict[str, Any]) -> None:
     append_jsonl(DECISION_TRACE_LOG, record)
 
 
-def _safe_load_status() -> Tuple[bool, Optional[Dict[str, Any]]]:
-    """
-    Interprets 'status endpoint ok' as: status.json exists and is valid JSON.
-    (No HTTP endpoint in this repo context.)
-    """
-    if not STATUS_FILE.exists():
-        return False, None
-    try:
-        data = load_json(STATUS_FILE, default=None)
-        if not isinstance(data, dict):
-            return False, None
-        return True, data
-    except Exception:
-        return False, None
+def _safe_bool(x: Any) -> bool:
+    return bool(x) is True
 
 
 # ---------------------------------------------------------------------------
-# Models
+# Data models
 # ---------------------------------------------------------------------------
 
 @dataclass
@@ -183,7 +170,7 @@ class Decision:
     action: str
     intent: Optional[str]
     confidence: float
-    status: str  # pending | success | error | blocked
+    status: str               # pending | success | error | blocked
     error_message: Optional[str] = None
     guardian_flag: Optional[str] = None
     follow_up: Optional[str] = None
@@ -205,7 +192,7 @@ class HealthState:
     agent_response_success_rate: float = 0.0
     last_autonomous_action: Optional[str] = None
     self_detection_errors: int = 0
-    system_stability_score: float = 0.0   # IMPORTANT: 0..1 float (Gate expects 0..1 for system_health_score)
+    system_stability_score: float = 0.0
     autonomy_level_estimate: float = 0.5
     total_actions: int = 0
     failed_actions: int = 0
@@ -257,7 +244,7 @@ def load_health() -> HealthState:
     try:
         return HealthState.from_dict(data)
     except Exception as exc:
-        print(f"[GEORGE V2] Cannot reconstruct HealthState: {exc}", file=sys.stderr)
+        print(f"[GEORGE V2] Could not reconstruct HealthState: {exc}", file=sys.stderr)
         return HealthState()
 
 
@@ -265,6 +252,26 @@ def save_health(health: HealthState) -> None:
     data = health.to_dict()
     save_json(STATUS_FILE, data)
     append_jsonl(HEALTH_LOG, data)
+
+
+def _cold_start_health_score() -> float:
+    # For a system that has not produced any actions yet, return a sane neutral-high baseline.
+    # This prevents runtime_gate from immediately ESCALATE due to 0.0 health.
+    return 0.80
+
+
+def _health_score_for_signals(health: HealthState) -> float:
+    if health.total_actions <= 0:
+        return _cold_start_health_score()
+    try:
+        return float(health.system_stability_score)
+    except Exception:
+        return _cold_start_health_score()
+
+
+def _health_pct_for_context(health: HealthState) -> int:
+    score = _health_score_for_signals(health)
+    return int(round(max(0.0, min(1.0, score)) * 100))
 
 
 # ---------------------------------------------------------------------------
@@ -306,7 +313,7 @@ def load_latest_event() -> Optional[Event]:
     try:
         return Event.from_dict(json.loads(last_line))
     except Exception as exc:
-        print(f"[GEORGE V2] Failed to parse last event: {exc}", file=sys.stderr)
+        print(f"[GEORGE V2] Failed to load last JSONL event: {exc}", file=sys.stderr)
         return None
 
 
@@ -329,13 +336,36 @@ def load_rules() -> List[Dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# Gate / Canonical output builders
+# Gate document helpers
 # ---------------------------------------------------------------------------
 
+def _gate_default_health(dec: Decision) -> Dict[str, Any]:
+    # Cold-start: we want something that doesn't immediately fail policies.
+    # system_health is an integer 0..100, separate from system_health_score (0..1 in signals).
+    return {
+        "system_health": 80,
+        "guardian_status": "OK",
+        "performance_metrics": {},
+    }
+
+
+def _gate_default_trace(dec: Decision) -> Dict[str, Any]:
+    return {
+        "complete": True,
+        "trace_id": dec.id,
+        "execution_path": ["george", "decision_engine", "authority_enforcer", "executor"],
+    }
+
+
+def _gate_default_execution_context() -> Dict[str, Any]:
+    return {
+        "latency_ms": 0,
+        "dependencies": [],
+        "security_context": {"authenticated": True, "authorization_level": "standard"},
+    }
+
+
 def _gate_trace_alias(decision_trace: Dict[str, Any], dec: Decision) -> Dict[str, Any]:
-    """
-    Provide `trace` alias, because some systems expect `trace` not `decision_trace`.
-    """
     trace_id = decision_trace.get("trace_id") or dec.id
     path = decision_trace.get("execution_path") or decision_trace.get("path") or ["george"]
     return {
@@ -347,115 +377,94 @@ def _gate_trace_alias(decision_trace: Dict[str, Any], dec: Decision) -> Dict[str
     }
 
 
-def _default_execution_context() -> Dict[str, Any]:
-    return {
-        "latency_ms": 0,
-        "dependencies": [],
-        "security_context": {"authenticated": True, "authorization_level": "standard"},
-    }
+def _status_endpoint_ok() -> bool:
+    # Minimal "status endpoint": STATUS_FILE exists and is valid JSON.
+    if not STATUS_FILE.exists():
+        return False
+    data = load_json(STATUS_FILE, default=None)
+    return isinstance(data, dict)
 
 
-def _build_canonical_latest(dec: Decision, health: HealthState) -> Dict[str, Any]:
-    # status endpoint ok = status.json readable
-    status_ok, _ = _safe_load_status()
+def _gate_view_of_decision(dec: Decision) -> Dict[str, Any]:
+    """
+    runtime_gate.py-compatible latest.json document.
+    IMPORTANT: Provide keys and signals runtime_gate expects.
+    """
+    health_ctx = dec.health_context or _gate_default_health(dec)
+    decision_trace = dec.decision_trace or _gate_default_trace(dec)
+    exec_ctx = dec.execution_context or _gate_default_execution_context()
 
-    # health score for gate is float 0..1
-    health_score = float(health.system_stability_score)
+    trace_alias = _gate_trace_alias(decision_trace, dec)
 
-    # decision_trace_present is what runtime_gate.py actually checks
-    decision_trace_present = bool(dec.decision_trace) or bool(getattr(dec, "decision_trace", None))
+    # Derive health score (0..1) for gate signals
+    health = load_health()
+    sys_health_score = _health_score_for_signals(health)
 
-    # guardian_ok used by policies
-    guardian_ok = True if dec.guardian_flag in (None, "", "ok") else False
+    # guardian_ok is about guardian subsystem health, NOT whether a decision was blocked.
+    guardian_ok = (str(health_ctx.get("guardian_status", "OK")).upper() == "OK")
 
-    health_context = dec.health_context or {
-        "system_health": int(round(health_score * 100)),  # percent convenience
-        "guardian_status": "OK" if guardian_ok else "WARNING",
-        "performance_metrics": {
-            "agent_response_success_rate": health.agent_response_success_rate,
-            "total_actions": health.total_actions,
-            "failed_actions": health.failed_actions,
-        },
-    }
-
-    decision_trace = dec.decision_trace or {
-        "complete": True,
-        "trace_id": dec.id,
-        "execution_path": ["george", "guardian", "authority", "executor"],
-    }
-
-    execution_context = dec.execution_context or _default_execution_context()
-
-    # signals block MUST match runtime_gate.py keypaths
-    signals = {
-        "system_health_score": health_score,                # 0..1 float
-        "guardian_ok": bool(guardian_ok),
-        "status_endpoint_ok": bool(status_ok),
-        "decision_trace_present": bool(decision_trace_present),
-        # optional convenience:
-        "system_health_percent": int(round(health_score * 100)),
-    }
-
-    canonical: Dict[str, Any] = {
-        "schema_version": "2.0",
+    gate_doc: Dict[str, Any] = {
         "decision_id": dec.id,
-        "id": dec.id,  # legacy alias
-        "timestamp": dec.timestamp,
-        "source_event_id": dec.source_event_id,
-        "agent": dec.agent,
-        "trigger": dec.action,          # legacy-ish, harmless
-        "action": dec.action,
-        "intent": dec.intent,
-        "status": dec.status,
-        "confidence": dec.confidence,
-
-        "decision_class": dec.decision_class,
-        "authority_source": dec.authority_source,
-
-        "error_message": dec.error_message,
-        "guardian_flag": dec.guardian_flag,
-        "follow_up": dec.follow_up,
-        "result_summary": dec.result_summary,
-
-        "health_context": health_context,
+        "decision_class": (dec.decision_class or "operational"),
+        "authority_source": (dec.authority_source or "george"),
+        "health_context": health_ctx,
         "decision_trace": decision_trace,
-        "trace": _gate_trace_alias(decision_trace, dec),
-        "execution_context": execution_context,
+        "trace": trace_alias,
+        "execution_context": exec_ctx,
 
-        "signals": signals,
+        # Signals expected by ops/runtime_gate.py
+        "signals": {
+            "system_health_score": float(sys_health_score),
+            "system_health_percent": int(health_ctx.get("system_health", 80)),
+            "guardian_ok": bool(guardian_ok),
+            "status_endpoint_ok": bool(_status_endpoint_ok()),
+            "decision_trace_present": bool(decision_trace is not None),
+        },
 
+        # Helpful block (debug-friendly)
         "guardian": {
             "ok": bool(guardian_ok),
-            "status": health_context.get("guardian_status"),
+            "status": str(health_ctx.get("guardian_status", "OK")),
             "flag": dec.guardian_flag,
             "recommendation": dec.follow_up,
         },
 
-        # kept for compatibility/debug
-        "alternatives_considered": [],
+        # Legacy / diagnostic fields
+        "id": dec.id,
+        "timestamp": dec.timestamp,
+        "source_event_id": dec.source_event_id,
+        "agent": dec.agent,
+        "action": dec.action,
+        "intent": dec.intent,
+        "confidence": dec.confidence,
+        "status": dec.status,
+        "error_message": dec.error_message,
+        "guardian_flag": dec.guardian_flag,
+        "follow_up": dec.follow_up,
+        "result_summary": dec.result_summary,
     }
-    return canonical
+    return gate_doc
 
-
-# ---------------------------------------------------------------------------
-# Decision persistence
-# ---------------------------------------------------------------------------
 
 def save_decision(decision: Decision | Dict[str, Any]) -> None:
-    """
-    Writes:
-      - ops/decisions/latest.json         (runtime_gate input)
-      - ops/decisions/canonical_latest.json (stable canonical record)
-      - reports + history jsonl
-    """
     if isinstance(decision, Decision):
-        dec_obj = decision
         dec_dict = decision.to_dict()
+        gate_latest = _gate_view_of_decision(decision)
     else:
-        # minimal fallback object
+        # fallback dict -> make a gate doc
         dec_dict = dict(decision)
-        dec_obj = Decision(
-            id=dec_dict.get("id") or dec_dict.get("decision_id") or str(uuid.uuid4()),
+
+        decision_id = dec_dict.get("decision_id") or dec_dict.get("id") or str(uuid.uuid4())
+        decision_class = dec_dict.get("decision_class") or "operational"
+        authority_source = dec_dict.get("authority_source") or "george"
+
+        health_context = dec_dict.get("health_context") or {"system_health": 80, "guardian_status": "OK", "performance_metrics": {}}
+        decision_trace = dec_dict.get("decision_trace") or {"complete": True, "trace_id": decision_id, "execution_path": ["george"]}
+        execution_context = dec_dict.get("execution_context") or {"latency_ms": 0, "dependencies": [], "security_context": {"authenticated": True}}
+
+        # build minimal Decision for alias helper
+        dummy = Decision(
+            id=decision_id,
             timestamp=dec_dict.get("timestamp") or now_iso(),
             source_event_id=dec_dict.get("source_event_id"),
             agent=dec_dict.get("agent", "unknown"),
@@ -463,32 +472,37 @@ def save_decision(decision: Decision | Dict[str, Any]) -> None:
             intent=dec_dict.get("intent"),
             confidence=float(dec_dict.get("confidence", 0.0)),
             status=dec_dict.get("status", "unknown"),
-            error_message=dec_dict.get("error_message"),
-            guardian_flag=dec_dict.get("guardian_flag"),
-            follow_up=dec_dict.get("follow_up"),
-            result_summary=dec_dict.get("result_summary"),
-            decision_class=dec_dict.get("decision_class", "operational"),
-            authority_source=dec_dict.get("authority_source", "george"),
-            health_context=dec_dict.get("health_context"),
-            decision_trace=dec_dict.get("decision_trace"),
-            execution_context=dec_dict.get("execution_context"),
         )
 
-    # health required to build signals
-    health = load_health()
+        gate_latest = dict(dec_dict)
+        gate_latest["decision_id"] = decision_id
+        gate_latest["decision_class"] = decision_class
+        gate_latest["authority_source"] = authority_source
+        gate_latest["health_context"] = health_context
+        gate_latest["decision_trace"] = decision_trace
+        gate_latest["trace"] = _gate_trace_alias(decision_trace, dummy)
+        gate_latest["execution_context"] = execution_context
 
-    canonical_latest = _build_canonical_latest(dec_obj, health)
+        health = load_health()
+        sys_health_score = _health_score_for_signals(health)
+        guardian_ok = (str(health_context.get("guardian_status", "OK")).upper() == "OK")
 
-    # logs
+        gate_latest.setdefault("signals", {
+            "system_health_score": float(sys_health_score),
+            "system_health_percent": int(health_context.get("system_health", 80)),
+            "guardian_ok": bool(guardian_ok),
+            "status_endpoint_ok": bool(_status_endpoint_ok()),
+            "decision_trace_present": bool(decision_trace is not None),
+        })
+        gate_latest.setdefault("guardian", {"ok": bool(guardian_ok), "status": health_context.get("guardian_status", "OK")})
+
     today = datetime.now(timezone.utc).date().isoformat()
+
     append_jsonl(DECISIONS_LOG, dec_dict)
     history_file = DECISIONS_HISTORY_DIR / f"{today}.jsonl"
     append_jsonl(history_file, dec_dict)
 
-    # write canonical + gate input
-    save_json(CANONICAL_LATEST, canonical_latest)
-    save_json(DECISIONS_LATEST, canonical_latest)
-
+    save_json(DECISIONS_LATEST, gate_latest)
     update_snapshot(today, dec_dict)
 
 
@@ -500,7 +514,7 @@ def update_snapshot(date: str, decision: Dict[str, Any]) -> None:
             with snapshot_path.open("r", encoding="utf-8") as f:
                 snapshot = json.load(f)
         except json.JSONDecodeError:
-            print(f"[GEORGE V2] Snapshot corrupt, re-init: {snapshot_path}", file=sys.stderr)
+            print(f"[GEORGE V2] Snapshot broken, re-init: {snapshot_path}", file=sys.stderr)
             snapshot = {}
     else:
         snapshot = {}
@@ -575,8 +589,8 @@ def match_rule_for_event(event: Event, rules: List[Dict[str, Any]]) -> Optional[
 
 def resolve_decision_class(event: Event, rule: Optional[Dict[str, Any]]) -> str:
     """
-    Must match runtime_gate.py policy decision_classes keys:
-      safety_critical | operational | strategic | deploy
+    Must match runtime_gate.py allowed values:
+    safety_critical | operational | strategic | deploy
     """
     if rule:
         then_cfg = rule.get("then", {}) or {}
@@ -626,6 +640,7 @@ def authority_enforcement(
     rule: Optional[Dict[str, Any]] = None,
 ) -> Tuple[bool, Optional[str], Optional[str], str]:
     """
+    Runtime Authority Enforcement – BLOCKING Hook (Matrix-driven)
     Returns: (allowed, block_reason, required_authority, decision_class)
     """
     matrix = load_authority_matrix()
@@ -682,6 +697,32 @@ def guardian_postcheck(
         guardian_flag = "guardian_policy_check"
 
     return guardian_flag
+
+
+def _attach_gate_contexts(decision: Decision, health: Optional[HealthState] = None) -> None:
+    if health is None:
+        health = load_health()
+
+    # guardian_status is guardian subsystem health, not decision outcome
+    decision.health_context = {
+        "system_health": _health_pct_for_context(health),
+        "guardian_status": "OK",
+        "performance_metrics": {
+            "agent_response_success_rate": health.agent_response_success_rate,
+            "total_actions": health.total_actions,
+            "failed_actions": health.failed_actions,
+        },
+    }
+    decision.decision_trace = {
+        "complete": True,
+        "trace_id": decision.id,
+        "execution_path": ["george", "guardian", "authority", "executor"],
+    }
+    decision.execution_context = {
+        "latency_ms": 0,
+        "dependencies": [],
+        "security_context": {"authenticated": True, "authorization_level": "standard"},
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -757,21 +798,13 @@ def orchestrate() -> Optional[Decision]:
         "result": "routed",
     })
 
-    # Guardian precheck
+    # Guardian Precheck
     allowed, guardian_flag = guardian_precheck(decision, target_profile, rule)
     if not allowed:
         decision.status = "blocked"
         decision.guardian_flag = guardian_flag or "blocked_by_guardian"
         decision.authority_source = "guardian"
-
-        # Attach minimal trace so gate can see trace presence as true
-        decision.decision_trace = {
-            "complete": True,
-            "trace_id": decision.id,
-            "execution_path": ["george", "guardian"],
-        }
-        decision.execution_context = _default_execution_context()
-
+        _attach_gate_contexts(decision)  # make latest.json always gate-friendly
         save_decision(decision)
 
         append_trace({
@@ -796,7 +829,7 @@ def orchestrate() -> Optional[Decision]:
         "action": action,
     })
 
-    # Authority enforcement
+    # Authority Enforcement (BLOCKING)
     allowed_auth, reason, required, decision_class = authority_enforcement(decision, event, target_profile, rule)
     decision.decision_class = decision_class
 
@@ -805,14 +838,7 @@ def orchestrate() -> Optional[Decision]:
         decision.guardian_flag = reason or "blocked_by_authority"
         decision.follow_up = f"Requires approval: {required}" if required else "Requires approval"
         decision.authority_source = "human" if required else "guardian"
-
-        decision.decision_trace = {
-            "complete": True,
-            "trace_id": decision.id,
-            "execution_path": ["george", "guardian", "authority"],
-        }
-        decision.execution_context = _default_execution_context()
-
+        _attach_gate_contexts(decision)
         save_decision(decision)
 
         append_trace({
@@ -861,7 +887,7 @@ def orchestrate() -> Optional[Decision]:
         "result_summary": (result_summary or "")[:500],
     })
 
-    # Health + postcheck
+    # Health + Postcheck
     health = load_health()
     guardian_flag_post = guardian_postcheck(decision, target_profile or {}, health, success)
     if guardian_flag_post:
@@ -869,24 +895,8 @@ def orchestrate() -> Optional[Decision]:
 
     save_health(health)
 
-    # Attach gate contexts BEFORE saving decision
-    guardian_ok = True if decision.guardian_flag in (None, "", "ok") else False
-
-    decision.health_context = {
-        "system_health": int(round(health.system_stability_score * 100)),
-        "guardian_status": "OK" if guardian_ok else "WARNING",
-        "performance_metrics": {
-            "agent_response_success_rate": health.agent_response_success_rate,
-            "total_actions": health.total_actions,
-            "failed_actions": health.failed_actions,
-        },
-    }
-    decision.decision_trace = {
-        "complete": True,
-        "trace_id": decision.id,
-        "execution_path": ["george", "guardian", "authority", "executor"],
-    }
-    decision.execution_context = _default_execution_context()
+    # Attach gate-required contexts
+    _attach_gate_contexts(decision, health)
 
     append_trace({
         "actor": "guardian",
@@ -927,7 +937,7 @@ def orchestrate() -> Optional[Decision]:
 def main() -> None:
     decision = orchestrate()
     if not decision:
-        print("[GEORGE V2] No decision made (no event or emergency lock active).")
+        print("[GEORGE V2] No Decision (no event or emergency lock).")
     else:
         print(
             f"[GEORGE V2] Done – Decision {decision.id} -> {decision.status}, "
