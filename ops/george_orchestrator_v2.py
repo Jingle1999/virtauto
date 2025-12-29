@@ -15,6 +15,11 @@ Updates (Gate Contract Fix):
       NOT whether a decision was blocked.
 - Provides sane cold-start defaults so the gate doesn't immediately ESCALATE due to 0.0 health.
 - authority_enforcement() returns 4 values (allowed, reason, required, decision_class) to match caller
+
+Option B extension:
+- Keeps decision trace in BOTH formats:
+    - ops/reports/decision_trace.jsonl (append-only JSONL)
+    - ops/reports/decision_trace.json  (valid JSON array, capped to last N entries)
 """
 
 from __future__ import annotations
@@ -44,6 +49,8 @@ GUARDIAN_FILE = OPS_DIR / "guardian.yaml"
 GEORGE_CONFIG_FILE = OPS_DIR / "george.json"
 EMERGENCY_LOCK_FILE = OPS_DIR / "emergency_lock.json"
 
+# NOTE: This is GEORGE's internal runtime health file.
+# Do NOT point this to ops/reports/system_status.json, because that file is usually schema-driven.
 STATUS_FILE = OPS_DIR / "status.json"
 
 REPORTS_DIR = OPS_DIR / "reports"
@@ -51,7 +58,11 @@ REPORTS_DIR.mkdir(exist_ok=True, parents=True)
 
 DECISIONS_LOG = REPORTS_DIR / "george_decisions.jsonl"
 DECISION_TRACE_LOG = REPORTS_DIR / "decision_trace.jsonl"
+DECISION_TRACE_JSON = REPORTS_DIR / "decision_trace.json"  # <-- Option B: valid JSON mirror
 HEALTH_LOG = REPORTS_DIR / "health_log.jsonl"
+
+# Keep the JSON mirror reasonably sized (so it doesn't grow forever in git)
+TRACE_JSON_MAX_ENTRIES = 500
 
 DECISIONS_DIR = OPS_DIR / "decisions"
 DECISIONS_DIR.mkdir(exist_ok=True, parents=True)
@@ -115,16 +126,43 @@ def emergency_lock_active() -> bool:
     return bool(cfg.get("locked", False))
 
 
+def _append_trace_json_mirror(record: Dict[str, Any]) -> None:
+    """
+    Option B:
+    Maintain a valid JSON mirror (array) alongside the JSONL trace.
+    - Keeps last TRACE_JSON_MAX_ENTRIES entries.
+    - Always writes valid JSON.
+    """
+    try:
+        existing = load_json(DECISION_TRACE_JSON, default=[])
+        if not isinstance(existing, list):
+            existing = []
+        existing.append(record)
+
+        if TRACE_JSON_MAX_ENTRIES and len(existing) > TRACE_JSON_MAX_ENTRIES:
+            existing = existing[-TRACE_JSON_MAX_ENTRIES :]
+
+        save_json(DECISION_TRACE_JSON, existing)
+    except Exception as exc:
+        print(f"[WARN] Could not update decision_trace.json mirror: {exc}", file=sys.stderr)
+
+
 def append_trace(record: Dict[str, Any]) -> None:
     """
     Decision Trace (Step 3):
-    - JSONL
+    - JSONL (append-only)
+    - JSON mirror (valid JSON array) for tools/gates that expect .json
     - facts only (no interpretation)
     """
     record = dict(record)
     record.setdefault("ts", now_iso())
     record.setdefault("trace_version", "v1")
+
+    # JSONL (authoritative append log)
     append_jsonl(DECISION_TRACE_LOG, record)
+
+    # JSON mirror (convenience + compatibility)
+    _append_trace_json_mirror(record)
 
 
 def _safe_bool(x: Any) -> bool:
