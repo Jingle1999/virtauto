@@ -1,10 +1,10 @@
 {
-  "timestamp": "2025-12-03T06:12:31.915232Z",
+  "timestamp": "2025-12-29T06:14:22.450637Z",
   "status": "WARN",
   "override_used": false,
   "summary": {
-    "total_checks": 675,
-    "failed_checks": 675,
+    "total_checks": 738,
+    "failed_checks": 738,
     "max_severity": "low",
     "status": "WARN"
   },
@@ -1396,69 +1396,6 @@
       "severity": "low"
     },
     {
-      "file": "./status.html",
-      "check": "DSGVO contact email",
-      "ok": false,
-      "message": "Missing or invalid: DSGVO contact email",
-      "severity": "low"
-    },
-    {
-      "file": "./status.html",
-      "check": "Cookie notice",
-      "ok": false,
-      "message": "Missing or invalid: Cookie notice",
-      "severity": "low"
-    },
-    {
-      "file": "./status.html",
-      "check": "Impressum / Legal",
-      "ok": false,
-      "message": "Missing or invalid: Impressum / Legal",
-      "severity": "low"
-    },
-    {
-      "file": "./status.html",
-      "check": "Privacy Policy / Datenschutzerklärung",
-      "ok": false,
-      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung",
-      "severity": "low"
-    },
-    {
-      "file": "./status.html",
-      "check": "Security Policy / Manifest erwähnt",
-      "ok": false,
-      "message": "Missing or invalid: Security Policy / Manifest erwähnt",
-      "severity": "low"
-    },
-    {
-      "file": "./status.html",
-      "check": "RAG / Retrieval-Augmented AI erwähnt",
-      "ok": false,
-      "message": "Missing or invalid: RAG / Retrieval-Augmented AI erwähnt",
-      "severity": "low"
-    },
-    {
-      "file": "./status.html",
-      "check": "Privacy Policy / Datenschutzerklärung verlinkt",
-      "ok": false,
-      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung verlinkt",
-      "severity": "low"
-    },
-    {
-      "file": "./status.html",
-      "check": "Impressum / Legal-Pflichtlink vorhanden",
-      "ok": false,
-      "message": "Missing or invalid: Impressum / Legal-Pflichtlink vorhanden",
-      "severity": "low"
-    },
-    {
-      "file": "./status.html",
-      "check": "Security Manifest verlinkt",
-      "ok": false,
-      "message": "Missing or invalid: Security Manifest verlinkt",
-      "severity": "low"
-    },
-    {
       "file": "./404.html",
       "check": "DSGVO contact email",
       "ok": false,
@@ -2313,6 +2250,69 @@
       "severity": "low"
     },
     {
+      "file": "./ops/reports/dashboard.html",
+      "check": "DSGVO contact email",
+      "ok": false,
+      "message": "Missing or invalid: DSGVO contact email",
+      "severity": "low"
+    },
+    {
+      "file": "./ops/reports/dashboard.html",
+      "check": "Cookie notice",
+      "ok": false,
+      "message": "Missing or invalid: Cookie notice",
+      "severity": "low"
+    },
+    {
+      "file": "./ops/reports/dashboard.html",
+      "check": "Impressum / Legal",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal",
+      "severity": "low"
+    },
+    {
+      "file": "./ops/reports/dashboard.html",
+      "check": "Privacy Policy / Datenschutzerklärung",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung",
+      "severity": "low"
+    },
+    {
+      "file": "./ops/reports/dashboard.html",
+      "check": "Security Policy / Manifest erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: Security Policy / Manifest erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./ops/reports/dashboard.html",
+      "check": "RAG / Retrieval-Augmented AI erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: RAG / Retrieval-Augmented AI erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./ops/reports/dashboard.html",
+      "check": "Privacy Policy / Datenschutzerklärung verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./ops/reports/dashboard.html",
+      "check": "Impressum / Legal-Pflichtlink vorhanden",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal-Pflichtlink vorhanden",
+      "severity": "low"
+    },
+    {
+      "file": "./ops/reports/dashboard.html",
+      "check": "Security Manifest verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Security Manifest verlinkt",
+      "severity": "low"
+    },
+    {
       "file": "./website/index.html",
       "check": "DSGVO contact email",
       "ok": false,
@@ -2817,6 +2817,69 @@
       "severity": "low"
     },
     {
+      "file": "./content/drafts/20251120_1310_content.md",
+      "check": "DSGVO contact email",
+      "ok": false,
+      "message": "Missing or invalid: DSGVO contact email",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1310_content.md",
+      "check": "Cookie notice",
+      "ok": false,
+      "message": "Missing or invalid: Cookie notice",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1310_content.md",
+      "check": "Impressum / Legal",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1310_content.md",
+      "check": "Privacy Policy / Datenschutzerklärung",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1310_content.md",
+      "check": "Security Policy / Manifest erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: Security Policy / Manifest erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1310_content.md",
+      "check": "RAG / Retrieval-Augmented AI erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: RAG / Retrieval-Augmented AI erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1310_content.md",
+      "check": "Privacy Policy / Datenschutzerklärung verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1310_content.md",
+      "check": "Impressum / Legal-Pflichtlink vorhanden",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal-Pflichtlink vorhanden",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1310_content.md",
+      "check": "Security Manifest verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Security Manifest verlinkt",
+      "severity": "low"
+    },
+    {
       "file": "./content/drafts/2025-10-24-from-parallel-agents-to-multi-agent-systems-mas-building-the-digital-brain.md",
       "check": "Cookie notice",
       "ok": false,
@@ -2873,6 +2936,69 @@
       "severity": "low"
     },
     {
+      "file": "./content/drafts/20251120_1255_content.md",
+      "check": "DSGVO contact email",
+      "ok": false,
+      "message": "Missing or invalid: DSGVO contact email",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1255_content.md",
+      "check": "Cookie notice",
+      "ok": false,
+      "message": "Missing or invalid: Cookie notice",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1255_content.md",
+      "check": "Impressum / Legal",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1255_content.md",
+      "check": "Privacy Policy / Datenschutzerklärung",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1255_content.md",
+      "check": "Security Policy / Manifest erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: Security Policy / Manifest erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1255_content.md",
+      "check": "RAG / Retrieval-Augmented AI erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: RAG / Retrieval-Augmented AI erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1255_content.md",
+      "check": "Privacy Policy / Datenschutzerklärung verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1255_content.md",
+      "check": "Impressum / Legal-Pflichtlink vorhanden",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal-Pflichtlink vorhanden",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1255_content.md",
+      "check": "Security Manifest verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Security Manifest verlinkt",
+      "severity": "low"
+    },
+    {
       "file": "./content/drafts/2025-10-24-agent-of-the-week-the-quality-agent-the-relentless-perfectionist-powering-self-o.md",
       "check": "Cookie notice",
       "ok": false,
@@ -2923,6 +3049,69 @@
     },
     {
       "file": "./content/drafts/2025-10-24-agent-of-the-week-the-quality-agent-the-relentless-perfectionist-powering-self-o.md",
+      "check": "Security Manifest verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Security Manifest verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1325_content.md",
+      "check": "DSGVO contact email",
+      "ok": false,
+      "message": "Missing or invalid: DSGVO contact email",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1325_content.md",
+      "check": "Cookie notice",
+      "ok": false,
+      "message": "Missing or invalid: Cookie notice",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1325_content.md",
+      "check": "Impressum / Legal",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1325_content.md",
+      "check": "Privacy Policy / Datenschutzerklärung",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1325_content.md",
+      "check": "Security Policy / Manifest erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: Security Policy / Manifest erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1325_content.md",
+      "check": "RAG / Retrieval-Augmented AI erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: RAG / Retrieval-Augmented AI erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1325_content.md",
+      "check": "Privacy Policy / Datenschutzerklärung verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1325_content.md",
+      "check": "Impressum / Legal-Pflichtlink vorhanden",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal-Pflichtlink vorhanden",
+      "severity": "low"
+    },
+    {
+      "file": "./content/drafts/20251120_1325_content.md",
       "check": "Security Manifest verlinkt",
       "ok": false,
       "message": "Missing or invalid: Security Manifest verlinkt",
@@ -4162,6 +4351,258 @@
     },
     {
       "file": "./memory/documents/hello_world_agentic_website.md",
+      "check": "Security Manifest verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Security Manifest verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-002_agents_overview.md",
+      "check": "DSGVO contact email",
+      "ok": false,
+      "message": "Missing or invalid: DSGVO contact email",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-002_agents_overview.md",
+      "check": "Cookie notice",
+      "ok": false,
+      "message": "Missing or invalid: Cookie notice",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-002_agents_overview.md",
+      "check": "Impressum / Legal",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-002_agents_overview.md",
+      "check": "Privacy Policy / Datenschutzerklärung",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-002_agents_overview.md",
+      "check": "Security Policy / Manifest erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: Security Policy / Manifest erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-002_agents_overview.md",
+      "check": "RAG / Retrieval-Augmented AI erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: RAG / Retrieval-Augmented AI erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-002_agents_overview.md",
+      "check": "Privacy Policy / Datenschutzerklärung verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-002_agents_overview.md",
+      "check": "Impressum / Legal-Pflichtlink vorhanden",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal-Pflichtlink vorhanden",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-002_agents_overview.md",
+      "check": "Security Manifest verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Security Manifest verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-003_george_rules.md",
+      "check": "DSGVO contact email",
+      "ok": false,
+      "message": "Missing or invalid: DSGVO contact email",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-003_george_rules.md",
+      "check": "Cookie notice",
+      "ok": false,
+      "message": "Missing or invalid: Cookie notice",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-003_george_rules.md",
+      "check": "Impressum / Legal",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-003_george_rules.md",
+      "check": "Privacy Policy / Datenschutzerklärung",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-003_george_rules.md",
+      "check": "Security Policy / Manifest erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: Security Policy / Manifest erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-003_george_rules.md",
+      "check": "RAG / Retrieval-Augmented AI erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: RAG / Retrieval-Augmented AI erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-003_george_rules.md",
+      "check": "Privacy Policy / Datenschutzerklärung verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-003_george_rules.md",
+      "check": "Impressum / Legal-Pflichtlink vorhanden",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal-Pflichtlink vorhanden",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-003_george_rules.md",
+      "check": "Security Manifest verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Security Manifest verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-001_architecture_overview.md",
+      "check": "DSGVO contact email",
+      "ok": false,
+      "message": "Missing or invalid: DSGVO contact email",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-001_architecture_overview.md",
+      "check": "Cookie notice",
+      "ok": false,
+      "message": "Missing or invalid: Cookie notice",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-001_architecture_overview.md",
+      "check": "Impressum / Legal",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-001_architecture_overview.md",
+      "check": "Privacy Policy / Datenschutzerklärung",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-001_architecture_overview.md",
+      "check": "Security Policy / Manifest erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: Security Policy / Manifest erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-001_architecture_overview.md",
+      "check": "RAG / Retrieval-Augmented AI erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: RAG / Retrieval-Augmented AI erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-001_architecture_overview.md",
+      "check": "Privacy Policy / Datenschutzerklärung verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-001_architecture_overview.md",
+      "check": "Impressum / Legal-Pflichtlink vorhanden",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal-Pflichtlink vorhanden",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-001_architecture_overview.md",
+      "check": "Security Manifest verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Security Manifest verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-004_system_kpis.md",
+      "check": "DSGVO contact email",
+      "ok": false,
+      "message": "Missing or invalid: DSGVO contact email",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-004_system_kpis.md",
+      "check": "Cookie notice",
+      "ok": false,
+      "message": "Missing or invalid: Cookie notice",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-004_system_kpis.md",
+      "check": "Impressum / Legal",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-004_system_kpis.md",
+      "check": "Privacy Policy / Datenschutzerklärung",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-004_system_kpis.md",
+      "check": "Security Policy / Manifest erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: Security Policy / Manifest erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-004_system_kpis.md",
+      "check": "RAG / Retrieval-Augmented AI erwähnt",
+      "ok": false,
+      "message": "Missing or invalid: RAG / Retrieval-Augmented AI erwähnt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-004_system_kpis.md",
+      "check": "Privacy Policy / Datenschutzerklärung verlinkt",
+      "ok": false,
+      "message": "Missing or invalid: Privacy Policy / Datenschutzerklärung verlinkt",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-004_system_kpis.md",
+      "check": "Impressum / Legal-Pflichtlink vorhanden",
+      "ok": false,
+      "message": "Missing or invalid: Impressum / Legal-Pflichtlink vorhanden",
+      "severity": "low"
+    },
+    {
+      "file": "./memory/docs/docs-004_system_kpis.md",
       "check": "Security Manifest verlinkt",
       "ok": false,
       "message": "Missing or invalid: Security Manifest verlinkt",
