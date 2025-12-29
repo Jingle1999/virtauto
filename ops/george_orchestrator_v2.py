@@ -2,8 +2,11 @@
 """
 GEORGE Orchestrator V2 – Autonomous Edition
 
-Updates (Gate Contract Fix):
-- Writes a runtime_gate-compatible ops/decisions/latest.json structure
+Option B (Dual Trace Output):
+- Maintains BOTH decision_trace formats:
+    - ops/reports/decision_trace.json   (aggregated JSON: meta + decisions[])
+    - ops/reports/decision_trace.jsonl  (JSONL facts stream, one line per record)
+- Keeps runtime_gate-compatible ops/decisions/latest.json structure
 - Ensures BOTH keys exist: `decision_trace` AND `trace` (some gate versions require `trace`)
 - Produces `signals.*` fields that ops/runtime_gate.py expects:
     - signals.system_health_score
@@ -15,11 +18,6 @@ Updates (Gate Contract Fix):
       NOT whether a decision was blocked.
 - Provides sane cold-start defaults so the gate doesn't immediately ESCALATE due to 0.0 health.
 - authority_enforcement() returns 4 values (allowed, reason, required, decision_class) to match caller
-
-Option B extension:
-- Keeps decision trace in BOTH formats:
-    - ops/reports/decision_trace.jsonl (append-only JSONL)
-    - ops/reports/decision_trace.json  (valid JSON array, capped to last N entries)
 """
 
 from __future__ import annotations
@@ -49,20 +47,15 @@ GUARDIAN_FILE = OPS_DIR / "guardian.yaml"
 GEORGE_CONFIG_FILE = OPS_DIR / "george.json"
 EMERGENCY_LOCK_FILE = OPS_DIR / "emergency_lock.json"
 
-# NOTE: This is GEORGE's internal runtime health file.
-# Do NOT point this to ops/reports/system_status.json, because that file is usually schema-driven.
-STATUS_FILE = OPS_DIR / "status.json"
+STATUS_FILE = OPS_DIR / "status.json"  # internal health persistence used by orchestrator
 
 REPORTS_DIR = OPS_DIR / "reports"
 REPORTS_DIR.mkdir(exist_ok=True, parents=True)
 
 DECISIONS_LOG = REPORTS_DIR / "george_decisions.jsonl"
-DECISION_TRACE_LOG = REPORTS_DIR / "decision_trace.jsonl"
-DECISION_TRACE_JSON = REPORTS_DIR / "decision_trace.json"  # <-- Option B: valid JSON mirror
+DECISION_TRACE_LOG = REPORTS_DIR / "decision_trace.jsonl"   # JSONL trace stream
+DECISION_TRACE_JSON = REPORTS_DIR / "decision_trace.json"   # aggregated JSON trace
 HEALTH_LOG = REPORTS_DIR / "health_log.jsonl"
-
-# Keep the JSON mirror reasonably sized (so it doesn't grow forever in git)
-TRACE_JSON_MAX_ENTRIES = 500
 
 DECISIONS_DIR = OPS_DIR / "decisions"
 DECISIONS_DIR.mkdir(exist_ok=True, parents=True)
@@ -126,47 +119,84 @@ def emergency_lock_active() -> bool:
     return bool(cfg.get("locked", False))
 
 
-def _append_trace_json_mirror(record: Dict[str, Any]) -> None:
-    """
-    Option B:
-    Maintain a valid JSON mirror (array) alongside the JSONL trace.
-    - Keeps last TRACE_JSON_MAX_ENTRIES entries.
-    - Always writes valid JSON.
-    """
-    try:
-        existing = load_json(DECISION_TRACE_JSON, default=[])
-        if not isinstance(existing, list):
-            existing = []
-        existing.append(record)
+def _safe_bool(x: Any) -> bool:
+    return bool(x) is True
 
-        if TRACE_JSON_MAX_ENTRIES and len(existing) > TRACE_JSON_MAX_ENTRIES:
-            existing = existing[-TRACE_JSON_MAX_ENTRIES :]
 
-        save_json(DECISION_TRACE_JSON, existing)
-    except Exception as exc:
-        print(f"[WARN] Could not update decision_trace.json mirror: {exc}", file=sys.stderr)
+# ---------------------------------------------------------------------------
+# Decision Trace (Option B): JSONL + aggregated JSON
+# ---------------------------------------------------------------------------
+
+def _init_trace_json_if_missing() -> Dict[str, Any]:
+    """
+    Ensure decision_trace.json exists with a stable structure:
+    {
+      "meta": {...},
+      "decisions": [...]
+    }
+    """
+    default = {
+        "meta": {
+            "system": "virtauto",
+            "governance_mode": "enforced",
+            "version": "v1",
+            "generated_by": "GEORGE",
+            "description": "Runtime decision trace for authority-enforced system decisions",
+        },
+        "decisions": [],
+    }
+    existing = load_json(DECISION_TRACE_JSON, default=None)
+    if isinstance(existing, dict) and "decisions" in existing and isinstance(existing.get("decisions"), list):
+        # ensure meta exists
+        existing.setdefault("meta", default["meta"])
+        return existing
+    return default
+
+
+def _append_to_trace_json(record: Dict[str, Any]) -> None:
+    """
+    Add a condensed, JSON-friendly decision entry into decision_trace.json.
+    We keep it small + gate-friendly.
+    """
+    doc = _init_trace_json_if_missing()
+
+    # Condense to a "decision entry" shape (still rich enough for debugging)
+    entry = {
+        "decision_id": record.get("decision_id") or record.get("id") or record.get("trace_id") or str(uuid.uuid4()),
+        "timestamp": record.get("timestamp") or record.get("ts") or now_iso(),
+        "actor": (record.get("actor") or "GEORGE"),
+        "decision_type": record.get("decision_type") or record.get("phase") or record.get("event") or "decision",
+        "input_signals": record.get("input_signals") or record.get("signals") or {},
+        "authority": record.get("authority") or {},
+        "decision": record.get("decision") or {},
+        "confidence": record.get("confidence"),
+        "notes": record.get("notes") or record.get("reason") or record.get("result"),
+    }
+
+    # Append and save
+    doc["decisions"].append(entry)
+    save_json(DECISION_TRACE_JSON, doc)
 
 
 def append_trace(record: Dict[str, Any]) -> None:
     """
-    Decision Trace (Step 3):
-    - JSONL (append-only)
-    - JSON mirror (valid JSON array) for tools/gates that expect .json
-    - facts only (no interpretation)
+    Decision Trace:
+    - JSONL (facts stream)
+    - Aggregated JSON (meta + decisions[]) for UI + gates that expect JSON
     """
-    record = dict(record)
-    record.setdefault("ts", now_iso())
-    record.setdefault("trace_version", "v1")
+    rec = dict(record)
+    rec.setdefault("ts", now_iso())
+    rec.setdefault("trace_version", "v1")
 
-    # JSONL (authoritative append log)
-    append_jsonl(DECISION_TRACE_LOG, record)
+    # 1) JSONL stream
+    append_jsonl(DECISION_TRACE_LOG, rec)
 
-    # JSON mirror (convenience + compatibility)
-    _append_trace_json_mirror(record)
-
-
-def _safe_bool(x: Any) -> bool:
-    return bool(x) is True
+    # 2) Aggregated JSON
+    try:
+        _append_to_trace_json(rec)
+    except Exception as exc:
+        # Never break orchestration due to trace aggregation
+        print(f"[WARN] Could not update decision_trace.json ({exc})", file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
