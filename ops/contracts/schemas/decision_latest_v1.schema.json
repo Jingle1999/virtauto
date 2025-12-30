@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "decision_latest_v1.schema.json",
+  "type": "object",
+  "required": [
+    "decision_id",
+    "decision_class",
+    "authority_source",
+    "health_context",
+    "decision_trace",
+    "trace",
+    "signals",
+    "timestamp",
+    "agent",
+    "action",
+    "status"
+  ],
+  "properties": {
+    "decision_id": { "type": "string", "minLength": 1 },
+    "decision_class": { "type": "string", "enum": ["safety_critical", "operational", "strategic", "deploy"] },
+    "authority_source": { "type": "string" },
+
+    "health_context": {
+      "type": "object",
+      "required": ["system_health", "guardian_status"],
+      "properties": {
+        "system_health": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "guardian_status": { "type": "string" },
+        "performance_metrics": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+
+    "decision_trace": {
+      "type": "object",
+      "required": ["complete", "trace_id", "execution_path"],
+      "properties": {
+        "complete": { "type": "boolean" },
+        "trace_id": { "type": "string" },
+        "execution_path": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      },
+      "additionalProperties": true
+    },
+
+    "trace": {
+      "type": "object",
+      "required": ["complete", "id", "trace_id", "path", "execution_path"],
+      "properties": {
+        "complete": { "type": "boolean" },
+        "id": { "type": "string" },
+        "trace_id": { "type": "string" },
+        "path": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "execution_path": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      },
+      "additionalProperties": true
+    },
+
+    "execution_context": { "type": "object" },
+
+    "signals": {
+      "type": "object",
+      "required": ["system_health_score", "guardian_ok", "status_endpoint_ok", "decision_trace_present"],
+      "properties": {
+        "system_health_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "system_health_percent": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "guardian_ok": { "type": "boolean" },
+        "status_endpoint_ok": { "type": "boolean" },
+        "decision_trace_present": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+
+    "timestamp": { "type": "string" },
+    "source_event_id": { "type": ["string", "null"] },
+    "agent": { "type": "string" },
+    "action": { "type": "string" },
+    "intent": { "type": ["string", "null"] },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "status": { "type": "string", "enum": ["pending", "success", "error", "blocked"] },
+
+    "error_message": { "type": ["string", "null"] },
+    "guardian_flag": { "type": ["string", "null"] },
+    "follow_up": { "type": ["string", "null"] },
+    "result_summary": { "type": ["string", "null"] }
+  },
+  "additionalProperties": true
+}
