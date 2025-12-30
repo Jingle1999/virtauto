@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>GEORGE Health Dashboard</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b1020;
+      color: #f5f5f5;
+      margin: 0;
+      padding: 24px;
+    }
+    h1, h2 {
+      margin-top: 0;
+    }
+    .grid {
+      stroke: #444;
+      stroke-width: 1;
+      stroke-dasharray: 4 4;
+    }
+    .axis {
+      stroke: #666;
+      stroke-width: 1.5;
+    }
+    .line {
+      fill: none;
+      stroke: #00e0ff;
+      stroke-width: 2;
+    }
+    .dot {
+      fill: #00e0ff;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr;
+      gap: 24px;
+    }
+    .card {
+      background: #171c2f;
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #1f2937;
+      color: #9ca3af;
+    }
+    .kpi-main {
+      font-size: 44px;
+      font-weight: 700;
+    }
+    .kpi-label {
+      font-size: 14px;
+      color: #9ca3af;
+    }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .kpi-card {
+      background: #111827;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+    .kpi-value {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #1f2937;
+      text-align: left;
+    }
+    th {
+      color: #9ca3af;
+      font-weight: 500;
+    }
+    .chart {
+      width: 100%;
+      height: auto;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>GEORGE Health Dashboard</h1>
+  <p class="pill">virtauto.OS &middot; Autonomy &amp; System Health</p>
+
+  <div class="layout" style="margin-top:18px;">
+    <div class="card">
+      <div class="kpi-label">Estimated autonomy level</div>
+      <div class="kpi-main">100%</div>
+      <div style="margin-top:4px;font-size:13px;color:#9ca3af;">
+        Actions: 1 total &middot; 0 failed
+      </div>
+      <div style="margin-top:6px;font-size:13px;color:#9ca3af;">
+        Last autonomous action: george:deploy_requested
+      </div>
+      <div style="margin-top:14px;">
+        <div class="kpi-label">Autonomy trend (last runs)</div>
+        
+<svg viewBox="0 0 600 200" class="chart">
+  <!-- Achsen -->
+  <line x1="20" y1="180" x2="580" y2="180" class="axis"/>
+  <line x1="20" y1="20" x2="20" y2="180" class="axis"/>
+
+  <!-- 0%, 50%, 100% Linien -->
+  <line x1="20" y1="180.0" x2="580" y2="180.0" class="grid"/>
+  <line x1="20" y1="100.0" x2="580" y2="100.0" class="grid"/>
+  <line x1="20" y1="20.0" x2="580" y2="20.0" class="grid"/>
+
+  <polyline points="20,20.0" class="line"/>
+
+  <!-- Punkte -->
+  <circle cx="20" cy="20.0" r="3" class="dot"/>
+</svg>
+
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:18px;margin-bottom:8px;">Key metrics</h2>
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">Agent success rate</div>
+          <div class="kpi-value">100%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">System stability</div>
+          <div class="kpi-value">100%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Self-detection errors</div>
+          <div class="kpi-value">0</div>
+        </div>
+      </div>
+      <p style="margin-top:14px;font-size:13px;color:#9ca3af;">
+        Autonomy is a blend of success rate and stability. Self-detection errors lower
+        both stability and autonomy level.
+      </p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:24px;">
+    <h2 style="font-size:18px;margin-bottom:10px;">Recent health snapshots</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Autonomy</th>
+          <th>Success</th>
+          <th>Stability</th>
+          <th>Self-Detection Errors</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+      <tr>
+        <td>george:deploy_requested</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>100%</td>
+        <td>0</td>
+      </tr>
+
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

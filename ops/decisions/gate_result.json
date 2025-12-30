@@ -1,0 +1,17 @@
+{
+  "decision_id": "d7f169b3-0674-4e9a-83cd-77f38bc7f0d2",
+  "decision_class": "operational",
+  "verdict": "ALLOW",
+  "reasons": [],
+  "applied_policy": {
+    "mode": "enforced",
+    "decision_class": "operational",
+    "min_health_score": 0.75,
+    "require_guardian_ok": true,
+    "require_status_endpoint": false,
+    "require_trace": true,
+    "on_fail": "ESCALATE",
+    "default_action": "BLOCK",
+    "allow_human_override": true
+  }
+}
