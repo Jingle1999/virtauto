@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "system_status_v1.schema.json",
+  "type": "object",
+  "required": ["meta", "system_state", "agents"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["version", "generated_at", "source"],
+      "properties": {
+        "version": { "type": "string", "const": "v1" },
+        "generated_at": { "type": "string" },
+        "source": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "system_state": {
+      "type": "object",
+      "required": ["state", "autonomy"],
+      "properties": {
+        "state": { "type": "string", "enum": ["ok", "degraded", "blocked", "unknown"] },
+        "autonomy": {
+          "type": "object",
+          "required": ["score", "mode"],
+          "properties": {
+            "score": { "type": "number", "minimum": 0, "maximum": 1 },
+            "mode": { "type": "string", "enum": ["supervised", "advisory", "enforced"] }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["agent", "state"],
+        "properties": {
+          "agent": { "type": "string" },
+          "state": { "type": "string", "enum": ["ok", "degraded", "blocked", "unknown"] },
+          "autonomy": { "type": "number", "minimum": 0, "maximum": 1 },
+          "role": { "type": "string" },
+          "last_update": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
