@@ -236,7 +236,17 @@ jobs:
           if-no-files-found: ignore
 
       # ----------------------------------------------------------------------
-      # 10) Commit changes locally
+      # 11) Upload decision
+      # ----------------------------------------------------------------------
+      - name: Upload latest decision (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: latest-decision
+          path: ops/decisions/latest.json
+
+      # ----------------------------------------------------------------------
+      # 12) Commit changes locally
       # ----------------------------------------------------------------------
       - name: Commit status updates (local)
         run: |
@@ -263,7 +273,7 @@ jobs:
           git commit -m "GEORGE: update status summary"
 
       # ----------------------------------------------------------------------
-      # 11) Create PR instead of pushing to protected main
+      # 12) Create PR instead of pushing to protected main
       # ----------------------------------------------------------------------
       - name: Create Pull Request (protected main safe)
         uses: peter-evans/create-pull-request@v6
