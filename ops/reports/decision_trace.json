@@ -73,6 +73,160 @@
       },
       "confidence": 0.88,
       "notes": "Autonomy calculation deferred until authority matrix is finalized"
+    },
+    {
+      "decision_id": "f6d43ce2-326b-47b1-a684-72cebfa45bb5",
+      "timestamp": "2025-12-31T21:16:35+00:00",
+      "actor": "george_v2",
+      "decision_type": "route",
+      "input_signals": {},
+      "authority": {},
+      "decision": {
+        "id": "79b6e3a5-aeaa-4888-933a-a3f7a9b84f68",
+        "decision_class": "operational",
+        "target_agent": "george",
+        "action": "deploy_requested",
+        "confidence": 0.8,
+        "status": "pending"
+      },
+      "confidence": null,
+      "notes": "routed"
+    },
+    {
+      "decision_id": "79b6e3a5-aeaa-4888-933a-a3f7a9b84f68",
+      "timestamp": "2025-12-31T21:16:35+00:00",
+      "actor": "guardian",
+      "decision_type": "precheck",
+      "input_signals": {},
+      "authority": {},
+      "decision": {},
+      "confidence": null,
+      "notes": "allowed"
+    },
+    {
+      "decision_id": "79b6e3a5-aeaa-4888-933a-a3f7a9b84f68",
+      "timestamp": "2025-12-31T21:16:35+00:00",
+      "actor": "authority",
+      "decision_type": "enforcement",
+      "input_signals": {},
+      "authority": {},
+      "decision": {
+        "agent": "george",
+        "action": "deploy_requested",
+        "intent": null
+      },
+      "confidence": null,
+      "notes": "allowed"
+    },
+    {
+      "decision_id": "79b6e3a5-aeaa-4888-933a-a3f7a9b84f68",
+      "timestamp": "2025-12-31T21:16:35+00:00",
+      "actor": "executor",
+      "decision_type": "execute",
+      "input_signals": {},
+      "authority": {},
+      "decision": {},
+      "confidence": null,
+      "notes": "success"
+    },
+    {
+      "decision_id": "79b6e3a5-aeaa-4888-933a-a3f7a9b84f68",
+      "timestamp": "2025-12-31T21:16:35+00:00",
+      "actor": "guardian",
+      "decision_type": "postcheck",
+      "input_signals": {},
+      "authority": {},
+      "decision": {},
+      "confidence": null,
+      "notes": "ok"
+    },
+    {
+      "decision_id": "79b6e3a5-aeaa-4888-933a-a3f7a9b84f68",
+      "timestamp": "2025-12-31T21:16:35+00:00",
+      "actor": "george_v2",
+      "decision_type": "finalize",
+      "input_signals": {},
+      "authority": {},
+      "decision": {},
+      "confidence": null,
+      "notes": "success"
+    },
+    {
+      "decision_id": "fa6a452f-9c51-4f62-8401-b286347830bb",
+      "timestamp": "2025-12-31T21:18:22+00:00",
+      "actor": "george_v2",
+      "decision_type": "route",
+      "input_signals": {},
+      "authority": {},
+      "decision": {
+        "id": "ed4af046-61d7-46d2-bac9-de98f67ff90e",
+        "decision_class": "operational",
+        "target_agent": "george",
+        "action": "deploy_requested",
+        "confidence": 0.8,
+        "status": "pending"
+      },
+      "confidence": null,
+      "notes": "routed"
+    },
+    {
+      "decision_id": "ed4af046-61d7-46d2-bac9-de98f67ff90e",
+      "timestamp": "2025-12-31T21:18:22+00:00",
+      "actor": "guardian",
+      "decision_type": "precheck",
+      "input_signals": {},
+      "authority": {},
+      "decision": {},
+      "confidence": null,
+      "notes": "allowed"
+    },
+    {
+      "decision_id": "ed4af046-61d7-46d2-bac9-de98f67ff90e",
+      "timestamp": "2025-12-31T21:18:22+00:00",
+      "actor": "authority",
+      "decision_type": "enforcement",
+      "input_signals": {},
+      "authority": {},
+      "decision": {
+        "agent": "george",
+        "action": "deploy_requested",
+        "intent": null
+      },
+      "confidence": null,
+      "notes": "allowed"
+    },
+    {
+      "decision_id": "ed4af046-61d7-46d2-bac9-de98f67ff90e",
+      "timestamp": "2025-12-31T21:18:22+00:00",
+      "actor": "executor",
+      "decision_type": "execute",
+      "input_signals": {},
+      "authority": {},
+      "decision": {},
+      "confidence": null,
+      "notes": "success"
+    },
+    {
+      "decision_id": "ed4af046-61d7-46d2-bac9-de98f67ff90e",
+      "timestamp": "2025-12-31T21:18:22+00:00",
+      "actor": "guardian",
+      "decision_type": "postcheck",
+      "input_signals": {},
+      "authority": {},
+      "decision": {},
+      "confidence": null,
+      "notes": "ok"
+    },
+    {
+      "decision_id": "ed4af046-61d7-46d2-bac9-de98f67ff90e",
+      "timestamp": "2025-12-31T21:18:22+00:00",
+      "actor": "george_v2",
+      "decision_type": "finalize",
+      "input_signals": {},
+      "authority": {},
+      "decision": {},
+      "confidence": null,
+      "notes": "success"
     }
   ]
 }
