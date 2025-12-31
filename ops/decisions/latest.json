@@ -1,22 +1,22 @@
 {
   "schema_version": "2.0",
   "decision_id": "uuid",
-  "timestamp": "2025-12-12T14:21:00Z",
-  "source_event_id": "evt-bootstrap-001",
-  "agent": "system",
-  "trigger": "bootstrap",
-  "decision": "proceed",
-  "status": "success",
-  "confidence": 1.0,
+  "timestamp": "ISO-8601",
+  "agent": "george",
+  "decision_class": "operational",
+  "decision": "deploy_requested",
+  "status": "blocked",
 
-  "reason": "initial_bootstrap",
-  "guardian": {
-    "mode": "advisor",
-    "flag": null,
-    "recommendation": null
+  "signals": {
+    "system_health_score": 0.75,
+    "guardian_ok": false,
+    "status_endpoint_ok": true,
+    "decision_trace_present": true
   },
 
-  "alternatives_considered": [],
-  "follow_up": null,
-  "result_summary": "Initial GEORGE bootstrap event"
+  "decision_trace": {
+    "complete": true,
+    "trace_id": "uuid",
+    "execution_path": ["george", "guardian"]
+  }
 }
