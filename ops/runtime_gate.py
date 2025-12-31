@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
 """
-runtime_gate.py — Runtime authority gate for GEORGE
+Runtime Authority Gate (ops/runtime_gate.py)
 
-Design goals (Build-Phase):
-- Never fail due to *structure* surprises: tolerate missing/moved keys and still emit a gate_result.json.
-- ESCALATE/BLOCK semantics are expressed in the output (verdict + exit_code), but this script
-  should NOT necessarily stop the workflow by itself. The workflow can stop later (authoritative step)
-  while still uploading review artifacts.
-
-Exit behavior:
-- By default, this script exits 0 in all cases (so downstream artifact steps still run).
-- If you want the legacy “hard stop here” behavior, pass `--hard-exit` to use exit codes:
-  0=ALLOW, 10=ESCALATE, 20=BLOCK
+Goal:
+- Evaluate a decision JSON against a runtime gate policy YAML.
+- Emit a deterministic gate_result JSON (ALWAYS written if output path is provided).
+- Exit codes:
+    0  = ALLOW
+    10 = ESCALATE   (pipeline should stop + produce review artifacts + ToDo)
+    20 = BLOCK
 """
 
 import json
@@ -25,15 +22,12 @@ except ImportError:
     yaml = None
 
 
-# -----------------------------
-# Data model
-# -----------------------------
 @dataclass
 class GateResult:
-    verdict: str  # ALLOW | ESCALATE | BLOCK
+    verdict: str  # ALLOW | BLOCK | ESCALATE
     reasons: List[str]
     applied_policy: Dict[str, Any]
-    exit_code: int  # 0 | 10 | 20
+    exit_code: int
     todo: List[str]
 
 
@@ -49,27 +43,11 @@ def _load_yaml(path: str) -> Dict[str, Any]:
     if yaml is None:
         raise RuntimeError("PyYAML not installed. Add `pyyaml` to requirements.txt.")
     with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
-
-
-def _atomic_write_json(path: str, payload: Dict[str, Any]) -> None:
-    tmp = f"{path}.tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
-        f.write("\n")
-    # atomic-ish rename on POSIX
-    try:
-        import os
-
-        os.replace(tmp, path)
-    except Exception:
-        # fallback
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2, ensure_ascii=False)
-            f.write("\n")
+        return yaml.safe_load(f)
 
 
 def _get(d: Any, key_path: str, default=None):
+    """Safe nested-get for dicts using dotted paths."""
     cur = d
     for part in key_path.split("."):
         if not isinstance(cur, dict) or part not in cur:
@@ -78,179 +56,181 @@ def _get(d: Any, key_path: str, default=None):
     return cur
 
 
-# -----------------------------
-# Signal normalization
-# -----------------------------
-def _first_present(decision: Dict[str, Any], paths: List[str], default=None):
-    for p in paths:
-        v = _get(decision, p, None)
-        if v is not None:
-            return v
-    return default
-
-
-def _coerce_float(v: Any) -> Optional[float]:
-    if v is None:
-        return None
+def _as_float(v: Any) -> Optional[float]:
     try:
+        if v is None:
+            return None
         return float(v)
     except Exception:
         return None
 
 
-def _normalize_signals(decision: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Accept multiple schema variants and normalize into a single signal dict.
-    Supported locations:
-      - decision.signals.*
-      - decision.execution_context.signals.*
-      - decision.health_context.* (fallback/derivation)
-      - decision.guardian.* or decision.guardian_status/guardian_flag (fallback)
-    """
-    signals: Dict[str, Any] = {}
-
-    # Prefer explicit signals
-    raw_signals = _first_present(
-        decision,
-        ["signals", "execution_context.signals"],
-        default={},
-    )
-    if isinstance(raw_signals, dict):
-        signals.update(raw_signals)
-
-    # Health score: prefer explicit; else derive from health_context
-    health = signals.get("system_health_score")
-    if health is None:
-        # common alternates
-        health = _first_present(
-            decision,
-            [
-                "health_context.system_health_score",
-                "health_context.system_health",  # some schemas use 0..1
-                "health_context.health_score",
-                "system_status.health_score",
-            ],
-            default=None,
-        )
-    health_f = _coerce_float(health)
-    if health_f is not None:
-        # If somebody passes percent (0..100), normalize to 0..1
-        if health_f > 1.0 and health_f <= 100.0:
-            health_f = health_f / 100.0
-        # clamp
-        health_f = max(0.0, min(1.0, health_f))
-        signals["system_health_score"] = health_f
-
-    # Status endpoint ok (best-effort)
-    if "status_endpoint_ok" not in signals:
-        status_ok = _first_present(
-            decision,
-            ["signals.status_endpoint_ok", "execution_context.signals.status_endpoint_ok"],
-            default=None,
-        )
-        if status_ok is None:
-            # if you store a status endpoint string, treat as "known" but not "ok"
-            status_ok = False
-        signals["status_endpoint_ok"] = bool(status_ok)
-
-    # Decision trace present: explicit or infer by presence of decision_trace / trace fields
-    if "decision_trace_present" not in signals:
-        trace_present = _first_present(
-            decision,
-            ["signals.decision_trace_present", "execution_context.signals.decision_trace_present"],
-            default=None,
-        )
-        if trace_present is None:
-            # infer if a trace object exists
-            trace_present = _first_present(
-                decision,
-                ["decision_trace", "trace", "decision_traceability"],
-                default=None,
-            )
-            trace_present = bool(trace_present)
-        signals["decision_trace_present"] = bool(trace_present)
-
-    # Guardian ok: explicit, else infer from guardian/guardian_status
-    if "guardian_ok" not in signals:
-        guardian_ok = _first_present(
-            decision,
-            ["signals.guardian_ok", "execution_context.signals.guardian_ok"],
-            default=None,
-        )
-        if guardian_ok is None:
-            g_ok = _first_present(decision, ["guardian.ok"], default=None)
-            if g_ok is not None:
-                guardian_ok = bool(g_ok)
-            else:
-                g_status = _first_present(decision, ["guardian.status", "health_context.guardian_status"], default=None)
-                # treat OK (case-insensitive) as ok; anything else not ok
-                if isinstance(g_status, str):
-                    guardian_ok = (g_status.strip().upper() == "OK")
-                else:
-                    guardian_ok = False
-        signals["guardian_ok"] = bool(guardian_ok)
-
-    return signals
+def _as_bool(v: Any) -> Optional[bool]:
+    if v is None:
+        return None
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, (int, float)):
+        return bool(v)
+    if isinstance(v, str):
+        s = v.strip().lower()
+        if s in ("true", "1", "yes", "y", "ok"):
+            return True
+        if s in ("false", "0", "no", "n"):
+            return False
+    return None
 
 
 # -----------------------------
-# Policy evaluation
+# Signal extraction (robust)
 # -----------------------------
-def _mk_todo(reasons: List[str], decision_class: Optional[str]) -> List[str]:
-    todo: List[str] = []
-    for r in reasons:
-        r_low = r.lower()
-        if "missing decision_class" in r_low:
-            todo.append("Fix latest.json: add a valid `decision_class` matching the policy (e.g., operational/deploy/etc.).")
-        if "missing signals.system_health_score" in r_low or "invalid signals.system_health_score" in r_low:
-            todo.append("Fix signals: ensure `system_health_score` is written (0..1) deterministically on every decision.")
-        if "health below threshold" in r_low:
-            todo.append("Investigate health regression: set correct baseline (avoid cold-start 0.0) or adjust thresholds intentionally.")
-        if "guardian not ok" in r_low:
-            todo.append("Fix Guardian signal: ensure Guardian runs and writes `guardian_ok=true` when healthy, or adjust require_guardian_ok for class.")
-        if "status endpoint not ok" in r_low:
-            todo.append("Fix status endpoint check or set `require_status_endpoint=false` for this decision_class if not applicable.")
-        if "decision trace missing" in r_low:
-            todo.append("Ensure decision_trace.jsonl is written before gating and `decision_trace_present=true` is set.")
-    # de-dupe while preserving order
-    seen = set()
-    deduped: List[str] = []
-    for t in todo:
-        if t not in seen:
-            deduped.append(t)
-            seen.add(t)
-    if not deduped and reasons:
-        # generic fallback
-        dc = decision_class or "unknown"
-        deduped.append(f"Review gate reasons for decision_class='{dc}' and apply the required fixes.")
-    return deduped
+def _extract_health_score(decision: Dict[str, Any]) -> Tuple[Optional[float], Optional[str]]:
+    """
+    Try multiple sources to avoid "structure mismatch" causing false gate blocks.
+
+    Preferred:
+      - signals.system_health_score
+    Fallbacks:
+      - health_context.system_health_score
+      - health_context.system_health_percent (0-100 -> /100)
+      - health_context.system_health (if numeric)
+      - health_context.health_score (legacy)
+    """
+    candidates = [
+        ("signals.system_health_score", _get(decision, "signals.system_health_score")),
+        ("health_context.system_health_score", _get(decision, "health_context.system_health_score")),
+        ("health_context.system_health_percent", _get(decision, "health_context.system_health_percent")),
+        ("health_context.system_health", _get(decision, "health_context.system_health")),
+        ("health_context.health_score", _get(decision, "health_context.health_score")),
+    ]
+
+    for path, raw in candidates:
+        if raw is None:
+            continue
+        f = _as_float(raw)
+        if f is None:
+            continue
+        # percent -> score
+        if path.endswith("system_health_percent") and f > 1.0:
+            return max(0.0, min(1.0, f / 100.0)), path
+        return max(0.0, min(1.0, f)), path
+
+    return None, None
 
 
+def _extract_guardian_ok(decision: Dict[str, Any]) -> Tuple[Optional[bool], Optional[str]]:
+    """
+    Preferred:
+      - signals.guardian_ok
+    Fallbacks:
+      - guardian.ok
+      - guardian.status == "OK"
+      - guardian_status (top-level legacy) == "OK"
+    """
+    candidates = [
+        ("signals.guardian_ok", _get(decision, "signals.guardian_ok")),
+        ("guardian.ok", _get(decision, "guardian.ok")),
+        ("guardian.status", _get(decision, "guardian.status")),
+        ("guardian_status", decision.get("guardian_status")),
+        ("health_context.guardian_ok", _get(decision, "health_context.guardian_ok")),
+        ("health_context.guardian_status", _get(decision, "health_context.guardian_status")),
+    ]
+
+    for path, raw in candidates:
+        if raw is None:
+            continue
+        if path.endswith(".status") or path.endswith("_status"):
+            if isinstance(raw, str):
+                s = raw.strip().upper()
+                if s == "OK":
+                    return True, path
+                if s in ("WARNING", "FAIL", "FAILED", "ERROR"):
+                    return False, path
+        b = _as_bool(raw)
+        if b is not None:
+            return b, path
+
+    return None, None
+
+
+def _extract_status_endpoint_ok(decision: Dict[str, Any]) -> Tuple[Optional[bool], Optional[str]]:
+    """
+    Preferred:
+      - signals.status_endpoint_ok
+    Fallbacks:
+      - health_context.status_endpoint_ok
+      - signals.status_endpoint (bool legacy)
+    """
+    candidates = [
+        ("signals.status_endpoint_ok", _get(decision, "signals.status_endpoint_ok")),
+        ("health_context.status_endpoint_ok", _get(decision, "health_context.status_endpoint_ok")),
+        ("signals.status_endpoint", _get(decision, "signals.status_endpoint")),
+    ]
+    for path, raw in candidates:
+        if raw is None:
+            continue
+        b = _as_bool(raw)
+        if b is not None:
+            return b, path
+    return None, None
+
+
+def _extract_trace_present(decision: Dict[str, Any]) -> Tuple[Optional[bool], Optional[str]]:
+    """
+    Preferred:
+      - signals.decision_trace_present
+    Fallbacks:
+      - decision_trace_present (top-level)
+      - decision_trace.trace_id exists
+      - decision_trace (dict) non-empty
+      - trace (dict) non-empty
+    """
+    candidates = [
+        ("signals.decision_trace_present", _get(decision, "signals.decision_trace_present")),
+        ("decision_trace_present", decision.get("decision_trace_present")),
+        ("decision_trace.trace_id", _get(decision, "decision_trace.trace_id")),
+        ("decision_trace", decision.get("decision_trace")),
+        ("trace", decision.get("trace")),
+    ]
+
+    for path, raw in candidates:
+        if raw is None:
+            continue
+        if path.endswith("trace_id"):
+            # Any non-empty trace_id counts as present
+            if isinstance(raw, str) and raw.strip():
+                return True, path
+        if isinstance(raw, dict):
+            return (True if len(raw.keys()) > 0 else False), path
+        b = _as_bool(raw)
+        if b is not None:
+            return b, path
+
+    return None, None
+
+
+# -----------------------------
+# Core evaluation
+# -----------------------------
 def evaluate(decision: Dict[str, Any], policy: Dict[str, Any]) -> GateResult:
-    # Decision class (tolerant)
-    decision_class = decision.get("decision_class") or decision.get("decisionClass")
+    # Identify decision class (accept some aliases to prevent "structure mismatch" blocks)
+    decision_class = decision.get("decision_class") or decision.get("decisionClass") or decision.get("class")
     if not decision_class:
-        decision_class = None  # keep None for reporting
+        reasons = ["Missing decision_class (expected decision.decision_class)"]
+        applied = {"decision_class": None}
+        return GateResult("BLOCK", reasons, applied, 20, ["Fix decision JSON: add decision_class"])
 
     enforcement = policy.get("enforcement", {}) or {}
-    mode = str(enforcement.get("mode", "advisory")).lower()
+    mode = str(enforcement.get("mode", "advisory")).lower()  # advisory | enforced
     default_action = str(enforcement.get("default_action", "block")).upper()
     allow_override = bool(enforcement.get("allow_human_override", True))
 
+    class_rules = (policy.get("decision_classes") or {}).get(decision_class, {}) or {}
     thresholds = policy.get("thresholds", {}) or {}
-    min_health_default = _coerce_float(thresholds.get("min_health_score"))
-    if min_health_default is None:
-        min_health_default = 0.0
+    min_health_default = float(thresholds.get("min_health_score", 0.0))
 
-    # Per-class rules
-    class_rules: Dict[str, Any] = {}
-    if decision_class and isinstance(policy.get("decision_classes"), dict):
-        class_rules = (policy.get("decision_classes") or {}).get(decision_class, {}) or {}
-
-    # Use per-class threshold if present, else global
-    min_health = _coerce_float(class_rules.get("min_health_score"))
-    if min_health is None:
-        min_health = float(min_health_default)
+    # Use per-class threshold if present, else global threshold.
+    min_health = float(class_rules.get("min_health_score", min_health_default))
 
     require_guardian_ok = bool(class_rules.get("require_guardian_ok", False))
     require_trace = bool(class_rules.get("require_trace", False))
@@ -258,186 +238,165 @@ def evaluate(decision: Dict[str, Any], policy: Dict[str, Any]) -> GateResult:
     on_fail = str(class_rules.get("on_fail", default_action)).upper()
 
     reasons: List[str] = []
+    todo: List[str] = []
 
-    if decision_class is None:
-        reasons.append("Missing decision_class")
+    # Extract signals robustly
+    health, health_src = _extract_health_score(decision)
+    guardian_ok, guardian_src = _extract_guardian_ok(decision)
+    status_ok, status_src = _extract_status_endpoint_ok(decision)
+    trace_present, trace_src = _extract_trace_present(decision)
 
-    signals = _normalize_signals(decision)
-
-    health = signals.get("system_health_score", None)
-    guardian_ok = bool(signals.get("guardian_ok", False))
-    status_ok = bool(signals.get("status_endpoint_ok", False))
-    trace_present = bool(signals.get("decision_trace_present", False))
-
-    # Validate health
+    # Health validation
     if health is None:
-        reasons.append("Missing signals.system_health_score")
+        reasons.append("Missing system health score (signals.system_health_score or health_context.*)")
+        todo.append("Ensure decision includes a reproducible health score (0..1) in signals.system_health_score.")
     else:
-        health_f = _coerce_float(health)
-        if health_f is None:
-            reasons.append("Invalid signals.system_health_score (not a number)")
-        else:
-            if health_f < float(min_health):
-                reasons.append(f"Health below threshold: {health_f:.2f} < {float(min_health):.2f}")
+        if health < min_health:
+            reasons.append(f"Health below threshold: {health:.2f} < {min_health:.2f}")
+            todo.append("Investigate why health is below threshold; fix baseline/cold-start health signals.")
 
-    if require_guardian_ok and not guardian_ok:
-        reasons.append("Guardian not OK (require_guardian_ok=true)")
+    # Guardian validation
+    if require_guardian_ok:
+        if guardian_ok is None:
+            reasons.append("Guardian OK required but missing (signals.guardian_ok / guardian.*)")
+            todo.append("Ensure guardian emits ok/status into decision (signals.guardian_ok or guardian.ok).")
+        elif guardian_ok is False:
+            reasons.append("Guardian not OK (require_guardian_ok=true)")
+            todo.append("Resolve guardian warning/failure or allow explicit human override workflow.")
 
-    if require_status_endpoint and not status_ok:
-        reasons.append("Status endpoint not OK/unavailable (require_status_endpoint=true)")
+    # Status endpoint validation
+    if require_status_endpoint:
+        if status_ok is None:
+            reasons.append("Status endpoint required but missing (signals.status_endpoint_ok / health_context.*)")
+            todo.append("Populate signals.status_endpoint_ok (true/false) deterministically.")
+        elif status_ok is False:
+            reasons.append("Status endpoint not OK/unavailable (require_status_endpoint=true)")
+            todo.append("Fix status endpoint check or temporarily relax require_status_endpoint for this class.")
 
-    if require_trace and not trace_present:
-        reasons.append("Decision trace missing (require_trace=true)")
+    # Trace validation
+    if require_trace:
+        if trace_present is None:
+            reasons.append("Decision trace required but missing (signals.decision_trace_present / decision_trace.*)")
+            todo.append("Write decision_trace.jsonl per decision and mark presence in decision signals.")
+        elif trace_present is False:
+            reasons.append("Decision trace missing/empty (require_trace=true)")
+            todo.append("Ensure decision_trace.jsonl contains deterministic required fields for this decision.")
 
-    # Determine verdict
+    # Decide verdict
     if not reasons:
         verdict = "ALLOW"
     else:
+        # Normalize on_fail
         if on_fail not in ("BLOCK", "ESCALATE"):
-            verdict = default_action if default_action in ("BLOCK", "ESCALATE") else "BLOCK"
+            on_fail = default_action if default_action in ("BLOCK", "ESCALATE") else "BLOCK"
+
+        # If policy demands ESCALATE but overrides not allowed -> BLOCK
+        if on_fail == "ESCALATE" and not allow_override:
+            verdict = "BLOCK"
+            reasons.append("Human override disabled; ESCALATE downgraded to BLOCK")
+            todo.append("Either enable allow_human_override or set on_fail=BLOCK for this decision class.")
         else:
             verdict = on_fail
 
-        # If policy demands ESCALATE but overrides not allowed -> BLOCK
-        if verdict == "ESCALATE" and not allow_override:
-            verdict = "BLOCK"
-            reasons.append("Human override disabled; ESCALATE downgraded to BLOCK")
-
-    # In advisory mode: never hard BLOCK. Convert BLOCK -> ESCALATE (unless already ALLOW).
+    # Advisory mode: never hard BLOCK (convert BLOCK -> ESCALATE)
     if mode == "advisory" and verdict == "BLOCK":
         verdict = "ESCALATE"
         reasons.append("Advisory mode: BLOCK converted to ESCALATE")
+        todo.append("Advisory mode: review required; no hard block will be enforced.")
 
-    exit_code = 0 if verdict == "ALLOW" else (10 if verdict == "ESCALATE" else 20)
+    # Determine exit code (pipeline behavior)
+    if verdict == "ALLOW":
+        exit_code = 0
+    elif verdict == "ESCALATE":
+        exit_code = 10
+    else:
+        exit_code = 20
 
     applied = {
         "mode": mode,
         "decision_class": decision_class,
-        "min_health_score": float(min_health),
+        "min_health_score": min_health,
         "require_guardian_ok": require_guardian_ok,
         "require_status_endpoint": require_status_endpoint,
         "require_trace": require_trace,
         "on_fail": on_fail,
         "default_action": default_action,
         "allow_human_override": allow_override,
-        # helpful: echo what we actually evaluated
-        "signals_used": {
-            "system_health_score": signals.get("system_health_score", None),
-            "guardian_ok": guardian_ok,
-            "status_endpoint_ok": status_ok,
-            "decision_trace_present": trace_present,
+        "signal_sources": {
+            "system_health_score": health_src,
+            "guardian_ok": guardian_src,
+            "status_endpoint_ok": status_src,
+            "decision_trace_present": trace_src,
         },
     }
 
-    todo = _mk_todo(reasons, decision_class)
+    # For ESCALATE we explicitly include a “review artifact expectation”
+    if verdict == "ESCALATE":
+        todo.append("ESCALATE: stop pipeline, upload gate_result.json + decision JSON + trace artifact, open ToDo/Review.")
 
-    return GateResult(verdict=verdict, reasons=reasons, applied_policy=applied, exit_code=exit_code, todo=todo)
-
-
-# -----------------------------
-# CLI
-# -----------------------------
-def _parse_args(argv: List[str]) -> Tuple[Optional[str], Optional[str], Optional[str], bool]:
-    """
-    Usage:
-      python ops/runtime_gate.py <decision_json> <policy_yaml> [output_json] [--hard-exit]
-    """
-    hard_exit = False
-    args = [a for a in argv[1:] if a.strip()]
-
-    if "--hard-exit" in args:
-        hard_exit = True
-        args = [a for a in args if a != "--hard-exit"]
-
-    decision_path = args[0] if len(args) >= 1 else None
-    policy_path = args[1] if len(args) >= 2 else None
-    output_path = args[2] if len(args) >= 3 else None
-    return decision_path, policy_path, output_path, hard_exit
+    return GateResult(verdict, reasons, applied, exit_code, todo)
 
 
-def main() -> None:
-    decision_path, policy_path, output_path, hard_exit = _parse_args(sys.argv)
+def _write_output(path: str, payload: Dict[str, Any]) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
 
-    if not decision_path or not policy_path:
-        msg = "Usage: python ops/runtime_gate.py <decision_json> <policy_yaml> [output_json] [--hard-exit]"
-        print(msg)
-        # Even on usage errors, try to write an output if provided (rare)
-        if output_path:
-            out = {
-                "decision_id": None,
-                "decision_class": None,
-                "verdict": "ESCALATE",
-                "exit_code": 10,
-                "reasons": [msg],
-                "applied_policy": {},
-                "todo": ["Fix invocation arguments for runtime_gate.py."],
-            }
-            _atomic_write_json(output_path, out)
+
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: python ops/runtime_gate.py <decision_json> <policy_yaml> [output_json]")
         sys.exit(2)
 
-    # Always emit a gate_result, even if something breaks.
-    decision: Dict[str, Any] = {}
-    policy: Dict[str, Any] = {}
-    fatal_reasons: List[str] = []
+    decision_path = sys.argv[1]
+    policy_path = sys.argv[2]
+    output_path: Optional[str] = sys.argv[3] if len(sys.argv) > 3 else None
+
+    out: Dict[str, Any] = {}
+    exit_code = 20
 
     try:
         decision = _load_json(decision_path)
-    except Exception as e:
-        fatal_reasons.append(f"Decision JSON unreadable: {e!r}")
-
-    try:
         policy = _load_yaml(policy_path)
-    except Exception as e:
-        fatal_reasons.append(f"Policy YAML unreadable: {e!r}")
 
-    if fatal_reasons:
-        # Structural errors should not explode the pipeline: emit ESCALATE with actionable todo.
-        result = GateResult(
-            verdict="ESCALATE",
-            reasons=fatal_reasons,
-            applied_policy={"mode": "enforced", "note": "Failed to load inputs; cannot evaluate policy deterministically."},
-            exit_code=10,
-            todo=[
-                "Ensure decision_json and policy_yaml exist and are readable in the workflow workspace.",
-                "Add a debug step to `ls -la` the referenced paths and `cat` the files (or upload as artifacts).",
-            ],
-        )
+        result = evaluate(decision, policy)
+
         out = {
-            "decision_id": decision.get("decision_id") if isinstance(decision, dict) else None,
-            "decision_class": decision.get("decision_class") if isinstance(decision, dict) else None,
+            "schema_version": "1.0",
+            "decision_id": decision.get("decision_id") or decision.get("id"),
+            "decision_class": decision.get("decision_class") or decision.get("decisionClass") or decision.get("class"),
             "verdict": result.verdict,
             "exit_code": result.exit_code,
             "reasons": result.reasons,
-            "applied_policy": result.applied_policy,
             "todo": result.todo,
+            "applied_policy": result.applied_policy,
         }
-        if output_path:
-            _atomic_write_json(output_path, out)
-        else:
-            print(json.dumps(out, indent=2, ensure_ascii=False))
-        sys.exit(result.exit_code if hard_exit else 0)
+        exit_code = result.exit_code
 
-    # Normal evaluation
-    result = evaluate(decision, policy)
-
-    out = {
-        "decision_id": decision.get("decision_id") or decision.get("id"),
-        "decision_class": decision.get("decision_class"),
-        "verdict": result.verdict,
-        "exit_code": result.exit_code,
-        "reasons": result.reasons,
-        "applied_policy": result.applied_policy,
-        "todo": result.todo,
-    }
+    except Exception as e:
+        # IMPORTANT: never fail silently; persist a structured gate result if possible.
+        out = {
+            "schema_version": "1.0",
+            "decision_id": None,
+            "decision_class": None,
+            "verdict": "BLOCK",
+            "exit_code": 20,
+            "reasons": [f"runtime_gate exception: {type(e).__name__}: {e}"],
+            "todo": ["Fix runtime_gate crash; ensure decision/policy are readable and valid."],
+            "applied_policy": {"mode": None},
+        }
+        exit_code = 20
 
     if output_path:
-        _atomic_write_json(output_path, out)
+        try:
+            _write_output(output_path, out)
+        except Exception as e:
+            # If writing fails, at least print.
+            print(json.dumps(out, indent=2, ensure_ascii=False))
+            print(f"[runtime_gate] WARNING: failed to write output_json: {type(e).__name__}: {e}", file=sys.stderr)
     else:
         print(json.dumps(out, indent=2, ensure_ascii=False))
 
-    # Default: do NOT stop the pipeline here (so review artifacts can still be produced).
-    # The workflow can enforce stop later based on gate_result.json.
-    sys.exit(result.exit_code if hard_exit else 0)
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":
