@@ -1,14 +1,21 @@
 {
   "deprecated": true,
-  "moved_to": "ops/reports/system_status.json"
+  "moved_to": "ops/reports/system_status.json",
+  "agents": [
+    {
+      "agent": "self_guardian",
+      "status": "ok",
+      "timestamp": "2026-01-01T06:12:58Z"
+    }
+  ],
+  "pipelines": {
+    "guardian": "ok"
+  }
 }
-
-
 {
   "last_update": "2025-12-13T10:50:00Z",
   "overall_health_score": 80.0,
   "system_health": 0.80,
-
   "autonomy_level": null,
   "agent_health": "4/7",
   "base_url": "https://www.virtauto.de",
@@ -37,14 +44,14 @@
       "timestamp": "2025-10-31T20:10:00Z"
     },
     {
-      "agent": "self_guardian",
-      "status": "ok",
-      "timestamp": "2025-12-03T06:12:32Z"
-    },
-    {
       "agent": "self_content",
       "status": "ok",
       "timestamp": "2025-12-16T10:43:53Z"
+    },
+    {
+      "agent": "self_guardian",
+      "status": "ok",
+      "timestamp": "2026-01-01T06:12:58Z"
     }
   ],
   "pipelines": {
