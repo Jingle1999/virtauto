@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -42,6 +42,7 @@
       flex-direction: column;
       gap: 0.5rem;
       margin-bottom: 2.5rem;
+      min-width: 0;
     }
 
     header h1 {
@@ -50,6 +51,8 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      flex-wrap: wrap; /* prevents badge overlap on narrow widths */
+      min-width: 0;
     }
 
     header h1 span.badge {
@@ -61,6 +64,7 @@
       padding: 0.15rem 0.45rem;
       border-radius: 999px;
       color: var(--accent);
+      white-space: nowrap;
     }
 
     header p {
@@ -75,6 +79,7 @@
       flex-wrap: wrap;
       gap: 0.75rem;
       margin-bottom: 2rem;
+      min-width: 0;
     }
 
     .meta-pill {
@@ -87,6 +92,18 @@
       align-items: center;
       gap: 0.4rem;
       color: var(--muted);
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .meta-pill strong {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 48vw;
+      display: inline-block;
+      vertical-align: bottom;
     }
 
     .meta-dot {
@@ -94,15 +111,19 @@
       height: 8px;
       border-radius: 999px;
       background: var(--accent);
+      flex: 0 0 auto;
     }
 
     main {
       display: grid;
       grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.4fr);
       gap: 1.5rem;
+      align-items: start; /* important: prevents weird stretching/overlap */
+      min-width: 0;
     }
 
-    @media (max-width: 900px) {
+    /* extra breakpoint to avoid mid-field collisions */
+    @media (max-width: 1040px) {
       main {
         grid-template-columns: minmax(0, 1fr);
       }
@@ -114,6 +135,7 @@
       border: 1px solid var(--border);
       padding: 1.3rem 1.4rem 1.3rem;
       box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
+      min-width: 0; /* critical for grid overflow */
     }
 
     .card-header {
@@ -122,6 +144,7 @@
       justify-content: space-between;
       margin-bottom: 1rem;
       gap: 0.75rem;
+      min-width: 0;
     }
 
     .card-header h2 {
@@ -129,6 +152,10 @@
       text-transform: uppercase;
       letter-spacing: 0.16em;
       color: var(--muted);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .status-pill {
@@ -143,6 +170,11 @@
       align-items: center;
       gap: 0.35rem;
       color: var(--text);
+      white-space: nowrap;
+      flex: 0 0 auto;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .status-pill span.dot {
@@ -150,14 +182,16 @@
       height: 8px;
       border-radius: 999px;
       background: var(--ok);
+      flex: 0 0 auto;
     }
     .status-pill.warn span.dot { background: var(--warn); }
     .status-pill.crit span.dot { background: var(--crit); }
 
     .status-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* a bit wider for chip text */
       gap: 0.85rem;
+      min-width: 0;
     }
 
     .status-card {
@@ -172,19 +206,25 @@
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
-      min-height: 128px;
+      min-height: 132px;
+      min-width: 0;
+      overflow: hidden; /* prevent inner overflow from overlapping neighbors */
     }
 
     .status-title-row {
       display: flex;
       justify-content: space-between;
-      gap: 0.4rem;
-      align-items: center;
+      gap: 0.55rem;
+      align-items: flex-start; /* avoids vertical collision when title wraps */
+      min-width: 0;
     }
 
     .status-title {
       font-size: 0.9rem;
       font-weight: 600;
+      min-width: 0;
+      overflow-wrap: anywhere; /* long names won't break layout */
+      line-height: 1.15;
     }
 
     .status-chip {
@@ -197,6 +237,10 @@
       background: rgba(15, 23, 42, 0.95);
       color: var(--muted);
       white-space: nowrap;
+      flex: 0 0 auto;
+      max-width: 58%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .status-chip.ok {
@@ -223,6 +267,7 @@
       gap: 0.25rem 0.6rem;
       font-size: 0.7rem;
       color: var(--muted);
+      min-width: 0;
     }
 
     .status-note {
@@ -230,12 +275,14 @@
       color: var(--muted);
       margin-top: 0.2rem;
       line-height: 1.3;
+      overflow-wrap: anywhere;
     }
 
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.7rem;
+      min-width: 0;
     }
 
     .kpi {
@@ -246,6 +293,8 @@
       display: flex;
       flex-direction: column;
       gap: 0.2rem;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .kpi-label {
@@ -253,17 +302,24 @@
       text-transform: uppercase;
       letter-spacing: 0.14em;
       color: var(--muted);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .kpi-value {
       font-size: 1.1rem;
       font-weight: 600;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
     .kpi-footnote {
       font-size: 0.7rem;
       color: var(--muted);
       line-height: 1.35;
+      overflow-wrap: anywhere;
     }
 
     .truth-box {
@@ -275,12 +331,15 @@
       font-size: 0.78rem;
       color: var(--muted);
       line-height: 1.45;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .truth-box code {
       color: #c4b5fd;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       font-size: 0.75rem;
+      overflow-wrap: anywhere;
     }
 
     .guards {
@@ -289,6 +348,7 @@
       gap: 0.6rem;
       font-size: 0.85rem;
       color: var(--text);
+      min-width: 0;
     }
 
     .guard-row {
@@ -300,12 +360,14 @@
       border-radius: 0.75rem;
       border: 1px solid rgba(55, 65, 81, 0.9);
       background: rgba(15, 23, 42, 0.7);
+      min-width: 0;
     }
 
     .guard-left {
       display: flex;
       flex-direction: column;
       gap: 0.15rem;
+      min-width: 0;
     }
 
     .guard-name {
@@ -313,12 +375,21 @@
       text-transform: uppercase;
       letter-spacing: 0.14em;
       color: var(--muted);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .guard-value {
       font-size: 0.92rem;
       font-weight: 600;
       color: var(--text);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 46vw;
     }
 
     .guard-pill {
@@ -331,6 +402,10 @@
       background: rgba(15, 23, 42, 0.9);
       color: var(--muted);
       white-space: nowrap;
+      flex: 0 0 auto;
+      max-width: 44%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .guard-pill.ok { border-color: rgba(34, 197, 94, 0.65); color: #bbf7d0; }
     .guard-pill.warn { border-color: rgba(245, 158, 11, 0.75); color: #fed7aa; }
@@ -371,12 +446,17 @@
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 10px;
+      min-width: 0;
     }
     .fatal-title h3 {
       font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 0.14em;
       color: #fecaca;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .fatal-pill {
       font-size: 11px;
@@ -388,6 +468,7 @@
       color: #fecaca;
       background: rgba(239, 68, 68, 0.08);
       white-space: nowrap;
+      flex: 0 0 auto;
     }
     .fatal p {
       color: var(--muted);
@@ -566,30 +647,13 @@
   function $(id) { return document.getElementById(id); }
 
   function safeUpper(v) {
-    return (v === undefined || v === null || v === "") ? "—" : String(v).toUpperCase();
-  }
-
-  function pickText(...vals) {
-    for (const v of vals) {
-      if (v === undefined || v === null) continue;
-      if (typeof v === "string" && v.trim() !== "") return v;
-      if (typeof v === "number" && Number.isFinite(v)) return String(v);
-    }
-    return null;
-  }
-
-  function pickNum(...vals) {
-    for (const v of vals) {
-      if (v === undefined || v === null) continue;
-      const n = (typeof v === "number") ? v : (typeof v === "string" ? parseFloat(v.replace("%","")) : NaN);
-      if (Number.isFinite(n)) return n;
-    }
-    return null;
+    return (v === undefined || v === null) ? "—" : String(v).toUpperCase();
   }
 
   function fmtPctFrom(valueOrPct) {
-    const n = pickNum(valueOrPct);
-    if (n === null) return "—";
+    if (valueOrPct === undefined || valueOrPct === null) return "—";
+    const n = Number(valueOrPct);
+    if (!Number.isFinite(n)) return "—";
     const pct = (n <= 1) ? (n * 100) : n;
     return pct.toFixed(1) + "%";
   }
@@ -611,7 +675,7 @@
   function chipClassForState(state) {
     const s = String(state || "").toUpperCase();
     if (s === "ACTIVE" || s === "OK" || s === "GREEN" || s === "ONLINE" || s === "INITIALIZED") return "ok";
-    if (s === "PLANNED" || s === "MVP" || s === "IN_PROGRESS" || s === "UNKNOWN" || s === "SUPERVISED") return "warn";
+    if (s === "PLANNED" || s === "MVP" || s === "IN_PROGRESS" || s === "UNKNOWN" || s === "SUPERVISED" || s === "MANUAL") return "warn";
     if (s === "FAIL" || s === "FAILED" || s === "DOWN" || s === "CRITICAL" || s === "ISSUE") return "crit";
     return "soon";
   }
@@ -636,50 +700,41 @@
     return json;
   }
 
-  function basename(path) {
-    try {
-      const p = String(path || "");
-      const parts = p.split("/").filter(Boolean);
-      return parts.length ? parts[parts.length - 1] : p;
-    } catch { return String(path || "—"); }
-  }
-
   // =========================
   // Rendering
   // =========================
   function renderHeader(status) {
-    $("truth-source").textContent = basename(TRUTH_PATH);
+    $("truth-source").textContent = "system_status.json";
     $("truth-path").textContent = TRUTH_PATH;
 
-    const generatedAt = pickText(status.generated_at, status.generatedAt, status.timestamp);
+    const generatedAt = status.generated_at || status.generatedAt || status.timestamp || null;
     $("freshness").textContent = generatedAt ? fmtDate(generatedAt) : "—";
 
     $("generated-at").textContent = generatedAt ? fmtDate(generatedAt) : "—";
-    $("environment").textContent = pickText(status.environment) || "—";
+    $("environment").textContent = status.environment || "—";
 
-    // system pill: prefer status.system.* ; fallback to status.system_state.* ; fallback to status.system_status/system_mode/mode
-    const sysState = pickText(
-      status.system?.state,
-      status.system_state?.state,
-      status.system_state,
-      status.system_status,
-      status.system_mode
-    ) || "—";
+    const sysState =
+      (status.system && status.system.state) ||
+      (status.system_state && status.system_state.state) ||
+      status.system_state ||
+      "—";
 
-    const sysMode = pickText(
-      status.system?.mode,
-      status.system?.system_mode,
-      status.mode,
-      status.system_mode
-    ) || "—";
+    const sysMode =
+      (status.system && status.system.mode) ||
+      status.mode ||
+      "—";
 
-    const healthSignal = pickText(status.health?.signal, status.health_signal) || "—";
-
+    const signal = (status.health && status.health.signal) || "—";
     const pill = $("system-pill");
     pill.classList.remove("warn", "crit");
-    const cls = classifyPillBySignal(healthSignal);
+    const cls = classifyPillBySignal(signal);
     if (cls) pill.classList.add(cls);
-    pill.innerHTML = `<span class="dot"></span> ${safeUpper(sysState)} · ${safeUpper(sysMode)}`;
+
+    pill.textContent = ""; // avoid HTML injection & layout weirdness
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    pill.appendChild(dot);
+    pill.appendChild(document.createTextNode(` ${safeUpper(sysState)} · ${safeUpper(sysMode)}`));
   }
 
   function renderKPIs(status) {
@@ -689,57 +744,54 @@
     let active = 0;
 
     for (const k of agentKeys) {
-      const st = pickText(agentsObj[k]?.state, agentsObj[k]?.status) || "";
+      const st = (agentsObj[k] && (agentsObj[k].state || agentsObj[k].status)) || "";
       if (String(st).toUpperCase() === "ACTIVE") active++;
     }
+
     $("kpi-agent-health").textContent = total ? `${active} / ${total}` : "—";
 
-    // autonomy
-    const autonomyObj = (typeof status.autonomy === "object" && status.autonomy) ? status.autonomy : {};
-    const autonomyScoreObj = (typeof status.autonomy_score === "object" && status.autonomy_score) ? status.autonomy_score : {};
+    const autonomyObj = status.autonomy_score || status.autonomy || {};
+    const autonomyMode =
+      (status.system && status.system.autonomy_mode) ||
+      (autonomyObj && autonomyObj.mode) ||
+      (status.system && status.system.autonomy) ||
+      "—";
 
-    const autonomyMode = pickText(
-      status.system?.autonomy_mode,
-      status.autonomy_mode,
-      autonomyObj.mode,
-      autonomyScoreObj.mode,
-      autonomyObj.autonomy_mode
-    ) || "—";
-
-    const autonomyPct = pickNum(
-      autonomyScoreObj.percent, autonomyScoreObj.value, autonomyScoreObj.current_level,
-      autonomyObj.percent, autonomyObj.value, autonomyObj.current_level
-    );
+    const autonomyPct =
+      (autonomyObj && (autonomyObj.percent ?? autonomyObj.value ?? autonomyObj.current_level)) ??
+      (status.autonomy && status.autonomy.current_level) ??
+      null;
 
     $("kpi-autonomy").textContent = fmtPctFrom(autonomyPct);
     $("kpi-autonomy-note").textContent = `Mode: ${safeUpper(autonomyMode)}`;
 
-    // health score
-    const healthOverall = pickNum(status.health?.overall_score, status.health?.score, status.health_score, status.overall_health_score);
-    const healthSignal = pickText(status.health?.signal, status.health_signal) || "—";
+    const healthOverall = (status.health && (status.health.overall_score || status.health.score)) || null;
+    const healthSignal = (status.health && status.health.signal) || "—";
     $("kpi-health").textContent = fmtPctFrom(healthOverall);
     $("kpi-health-note").textContent = `Signal: ${safeUpper(healthSignal)}`;
 
-    // governance
-    const gateVerdict = pickText(
-      autonomyScoreObj.gate_verdict,
-      autonomyObj.gate_verdict,
-      status.gate?.verdict
-    ) || "—";
+    const gateVerdict =
+      (autonomyObj && autonomyObj.gate_verdict) ||
+      (status.autonomy && status.autonomy.gate_verdict) ||
+      (status.gate && status.gate.verdict) ||
+      "—";
 
     const links = status.links || {};
     const auditTrailAvailable = Boolean(links.decision_trace || links.decision_trace_jsonl || links.latest_decision);
     const governanceValue = auditTrailAvailable ? "ENFORCED" : "LIMITED";
     $("kpi-governance").textContent = governanceValue;
-    $("kpi-governance-note").textContent =
-      `Gate: ${safeUpper(gateVerdict)} · Audit: ${auditTrailAvailable ? "AVAILABLE" : "MISSING"}`;
+    $("kpi-governance-note").textContent = `Gate: ${safeUpper(gateVerdict)} · Audit: ${auditTrailAvailable ? "AVAILABLE" : "MISSING"}`;
 
-    // right top pill reflects health signal only
     const lp = $("launch-pill");
     lp.classList.remove("warn", "crit");
     const cls = classifyPillBySignal(healthSignal);
     if (cls) lp.classList.add(cls);
-    lp.innerHTML = `<span class="dot"></span> ${safeUpper(healthSignal)}`;
+
+    lp.textContent = "";
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    lp.appendChild(dot);
+    lp.appendChild(document.createTextNode(` ${safeUpper(healthSignal)}`));
   }
 
   function renderAgents(status) {
@@ -768,8 +820,8 @@
       if (!agents[key]) continue;
       used.add(key);
 
-      const state = pickText(agents[key].state, agents[key].status) || "UNKNOWN";
-      const mode = pickText(agents[key].autonomy_mode, agents[key].autonomy) || "";
+      const state = agents[key].state || agents[key].status || "UNKNOWN";
+      const mode = agents[key].autonomy_mode || agents[key].autonomy || "";
       const chipText = mode ? `${state} · ${mode}` : `${state}`;
       const cls = chipClassForState(state);
 
@@ -778,7 +830,7 @@
       article.innerHTML = `
         <div class="status-title-row">
           <div class="status-title">${title}</div>
-          <div class="status-chip ${cls}">${safeUpper(chipText)}</div>
+          <div class="status-chip ${cls}" title="${safeUpper(chipText)}">${safeUpper(chipText)}</div>
         </div>
         <div class="status-meta">${meta.map(m => `<span>${m}</span>`).join("")}</div>
         <p class="status-note">${note}</p>
@@ -789,8 +841,8 @@
     for (const key of Object.keys(agents)) {
       if (used.has(key)) continue;
       const a = agents[key] || {};
-      const state = pickText(a.state, a.status) || "UNKNOWN";
-      const mode = pickText(a.autonomy_mode, a.autonomy) || "";
+      const state = a.state || a.status || "UNKNOWN";
+      const mode = a.autonomy_mode || a.autonomy || "";
       const chipText = mode ? `${state} · ${mode}` : `${state}`;
       const cls = chipClassForState(state);
 
@@ -799,7 +851,7 @@
       article.innerHTML = `
         <div class="status-title-row">
           <div class="status-title">${key}</div>
-          <div class="status-chip ${cls}">${safeUpper(chipText)}</div>
+          <div class="status-chip ${cls}" title="${safeUpper(chipText)}">${safeUpper(chipText)}</div>
         </div>
         <div class="status-meta"><span>Agent</span><span>Truth locked</span></div>
         <p class="status-note">Status rendered from system_status.json.</p>
@@ -823,12 +875,11 @@
   }
 
   function renderGuards(status) {
-    const generatedAt = pickText(status.generated_at, status.generatedAt, status.timestamp);
+    const generatedAt = status.generated_at || status.generatedAt || status.timestamp || null;
     const now = Date.now();
     const ts = generatedAt ? new Date(generatedAt).getTime() : NaN;
     const ageMin = Number.isFinite(ts) ? Math.max(0, Math.round((now - ts) / 60000)) : null;
 
-    // freshness
     if (ageMin === null) {
       $("guard-freshness").textContent = "—";
       $("guard-freshness-pill").textContent = "UNKNOWN";
@@ -840,14 +891,10 @@
       else { $("guard-freshness-pill").textContent = "EXPIRED"; setGuardPill($("guard-freshness-pill"), "crit"); }
     }
 
-    // gate verdict
-    const autonomyObj = (typeof status.autonomy === "object" && status.autonomy) ? status.autonomy : {};
-    const autonomyScoreObj = (typeof status.autonomy_score === "object" && status.autonomy_score) ? status.autonomy_score : {};
-    const gate = pickText(autonomyScoreObj.gate_verdict, autonomyObj.gate_verdict, status.gate?.verdict) || "—";
+    const autonomyObj = status.autonomy_score || status.autonomy || {};
+    const gate = (autonomyObj && autonomyObj.gate_verdict) || (status.gate && status.gate.verdict) || "—";
     $("guard-gate").textContent = safeUpper(gate);
-
-    const gateUpper = String(gate).toUpperCase();
-    if (gateUpper.includes("ALLOW") || gateUpper.includes("PASS")) {
+    if (String(gate).toUpperCase().includes("ALLOW") || String(gate).toUpperCase().includes("PASS")) {
       $("guard-gate-pill").textContent = "PASS";
       setGuardPill($("guard-gate-pill"), "ok");
     } else if (gate === "—") {
@@ -858,15 +905,13 @@
       setGuardPill($("guard-gate-pill"), "crit");
     }
 
-    // audit trail
     const links = status.links || {};
     const auditAvail = Boolean(links.latest_decision || links.decision_trace || links.decision_trace_jsonl);
     $("guard-audit").textContent = auditAvail ? "Available" : "Missing";
     $("guard-audit-pill").textContent = auditAvail ? "OK" : "MISSING";
     setGuardPill($("guard-audit-pill"), auditAvail ? "ok" : "warn");
 
-    // decision trace
-    const trace = pickText(links.decision_trace, links.decision_trace_jsonl);
+    const trace = links.decision_trace || links.decision_trace_jsonl || null;
     $("guard-trace").textContent = trace ? String(trace) : "—";
     if (trace) { $("guard-trace-pill").textContent = "LINKED"; setGuardPill($("guard-trace-pill"), "ok"); }
     else { $("guard-trace-pill").textContent = "UNLINKED"; setGuardPill($("guard-trace-pill"), "warn"); }
