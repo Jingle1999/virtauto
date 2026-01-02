@@ -14,8 +14,8 @@
   },
 
   "autonomy_score": {
-    "value": 0.82,
-    "percent": 82,
+    "value": 0.70,
+    "percent": 70,
     "mode": "SUPERVISED",
     "inputs": {
       "trace_coverage": null,
