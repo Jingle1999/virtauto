@@ -50,6 +50,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     header h1 span.badge {
@@ -64,9 +65,10 @@
     }
 
     header p {
-      max-width: 640px;
+      max-width: 740px;
       font-size: 0.95rem;
       color: var(--muted);
+      line-height: 1.35;
     }
 
     .meta-row {
@@ -86,6 +88,7 @@
       align-items: center;
       gap: 0.4rem;
       color: var(--muted);
+      white-space: nowrap;
     }
 
     .meta-dot {
@@ -94,6 +97,10 @@
       border-radius: 999px;
       background: var(--accent);
     }
+
+    .meta-pill.ok .meta-dot { background: var(--ok); }
+    .meta-pill.warn .meta-dot { background: var(--warn); }
+    .meta-pill.crit .meta-dot { background: var(--crit); }
 
     main {
       display: grid;
@@ -121,6 +128,7 @@
       justify-content: space-between;
       margin-bottom: 1rem;
       gap: 0.75rem;
+      flex-wrap: wrap;
     }
 
     .card-header h2 {
@@ -149,12 +157,8 @@
       border-radius: 999px;
       background: var(--ok);
     }
-    .status-pill.warn span.dot {
-      background: var(--warn);
-    }
-    .status-pill.crit span.dot {
-      background: var(--crit);
-    }
+    .status-pill.warn span.dot { background: var(--warn); }
+    .status-pill.crit span.dot { background: var(--crit); }
 
     .status-grid {
       display: grid;
@@ -174,6 +178,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
+      min-height: 126px;
     }
 
     .status-title-row {
@@ -181,6 +186,7 @@
       justify-content: space-between;
       gap: 0.4rem;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .status-title {
@@ -196,6 +202,7 @@
       border-radius: 999px;
       border: 1px solid rgba(55, 65, 81, 0.9);
       background: rgba(15, 23, 42, 0.95);
+      color: var(--muted);
     }
 
     .status-chip.ok {
@@ -205,6 +212,10 @@
     .status-chip.warn {
       border-color: rgba(245, 158, 11, 0.75);
       color: #fed7aa;
+    }
+    .status-chip.crit {
+      border-color: rgba(239, 68, 68, 0.75);
+      color: #fecaca;
     }
     .status-chip.soon {
       border-style: dashed;
@@ -220,9 +231,7 @@
       color: var(--muted);
     }
 
-    .status-meta span {
-      opacity: 0.9;
-    }
+    .status-meta span { opacity: 0.9; }
 
     .status-note {
       font-size: 0.75rem;
@@ -245,6 +254,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.2rem;
+      min-height: 76px;
     }
 
     .kpi-label {
@@ -262,35 +272,31 @@
     .kpi-footnote {
       font-size: 0.7rem;
       color: var(--muted);
+      line-height: 1.25;
     }
 
-    .timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      font-size: 0.8rem;
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.2rem 0;
     }
 
-    .timeline-step {
-      display: flex;
-      gap: 0.6rem;
-      align-items: flex-start;
-    }
-
-    .timeline-bullet {
-      margin-top: 0.25rem;
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--accent);
-    }
-
-    .timeline-label {
+    .small-muted {
       font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
       color: var(--muted);
-      margin-bottom: 0.1rem;
+      line-height: 1.35;
+    }
+
+    code.inline {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+        "Courier New", monospace;
+      font-size: 0.75rem;
+      background: rgba(15,23,42,0.7);
+      border: 1px solid rgba(55,65,81,0.9);
+      border-radius: 8px;
+      padding: 0.12rem 0.35rem;
+      color: #c7d2fe;
+      white-space: nowrap;
     }
 
     footer {
@@ -300,9 +306,7 @@
       text-align: right;
     }
 
-    footer span {
-      color: var(--accent);
-    }
+    footer span { color: var(--accent); }
   </style>
 </head>
 <body>
@@ -310,20 +314,31 @@
     <header>
       <h1>
         virtauto.OS — Live System Status
-        <span class="badge">V1.0 PREVIEW</span>
+        <span class="badge">TRUTH-LOCKED</span>
       </h1>
       <p>
-        This dashboard provides a high-level view of the current health of
-        <strong>www.virtauto.de</strong> as an Agentic Website: self-guarded,
-        monitored and operated by a growing Multi-Agent System.
+        Single authoritative view of <strong>www.virtauto.de</strong> as an Agentic Website.
+        This page renders <em>only</em> what is present in
+        <span class="inline-wrap"><code class="inline">system_status.json</code></span> (no manual KPI overrides, no marketing interpretation).
       </p>
+
       <div class="meta-row">
-        <div class="meta-pill">
+        <div class="meta-pill" id="pill-system">
           <span class="meta-dot"></span>
-          Agentic Website — Live in Production
+          <span id="meta-system">System: —</span>
         </div>
-        <div class="meta-pill">Autonomy: <strong>in progress → 30%+ target</strong></div>
-        <div class="meta-pill">Version: V1.0 (Launch Window)</div>
+        <div class="meta-pill" id="pill-autonomy">
+          <span class="meta-dot"></span>
+          <span id="meta-autonomy">Autonomy Mode: —</span>
+        </div>
+        <div class="meta-pill" id="pill-freshness">
+          <span class="meta-dot"></span>
+          <span id="meta-freshness">Freshness: —</span>
+        </div>
+        <div class="meta-pill">
+          <span class="meta-dot" style="background: var(--accent);"></span>
+          <span>Truth Source: <code class="inline">system_status.json</code></span>
+        </div>
       </div>
     </header>
 
@@ -332,18 +347,18 @@
       <section class="card">
         <div class="card-header">
           <h2>Core Agents & Layers</h2>
-          <span class="status-pill">
+          <span class="status-pill" id="system-pill">
             <span class="dot"></span>
-            System Online
+            <span id="system-pill-text">—</span>
           </span>
         </div>
 
         <div class="status-grid">
           <!-- Self-Guardian -->
-          <article class="status-card">
+          <article class="status-card" data-agent="guardian">
             <div class="status-title-row">
               <div class="status-title">Self-Guardian</div>
-              <div class="status-chip ok">Active</div>
+              <div class="status-chip soon" id="chip-guardian">—</div>
             </div>
             <div class="status-meta">
               <span>Security</span>
@@ -351,298 +366,513 @@
               <span>Fail-safe guardrails</span>
             </div>
             <p class="status-note">
-              Monitors every change, applies Guardian rules and blocks unsafe
-              updates before they reach production.
+              Monitors every change, applies Guardian rules and blocks unsafe updates before they reach production.
             </p>
           </article>
 
           <!-- Monitoring -->
-          <article class="status-card">
+          <article class="status-card" data-agent="monitoring">
             <div class="status-title-row">
               <div class="status-title">Self-Monitoring</div>
-              <div class="status-chip ok">Active</div>
+              <div class="status-chip soon" id="chip-monitoring">—</div>
             </div>
             <div class="status-meta">
               <span>Workflow logs</span>
               <span>Status signals</span>
             </div>
             <p class="status-note">
-              Tracks CI/CD runs, agent activity and basic system health across
-              GitHub Actions.
+              Tracks CI/CD runs, agent activity and basic system health across GitHub Actions.
             </p>
           </article>
 
           <!-- Self-Content -->
-          <article class="status-card">
+          <article class="status-card" data-agent="content">
             <div class="status-title-row">
               <div class="status-title">Self-Content Agent</div>
-              <div class="status-chip ok">Active</div>
+              <div class="status-chip soon" id="chip-content">—</div>
             </div>
             <div class="status-meta">
               <span>Draft generation</span>
               <span>Pull request content</span>
             </div>
             <p class="status-note">
-              Generates content drafts and change proposals as pull requests for
-              human-in-the-loop review.
+              Generates content drafts and change proposals as pull requests for human-in-the-loop review.
             </p>
           </article>
 
           <!-- GEORGE -->
-          <article class="status-card">
+          <article class="status-card" data-agent="george">
             <div class="status-title-row">
               <div class="status-title">GEORGE Orchestrator</div>
-              <div class="status-chip warn">MVP in Progress</div>
+              <div class="status-chip soon" id="chip-george">—</div>
             </div>
             <div class="status-meta">
-              <span>Event routing</span>
-              <span>Agent registry</span>
+              <span>Decision routing</span>
+              <span>Authority enforcement</span>
             </div>
             <p class="status-note">
-              Coordinates when which agent should run. MVP rules exist; full
-              orchestration logic is being expanded.
+              Orchestrates agent execution with deterministic routing, mandatory traceability, and runtime authority checks.
             </p>
           </article>
 
-          <!-- RAG Layer -->
-          <article class="status-card">
+          <!-- RAG Layer (informational; not always reported in system_status.json) -->
+          <article class="status-card" data-agent="rag">
             <div class="status-title-row">
               <div class="status-title">RAG Knowledge Layer</div>
-              <div class="status-chip ok">Initialized</div>
+              <div class="status-chip soon" id="chip-rag">UNREPORTED</div>
             </div>
             <div class="status-meta">
               <span>docs-001 …</span>
               <span>Vector embeddings</span>
             </div>
             <p class="status-note">
-              Stores the long-term memory of virtauto.de — system overview,
-              Self-Guardian architecture and CDT vision.
+              Stores long-term memory and governance context used for consistent decisions and reviews.
             </p>
           </article>
 
-          <!-- Cognitive Digital Twin -->
-          <article class="status-card">
+          <!-- CDT (informational) -->
+          <article class="status-card" data-agent="cdt">
             <div class="status-title-row">
               <div class="status-title">Cognitive Digital Twin (CDT)</div>
-              <div class="status-chip soon">Concept Stage</div>
+              <div class="status-chip soon" id="chip-cdt">CONCEPT</div>
             </div>
             <div class="status-meta">
               <span>Long-term intent</span>
               <span>Roadmap</span>
             </div>
             <p class="status-note">
-              Defines the long-term “brain” of virtauto.OS — how agents,
-              memory and strategy evolve over time.
+              Long-term “brain” concept: how agents, memory and strategy evolve over time.
             </p>
           </article>
 
           <!-- Audit Agent -->
-          <article class="status-card">
+          <article class="status-card" data-agent="site_audit">
             <div class="status-title-row">
               <div class="status-title">Audit Agent</div>
-              <div class="status-chip warn">Planned</div>
+              <div class="status-chip soon" id="chip-site_audit">—</div>
             </div>
             <div class="status-meta">
               <span>Compliance</span>
               <span>Change logs</span>
             </div>
             <p class="status-note">
-              Will verify that every change is fully documented, reversible and
-              aligned with compliance rules.
+              Verifies that changes are documented, reversible, and aligned with governance controls.
             </p>
           </article>
 
           <!-- Deploy Agent -->
-          <article class="status-card">
+          <article class="status-card" data-agent="deploy_agent">
             <div class="status-title-row">
               <div class="status-title">Deploy Agent</div>
-              <div class="status-chip warn">Planned</div>
+              <div class="status-chip soon" id="chip-deploy_agent">—</div>
             </div>
             <div class="status-meta">
               <span>Safe rollout</span>
               <span>Auto rollback</span>
             </div>
             <p class="status-note">
-              Will handle fully automated, guarded deployments from
-              pull-request merge to live system.
+              Handles guarded deployments from merge to live, with rollback paths and traceability.
             </p>
           </article>
 
-          <!-- Content Agent -->
-          <article class="status-card">
+          <!-- Marketing Content Agent (informational / future) -->
+          <article class="status-card" data-agent="marketing">
             <div class="status-title-row">
               <div class="status-title">Marketing Content Agent</div>
-              <div class="status-chip warn">Planned</div>
+              <div class="status-chip soon" id="chip-marketing">UNREPORTED</div>
             </div>
             <div class="status-meta">
               <span>Articles</span>
-              <span>Launch posts</span>
+              <span>Release notes</span>
             </div>
             <p class="status-note">
-              Will autonomously propose blog posts, release notes and LinkedIn
-              updates based on real system changes.
+              Proposes posts and updates based on real system changes (future capability).
             </p>
           </article>
         </div>
       </section>
 
-      <!-- RIGHT: KPI + ROADMAP -->
+      <!-- RIGHT: KPIs (truth-locked) -->
       <aside class="card">
         <div class="card-header">
           <h2>System KPIs</h2>
-          <span class="status-pill warn">
+          <span class="status-pill" id="launch-pill">
             <span class="dot"></span>
-            V1.0 Launch Window
+            <span id="launch-pill-text">—</span>
           </span>
         </div>
 
         <div class="kpi-grid">
           <div class="kpi">
             <div class="kpi-label">Agent Health</div>
-            <div class="kpi-value">4 / 7</div>
-            <div class="kpi-footnote">Core agents operational today</div>
+            <div class="kpi-value" id="kpi-agent-health">—</div>
+            <div class="kpi-footnote" id="kpi-agent-health-note">Active agents / total</div>
           </div>
-        <div class="kpi">
-          <div class="kpi-label">Autonomy Level</div>
-          <div class="kpi-value" id="autonomy-level">—</div>
-          <div class="kpi-footnote" id="autonomy-note">Target: —</div>
-        </div>
+
           <div class="kpi">
-            <div class="kpi-label">CI/CD Workflows</div>
-            <div class="kpi-value">17</div>
-            <div class="kpi-footnote">Industrial-grade pipeline backbone</div>
+            <div class="kpi-label">Autonomy Level</div>
+            <div class="kpi-value" id="kpi-autonomy">—</div>
+            <div class="kpi-footnote" id="kpi-autonomy-note">From autonomy_score.percent</div>
           </div>
-          <div class="kpi">
-            <div class="kpi-label">Open PRs</div>
-            <div class="kpi-value">34</div>
-            <div class="kpi-footnote">High development velocity</div>
-          </div>
+
           <div class="kpi">
             <div class="kpi-label">Health Score</div>
-            <div class="kpi-value" id="health-score">—</div>
-            <div class="kpi-footnote" id="health-note">Overall system health</div>
+            <div class="kpi-value" id="kpi-health">—</div>
+            <div class="kpi-footnote" id="kpi-health-note">From health.overall_score</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-label">System Mode</div>
+            <div class="kpi-value" id="kpi-mode">—</div>
+            <div class="kpi-footnote" id="kpi-mode-note">From system.mode / autonomy_mode</div>
           </div>
         </div>
 
-        <hr style="border: none; border-top: 1px solid var(--border); margin: 1.2rem 0;" />
+        <hr class="divider" />
 
-        <div class="card-header" style="margin-bottom: 0.7rem;">
-          <h2>Launch Roadmap</h2>
+        <div class="card-header" style="margin-bottom: 0.25rem;">
+          <h2>Governance Signals</h2>
         </div>
 
-        <div class="timeline">
-          <div class="timeline-step">
-            <div class="timeline-bullet"></div>
-            <div>
-              <div class="timeline-label">Now → V1.0 Stabilization</div>
-              <div>
-                • RAG knowledge base seeded (docs-001 …)<br />
-                • Self-Guardian + Monitoring fully active<br />
-                • Status dashboard online (this page)
-              </div>
-            </div>
+        <div class="small-muted" style="margin-top: 0.5rem;">
+          <div>• Freshest timestamp: <strong id="gov-ts">—</strong></div>
+          <div>• Escalation active: <strong id="gov-escalation">—</strong></div>
+          <div>• Compliance status: <strong id="gov-compliance">—</strong></div>
+          <div style="margin-top: 0.5rem; opacity: 0.9;">
+            Links (if available): <span id="gov-links">—</span>
           </div>
+        </div>
 
-          <div class="timeline-step">
-            <div class="timeline-bullet"></div>
-            <div>
-              <div class="timeline-label">Next 72h</div>
-              <div>
-                • Activate Audit, Deploy and Content Agents (MVP)<br />
-                • Finish GEORGE orchestration rules<br />
-                • Reduce active branches and stabilize pipelines
-              </div>
-            </div>
-          </div>
-
-          <div class="timeline-step">
-            <div class="timeline-bullet"></div>
-            <div>
-              <div class="timeline-label">7-Day Target</div>
-              <div>
-                • ≥30% autonomous operations<br />
-                • Full self-healing loop for deployments<br />
-                • virtauto.de operating as a living agentic organism
-              </div>
-            </div>
-          </div>
+        <div id="load-error" class="small-muted" style="margin-top: 1rem; display:none; color: #fecaca;">
+          Failed to load <code class="inline">system_status.json</code>. This page is truth-locked and will not display inferred status.
         </div>
       </aside>
     </main>
 
     <footer>
-      Status page generated by <span>virtauto.OS</span> &mdash; Agentic Website
-      Experiment.
+      Truth-locked view generated by <span>virtauto.OS</span> — single authoritative interface.
     </footer>
   </div>
+
 <script>
-fetch('/status/status.json', { cache: 'no-store' })
-  .then(res => res.json())
-  .then(status => {
-    // accept multiple possible keys + accept strings like "80" or "80%"
-    const raw =
-      status.health_score ??
-      status.health ??
-      status.overall_health ??
-      status.system_health ??
-      status.overall_health_score;
+/**
+ * TRUTH-LOCKED LOADER
+ * - Reads only system_status.json
+ * - No hardcoded KPI fallback values
+ * - If the source cannot be loaded, we show an explicit error
+ */
 
-    const num = (typeof raw === 'number')
-      ? raw
-      : (typeof raw === 'string' ? parseFloat(raw.replace('%','')) : NaN);
+// 1) Prefer same-origin path(s) (best for "single source of truth" on the website)
+// 2) Fallback to raw GitHub (works even if the JSON is not published to the site root yet)
+const STATUS_SOURCES = [
+  "/status/system_status.json",
+  "/ops/reports/system_status.json",
+  "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/reports/system_status.json"
+];
 
-    document.getElementById('health-score').textContent =
-      Number.isFinite(num) ? (num.toFixed(1) + ' %') : '—';
+function $(id) { return document.getElementById(id); }
 
-    // optional: show system mode if present (several key variants)
-    const mode = status.system_mode ?? status.mode ?? status.system_status ?? null;
-    if (mode) document.getElementById('health-note').textContent = `System mode: ${mode}`;
-  })
-  // =========================
-// Autonomy Level
-// =========================
-const autonomyRaw =
-  status.autonomy_level ??
-  status.autonomy ??
-  status.autonomy_level_estimate;
-
-const autonomyNum =
-  typeof autonomyRaw === 'number'
-    ? autonomyRaw
-    : (typeof autonomyRaw === 'string'
-        ? parseFloat(autonomyRaw.replace('%',''))
-        : NaN);
-
-document.getElementById('autonomy-level').textContent =
-  Number.isFinite(autonomyNum)
-    ? autonomyNum.toFixed(1) + ' %'
-    : '—';
-
-// Target (optional)
-if (status.autonomy_target !== undefined) {
-  document.getElementById('autonomy-note').textContent =
-    `Target: ${status.autonomy_target}% autonomous operations`;
+function asUpper(x) {
+  if (x === null || x === undefined) return null;
+  return String(x).trim().toUpperCase();
 }
-  .catch(err => {
-    console.warn('Health score not available', err);
-    document.getElementById('health-score').textContent = '—';
-    console.warn('Status KPIs not available', err);
-  });
-</script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // ✅ quick fix: set static KPI values
-    const autonomy = 67.5;  // <-- HIER anpassen
-    const health   = 80.0;  // <-- HIER anpassen
 
-    const set = (id, val) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = val;
-    };
+function safeNumber(x) {
+  if (x === null || x === undefined) return null;
+  if (typeof x === "number" && Number.isFinite(x)) return x;
+  if (typeof x === "string") {
+    const n = parseFloat(x.replace("%","").trim());
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
 
-    set('autonomy-level', `${autonomy.toFixed(1)}%`);
-    set('health-score', `${health.toFixed(1)}%`);
-  });
+function fmtPct(x, decimals=1) {
+  const n = safeNumber(x);
+  if (n === null) return "—";
+  return n.toFixed(decimals) + " %";
+}
+
+function fmtIso(ts) {
+  if (!ts) return "—";
+  try {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return String(ts);
+    // yyyy-mm-dd hh:mm
+    return d.toISOString().slice(0,16).replace("T"," ");
+  } catch {
+    return String(ts);
+  }
+}
+
+function minutesSince(ts) {
+  try {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return null;
+    const ms = Date.now() - d.getTime();
+    return Math.floor(ms / 60000);
+  } catch {
+    return null;
+  }
+}
+
+function setPillClass(el, level /* ok|warn|crit */) {
+  if (!el) return;
+  el.classList.remove("ok","warn","crit");
+  if (level) el.classList.add(level);
+}
+
+function setStatusPill(el, text, level) {
+  if (!el) return;
+  el.classList.remove("warn","crit");
+  if (level === "warn") el.classList.add("warn");
+  if (level === "crit") el.classList.add("crit");
+  const dot = el.querySelector(".dot");
+  const span = el.querySelector("span:last-child");
+  if (span) span.textContent = text;
+  if (dot) {
+    dot.style.background =
+      level === "crit" ? "var(--crit)" :
+      level === "warn" ? "var(--warn)" :
+      "var(--ok)";
+  }
+}
+
+function chipFromState(stateLike) {
+  const s = asUpper(stateLike);
+  if (!s) return { text: "UNREPORTED", cls: "soon" };
+  if (["ACTIVE","OK","ONLINE","PASS","ALLOW","RUNNING"].includes(s)) return { text: s, cls: "ok" };
+  if (["SUPERVISED","PLANNED","MVP","IN_PROGRESS","INITIALIZED","WARNING","WARN","REVIEW"].includes(s)) return { text: s.replaceAll("_"," "), cls: "warn" };
+  if (["BLOCK","FAIL","FAILED","CRIT","CRITICAL","DOWN","ERROR"].includes(s)) return { text: s.replaceAll("_"," "), cls: "crit" };
+  return { text: s.replaceAll("_"," "), cls: "soon" };
+}
+
+function setChip(chipEl, stateLike) {
+  if (!chipEl) return;
+  const { text, cls } = chipFromState(stateLike);
+  chipEl.textContent = text;
+  chipEl.classList.remove("ok","warn","crit","soon");
+  chipEl.classList.add(cls);
+}
+
+async function fetchFirstOk(urls) {
+  let lastErr = null;
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`${url} -> ${res.status}`);
+      const json = await res.json();
+      return { json, url };
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("No status source available");
+}
+
+function agentKeyMap() {
+  // Map your expected UI keys to possible keys in system_status.json
+  // based on your screenshot: agents include george, guardian, monitoring, content, deploy_agent, site_audit
+  return [
+    "george",
+    "guardian",
+    "monitoring",
+    "content",
+    "deploy_agent",
+    "site_audit"
+  ];
+}
+
+function computeAgentHealth(agentsObj) {
+  const keys = Object.keys(agentsObj || {});
+  if (!keys.length) return { active: null, total: null };
+
+  const total = keys.length;
+  let active = 0;
+
+  for (const k of keys) {
+    const a = agentsObj[k] || {};
+    const st = asUpper(a.state || a.status);
+    if (st && ["ACTIVE","ONLINE","OK","RUNNING"].includes(st)) active += 1;
+  }
+  return { active, total };
+}
+
+function renderLinks(linksObj) {
+  if (!linksObj || typeof linksObj !== "object") return "—";
+  const items = [];
+  for (const [k,v] of Object.entries(linksObj)) {
+    if (!v) continue;
+    items.push(`${k}: ${v}`);
+  }
+  return items.length ? items.join(" · ") : "—";
+}
+
+async function main() {
+  const loadError = $("load-error");
+
+  try {
+    const { json: status, url } = await fetchFirstOk(STATUS_SOURCES);
+
+    // ---- Canonical fields (based on your ops/reports/system_status.json screenshots)
+    const generatedAt = status.generated_at || status.generatedAt || status.timestamp || null;
+
+    const systemState = status.system?.state || status.system_state || status.system?.system_state || null; // e.g. ACTIVE
+    const autonomyMode = status.system?.autonomy_mode || status.autonomy || status.autonomy_mode || null;   // e.g. SUPERVISED
+    const systemMode = status.system?.mode || null;                                                        // e.g. STABILIZATION
+
+    const autonomyPercent =
+      (status.autonomy_score && status.autonomy_score.percent != null) ? status.autonomy_score.percent :
+      (status.autonomy_score && status.autonomy_score.value != null) ? (safeNumber(status.autonomy_score.value) * 100) :
+      null;
+
+    const healthOverall =
+      (status.health && status.health.overall_score != null) ? (safeNumber(status.health.overall_score) * 100) :
+      null;
+
+    // Agents object (your screenshot shows status.agents = { george: {...}, guardian: {...}, ... }
+    const agentsObj = status.agents || {};
+
+    // ---- Meta pills
+    // System
+    $("meta-system").textContent = `System: ${systemState ? asUpper(systemState) : "—"}`;
+    setPillClass($("pill-system"),
+      !systemState ? "warn" :
+      ["ACTIVE","ONLINE","OK"].includes(asUpper(systemState)) ? "ok" :
+      ["FAIL","FAILED","DOWN","ERROR","BLOCK"].includes(asUpper(systemState)) ? "crit" :
+      "warn"
+    );
+
+    // Autonomy mode
+    $("meta-autonomy").textContent = `Autonomy Mode: ${autonomyMode ? asUpper(autonomyMode) : "—"}`;
+    setPillClass($("pill-autonomy"),
+      !autonomyMode ? "warn" :
+      ["AUTONOMOUS"].includes(asUpper(autonomyMode)) ? "ok" :
+      ["SUPERVISED"].includes(asUpper(autonomyMode)) ? "warn" :
+      ["MANUAL"].includes(asUpper(autonomyMode)) ? "warn" :
+      "warn"
+    );
+
+    // Freshness
+    const mins = minutesSince(generatedAt);
+    const freshnessText =
+      generatedAt ? `${fmtIso(generatedAt)}${mins !== null ? ` · ${mins} min ago` : ""}` : "—";
+    $("meta-freshness").textContent = `Freshness: ${freshnessText}`;
+
+    // Freshness thresholding
+    let freshnessLevel = "warn";
+    if (mins === null) freshnessLevel = "warn";
+    else if (mins <= 10) freshnessLevel = "ok";
+    else if (mins <= 60) freshnessLevel = "warn";
+    else freshnessLevel = "crit";
+    setPillClass($("pill-freshness"), freshnessLevel);
+
+    // ---- Header/system status pill (top of left card)
+    const sysText = systemState ? `${asUpper(systemState)}` : "UNKNOWN";
+    const sysLevel =
+      !systemState ? "warn" :
+      ["ACTIVE","ONLINE","OK"].includes(asUpper(systemState)) ? "ok" :
+      ["FAIL","FAILED","DOWN","ERROR","BLOCK"].includes(asUpper(systemState)) ? "crit" :
+      "warn";
+    setStatusPill($("system-pill"), `System ${sysText}`, sysLevel === "crit" ? "crit" : (sysLevel === "warn" ? "warn" : null));
+
+    // Right pill (launch/mode)
+    const launchText = systemMode ? `${String(systemMode).replaceAll("_"," ")}` : (autonomyMode ? `${asUpper(autonomyMode)}` : "—");
+    const launchLevel =
+      (autonomyMode && asUpper(autonomyMode) === "AUTONOMOUS") ? null :
+      (autonomyMode && asUpper(autonomyMode) === "SUPERVISED") ? "warn" :
+      null;
+    setStatusPill($("launch-pill"), launchText, launchLevel);
+
+    // ---- KPIs
+    // Agent Health (active / total)
+    const ah = computeAgentHealth(agentsObj);
+    $("kpi-agent-health").textContent =
+      (ah.active !== null && ah.total !== null) ? `${ah.active} / ${ah.total}` : "—";
+    $("kpi-agent-health-note").textContent = "Active agents / reported agents";
+
+    // Autonomy
+    $("kpi-autonomy").textContent = autonomyPercent != null ? fmtPct(autonomyPercent, 1) : "—";
+    $("kpi-autonomy-note").textContent = (status.autonomy_score && status.autonomy_score.mode)
+      ? `Mode: ${String(status.autonomy_score.mode).replaceAll("_"," ")}`
+      : "From autonomy_score.percent";
+
+    // Health
+    $("kpi-health").textContent = healthOverall != null ? fmtPct(healthOverall, 1) : "—";
+    $("kpi-health-note").textContent = (status.health && status.health.signal)
+      ? `Signal: ${String(status.health.signal).toUpperCase()}`
+      : "From health.overall_score";
+
+    // System Mode
+    const modeLine = [
+      systemMode ? String(systemMode).replaceAll("_"," ") : null,
+      autonomyMode ? asUpper(autonomyMode) : null
+    ].filter(Boolean).join(" · ");
+    $("kpi-mode").textContent = modeLine || "—";
+    $("kpi-mode-note").textContent = generatedAt ? `Generated: ${fmtIso(generatedAt)}` : "—";
+
+    // ---- Governance Signals (best-effort from status.links + status fields)
+    $("gov-ts").textContent = generatedAt ? fmtIso(generatedAt) : "—";
+
+    // Escalation active: infer from last_incident / gate / etc if present, else "UNREPORTED"
+    const escalationActive =
+      status.system?.last_incident != null ? "YES" :
+      (status.autonomy_score && status.autonomy_score.inputs && status.autonomy_score.inputs.gate_verdict === "ESCALATE") ? "YES" :
+      "UNREPORTED";
+    $("gov-escalation").textContent = escalationActive;
+
+    // Compliance status: infer if guardian.json exists? If a field exists use it, else UNREPORTED
+    const compliance =
+      status.compliance_status ||
+      status.governance?.compliance_status ||
+      "UNREPORTED";
+    $("gov-compliance").textContent = String(compliance).toUpperCase();
+
+    $("gov-links").textContent = renderLinks(status.links);
+
+    // ---- Agent chips (truth-locked)
+    // For each known agent key, derive a display state
+    const knownKeys = agentKeyMap();
+    for (const key of knownKeys) {
+      const chip = document.getElementById(`chip-${key}`);
+      const a = agentsObj[key];
+      if (!a) {
+        // If not reported, keep "—" but mark as UNREPORTED (truthful)
+        if (chip) setChip(chip, "UNREPORTED");
+        continue;
+      }
+
+      // prefer a.state, else a.status
+      const primary = a.state || a.status || "UNREPORTED";
+      setChip(chip, primary);
+    }
+
+    // Optional: mark source URL in console (no UI impact)
+    console.info("Loaded system_status.json from:", url);
+
+    if (loadError) loadError.style.display = "none";
+  } catch (err) {
+    console.warn("Truth source load failed:", err);
+    if ($("load-error")) $("load-error").style.display = "block";
+
+    // Also explicitly set key UI elements to "—" / UNKNOWN (no inference)
+    setStatusPill($("system-pill"), "System UNKNOWN", "warn");
+    setStatusPill($("launch-pill"), "UNAVAILABLE", "warn");
+    $("meta-system").textContent = "System: —";
+    $("meta-autonomy").textContent = "Autonomy Mode: —";
+    $("meta-freshness").textContent = "Freshness: —";
+    $("kpi-agent-health").textContent = "—";
+    $("kpi-autonomy").textContent = "—";
+    $("kpi-health").textContent = "—";
+    $("kpi-mode").textContent = "—";
+    $("gov-ts").textContent = "—";
+    $("gov-escalation").textContent = "—";
+    $("gov-compliance").textContent = "—";
+    $("gov-links").textContent = "—";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", main);
 </script>
 </body>
 </html>
