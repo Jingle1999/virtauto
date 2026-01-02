@@ -50,7 +50,6 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      flex-wrap: wrap;
     }
 
     header h1 span.badge {
@@ -68,7 +67,7 @@
       max-width: 740px;
       font-size: 0.95rem;
       color: var(--muted);
-      line-height: 1.35;
+      line-height: 1.45;
     }
 
     .meta-row {
@@ -88,7 +87,6 @@
       align-items: center;
       gap: 0.4rem;
       color: var(--muted);
-      white-space: nowrap;
     }
 
     .meta-dot {
@@ -97,10 +95,6 @@
       border-radius: 999px;
       background: var(--accent);
     }
-
-    .meta-pill.ok .meta-dot { background: var(--ok); }
-    .meta-pill.warn .meta-dot { background: var(--warn); }
-    .meta-pill.crit .meta-dot { background: var(--crit); }
 
     main {
       display: grid;
@@ -128,7 +122,6 @@
       justify-content: space-between;
       margin-bottom: 1rem;
       gap: 0.75rem;
-      flex-wrap: wrap;
     }
 
     .card-header h2 {
@@ -149,6 +142,7 @@
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
+      color: var(--text);
     }
 
     .status-pill span.dot {
@@ -178,7 +172,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
-      min-height: 126px;
+      min-height: 128px;
     }
 
     .status-title-row {
@@ -186,7 +180,6 @@
       justify-content: space-between;
       gap: 0.4rem;
       align-items: center;
-      flex-wrap: wrap;
     }
 
     .status-title {
@@ -203,6 +196,7 @@
       border: 1px solid rgba(55, 65, 81, 0.9);
       background: rgba(15, 23, 42, 0.95);
       color: var(--muted);
+      white-space: nowrap;
     }
 
     .status-chip.ok {
@@ -231,8 +225,6 @@
       color: var(--muted);
     }
 
-    .status-meta span { opacity: 0.9; }
-
     .status-note {
       font-size: 0.75rem;
       color: var(--muted);
@@ -254,7 +246,6 @@
       display: flex;
       flex-direction: column;
       gap: 0.2rem;
-      min-height: 76px;
     }
 
     .kpi-label {
@@ -272,32 +263,78 @@
     .kpi-footnote {
       font-size: 0.7rem;
       color: var(--muted);
-      line-height: 1.25;
-    }
-
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 1.2rem 0;
-    }
-
-    .small-muted {
-      font-size: 0.75rem;
-      color: var(--muted);
       line-height: 1.35;
     }
 
-    code.inline {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-        "Courier New", monospace;
+    .truth-box {
+      margin-top: 1.1rem;
+      padding: 0.75rem 0.85rem;
+      border-radius: 0.85rem;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.75);
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .truth-box code {
+      color: #c4b5fd;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       font-size: 0.75rem;
-      background: rgba(15,23,42,0.7);
-      border: 1px solid rgba(55,65,81,0.9);
-      border-radius: 8px;
-      padding: 0.12rem 0.35rem;
-      color: #c7d2fe;
+    }
+
+    .guards {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+
+    .guard-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.55rem 0.7rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .guard-left {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .guard-name {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+    }
+
+    .guard-value {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .guard-pill {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--muted);
       white-space: nowrap;
     }
+    .guard-pill.ok { border-color: rgba(34, 197, 94, 0.65); color: #bbf7d0; }
+    .guard-pill.warn { border-color: rgba(245, 158, 11, 0.75); color: #fed7aa; }
+    .guard-pill.crit { border-color: rgba(239, 68, 68, 0.75); color: #fecaca; }
 
     footer {
       margin-top: 2rem;
@@ -307,38 +344,104 @@
     }
 
     footer span { color: var(--accent); }
+
+    /* hard-fail overlay (truth lock) */
+    .fatal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 9999;
+    }
+    .fatal-inner {
+      max-width: 760px;
+      width: 100%;
+      border-radius: 18px;
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 22px 60px rgba(0,0,0,0.6);
+      padding: 18px 18px 16px;
+    }
+    .fatal-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .fatal-title h3 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #fecaca;
+    }
+    .fatal-pill {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(239, 68, 68, 0.55);
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.08);
+      white-space: nowrap;
+    }
+    .fatal p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+    .fatal code {
+      display: block;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(2, 6, 23, 0.7);
+      color: #c4b5fd;
+      font-size: 12px;
+      overflow-x: auto;
+    }
   </style>
 </head>
 <body>
-  <div class="page">
+  <div class="fatal" id="fatal">
+    <div class="fatal-inner">
+      <div class="fatal-title">
+        <h3>Truth Lock Failure</h3>
+        <span class="fatal-pill">STATUS UNAVAILABLE</span>
+      </div>
+      <p>
+        The status page is required to read exclusively from the Single Source of Truth.
+        The truth source could not be loaded, therefore this page refuses to display any derived values.
+      </p>
+      <p><strong>Expected truth source:</strong> <code id="fatal-src"></code></p>
+      <p><strong>Error:</strong> <code id="fatal-err"></code></p>
+    </div>
+  </div>
+
+  <div class="page" id="page">
     <header>
       <h1>
         virtauto.OS — Live System Status
         <span class="badge">TRUTH-LOCKED</span>
       </h1>
       <p>
-        Single authoritative view of <strong>www.virtauto.de</strong> as an Agentic Website.
-        This page renders <em>only</em> what is present in
-        <span class="inline-wrap"><code class="inline">system_status.json</code></span> (no manual KPI overrides, no marketing interpretation).
+        This dashboard is the single authoritative interface for the operational state of
+        <strong>www.virtauto.de</strong>.
+        Every value on this page is rendered from the Single Source of Truth and refuses to show if the truth source is missing.
       </p>
-
       <div class="meta-row">
-        <div class="meta-pill" id="pill-system">
-          <span class="meta-dot"></span>
-          <span id="meta-system">System: —</span>
-        </div>
-        <div class="meta-pill" id="pill-autonomy">
-          <span class="meta-dot"></span>
-          <span id="meta-autonomy">Autonomy Mode: —</span>
-        </div>
-        <div class="meta-pill" id="pill-freshness">
-          <span class="meta-dot"></span>
-          <span id="meta-freshness">Freshness: —</span>
-        </div>
         <div class="meta-pill">
-          <span class="meta-dot" style="background: var(--accent);"></span>
-          <span>Truth Source: <code class="inline">system_status.json</code></span>
+          <span class="meta-dot"></span>
+          Agentic Website — Live in Production
         </div>
+        <div class="meta-pill">Truth Source: <strong id="truth-source">—</strong></div>
+        <div class="meta-pill">Freshness: <strong id="freshness">—</strong></div>
       </div>
     </header>
 
@@ -349,156 +452,22 @@
           <h2>Core Agents & Layers</h2>
           <span class="status-pill" id="system-pill">
             <span class="dot"></span>
-            <span id="system-pill-text">—</span>
+            System —
           </span>
         </div>
 
-        <div class="status-grid">
-          <!-- Self-Guardian -->
-          <article class="status-card" data-agent="guardian">
-            <div class="status-title-row">
-              <div class="status-title">Self-Guardian</div>
-              <div class="status-chip soon" id="chip-guardian">—</div>
-            </div>
-            <div class="status-meta">
-              <span>Security</span>
-              <span>Policy checks</span>
-              <span>Fail-safe guardrails</span>
-            </div>
-            <p class="status-note">
-              Monitors every change, applies Guardian rules and blocks unsafe updates before they reach production.
-            </p>
-          </article>
-
-          <!-- Monitoring -->
-          <article class="status-card" data-agent="monitoring">
-            <div class="status-title-row">
-              <div class="status-title">Self-Monitoring</div>
-              <div class="status-chip soon" id="chip-monitoring">—</div>
-            </div>
-            <div class="status-meta">
-              <span>Workflow logs</span>
-              <span>Status signals</span>
-            </div>
-            <p class="status-note">
-              Tracks CI/CD runs, agent activity and basic system health across GitHub Actions.
-            </p>
-          </article>
-
-          <!-- Self-Content -->
-          <article class="status-card" data-agent="content">
-            <div class="status-title-row">
-              <div class="status-title">Self-Content Agent</div>
-              <div class="status-chip soon" id="chip-content">—</div>
-            </div>
-            <div class="status-meta">
-              <span>Draft generation</span>
-              <span>Pull request content</span>
-            </div>
-            <p class="status-note">
-              Generates content drafts and change proposals as pull requests for human-in-the-loop review.
-            </p>
-          </article>
-
-          <!-- GEORGE -->
-          <article class="status-card" data-agent="george">
-            <div class="status-title-row">
-              <div class="status-title">GEORGE Orchestrator</div>
-              <div class="status-chip soon" id="chip-george">—</div>
-            </div>
-            <div class="status-meta">
-              <span>Decision routing</span>
-              <span>Authority enforcement</span>
-            </div>
-            <p class="status-note">
-              Orchestrates agent execution with deterministic routing, mandatory traceability, and runtime authority checks.
-            </p>
-          </article>
-
-          <!-- RAG Layer (informational; not always reported in system_status.json) -->
-          <article class="status-card" data-agent="rag">
-            <div class="status-title-row">
-              <div class="status-title">RAG Knowledge Layer</div>
-              <div class="status-chip soon" id="chip-rag">UNREPORTED</div>
-            </div>
-            <div class="status-meta">
-              <span>docs-001 …</span>
-              <span>Vector embeddings</span>
-            </div>
-            <p class="status-note">
-              Stores long-term memory and governance context used for consistent decisions and reviews.
-            </p>
-          </article>
-
-          <!-- CDT (informational) -->
-          <article class="status-card" data-agent="cdt">
-            <div class="status-title-row">
-              <div class="status-title">Cognitive Digital Twin (CDT)</div>
-              <div class="status-chip soon" id="chip-cdt">CONCEPT</div>
-            </div>
-            <div class="status-meta">
-              <span>Long-term intent</span>
-              <span>Roadmap</span>
-            </div>
-            <p class="status-note">
-              Long-term “brain” concept: how agents, memory and strategy evolve over time.
-            </p>
-          </article>
-
-          <!-- Audit Agent -->
-          <article class="status-card" data-agent="site_audit">
-            <div class="status-title-row">
-              <div class="status-title">Audit Agent</div>
-              <div class="status-chip soon" id="chip-site_audit">—</div>
-            </div>
-            <div class="status-meta">
-              <span>Compliance</span>
-              <span>Change logs</span>
-            </div>
-            <p class="status-note">
-              Verifies that changes are documented, reversible, and aligned with governance controls.
-            </p>
-          </article>
-
-          <!-- Deploy Agent -->
-          <article class="status-card" data-agent="deploy_agent">
-            <div class="status-title-row">
-              <div class="status-title">Deploy Agent</div>
-              <div class="status-chip soon" id="chip-deploy_agent">—</div>
-            </div>
-            <div class="status-meta">
-              <span>Safe rollout</span>
-              <span>Auto rollback</span>
-            </div>
-            <p class="status-note">
-              Handles guarded deployments from merge to live, with rollback paths and traceability.
-            </p>
-          </article>
-
-          <!-- Marketing Content Agent (informational / future) -->
-          <article class="status-card" data-agent="marketing">
-            <div class="status-title-row">
-              <div class="status-title">Marketing Content Agent</div>
-              <div class="status-chip soon" id="chip-marketing">UNREPORTED</div>
-            </div>
-            <div class="status-meta">
-              <span>Articles</span>
-              <span>Release notes</span>
-            </div>
-            <p class="status-note">
-              Proposes posts and updates based on real system changes (future capability).
-            </p>
-          </article>
+        <div class="status-grid" id="agents-grid">
+          <!-- populated by JS (truth-locked) -->
         </div>
       </section>
 
-      <!-- RIGHT: KPIs (truth-locked) -->
+      <!-- RIGHT: KPIs + PIPELINES & GUARDS -->
       <aside class="card">
         <div class="card-header">
           <h2>System KPIs</h2>
-          <span class="status-pill" id="launch-pill">
+          <span class="status-pill warn" id="launch-pill">
             <span class="dot"></span>
-            <span id="launch-pill-text">—</span>
+            Live Snapshot
           </span>
         </div>
 
@@ -506,373 +475,380 @@
           <div class="kpi">
             <div class="kpi-label">Agent Health</div>
             <div class="kpi-value" id="kpi-agent-health">—</div>
-            <div class="kpi-footnote" id="kpi-agent-health-note">Active agents / total</div>
+            <div class="kpi-footnote" id="kpi-agent-health-note">Active agents / total agents</div>
           </div>
 
           <div class="kpi">
-            <div class="kpi-label">Autonomy Level</div>
+            <div class="kpi-label">Autonomy (confirmed)</div>
             <div class="kpi-value" id="kpi-autonomy">—</div>
-            <div class="kpi-footnote" id="kpi-autonomy-note">From autonomy_score.percent</div>
+            <div class="kpi-footnote" id="kpi-autonomy-note">Mode: —</div>
           </div>
 
           <div class="kpi">
             <div class="kpi-label">Health Score</div>
             <div class="kpi-value" id="kpi-health">—</div>
-            <div class="kpi-footnote" id="kpi-health-note">From health.overall_score</div>
+            <div class="kpi-footnote" id="kpi-health-note">Signal: —</div>
           </div>
 
           <div class="kpi">
-            <div class="kpi-label">System Mode</div>
-            <div class="kpi-value" id="kpi-mode">—</div>
-            <div class="kpi-footnote" id="kpi-mode-note">From system.mode / autonomy_mode</div>
+            <div class="kpi-label">Governance</div>
+            <div class="kpi-value" id="kpi-governance">—</div>
+            <div class="kpi-footnote" id="kpi-governance-note">Audit trail & gate verdict</div>
           </div>
         </div>
 
-        <hr class="divider" />
-
-        <div class="card-header" style="margin-bottom: 0.25rem;">
-          <h2>Governance Signals</h2>
+        <div class="truth-box" id="truth-box">
+          <div><strong>Truth lock:</strong> This page reads from <code id="truth-path">—</code></div>
+          <div><strong>Generated at:</strong> <span id="generated-at">—</span></div>
+          <div><strong>Environment:</strong> <span id="environment">—</span></div>
         </div>
 
-        <div class="small-muted" style="margin-top: 0.5rem;">
-          <div>• Freshest timestamp: <strong id="gov-ts">—</strong></div>
-          <div>• Escalation active: <strong id="gov-escalation">—</strong></div>
-          <div>• Compliance status: <strong id="gov-compliance">—</strong></div>
-          <div style="margin-top: 0.5rem; opacity: 0.9;">
-            Links (if available): <span id="gov-links">—</span>
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 1.2rem 0;" />
+
+        <div class="card-header" style="margin-bottom: 0.7rem;">
+          <h2>Pipelines & Guards</h2>
+          <span class="status-pill" id="guards-pill">
+            <span class="dot"></span>
+            Truth Locked
+          </span>
+        </div>
+
+        <div class="guards">
+          <div class="guard-row">
+            <div class="guard-left">
+              <div class="guard-name">Freshness</div>
+              <div class="guard-value" id="guard-freshness">—</div>
+            </div>
+            <span class="guard-pill" id="guard-freshness-pill">—</span>
           </div>
-        </div>
 
-        <div id="load-error" class="small-muted" style="margin-top: 1rem; display:none; color: #fecaca;">
-          Failed to load <code class="inline">system_status.json</code>. This page is truth-locked and will not display inferred status.
+          <div class="guard-row">
+            <div class="guard-left">
+              <div class="guard-name">Runtime Gate</div>
+              <div class="guard-value" id="guard-gate">—</div>
+            </div>
+            <span class="guard-pill" id="guard-gate-pill">—</span>
+          </div>
+
+          <div class="guard-row">
+            <div class="guard-left">
+              <div class="guard-name">Audit Trail</div>
+              <div class="guard-value" id="guard-audit">—</div>
+            </div>
+            <span class="guard-pill" id="guard-audit-pill">—</span>
+          </div>
+
+          <div class="guard-row">
+            <div class="guard-left">
+              <div class="guard-name">Decision Trace</div>
+              <div class="guard-value" id="guard-trace">—</div>
+            </div>
+            <span class="guard-pill" id="guard-trace-pill">—</span>
+          </div>
         </div>
       </aside>
     </main>
 
     <footer>
-      Truth-locked view generated by <span>virtauto.OS</span> — single authoritative interface.
+      Status page generated by <span>virtauto.OS</span> — single source of truth.
     </footer>
   </div>
 
 <script>
-/**
- * TRUTH-LOCKED LOADER
- * - Reads only system_status.json
- * - No hardcoded KPI fallback values
- * - If the source cannot be loaded, we show an explicit error
- */
+  // =========================
+  // TRUTH SOURCE (Single Source of Truth)
+  // =========================
+  const TRUTH_PATH = "/ops/reports/system_status.json";
 
-// 1) Prefer same-origin path(s) (best for "single source of truth" on the website)
-// 2) Fallback to raw GitHub (works even if the JSON is not published to the site root yet)
-const STATUS_SOURCES = [
-  "/status/system_status.json",
-  "/ops/reports/system_status.json",
-  "https://raw.githubusercontent.com/Jingle1999/virtauto/main/ops/reports/system_status.json"
-];
+  // =========================
+  // Helpers
+  // =========================
+  function $(id) { return document.getElementById(id); }
 
-function $(id) { return document.getElementById(id); }
-
-function asUpper(x) {
-  if (x === null || x === undefined) return null;
-  return String(x).trim().toUpperCase();
-}
-
-function safeNumber(x) {
-  if (x === null || x === undefined) return null;
-  if (typeof x === "number" && Number.isFinite(x)) return x;
-  if (typeof x === "string") {
-    const n = parseFloat(x.replace("%","").trim());
-    return Number.isFinite(n) ? n : null;
+  function safeUpper(v) {
+    return (v === undefined || v === null) ? "—" : String(v).toUpperCase();
   }
-  return null;
-}
 
-function fmtPct(x, decimals=1) {
-  const n = safeNumber(x);
-  if (n === null) return "—";
-  return n.toFixed(decimals) + " %";
-}
-
-function fmtIso(ts) {
-  if (!ts) return "—";
-  try {
-    const d = new Date(ts);
-    if (isNaN(d.getTime())) return String(ts);
-    // yyyy-mm-dd hh:mm
-    return d.toISOString().slice(0,16).replace("T"," ");
-  } catch {
-    return String(ts);
+  function fmtPctFrom(valueOrPct) {
+    if (valueOrPct === undefined || valueOrPct === null) return "—";
+    const n = Number(valueOrPct);
+    if (!Number.isFinite(n)) return "—";
+    // if already looks like 0..100 use as-is; if 0..1 convert
+    const pct = (n <= 1) ? (n * 100) : n;
+    return pct.toFixed(1) + "%";
   }
-}
 
-function minutesSince(ts) {
-  try {
-    const d = new Date(ts);
-    if (isNaN(d.getTime())) return null;
-    const ms = Date.now() - d.getTime();
-    return Math.floor(ms / 60000);
-  } catch {
-    return null;
+  function fmtDate(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return String(iso);
+    return d.toISOString().slice(0, 19).replace("T", " ");
   }
-}
 
-function setPillClass(el, level /* ok|warn|crit */) {
-  if (!el) return;
-  el.classList.remove("ok","warn","crit");
-  if (level) el.classList.add(level);
-}
-
-function setStatusPill(el, text, level) {
-  if (!el) return;
-  el.classList.remove("warn","crit");
-  if (level === "warn") el.classList.add("warn");
-  if (level === "crit") el.classList.add("crit");
-  const dot = el.querySelector(".dot");
-  const span = el.querySelector("span:last-child");
-  if (span) span.textContent = text;
-  if (dot) {
-    dot.style.background =
-      level === "crit" ? "var(--crit)" :
-      level === "warn" ? "var(--warn)" :
-      "var(--ok)";
+  function classifyPillBySignal(signal) {
+    const s = String(signal || "").toUpperCase();
+    if (s.includes("RED") || s.includes("CRIT") || s.includes("FAIL")) return "crit";
+    if (s.includes("YELLOW") || s.includes("WARN") || s.includes("DEGRADED") || s.includes("REVIEW")) return "warn";
+    return ""; // ok/default
   }
-}
 
-function chipFromState(stateLike) {
-  const s = asUpper(stateLike);
-  if (!s) return { text: "UNREPORTED", cls: "soon" };
-  if (["ACTIVE","OK","ONLINE","PASS","ALLOW","RUNNING"].includes(s)) return { text: s, cls: "ok" };
-  if (["SUPERVISED","PLANNED","MVP","IN_PROGRESS","INITIALIZED","WARNING","WARN","REVIEW"].includes(s)) return { text: s.replaceAll("_"," "), cls: "warn" };
-  if (["BLOCK","FAIL","FAILED","CRIT","CRITICAL","DOWN","ERROR"].includes(s)) return { text: s.replaceAll("_"," "), cls: "crit" };
-  return { text: s.replaceAll("_"," "), cls: "soon" };
-}
-
-function setChip(chipEl, stateLike) {
-  if (!chipEl) return;
-  const { text, cls } = chipFromState(stateLike);
-  chipEl.textContent = text;
-  chipEl.classList.remove("ok","warn","crit","soon");
-  chipEl.classList.add(cls);
-}
-
-async function fetchFirstOk(urls) {
-  let lastErr = null;
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`${url} -> ${res.status}`);
-      const json = await res.json();
-      return { json, url };
-    } catch (e) {
-      lastErr = e;
-    }
+  function chipClassForState(state) {
+    const s = String(state || "").toUpperCase();
+    if (s === "ACTIVE" || s === "OK" || s === "GREEN" || s === "ONLINE" || s === "INITIALIZED") return "ok";
+    if (s === "PLANNED" || s === "MVP" || s === "IN_PROGRESS" || s === "UNKNOWN" || s === "SUPERVISED") return "warn";
+    if (s === "FAIL" || s === "FAILED" || s === "DOWN" || s === "CRITICAL" || s === "ISSUE") return "crit";
+    return "soon";
   }
-  throw lastErr || new Error("No status source available");
-}
 
-function agentKeyMap() {
-  // Map your expected UI keys to possible keys in system_status.json
-  // based on your screenshot: agents include george, guardian, monitoring, content, deploy_agent, site_audit
-  return [
-    "george",
-    "guardian",
-    "monitoring",
-    "content",
-    "deploy_agent",
-    "site_audit"
-  ];
-}
-
-function computeAgentHealth(agentsObj) {
-  const keys = Object.keys(agentsObj || {});
-  if (!keys.length) return { active: null, total: null };
-
-  const total = keys.length;
-  let active = 0;
-
-  for (const k of keys) {
-    const a = agentsObj[k] || {};
-    const st = asUpper(a.state || a.status);
-    if (st && ["ACTIVE","ONLINE","OK","RUNNING"].includes(st)) active += 1;
+  function setGuardPill(el, kind) {
+    el.classList.remove("ok", "warn", "crit");
+    if (kind) el.classList.add(kind);
   }
-  return { active, total };
-}
 
-function renderLinks(linksObj) {
-  if (!linksObj || typeof linksObj !== "object") return "—";
-  const items = [];
-  for (const [k,v] of Object.entries(linksObj)) {
-    if (!v) continue;
-    items.push(`${k}: ${v}`);
+  function showFatal(err) {
+    $("fatal-src").textContent = TRUTH_PATH;
+    $("fatal-err").textContent = String(err && err.message ? err.message : err);
+    $("fatal").style.display = "flex";
+    $("page").style.display = "none";
   }
-  return items.length ? items.join(" · ") : "—";
-}
 
-async function main() {
-  const loadError = $("load-error");
+  async function fetchTruth() {
+    const res = await fetch(TRUTH_PATH, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to load truth source (${res.status}) at ${TRUTH_PATH}`);
+    const json = await res.json();
+    if (!json || typeof json !== "object") throw new Error("Truth source returned invalid JSON.");
+    return json;
+  }
 
-  try {
-    const { json: status, url } = await fetchFirstOk(STATUS_SOURCES);
+  // =========================
+  // Rendering
+  // =========================
+  function renderHeader(status) {
+    $("truth-source").textContent = "system_status.json";
+    $("truth-path").textContent = TRUTH_PATH;
 
-    // ---- Canonical fields (based on your ops/reports/system_status.json screenshots)
     const generatedAt = status.generated_at || status.generatedAt || status.timestamp || null;
+    const freshnessText = generatedAt ? fmtDate(generatedAt) : "—";
+    $("freshness").textContent = freshnessText;
 
-    const systemState = status.system?.state || status.system_state || status.system?.system_state || null; // e.g. ACTIVE
-    const autonomyMode = status.system?.autonomy_mode || status.autonomy || status.autonomy_mode || null;   // e.g. SUPERVISED
-    const systemMode = status.system?.mode || null;                                                        // e.g. STABILIZATION
+    $("generated-at").textContent = generatedAt ? fmtDate(generatedAt) : "—";
+    $("environment").textContent = status.environment || "—";
 
-    const autonomyPercent =
-      (status.autonomy_score && status.autonomy_score.percent != null) ? status.autonomy_score.percent :
-      (status.autonomy_score && status.autonomy_score.value != null) ? (safeNumber(status.autonomy_score.value) * 100) :
-      null;
+    // system pill
+    const sysState = (status.system && status.system.state) || status.system_state || status.system_state?.state || status.system_state || "—";
+    const sysMode = (status.system && status.system.mode) || status.mode || "—";
 
-    const healthOverall =
-      (status.health && status.health.overall_score != null) ? (safeNumber(status.health.overall_score) * 100) :
-      null;
+    const signal = (status.health && status.health.signal) || "—";
+    const pill = $("system-pill");
+    pill.classList.remove("warn", "crit");
+    const cls = classifyPillBySignal(signal);
+    if (cls) pill.classList.add(cls);
+    pill.innerHTML = `<span class="dot"></span> ${safeUpper(sysState)} · ${safeUpper(sysMode)}`;
+  }
 
-    // Agents object (your screenshot shows status.agents = { george: {...}, guardian: {...}, ... }
+  function renderKPIs(status) {
     const agentsObj = status.agents || {};
+    const agentKeys = Object.keys(agentsObj);
+    const total = agentKeys.length || 0;
+    let active = 0;
 
-    // ---- Meta pills
-    // System
-    $("meta-system").textContent = `System: ${systemState ? asUpper(systemState) : "—"}`;
-    setPillClass($("pill-system"),
-      !systemState ? "warn" :
-      ["ACTIVE","ONLINE","OK"].includes(asUpper(systemState)) ? "ok" :
-      ["FAIL","FAILED","DOWN","ERROR","BLOCK"].includes(asUpper(systemState)) ? "crit" :
-      "warn"
-    );
-
-    // Autonomy mode
-    $("meta-autonomy").textContent = `Autonomy Mode: ${autonomyMode ? asUpper(autonomyMode) : "—"}`;
-    setPillClass($("pill-autonomy"),
-      !autonomyMode ? "warn" :
-      ["AUTONOMOUS"].includes(asUpper(autonomyMode)) ? "ok" :
-      ["SUPERVISED"].includes(asUpper(autonomyMode)) ? "warn" :
-      ["MANUAL"].includes(asUpper(autonomyMode)) ? "warn" :
-      "warn"
-    );
-
-    // Freshness
-    const mins = minutesSince(generatedAt);
-    const freshnessText =
-      generatedAt ? `${fmtIso(generatedAt)}${mins !== null ? ` · ${mins} min ago` : ""}` : "—";
-    $("meta-freshness").textContent = `Freshness: ${freshnessText}`;
-
-    // Freshness thresholding
-    let freshnessLevel = "warn";
-    if (mins === null) freshnessLevel = "warn";
-    else if (mins <= 10) freshnessLevel = "ok";
-    else if (mins <= 60) freshnessLevel = "warn";
-    else freshnessLevel = "crit";
-    setPillClass($("pill-freshness"), freshnessLevel);
-
-    // ---- Header/system status pill (top of left card)
-    const sysText = systemState ? `${asUpper(systemState)}` : "UNKNOWN";
-    const sysLevel =
-      !systemState ? "warn" :
-      ["ACTIVE","ONLINE","OK"].includes(asUpper(systemState)) ? "ok" :
-      ["FAIL","FAILED","DOWN","ERROR","BLOCK"].includes(asUpper(systemState)) ? "crit" :
-      "warn";
-    setStatusPill($("system-pill"), `System ${sysText}`, sysLevel === "crit" ? "crit" : (sysLevel === "warn" ? "warn" : null));
-
-    // Right pill (launch/mode)
-    const launchText = systemMode ? `${String(systemMode).replaceAll("_"," ")}` : (autonomyMode ? `${asUpper(autonomyMode)}` : "—");
-    const launchLevel =
-      (autonomyMode && asUpper(autonomyMode) === "AUTONOMOUS") ? null :
-      (autonomyMode && asUpper(autonomyMode) === "SUPERVISED") ? "warn" :
-      null;
-    setStatusPill($("launch-pill"), launchText, launchLevel);
-
-    // ---- KPIs
-    // Agent Health (active / total)
-    const ah = computeAgentHealth(agentsObj);
-    $("kpi-agent-health").textContent =
-      (ah.active !== null && ah.total !== null) ? `${ah.active} / ${ah.total}` : "—";
-    $("kpi-agent-health-note").textContent = "Active agents / reported agents";
-
-    // Autonomy
-    $("kpi-autonomy").textContent = autonomyPercent != null ? fmtPct(autonomyPercent, 1) : "—";
-    $("kpi-autonomy-note").textContent = (status.autonomy_score && status.autonomy_score.mode)
-      ? `Mode: ${String(status.autonomy_score.mode).replaceAll("_"," ")}`
-      : "From autonomy_score.percent";
-
-    // Health
-    $("kpi-health").textContent = healthOverall != null ? fmtPct(healthOverall, 1) : "—";
-    $("kpi-health-note").textContent = (status.health && status.health.signal)
-      ? `Signal: ${String(status.health.signal).toUpperCase()}`
-      : "From health.overall_score";
-
-    // System Mode
-    const modeLine = [
-      systemMode ? String(systemMode).replaceAll("_"," ") : null,
-      autonomyMode ? asUpper(autonomyMode) : null
-    ].filter(Boolean).join(" · ");
-    $("kpi-mode").textContent = modeLine || "—";
-    $("kpi-mode-note").textContent = generatedAt ? `Generated: ${fmtIso(generatedAt)}` : "—";
-
-    // ---- Governance Signals (best-effort from status.links + status fields)
-    $("gov-ts").textContent = generatedAt ? fmtIso(generatedAt) : "—";
-
-    // Escalation active: infer from last_incident / gate / etc if present, else "UNREPORTED"
-    const escalationActive =
-      status.system?.last_incident != null ? "YES" :
-      (status.autonomy_score && status.autonomy_score.inputs && status.autonomy_score.inputs.gate_verdict === "ESCALATE") ? "YES" :
-      "UNREPORTED";
-    $("gov-escalation").textContent = escalationActive;
-
-    // Compliance status: infer if guardian.json exists? If a field exists use it, else UNREPORTED
-    const compliance =
-      status.compliance_status ||
-      status.governance?.compliance_status ||
-      "UNREPORTED";
-    $("gov-compliance").textContent = String(compliance).toUpperCase();
-
-    $("gov-links").textContent = renderLinks(status.links);
-
-    // ---- Agent chips (truth-locked)
-    // For each known agent key, derive a display state
-    const knownKeys = agentKeyMap();
-    for (const key of knownKeys) {
-      const chip = document.getElementById(`chip-${key}`);
-      const a = agentsObj[key];
-      if (!a) {
-        // If not reported, keep "—" but mark as UNREPORTED (truthful)
-        if (chip) setChip(chip, "UNREPORTED");
-        continue;
-      }
-
-      // prefer a.state, else a.status
-      const primary = a.state || a.status || "UNREPORTED";
-      setChip(chip, primary);
+    for (const k of agentKeys) {
+      const st = (agentsObj[k] && agentsObj[k].state) || (agentsObj[k] && agentsObj[k].status) || "";
+      if (String(st).toUpperCase() === "ACTIVE") active++;
     }
 
-    // Optional: mark source URL in console (no UI impact)
-    console.info("Loaded system_status.json from:", url);
+    $("kpi-agent-health").textContent = total ? `${active} / ${total}` : "—";
 
-    if (loadError) loadError.style.display = "none";
-  } catch (err) {
-    console.warn("Truth source load failed:", err);
-    if ($("load-error")) $("load-error").style.display = "block";
+    // autonomy
+    const a = status.autonomy_score || status.autonomy || {};
+    const autonomyMode =
+      (status.system && status.system.autonomy_mode) ||
+      status.autonomy ||
+      (a && a.mode) ||
+      (status.system && status.system.autonomy) ||
+      "—";
 
-    // Also explicitly set key UI elements to "—" / UNKNOWN (no inference)
-    setStatusPill($("system-pill"), "System UNKNOWN", "warn");
-    setStatusPill($("launch-pill"), "UNAVAILABLE", "warn");
-    $("meta-system").textContent = "System: —";
-    $("meta-autonomy").textContent = "Autonomy Mode: —";
-    $("meta-freshness").textContent = "Freshness: —";
-    $("kpi-agent-health").textContent = "—";
-    $("kpi-autonomy").textContent = "—";
-    $("kpi-health").textContent = "—";
-    $("kpi-mode").textContent = "—";
-    $("gov-ts").textContent = "—";
-    $("gov-escalation").textContent = "—";
-    $("gov-compliance").textContent = "—";
-    $("gov-links").textContent = "—";
+    const autonomyPct =
+      (a && (a.percent ?? a.value ?? a.current_level)) ??
+      (status.autonomy && status.autonomy.current_level) ??
+      null;
+
+    $("kpi-autonomy").textContent = fmtPctFrom(autonomyPct);
+    $("kpi-autonomy-note").textContent = `Mode: ${safeUpper(autonomyMode)}`;
+
+    // health score
+    const healthOverall = (status.health && status.health.overall_score) || (status.health && status.health.score) || null;
+    const healthSignal = (status.health && status.health.signal) || "—";
+    $("kpi-health").textContent = fmtPctFrom(healthOverall);
+    $("kpi-health-note").textContent = `Signal: ${safeUpper(healthSignal)}`;
+
+    // governance
+    const gateVerdict =
+      (a && a.gate_verdict) ||
+      (status.autonomy && status.autonomy.gate_verdict) ||
+      (status.gate && status.gate.verdict) ||
+      "—";
+
+    const links = status.links || {};
+    const auditTrailAvailable = Boolean(links.decision_trace || links.decision_trace_jsonl || links.latest_decision);
+    const governanceValue = auditTrailAvailable ? "ENFORCED" : "LIMITED";
+    $("kpi-governance").textContent = governanceValue;
+    $("kpi-governance-note").textContent = `Gate: ${safeUpper(gateVerdict)} · Audit: ${auditTrailAvailable ? "AVAILABLE" : "MISSING"}`;
+
+    // right top pill just reflects health
+    const lp = $("launch-pill");
+    lp.classList.remove("warn", "crit");
+    const cls = classifyPillBySignal(healthSignal);
+    if (cls) lp.classList.add(cls);
+    lp.innerHTML = `<span class="dot"></span> ${safeUpper(healthSignal)}`;
   }
-}
 
-document.addEventListener("DOMContentLoaded", main);
+  function renderAgents(status) {
+    const agents = status.agents || {};
+    const grid = $("agents-grid");
+    grid.innerHTML = "";
+
+    // preferred order + fallback for unknown keys
+    const order = [
+      ["guardian", "Self-Guardian", ["Security", "Policy checks", "Guardrails"],
+        "Monitors every change, applies Guardian rules and blocks unsafe updates before they reach production."],
+      ["monitoring", "Self-Monitoring", ["Workflow logs", "Status signals"],
+        "Tracks CI/CD runs, agent activity and basic system health across orchestration runs."],
+      ["content", "Self-Content Agent", ["Draft generation", "Pull request content"],
+        "Generates content drafts and change proposals as pull requests for human-in-the-loop review."],
+      ["george", "GEORGE Orchestrator", ["Event routing", "Agent registry"],
+        "Coordinates when which agent should run. Orchestration is enforced through deterministic rules and traceability."],
+      ["site_audit", "Site Audit", ["Evidence", "Controls", "Links"],
+        "Verifies site integrity and governance signals. Surfaces audit-relevant evidence for review."],
+      ["deploy_agent", "Deploy Agent", ["Safe rollout", "Rollback"],
+        "Handles guarded deployments and rollback paths when enabled by authority and gate conditions."]
+    ];
+
+    const used = new Set();
+
+    for (const [key, title, meta, note] of order) {
+      if (!agents[key]) continue;
+      used.add(key);
+
+      const state = agents[key].state || agents[key].status || "UNKNOWN";
+      const mode = agents[key].autonomy_mode || agents[key].autonomy || "";
+      const chipText = mode ? `${state} · ${mode}` : `${state}`;
+      const cls = chipClassForState(state);
+
+      const article = document.createElement("article");
+      article.className = "status-card";
+      article.innerHTML = `
+        <div class="status-title-row">
+          <div class="status-title">${title}</div>
+          <div class="status-chip ${cls}">${safeUpper(chipText)}</div>
+        </div>
+        <div class="status-meta">${meta.map(m => `<span>${m}</span>`).join("")}</div>
+        <p class="status-note">${note}</p>
+      `;
+      grid.appendChild(article);
+    }
+
+    // render remaining agents (if any)
+    for (const key of Object.keys(agents)) {
+      if (used.has(key)) continue;
+      const a = agents[key] || {};
+      const state = a.state || a.status || "UNKNOWN";
+      const mode = a.autonomy_mode || a.autonomy || "";
+      const chipText = mode ? `${state} · ${mode}` : `${state}`;
+      const cls = chipClassForState(state);
+
+      const article = document.createElement("article");
+      article.className = "status-card";
+      article.innerHTML = `
+        <div class="status-title-row">
+          <div class="status-title">${key}</div>
+          <div class="status-chip ${cls}">${safeUpper(chipText)}</div>
+        </div>
+        <div class="status-meta"><span>Agent</span><span>Truth locked</span></div>
+        <p class="status-note">Status rendered from system_status.json.</p>
+      `;
+      grid.appendChild(article);
+    }
+
+    // if no agents at all
+    if (!Object.keys(agents).length) {
+      const article = document.createElement("article");
+      article.className = "status-card";
+      article.innerHTML = `
+        <div class="status-title-row">
+          <div class="status-title">Agents</div>
+          <div class="status-chip warn">UNKNOWN</div>
+        </div>
+        <div class="status-meta"><span>No agent map found</span></div>
+        <p class="status-note">system_status.json contains no "agents" object.</p>
+      `;
+      grid.appendChild(article);
+    }
+  }
+
+  function renderGuards(status) {
+    const generatedAt = status.generated_at || status.generatedAt || status.timestamp || null;
+    const now = Date.now();
+    const ts = generatedAt ? new Date(generatedAt).getTime() : NaN;
+    const ageMin = Number.isFinite(ts) ? Math.max(0, Math.round((now - ts) / 60000)) : null;
+
+    // freshness
+    if (ageMin === null) {
+      $("guard-freshness").textContent = "—";
+      $("guard-freshness-pill").textContent = "UNKNOWN";
+      setGuardPill($("guard-freshness-pill"), "warn");
+    } else {
+      $("guard-freshness").textContent = `${ageMin} min ago`;
+      // <= 15 min ok, <= 60 warn, else crit
+      if (ageMin <= 15) { $("guard-freshness-pill").textContent = "FRESH"; setGuardPill($("guard-freshness-pill"), "ok"); }
+      else if (ageMin <= 60) { $("guard-freshness-pill").textContent = "STALE"; setGuardPill($("guard-freshness-pill"), "warn"); }
+      else { $("guard-freshness-pill").textContent = "EXPIRED"; setGuardPill($("guard-freshness-pill"), "crit"); }
+    }
+
+    // gate verdict
+    const a = status.autonomy_score || status.autonomy || {};
+    const gate = (a && a.gate_verdict) || (status.gate && status.gate.verdict) || "—";
+    $("guard-gate").textContent = safeUpper(gate);
+    if (String(gate).toUpperCase().includes("ALLOW") || String(gate).toUpperCase().includes("PASS")) {
+      $("guard-gate-pill").textContent = "PASS";
+      setGuardPill($("guard-gate-pill"), "ok");
+    } else if (gate === "—") {
+      $("guard-gate-pill").textContent = "UNKNOWN";
+      setGuardPill($("guard-gate-pill"), "warn");
+    } else {
+      $("guard-gate-pill").textContent = "BLOCK";
+      setGuardPill($("guard-gate-pill"), "crit");
+    }
+
+    // audit trail
+    const links = status.links || {};
+    const auditAvail = Boolean(links.latest_decision || links.decision_trace || links.decision_trace_jsonl);
+    $("guard-audit").textContent = auditAvail ? "Available" : "Missing";
+    $("guard-audit-pill").textContent = auditAvail ? "OK" : "MISSING";
+    setGuardPill($("guard-audit-pill"), auditAvail ? "ok" : "warn");
+
+    // decision trace
+    const trace = links.decision_trace || links.decision_trace_jsonl || null;
+    $("guard-trace").textContent = trace ? String(trace) : "—";
+    if (trace) { $("guard-trace-pill").textContent = "LINKED"; setGuardPill($("guard-trace-pill"), "ok"); }
+    else { $("guard-trace-pill").textContent = "UNLINKED"; setGuardPill($("guard-trace-pill"), "warn"); }
+  }
+
+  // =========================
+  // Boot
+  // =========================
+  (async function boot() {
+    try {
+      const status = await fetchTruth();
+      renderHeader(status);
+      renderKPIs(status);
+      renderAgents(status);
+      renderGuards(status);
+    } catch (err) {
+      console.error(err);
+      showFatal(err);
+    }
+  })();
 </script>
 </body>
 </html>
