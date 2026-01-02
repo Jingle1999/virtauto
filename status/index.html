@@ -566,14 +566,30 @@
   function $(id) { return document.getElementById(id); }
 
   function safeUpper(v) {
-    return (v === undefined || v === null) ? "—" : String(v).toUpperCase();
+    return (v === undefined || v === null || v === "") ? "—" : String(v).toUpperCase();
+  }
+
+  function pickText(...vals) {
+    for (const v of vals) {
+      if (v === undefined || v === null) continue;
+      if (typeof v === "string" && v.trim() !== "") return v;
+      if (typeof v === "number" && Number.isFinite(v)) return String(v);
+    }
+    return null;
+  }
+
+  function pickNum(...vals) {
+    for (const v of vals) {
+      if (v === undefined || v === null) continue;
+      const n = (typeof v === "number") ? v : (typeof v === "string" ? parseFloat(v.replace("%","")) : NaN);
+      if (Number.isFinite(n)) return n;
+    }
+    return null;
   }
 
   function fmtPctFrom(valueOrPct) {
-    if (valueOrPct === undefined || valueOrPct === null) return "—";
-    const n = Number(valueOrPct);
-    if (!Number.isFinite(n)) return "—";
-    // if already looks like 0..100 use as-is; if 0..1 convert
+    const n = pickNum(valueOrPct);
+    if (n === null) return "—";
     const pct = (n <= 1) ? (n * 100) : n;
     return pct.toFixed(1) + "%";
   }
@@ -589,7 +605,7 @@
     const s = String(signal || "").toUpperCase();
     if (s.includes("RED") || s.includes("CRIT") || s.includes("FAIL")) return "crit";
     if (s.includes("YELLOW") || s.includes("WARN") || s.includes("DEGRADED") || s.includes("REVIEW")) return "warn";
-    return ""; // ok/default
+    return "";
   }
 
   function chipClassForState(state) {
@@ -620,28 +636,48 @@
     return json;
   }
 
+  function basename(path) {
+    try {
+      const p = String(path || "");
+      const parts = p.split("/").filter(Boolean);
+      return parts.length ? parts[parts.length - 1] : p;
+    } catch { return String(path || "—"); }
+  }
+
   // =========================
   // Rendering
   // =========================
   function renderHeader(status) {
-    $("truth-source").textContent = "system_status.json";
+    $("truth-source").textContent = basename(TRUTH_PATH);
     $("truth-path").textContent = TRUTH_PATH;
 
-    const generatedAt = status.generated_at || status.generatedAt || status.timestamp || null;
-    const freshnessText = generatedAt ? fmtDate(generatedAt) : "—";
-    $("freshness").textContent = freshnessText;
+    const generatedAt = pickText(status.generated_at, status.generatedAt, status.timestamp);
+    $("freshness").textContent = generatedAt ? fmtDate(generatedAt) : "—";
 
     $("generated-at").textContent = generatedAt ? fmtDate(generatedAt) : "—";
-    $("environment").textContent = status.environment || "—";
+    $("environment").textContent = pickText(status.environment) || "—";
 
-    // system pill
-    const sysState = (status.system && status.system.state) || status.system_state || status.system_state?.state || status.system_state || "—";
-    const sysMode = (status.system && status.system.mode) || status.mode || "—";
+    // system pill: prefer status.system.* ; fallback to status.system_state.* ; fallback to status.system_status/system_mode/mode
+    const sysState = pickText(
+      status.system?.state,
+      status.system_state?.state,
+      status.system_state,
+      status.system_status,
+      status.system_mode
+    ) || "—";
 
-    const signal = (status.health && status.health.signal) || "—";
+    const sysMode = pickText(
+      status.system?.mode,
+      status.system?.system_mode,
+      status.mode,
+      status.system_mode
+    ) || "—";
+
+    const healthSignal = pickText(status.health?.signal, status.health_signal) || "—";
+
     const pill = $("system-pill");
     pill.classList.remove("warn", "crit");
-    const cls = classifyPillBySignal(signal);
+    const cls = classifyPillBySignal(healthSignal);
     if (cls) pill.classList.add(cls);
     pill.innerHTML = `<span class="dot"></span> ${safeUpper(sysState)} · ${safeUpper(sysMode)}`;
   }
@@ -653,49 +689,52 @@
     let active = 0;
 
     for (const k of agentKeys) {
-      const st = (agentsObj[k] && agentsObj[k].state) || (agentsObj[k] && agentsObj[k].status) || "";
+      const st = pickText(agentsObj[k]?.state, agentsObj[k]?.status) || "";
       if (String(st).toUpperCase() === "ACTIVE") active++;
     }
-
     $("kpi-agent-health").textContent = total ? `${active} / ${total}` : "—";
 
     // autonomy
-    const a = status.autonomy_score || status.autonomy || {};
-    const autonomyMode =
-      (status.system && status.system.autonomy_mode) ||
-      status.autonomy ||
-      (a && a.mode) ||
-      (status.system && status.system.autonomy) ||
-      "—";
+    const autonomyObj = (typeof status.autonomy === "object" && status.autonomy) ? status.autonomy : {};
+    const autonomyScoreObj = (typeof status.autonomy_score === "object" && status.autonomy_score) ? status.autonomy_score : {};
 
-    const autonomyPct =
-      (a && (a.percent ?? a.value ?? a.current_level)) ??
-      (status.autonomy && status.autonomy.current_level) ??
-      null;
+    const autonomyMode = pickText(
+      status.system?.autonomy_mode,
+      status.autonomy_mode,
+      autonomyObj.mode,
+      autonomyScoreObj.mode,
+      autonomyObj.autonomy_mode
+    ) || "—";
+
+    const autonomyPct = pickNum(
+      autonomyScoreObj.percent, autonomyScoreObj.value, autonomyScoreObj.current_level,
+      autonomyObj.percent, autonomyObj.value, autonomyObj.current_level
+    );
 
     $("kpi-autonomy").textContent = fmtPctFrom(autonomyPct);
     $("kpi-autonomy-note").textContent = `Mode: ${safeUpper(autonomyMode)}`;
 
     // health score
-    const healthOverall = (status.health && status.health.overall_score) || (status.health && status.health.score) || null;
-    const healthSignal = (status.health && status.health.signal) || "—";
+    const healthOverall = pickNum(status.health?.overall_score, status.health?.score, status.health_score, status.overall_health_score);
+    const healthSignal = pickText(status.health?.signal, status.health_signal) || "—";
     $("kpi-health").textContent = fmtPctFrom(healthOverall);
     $("kpi-health-note").textContent = `Signal: ${safeUpper(healthSignal)}`;
 
     // governance
-    const gateVerdict =
-      (a && a.gate_verdict) ||
-      (status.autonomy && status.autonomy.gate_verdict) ||
-      (status.gate && status.gate.verdict) ||
-      "—";
+    const gateVerdict = pickText(
+      autonomyScoreObj.gate_verdict,
+      autonomyObj.gate_verdict,
+      status.gate?.verdict
+    ) || "—";
 
     const links = status.links || {};
     const auditTrailAvailable = Boolean(links.decision_trace || links.decision_trace_jsonl || links.latest_decision);
     const governanceValue = auditTrailAvailable ? "ENFORCED" : "LIMITED";
     $("kpi-governance").textContent = governanceValue;
-    $("kpi-governance-note").textContent = `Gate: ${safeUpper(gateVerdict)} · Audit: ${auditTrailAvailable ? "AVAILABLE" : "MISSING"}`;
+    $("kpi-governance-note").textContent =
+      `Gate: ${safeUpper(gateVerdict)} · Audit: ${auditTrailAvailable ? "AVAILABLE" : "MISSING"}`;
 
-    // right top pill just reflects health
+    // right top pill reflects health signal only
     const lp = $("launch-pill");
     lp.classList.remove("warn", "crit");
     const cls = classifyPillBySignal(healthSignal);
@@ -708,7 +747,6 @@
     const grid = $("agents-grid");
     grid.innerHTML = "";
 
-    // preferred order + fallback for unknown keys
     const order = [
       ["guardian", "Self-Guardian", ["Security", "Policy checks", "Guardrails"],
         "Monitors every change, applies Guardian rules and blocks unsafe updates before they reach production."],
@@ -730,8 +768,8 @@
       if (!agents[key]) continue;
       used.add(key);
 
-      const state = agents[key].state || agents[key].status || "UNKNOWN";
-      const mode = agents[key].autonomy_mode || agents[key].autonomy || "";
+      const state = pickText(agents[key].state, agents[key].status) || "UNKNOWN";
+      const mode = pickText(agents[key].autonomy_mode, agents[key].autonomy) || "";
       const chipText = mode ? `${state} · ${mode}` : `${state}`;
       const cls = chipClassForState(state);
 
@@ -748,12 +786,11 @@
       grid.appendChild(article);
     }
 
-    // render remaining agents (if any)
     for (const key of Object.keys(agents)) {
       if (used.has(key)) continue;
       const a = agents[key] || {};
-      const state = a.state || a.status || "UNKNOWN";
-      const mode = a.autonomy_mode || a.autonomy || "";
+      const state = pickText(a.state, a.status) || "UNKNOWN";
+      const mode = pickText(a.autonomy_mode, a.autonomy) || "";
       const chipText = mode ? `${state} · ${mode}` : `${state}`;
       const cls = chipClassForState(state);
 
@@ -770,7 +807,6 @@
       grid.appendChild(article);
     }
 
-    // if no agents at all
     if (!Object.keys(agents).length) {
       const article = document.createElement("article");
       article.className = "status-card";
@@ -787,7 +823,7 @@
   }
 
   function renderGuards(status) {
-    const generatedAt = status.generated_at || status.generatedAt || status.timestamp || null;
+    const generatedAt = pickText(status.generated_at, status.generatedAt, status.timestamp);
     const now = Date.now();
     const ts = generatedAt ? new Date(generatedAt).getTime() : NaN;
     const ageMin = Number.isFinite(ts) ? Math.max(0, Math.round((now - ts) / 60000)) : null;
@@ -799,17 +835,19 @@
       setGuardPill($("guard-freshness-pill"), "warn");
     } else {
       $("guard-freshness").textContent = `${ageMin} min ago`;
-      // <= 15 min ok, <= 60 warn, else crit
       if (ageMin <= 15) { $("guard-freshness-pill").textContent = "FRESH"; setGuardPill($("guard-freshness-pill"), "ok"); }
       else if (ageMin <= 60) { $("guard-freshness-pill").textContent = "STALE"; setGuardPill($("guard-freshness-pill"), "warn"); }
       else { $("guard-freshness-pill").textContent = "EXPIRED"; setGuardPill($("guard-freshness-pill"), "crit"); }
     }
 
     // gate verdict
-    const a = status.autonomy_score || status.autonomy || {};
-    const gate = (a && a.gate_verdict) || (status.gate && status.gate.verdict) || "—";
+    const autonomyObj = (typeof status.autonomy === "object" && status.autonomy) ? status.autonomy : {};
+    const autonomyScoreObj = (typeof status.autonomy_score === "object" && status.autonomy_score) ? status.autonomy_score : {};
+    const gate = pickText(autonomyScoreObj.gate_verdict, autonomyObj.gate_verdict, status.gate?.verdict) || "—";
     $("guard-gate").textContent = safeUpper(gate);
-    if (String(gate).toUpperCase().includes("ALLOW") || String(gate).toUpperCase().includes("PASS")) {
+
+    const gateUpper = String(gate).toUpperCase();
+    if (gateUpper.includes("ALLOW") || gateUpper.includes("PASS")) {
       $("guard-gate-pill").textContent = "PASS";
       setGuardPill($("guard-gate-pill"), "ok");
     } else if (gate === "—") {
@@ -828,7 +866,7 @@
     setGuardPill($("guard-audit-pill"), auditAvail ? "ok" : "warn");
 
     // decision trace
-    const trace = links.decision_trace || links.decision_trace_jsonl || null;
+    const trace = pickText(links.decision_trace, links.decision_trace_jsonl);
     $("guard-trace").textContent = trace ? String(trace) : "—";
     if (trace) { $("guard-trace-pill").textContent = "LINKED"; setGuardPill($("guard-trace-pill"), "ok"); }
     else { $("guard-trace-pill").textContent = "UNLINKED"; setGuardPill($("guard-trace-pill"), "warn"); }
