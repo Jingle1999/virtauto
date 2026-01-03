@@ -1,60 +1,83 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>Architecture · virtauto®</title>
 
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>Architecture · virtauto®</title>
   <link rel="canonical" href="https://www.virtauto.de/architecture.html">
-<meta name="description" content="Unified multi-agent architecture for automotive value creation — self-organizing, self-regulating, self-adapting, self-optimizing, self-determining.">
-<meta property="og:title" content="virtauto Architecture — Unified Multi-Agent System"/>
-<meta property="og:url" content="https://www.virtauto.de/architecture.html"/>
-<meta property="og:image" content="https://www.virtauto.de/assets/img/unified_architecture.png"/>
-<meta name="twitter:title" content="virtauto Architecture — Unified Multi-Agent System"/>
-<meta name="twitter:image" content="https://www.virtauto.de/assets/img/unified_architecture.png"/>
+  <meta name="description" content="Unified multi-agent architecture for automotive value creation — self-organizing, self-regulating, self-adapting, self-optimizing, self-determining.">
+  <meta property="og:title" content="virtauto Architecture — Unified Multi-Agent System"/>
+  <meta property="og:url" content="https://www.virtauto.de/architecture.html"/>
+  <meta property="og:image" content="https://www.virtauto.de/assets/img/unified_architecture.png"/>
+  <meta name="twitter:title" content="virtauto Architecture — Unified Multi-Agent System"/>
+  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/unified_architecture.png"/>
 
-<link href="assets/styles.css" rel="stylesheet"/>
-<link href="assets/styles_unify.css" rel="stylesheet"/>
-<script defer="" src="assets/site.js"></script>
+  <link href="assets/styles.css" rel="stylesheet"/>
+  <link href="assets/styles_unify.css" rel="stylesheet"/>
+  <script defer src="assets/site.js"></script>
 </head>
-  <script defer src="/assets/agent-status.js"></script>
+
 <body>
 <header class="header">
-<div class="container nav">
-<a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
-<nav class="menu" id="menu">
-<a class="" href="index.html">Home</a>
-<a class="" href="agents.html">Agents</a>
-<a class="active" href="architecture.html">Architecture</a>
-<a class="" href="solutions.html">Solutions</a>
-<a class="" href="status.html">Status</a>
-<a class="" href="contact.html">Contact</a>
-<a class="cta" href="solutions.html#george">Meet GEORGE</a>
-</nav>
-<!-- add just under </nav> in the header on every page -->
-<div id="agent-chips" class="agent-chips"></div>
-<button aria-label="Menu" class="burger" onclick="document.getElementById('menu').classList.toggle('open')">
-<span></span><span></span><span></span>
-</button>
-</div>
+  <div class="container nav">
+    <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+
+    <nav class="menu" id="menu">
+      <a href="index.html">Home</a>
+      <a href="agents.html">Agents</a>
+      <a class="active" href="architecture.html">Architecture</a>
+      <a href="/status/">Status</a>
+      <a href="contact.html">Contact</a>
+      <a class="cta" href="solutions.html#george">Meet GEORGE</a>
+    </nav>
+
+    <div id="agent-chips" class="agent-chips" aria-label="Agent health"></div>
+
+    <button aria-label="Menu" class="burger" type="button">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 </header>
+
 <main>
-<section class="hero"><div class="container">
-<div class="kicker">Architecture</div>
-<h1>Unified Multi‑Agent Architecture</h1>
-<p class="lead">GEORGE orchestrates specialized agents across ISA‑95 levels — unified by APIs, memory and governance.</p>
-</div></section>
-<section class="section"><div class="container">
-<img alt="Architecture diagram" class="frame img-fluid responsive-img" decoding="async" loading="eager" src="assets/img/unified_architecture.png"/>
-</div></section>
-<section class="section" id="flow"><div class="container">
-<h2>How orchestration works</h2>
-<p>We leverage Multi‑Agent‑Orchestration to revolutionize automotive manufacturing.</p>
-<img alt="Orchestration flow" class="frame img-fluid responsive-img" decoding="async" loading="lazy" src="assets/img/orchestration_flow.png"/>
-</div></section>
+  <section class="hero">
+    <div class="container">
+      <div class="kicker">Architecture</div>
+      <h1>Unified Multi-Agent Architecture</h1>
+      <p class="lead">GEORGE orchestrates specialized agents across ISA-95 levels — unified by APIs, memory and governance.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <img alt="Architecture diagram" class="frame img-fluid responsive-img" decoding="async" loading="eager" src="assets/img/unified_architecture.png"/>
+    </div>
+  </section>
+
+  <section class="section" id="flow">
+    <div class="container">
+      <h2>How orchestration works</h2>
+      <p>We leverage Multi-Agent-Orchestration to revolutionize automotive manufacturing.</p>
+      <img alt="Orchestration flow" class="frame img-fluid responsive-img" decoding="async" loading="lazy" src="assets/img/orchestration_flow.png"/>
+    </div>
+  </section>
 </main>
-<footer class="footer"><div class="container cols">
-<div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
-<div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
-<div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
-</div></footer>
-</body></html>
+
+<footer class="footer">
+  <div class="container cols">
+    <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
+    <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
+    <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+  </div>
+
+  <div style="margin-top:24px;padding:12px 0;border-top:1px solid #1a2332;">
+    <a href="/status/" class="agentic-link" aria-label="Open System Status">
+      <small id="agentic-status" class="agentic-status" aria-live="polite">
+        <span class="dot"></span> Agentic Website — checking…
+      </small>
+    </a>
+  </div>
+</footer>
+</body>
+</html>
