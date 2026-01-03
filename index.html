@@ -5,283 +5,61 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Home · virtauto®</title>
 
-<!-- SEO & Social Metadata -->
-<link rel="canonical" href="https://www.virtauto.de/">
-<meta name="description" content="virtauto — the operating system for automotive value creation. Multi-Agent Orchestration and Cognitive Digital Twins to automate engineering, production, and after-sales.Autonomy is currently supervised. No production deploys without explicit human approval.">
+  <!-- SEO & Social Metadata -->
+  <link rel="canonical" href="https://www.virtauto.de/">
+  <meta name="description" content="virtauto — the operating system for automotive value creation. Multi-Agent Orchestration and Cognitive Digital Twins to automate engineering, production, and after-sales. Autonomy is currently supervised. No production deploys without explicit human approval.">
 
-<!-- Open Graph -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="virtauto — The Operating System for Automotive Value Creation">
-<meta property="og:description" content="Multi-Agent Orchestration + Cognitive Digital Twins for engineering, production, and after-sales. ">
-<meta property="og:url" content="https://www.virtauto.de/">
-<meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="virtauto — The Operating System for Automotive Value Creation">
+  <meta property="og:description" content="Multi-Agent Orchestration + Cognitive Digital Twins for engineering, production, and after-sales.">
+  <meta property="og:url" content="https://www.virtauto.de/">
+  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="virtauto — The Operating System for Automotive Value Creation">
-<meta name="twitter:description" content="Agentic AI for the factory: self-organizing, self-optimizing, self-adapting.">
-<meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="virtauto — The Operating System for Automotive Value Creation">
+  <meta name="twitter:description" content="Agentic AI for the factory: self-organizing, self-optimizing, self-adapting.">
+  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
-<!-- schema.org JSON-LD (Organization + Website) -->
-<script type="application/ld+json">
-{
-  "@context":"https://schema.org",
-  "@type":"Organization",
-  "name":"virtauto",
-  "url":"https://www.virtauto.de",
-  "logo":"https://www.virtauto.de/assets/img/logo.png",
-  "sameAs":[
-    "https://medium.com/@andreas.braun.2011",
-    "https://www.linkedin.com/in/andreas-braun-..."
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context":"https://schema.org",
-  "@type":"WebSite",
-  "url":"https://www.virtauto.de",
-  "potentialAction":{
-    "@type":"SearchAction",
-    "target":"https://www.virtauto.de/search?q={query}",
-    "query-input":"required name=query"
+  <!-- schema.org JSON-LD (Organization + Website) -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Organization",
+    "name":"virtauto",
+    "url":"https://www.virtauto.de",
+    "logo":"https://www.virtauto.de/assets/img/logo.png",
+    "sameAs":[
+      "https://medium.com/@andreas.braun.2011",
+      "https://www.linkedin.com/in/andreas-braun-..."
+    ]
   }
-}
-</script>
-<!-- End SEO & Social Metadata -->
-  
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebSite",
+    "url":"https://www.virtauto.de",
+    "potentialAction":{
+      "@type":"SearchAction",
+      "target":"https://www.virtauto.de/search?q={query}",
+      "query-input":"required name=query"
+    }
+  }
+  </script>
+  <!-- End SEO & Social Metadata -->
+
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="stylesheet" href="assets/styles_unify.css" />
   <script defer src="assets/site.js"></script>
 </head>
 
-<footer style="margin-top:48px;padding:12px 0;border-top:1px solid #eaeaea;font-size:14px;color:#555">
-  <a href="/status/agents.html" class="agentic-link" aria-label="Open Agent Status">
-    <small id="agentic-status" class="agentic-status" aria-live="polite">
-      <span class="dot"></span> Agentic Website — checking…
-    </small>
-  </a>
-</footer>
-
-<script>
-// Mini-Dashboard live updater
-async function updateMiniDashboard() {
-  const box = document.getElementById('mini-dashboard');
-  if (!box) return;
-
-  try {
-    const res = await fetch('/status/status.json', { cache: 'no-store' });
-    const data = await res.json();
-
-    const agents = Array.isArray(data.agents) ? data.agents : [];
-
-    const ok = agents.filter(a => (a.status || '').toLowerCase() === 'ok').length;
-    const issue = agents.filter(a => (a.status || '').toLowerCase() === 'issue').length;
-    const unknown = agents.filter(a => !['ok','issue'].includes((a.status||'').toLowerCase())).length;
-
-    box.innerHTML = `
-      <div><strong>${ok}</strong> OK</div>
-      <div class="issue"><strong>${issue}</strong> Issues</div>
-      <div><strong>${unknown}</strong> Unknown</div>
-    `;
-  } catch (err) {
-    box.innerHTML = '<span class="issue">Status unavailable</span>';
-  }
-}
-
-// alle 60s aktualisieren
-updateMiniDashboard();
-setInterval(updateMiniDashboard, 60000);
-</script>
-  
-<script>
-(async () => {
-  const badgeEl = document.getElementById('agentic-status');
-  const chipsEl = document.getElementById('agent-chips');
-
-  const setBadge = (state, html, title='') => {
-    badgeEl.classList.toggle('ok',    state === 'ok');
-    badgeEl.classList.toggle('issue', state === 'issue');
-    badgeEl.innerHTML = `<span class="dot"></span> ${html}`;
-    if (title) badgeEl.title = title;
-  };
-
-  const chip = (agent) => {
-    const st = (agent.status || '').toLowerCase();
-    const cls = ['agent-chip', st || 'unknown'].join(' ');
-    const code = agent.http?.code ? ` (${agent.http.code})` : '';
-    const note = agent.notes ? ` — ${agent.notes}` : '';
-    const href = '/status/agents.html#' + encodeURIComponent(agent.agent || '').toLowerCase();
-    return `<a class="${cls}" href="${href}" title="${agent.agent}: ${agent.status}${code}${note}">
-              <span class="dot"></span><span>${agent.agent || 'unknown'}</span>
-            </a>`;
-  };
-
-  try {
-    const r  = await fetch('/status/status.json', { cache: 'no-store' });
-    if (!r.ok) throw new Error('status.json not found');
-    const data    = await r.json();
-    const agents  = Array.isArray(data.agents) ? data.agents : [];
-    const ts      = agents[0]?.timestamp?.replace(' UTC','') || '';
-    const bad     = agents.filter(a => ['issue','error'].includes((a.status||'').toLowerCase()));
-    const prep    = agents.filter(a => (a.status||'').toLowerCase() === 'preparing');
-    const okAll   = bad.length === 0 && agents.every(a => ['ok','preparing'].includes((a.status||'').toLowerCase()));
-
-    const details = (bad.length ? bad : agents).map(a => {
-      const code = a.http?.code ? ` (${a.http.code})` : '';
-      const note = a.notes ? ` — ${a.notes}` : '';
-      return `${a.agent}: ${a.status}${code}${note}`;
-    }).join(' • ');
-
-    const label = `Agentic Website — last self-check: ${ts || '—'} — ${okAll ? 'OK' : 'ISSUE'}`
-                  + (prep.length ? ` (preparing ${prep.length})` : '');
-
-    setBadge(okAll ? 'ok' : 'issue', label, details || 'all agents healthy');
-
-    if (chipsEl) {
-      const order = { issue: 0, error: 0, preparing: 1, ok: 2 };
-      agents.sort((a,b) => (order[(a.status||'').toLowerCase()] ?? 3) - (order[(b.status||'').toLowerCase()] ?? 3));
-      chipsEl.innerHTML = agents.map(chip).join('');
-    }
-  } catch {
-    setBadge('issue', 'Agentic Website — status unavailable');
-    if (chipsEl) chipsEl.innerHTML = '';
-  }
-})();
-</script>
-
-<script>
-// --- Activity Feed Loader (ops/events.jsonl) -------------------------
-
-async function loadActivityFeed() {
-  const list = document.getElementById('activity-list');
-  if (!list) return;
-
-  // Platzhalter
-  list.innerHTML = '<li>Loading latest events…</li>';
-
-  try {
-    const res = await fetch('/ops/events.jsonl', { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-
-    const text = await res.text();
-
-    // JSONL -> einzelne Events
-    const lines = text
-      .split('\n')
-      .map(l => l.trim())
-      .filter(l => l.length > 0);
-
-    const events = lines
-      .map(line => {
-        try { return JSON.parse(line); } catch (e) { return null; }
-      })
-      .filter(Boolean)
-      // neueste zuerst
-      .sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1))
-      .slice(0, 10); // nur die letzten 10 anzeigen
-
-    if (events.length === 0) {
-      list.innerHTML = '<li>No recent activity yet.</li>';
-      return;
-    }
-
-    list.innerHTML = events.map(ev => {
-      const time = (ev.timestamp || '')
-        .replace('T', ' ')
-        .replace('Z', '');
-      const agent = ev.agent || 'Unknown agent';
-      const msg = ev.message || ev.event || '';
-
-      return `
-        <li>
-          <span class="activity-time">${time}</span>
-          <span class="activity-agent">${agent}</span>
-          <span class="activity-message">${msg}</span>
-        </li>
-      `;
-    }).join('');
-
-  } catch (err) {
-    console.error('Activity feed error', err);
-    list.innerHTML = '<li>Activity feed unavailable.</li>';
-  }
-}
-
-// einmal beim Laden + alle 60 Sekunden aktualisieren
-document.addEventListener('DOMContentLoaded', () => {
-  loadActivityFeed();
-  setInterval(loadActivityFeed, 60000);
-});
-</script>
-
-<script>
-  async function loadActivityFeed() {
-    const list = document.getElementById('activity-list');
-    if (!list) return;
-
-    // Erstes Feedback
-    list.innerHTML = '<li class="activity-item activity-loading">Loading latest events…</li>';
-
-    try {
-      // JSONL von GitHub Pages laden
-      const res = await fetch('/ops/events.jsonl', { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-
-      const text = await res.text();
-
-      // Zeilenweise JSON-Objekte parsen
-      const lines = text.split('\n').filter(l => l.trim());
-      const events = lines
-        .map(line => {
-          try {
-            return JSON.parse(line);
-          } catch {
-            return null;
-          }
-        })
-        .filter(Boolean);
-
-      // Neueste zuerst (nach timestamp)
-      events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-      const latest = events.slice(0, 10);
-
-      if (!latest.length) {
-        list.innerHTML = '<li class="activity-item activity-empty">No recent events logged.</li>';
-        return;
-      }
-
-      list.innerHTML = latest
-        .map(ev => {
-          const ts = ev.timestamp || '';
-          const agent = ev.agent || ev.source || 'unknown-agent';
-          const evt = ev.event || ev.action || 'event';
-          const msg = ev.message || '';
-
-          return `
-            <li class="activity-item">
-              <span class="activity-meta">${ts} · ${agent} · ${evt}</span>
-              <span class="activity-message">${msg}</span>
-            </li>
-          `;
-        })
-        .join('\n');
-    } catch (err) {
-      console.error('Activity feed error', err);
-      list.innerHTML =
-        '<li class="activity-item activity-error">Activity feed unavailable right now.</li>';
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', loadActivityFeed);
-</script>
-
-  
 <body>
   <header class="header">
     <div class="container nav">
       <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+
       <nav id="menu" class="menu">
         <a class="active" href="index.html">Home</a>
         <a href="agents.html">Agents</a>
@@ -291,12 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <a class="cta" href="solutions.html#george">Meet GEORGE</a>
       </nav>
 
-      <!-- add just under </nav> in the header on every page -->
+      <!-- Agent health chips (rendered by JS if available) -->
       <div id="agent-chips" class="agent-chips" aria-label="Agent health"></div>
+
       <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
         <span></span><span></span><span></span>
-      </button>
-
       </button>
     </div>
   </header>
@@ -309,25 +86,27 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="kicker">virtauto.OS</div>
           <h1>The Operating System for Automotive value creation.</h1>
 
-          <div class="agentic-badge" 
+          <div class="agentic-badge"
                style="margin: 20px 0; padding: 12px 20px; background: linear-gradient(135deg, #0b1220, #0b1220, #121a2b); color: #8aa2c0; border-radius: 8px; text-align: center; font-weight: 600; border: 1px solid #1a2332;">
-              🤖 Agentic Website – Powered by Self-Agents
+            www.virtauto.de is operated as a governed agentic system and exposes its live operational state transparently.
           </div>
-          
-          <!--Agentic Dashboard -->
+
+          <!-- Agentic Mini-Dashboard -->
           <div id="mini-dashboard" class="mini-dashboard">
-             Loading system status…
+            Loading system status…
           </div>
 
           <p class="lead">…
-            A modular platform that automates engineering, production and after‑sales processes
-            with <strong>Multi‑Agent Orchestration</strong> — from CI/CD pipelines to the shop floor.
+            A modular platform that automates engineering, production and after-sales processes
+            with <strong>Multi-Agent Orchestration</strong> — from CI/CD pipelines to the shop floor.
           </p>
+
           <div class="actions">
             <a class="btn" href="solutions.html">Explore Solutions</a>
             <a class="btn ghost" href="solutions.html#george">Meet GEORGE</a>
           </div>
         </div>
+
         <div>
           <img
             src="assets/img/smart_factory.jpg"
@@ -344,93 +123,89 @@ document.addEventListener('DOMContentLoaded', () => {
     <section class="section">
       <div class="container">
         <h2>Platform Architecture</h2>
-        <p>Scalable, observable and agent‑driven.</p>
+        <p>Scalable, observable and agent-driven.</p>
         <img
           src="assets/img/unified_architecture.png"
-          alt="Unified Multi‑Agent Architecture"
+          alt="Unified Multi-Agent Architecture"
           class="frame img-fluid responsive-img"
           loading="lazy"
           decoding="async"
         />
       </div>
-    <!-- ============================= -->
+    </section>
 
-<section id="knowledge-base" class="content-section" style="margin-top: 80px;">
+    <!-- KNOWLEDGE BASE -->
+    <section id="knowledge-base" class="content-section" style="margin-top: 80px;">
+      <div class="container">
+        <h2>virtauto Knowledge Base</h2>
+        <p>
+          A curated archive of Andreas Braun’s Medium articles exploring
+          <strong>Agentic AI, Multi-Agent Systems, and Industrial Transformation</strong>.
+          This collection documents the evolution of the ideas behind <em>virtauto.de</em> and
+          <em>virtauto.OS</em> — from digital autonomy to industrial intelligence.
+        </p>
 
-<!--   virtauto Knowledge Archive  -->
-<!-- ============================= -->
-<section id="knowledge-base" class="content-section">
-  <h2>virtauto Knowledge Base</h2>
-  <p>
-    A curated archive of Andreas Braun’s Medium articles exploring 
-    <strong>Agentic AI, Multi-Agent Systems, and Industrial Transformation</strong>.
-    This collection documents the evolution of the ideas behind <em>virtauto.de</em> and
-    <em>virtauto.OS</em> — from digital autonomy to industrial intelligence.
-  </p>
+        <!-- ===== Fusion Strategy & Transformation ===== -->
+        <h3>Fusion Strategy & Transformation</h3>
+        <ul>
+          <li><a href="https://medium.com/@andreas.braun.2011/why-multi-cloud-strategy-is-the-future-of-automotive-production-60afa14ceb58" target="_blank" rel="noopener">Why Multi-Cloud Strategy is the Future of Automotive Production</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/the-digital-transformation-of-the-automotive-industry-a-holistic-approach-with-special-ecb461bc33eb" target="_blank" rel="noopener">The Digital Transformation of the Automotive Industry – A Holistic Approach</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/why-digital-first-strategies-are-a-matter-of-survival-for-automotive-oems-158d0565650c" target="_blank" rel="noopener">Why Digital-First Strategies are a Matter of Survival for Automotive OEMs</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/from-pep-to-agile-how-oems-can-shift-from-pep-se-and-systems-engineering-to-a-software-centric-12d9c64b3b3a" target="_blank" rel="noopener">From PEP to Agile – How OEMs Can Shift to Software-Centric Development</a></li>
+        </ul>
 
-  <!-- ===== Fusion Strategy & Transformation ===== -->
-  <h3>Fusion Strategy & Transformation</h3>
-  <ul>
-    <li><a href="https://medium.com/@andreas.braun.2011/why-multi-cloud-strategy-is-the-future-of-automotive-production-60afa14ceb58" target="_blank">Why Multi-Cloud Strategy is the Future of Automotive Production</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/the-digital-transformation-of-the-automotive-industry-a-holistic-approach-with-special-ecb461bc33eb" target="_blank">The Digital Transformation of the Automotive Industry – A Holistic Approach</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/why-digital-first-strategies-are-a-matter-of-survival-for-automotive-oems-158d0565650c" target="_blank">Why Digital-First Strategies are a Matter of Survival for Automotive OEMs</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/from-pep-to-agile-how-oems-can-shift-from-pep-se-and-systems-engineering-to-a-software-centric-12d9c64b3b3a" target="_blank">From PEP to Agile – How OEMs Can Shift to Software-Centric Development</a></li>
-  </ul>
+        <!-- ===== Multi-Agent Systems & virtauto Vision ===== -->
+        <h3>Multi-Agent Systems & virtauto Vision</h3>
+        <ul>
+          <li><a href="https://medium.com/@andreas.braun.2011/multi-agent-systems-as-operating-system-for-automotive-value-creation-07fd51f25665" target="_blank" rel="noopener">Multi-Agent Systems as Operating System for Automotive Value Creation</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/agentic-ai-automotive-startup-multi-agent-systems-as-the-operating-system-for-value-creation-642ebb5df5a4" target="_blank" rel="noopener">Agentic AI Automotive Startup – MAS as the OS for Value Creation</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/from-parallel-agents-to-multi-agent-systems-mas-building-the-digital-brain-0d14db15049c" target="_blank" rel="noopener">From Parallel Agents to Multi-Agent Systems – Building the Digital Brain</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/connected-intelligence-revolutionizthe-automotive-industry-with-cognitive-digital-twins-and-multi-349d089f9c5d" target="_blank" rel="noopener">Connected Intelligence – Cognitive Digital Twins and MAS</a></li>
+        </ul>
 
-  <!-- ===== Multi-Agent Systems & virtauto Vision ===== -->
-  <h3>Multi-Agent Systems & virtauto Vision</h3>
-  <ul>
-    <li><a href="https://medium.com/@andreas.braun.2011/multi-agent-systems-as-operating-system-for-automotive-value-creation-07fd51f25665" target="_blank">Multi-Agent Systems as Operating System for Automotive Value Creation</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/agentic-ai-automotive-startup-multi-agent-systems-as-the-operating-system-for-value-creation-642ebb5df5a4" target="_blank">Agentic AI Automotive Startup – MAS as the OS for Value Creation</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/from-parallel-agents-to-multi-agent-systems-mas-building-the-digital-brain-0d14db15049c" target="_blank">From Parallel Agents to Multi-Agent Systems – Building the Digital Brain</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/connected-intelligence-revolutionizthe-automotive-industry-with-cognitive-digital-twins-and-multi-349d089f9c5d" target="_blank">Connected Intelligence – Cognitive Digital Twins and MAS</a></li>
-  </ul>
+        <!-- ===== Agent of the Week Series ===== -->
+        <h3>Agent of the Week Series</h3>
+        <ul>
+          <li><a href="https://medium.com/@andreas.braun.2011/george-84ffabeb3b0c" target="_blank" rel="noopener">GEORGE – The Orchestrator</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-root-cause-agent-a36f77c30707" target="_blank" rel="noopener">Root Cause Agent</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-supply-chain-agent-deb7fc126066" target="_blank" rel="noopener">Supply Chain Agent</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-procurement-agent-443a01bea650" target="_blank" rel="noopener">Procurement Agent</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-the-quality-agent-the-relentless-perfectionist-powering-self-optimizing-a3bd0158e294" target="_blank" rel="noopener">Quality Agent</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-the-energy-optimization-agent-0f9fbe7d5e8f" target="_blank" rel="noopener">Energy Optimization Agent</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-the-safety-ethics-guardian-agent-3daa82f131a6" target="_blank" rel="noopener">Safety & Ethics Guardian Agent</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-the-predictive-maintenance-agent-652f388d8893" target="_blank" rel="noopener">Predictive Maintenance Agent</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-the-consistency-agent-de671c78fc13" target="_blank" rel="noopener">Consistency Agent</a></li>
+        </ul>
 
-  <!-- ===== Agent of the Week Series ===== -->
-  <h3>Agent of the Week Series</h3>
-  <ul>
-    <li><a href="https://medium.com/@andreas.braun.2011/george-84ffabeb3b0c" target="_blank">GEORGE – The Orchestrator</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-root-cause-agent-a36f77c30707" target="_blank">Root Cause Agent</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-supply-chain-agent-deb7fc126066" target="_blank">Supply Chain Agent</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-procurement-agent-443a01bea650" target="_blank">Procurement Agent</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-the-quality-agent-the-relentless-perfectionist-powering-self-optimizing-a3bd0158e294" target="_blank">Quality Agent</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-the-energy-optimization-agent-0f9fbe7d5e8f" target="_blank">Energy Optimization Agent</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-the-safety-ethics-guardian-agent-3daa82f131a6" target="_blank">Safety & Ethics Guardian Agent</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-the-predictive-maintenance-agent-652f388d8893" target="_blank">Predictive Maintenance Agent</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/agent-of-the-week-the-consistency-agent-de671c78fc13" target="_blank">Consistency Agent</a></li>
-  </ul>
+        <!-- ===== Industrial Tech Chronicles ===== -->
+        <h3>Industrial Tech Chronicles</h3>
+        <ul>
+          <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-1-aws-in-manufacturing-automotive-0969688a217c" target="_blank" rel="noopener">#1 AWS in Manufacturing & Automotive</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-2-ibm-in-manufacturing-automotive-ebd0caa5d7a7" target="_blank" rel="noopener">#2 IBM – The Cognitive Enterprise</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-3-microsoft-the-cloud-as-manufacturings-new-shop-floor-2218462e424d" target="_blank" rel="noopener">#3 Microsoft – The Cloud as Manufacturing’s New Shop Floor</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-4-siemens-from-hardware-giant-to-the-os-of-industry-5-0-c733130427b1" target="_blank" rel="noopener">#4 Siemens – From Hardware Giant to the OS of Industry 5.0</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-5-nvidia-the-gpu-as-the-engine-of-the-industrial-metaverse-and-the-8fea8268fffc" target="_blank" rel="noopener">#5 NVIDIA – The GPU as the Engine of the Industrial Metaverse</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-6-intel-from-microprocessors-to-digital-transformation-at-scale-3d0b02b8b52a" target="_blank" rel="noopener">#6 Intel – From Microprocessors to Digital Transformation at Scale</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-7-honeywell-the-innovation-hub-at-the-heart-of-industry-e013945fde96" target="_blank" rel="noopener">#7 Honeywell – The Innovation Hub at the Heart of Industry</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-8-general-electric-the-rise-fall-and-digital-rebirth-of-an-a271d5da43cf" target="_blank" rel="noopener">#8 General Electric – The Rise, Fall, and Digital Rebirth of an Icon</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-9-the-kodak-syndrome-when-courage-fails-and-fusion-systems-never-8fbbd7877517" target="_blank" rel="noopener">#9 The Kodak Syndrome – When Courage Fails</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-10-walmart-the-data-driven-retail-ecosystem-46d3161996e9" target="_blank" rel="noopener">#10 Walmart – The Data-Driven Retail Ecosystem</a></li>
+        </ul>
 
-  <!-- ===== Industrial Tech Chronicles ===== -->
-  <h3>Industrial Tech Chronicles</h3>
-  <ul>
-    <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-1-aws-in-manufacturing-automotive-0969688a217c" target="_blank">#1 AWS in Manufacturing & Automotive</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-2-ibm-in-manufacturing-automotive-ebd0caa5d7a7" target="_blank">#2 IBM – The Cognitive Enterprise</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-3-microsoft-the-cloud-as-manufacturings-new-shop-floor-2218462e424d" target="_blank">#3 Microsoft – The Cloud as Manufacturing’s New Shop Floor</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-4-siemens-from-hardware-giant-to-the-os-of-industry-5-0-c733130427b1" target="_blank">#4 Siemens – From Hardware Giant to the OS of Industry 5.0</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-5-nvidia-the-gpu-as-the-engine-of-the-industrial-metaverse-and-the-8fea8268fffc" target="_blank">#5 NVIDIA – The GPU as the Engine of the Industrial Metaverse</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-6-intel-from-microprocessors-to-digital-transformation-at-scale-3d0b02b8b52a" target="_blank">#6 Intel – From Microprocessors to Digital Transformation at Scale</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-7-honeywell-the-innovation-hub-at-the-heart-of-industry-e013945fde96" target="_blank">#7 Honeywell – The Innovation Hub at the Heart of Industry</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-8-general-electric-the-rise-fall-and-digital-rebirth-of-an-a271d5da43cf" target="_blank">#8 General Electric – The Rise, Fall, and Digital Rebirth of an Icon</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-9-the-kodak-syndrome-when-courage-fails-and-fusion-systems-never-8fbbd7877517" target="_blank">#9 The Kodak Syndrome – When Courage Fails</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/industrial-tech-chronicles-10-walmart-the-data-driven-retail-ecosystem-46d3161996e9" target="_blank">#10 Walmart – The Data-Driven Retail Ecosystem</a></li>
-  </ul>   
-  <!-- ===== Meta Topics & Fusion Thinking ===== -->
-  <h3>Fusion Thinking & Cognitive Systems</h3>
-  <ul>
-    <li><a href="https://medium.com/@andreas.braun.2011/the-software-defined-factory-reinventing-automotive-production-for-the-post-human-era-10f8f35b72fb" target="_blank">The Software-Defined Factory</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/from-centralized-control-to-cognitive-swarms-small-edge-ai-multi-agent-systems-as-the-future-of-19e4bd3de4c0" target="_blank">From Centralized Control to Cognitive Swarms</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/from-cloud-to-edge-how-ai-is-moving-into-the-car-and-factory-868b9d9960a4" target="_blank">From Cloud to Edge – How AI is Moving into the Car and Factory</a></li>
-    <li><a href="https://medium.com/@andreas.braun.2011/agentic-ai-blockchain-verifiable-autonomy-for-automotive-34a26664d332" target="_blank">Agentic AI + Blockchain – Verifiable Autonomy</a></li>
-       
-    
-  </ul>
+        <!-- ===== Fusion Thinking & Cognitive Systems ===== -->
+        <h3>Fusion Thinking & Cognitive Systems</h3>
+        <ul>
+          <li><a href="https://medium.com/@andreas.braun.2011/the-software-defined-factory-reinventing-automotive-production-for-the-post-human-era-10f8f35b72fb" target="_blank" rel="noopener">The Software-Defined Factory</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/from-centralized-control-to-cognitive-swarms-small-edge-ai-multi-agent-systems-as-the-future-of-19e4bd3de4c0" target="_blank" rel="noopener">From Centralized Control to Cognitive Swarms</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/from-cloud-to-edge-how-ai-is-moving-into-the-car-and-factory-868b9d9960a4" target="_blank" rel="noopener">From Cloud to Edge – How AI is Moving into the Car and Factory</a></li>
+          <li><a href="https://medium.com/@andreas.braun.2011/agentic-ai-blockchain-verifiable-autonomy-for-automotive-34a26664d332" target="_blank" rel="noopener">Agentic AI + Blockchain – Verifiable Autonomy</a></li>
+        </ul>
 
-  <p class="footer-note">
-    All articles written by Andreas Braun on <a href="https://medium.com/@andreas.braun.2011" target="_blank">Medium</a>.
-    Updated automatically by virtauto’s Content-Agent.
-  </p>
-</section>
-  
+        <p class="footer-note">
+          All articles written by Andreas Braun on <a href="https://medium.com/@andreas.braun.2011" target="_blank" rel="noopener">Medium</a>.
+          Updated automatically by virtauto’s Content-Agent.
+        </p>
+      </div>
     </section>
   </main>
 
@@ -440,9 +215,108 @@ document.addEventListener('DOMContentLoaded', () => {
         <strong>virtauto®</strong><br />
         <small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small>
       </div>
-      <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
+      <div>
+        <small>
+          <a href="blog.html">Blog</a> · <a href="contact.html">Contact</a>
+        </small>
+      </div>
       <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
     </div>
+
+    <!-- Agentic status line (kept from your original intent, now in the correct place) -->
+    <div style="margin-top:24px;padding:12px 0;border-top:1px solid #1a2332;">
+      <a href="/status/" class="agentic-link" aria-label="Open System Status">
+        <small id="agentic-status" class="agentic-status" aria-live="polite">
+          <span class="dot"></span> Agentic Website — checking…
+        </small>
+      </a>
+    </div>
   </footer>
+
+  <!-- Mini-Dashboard + Badge updater (from your original, deduplicated + corrected) -->
+  <script>
+    async function updateMiniDashboard() {
+      const box = document.getElementById('mini-dashboard');
+      if (!box) return;
+
+      try {
+        const res = await fetch('/status/status.json', { cache: 'no-store' });
+        const data = await res.json();
+        const agents = Array.isArray(data.agents) ? data.agents : [];
+
+        const ok = agents.filter(a => (a.status || '').toLowerCase() === 'ok').length;
+        const issue = agents.filter(a => (a.status || '').toLowerCase() === 'issue').length;
+        const unknown = agents.filter(a => !['ok','issue'].includes((a.status||'').toLowerCase())).length;
+
+        box.innerHTML = `
+          <div><strong>${ok}</strong> OK</div>
+          <div class="issue"><strong>${issue}</strong> Issues</div>
+          <div><strong>${unknown}</strong> Unknown</div>
+        `;
+      } catch (err) {
+        box.innerHTML = '<span class="issue">Status unavailable</span>';
+      }
+    }
+
+    (async () => {
+      const badgeEl = document.getElementById('agentic-status');
+      const chipsEl = document.getElementById('agent-chips');
+
+      if (!badgeEl) return;
+
+      const setBadge = (state, html, title='') => {
+        badgeEl.classList.toggle('ok',    state === 'ok');
+        badgeEl.classList.toggle('issue', state === 'issue');
+        badgeEl.innerHTML = `<span class="dot"></span> ${html}`;
+        if (title) badgeEl.title = title;
+      };
+
+      const chip = (agent) => {
+        const st = (agent.status || '').toLowerCase();
+        const cls = ['agent-chip', st || 'unknown'].join(' ');
+        const code = agent.http?.code ? ` (${agent.http.code})` : '';
+        const note = agent.notes ? ` — ${agent.notes}` : '';
+        const href = '/status/agents.html#' + encodeURIComponent(agent.agent || '').toLowerCase();
+        return `<a class="${cls}" href="${href}" title="${agent.agent}: ${agent.status}${code}${note}">
+                  <span class="dot"></span><span>${agent.agent || 'unknown'}</span>
+                </a>`;
+      };
+
+      try {
+        const r  = await fetch('/status/status.json', { cache: 'no-store' });
+        if (!r.ok) throw new Error('status.json not found');
+        const data    = await r.json();
+        const agents  = Array.isArray(data.agents) ? data.agents : [];
+        const ts      = agents[0]?.timestamp?.replace(' UTC','') || '';
+        const bad     = agents.filter(a => ['issue','error'].includes((a.status||'').toLowerCase()));
+        const prep    = agents.filter(a => (a.status||'').toLowerCase() === 'preparing');
+        const okAll   = bad.length === 0 && agents.every(a => ['ok','preparing'].includes((a.status||'').toLowerCase()));
+
+        const details = (bad.length ? bad : agents).map(a => {
+          const code = a.http?.code ? ` (${a.http.code})` : '';
+          const note = a.notes ? ` — ${a.notes}` : '';
+          return `${a.agent}: ${a.status}${code}${note}`;
+        }).join(' • ');
+
+        const label = `Agentic Website — last self-check: ${ts || '—'} — ${okAll ? 'OK' : 'ISSUE'}`
+                      + (prep.length ? ` (preparing ${prep.length})` : '');
+
+        setBadge(okAll ? 'ok' : 'issue', label, details || 'all agents healthy');
+
+        if (chipsEl) {
+          const order = { issue: 0, error: 0, preparing: 1, ok: 2 };
+          agents.sort((a,b) => (order[(a.status||'').toLowerCase()] ?? 3) - (order[(b.status||'').toLowerCase()] ?? 3));
+          chipsEl.innerHTML = agents.map(chip).join('');
+        }
+
+      } catch {
+        setBadge('issue', 'Agentic Website — status unavailable');
+        if (chipsEl) chipsEl.innerHTML = '';
+      }
+    })();
+
+    updateMiniDashboard();
+    setInterval(updateMiniDashboard, 60000);
+  </script>
 </body>
 </html>
