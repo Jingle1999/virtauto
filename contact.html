@@ -1,50 +1,79 @@
 <!doctype html>
-<html lang="en"><head>
+<html lang="en">
+<head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Contact · virtauto®</title>
+
   <link rel="stylesheet" href="assets/styles.css">
   <link rel="stylesheet" href="assets/styles_unify.css">
   <script defer src="assets/site.js"></script>
 </head>
+
 <body>
-  <script defer src="/assets/agent-status.js"></script>
 <header class="header">
   <div class="container nav">
     <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+
     <nav class="menu" id="menu">
-      <a class="" href="index.html">Home</a>
-      <a class="" href="agents.html">Agents</a>
-      <a class="" href="architecture.html">Architecture</a>
-      <a class="" href="solutions.html">Solutions</a>
-      <a class="" href="status.html">Status</a>
+      <a href="index.html">Home</a>
+      <a href="agents.html">Agents</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="solutions.html">Solutions</a>
+      <a href="/status/">Status</a>
       <a class="active" href="contact.html">Contact</a>
       <a class="cta" href="solutions.html#george">Meet GEORGE</a>
     </nav>
-    <!-- add just under </nav> in the header on every page -->
-    <div id="agent-chips" class="agent-chips"></div>
-    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
+
+    <div id="agent-chips" class="agent-chips" aria-label="Agent health"></div>
+
+    <button class="burger" aria-label="Menu" type="button">
       <span></span><span></span><span></span>
     </button>
   </div>
 </header>
+
 <main>
+  <section class="hero">
+    <div class="container">
+      <div class="kicker">Contact</div>
+      <h1>Talk to us</h1>
+      <p class="lead">Send a message and we’ll get back within one business day.</p>
+    </div>
+  </section>
 
-<section class="hero"><div class="container">
-  <div class="kicker">Contact</div><h1>Talk to us</h1>
-  <p class="lead">Send a message and we’ll get back within one business day.</p>
-</div></section>
-<section class="section"><div class="container">
-<form class="form"><label>Name<input type="text" placeholder="Jane Doe" required></label>
-<label>Email<input type="email" placeholder="jane@example.com" required></label>
-<label>Message<textarea placeholder="Your message…"></textarea></label>
-<button class="btn" type="submit" onclick="event.preventDefault();alert('Thanks! We will reach out.');">Send</button></form>
-</div></section>
-
+  <section class="section">
+    <div class="container">
+      <form class="form">
+        <label>Name
+          <input type="text" placeholder="Jane Doe" required>
+        </label>
+        <label>Email
+          <input type="email" placeholder="jane@example.com" required>
+        </label>
+        <label>Message
+          <textarea placeholder="Your message…"></textarea>
+        </label>
+        <button class="btn" type="submit" onclick="event.preventDefault();alert('Thanks! We will reach out.');">Send</button>
+      </form>
+    </div>
+  </section>
 </main>
-<footer class="footer"><div class="container cols">
-  <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
-  <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
-  <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
-</div></footer>
-</body></html>
+
+<footer class="footer">
+  <div class="container cols">
+    <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
+    <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
+    <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+  </div>
+
+  <div style="margin-top:24px;padding:12px 0;border-top:1px solid #1a2332;">
+    <a href="/status/" class="agentic-link" aria-label="Open System Status">
+      <small id="agentic-status" class="agentic-status" aria-live="polite">
+        <span class="dot"></span> Agentic Website — checking…
+      </small>
+    </a>
+  </div>
+</footer>
+</body>
+</html>
