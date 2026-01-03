@@ -4,34 +4,38 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Solutions · virtauto®</title>
+
   <link rel="canonical" href="https://www.virtauto.de/solutions.html">
-<meta name="description" content="From CI/CD in engineering to shop-floor execution — solutions powered by Agentic AI and Cognitive Digital Twins.">
-<meta property="og:title" content="virtauto Solutions — From Engineering to Shop Floor"/>
-<meta property="og:url" content="https://www.virtauto.de/solutions.html"/>
-<meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
-<meta name="twitter:title" content="virtauto Solutions — From Engineering to Shop Floor"/>
-<meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
+  <meta name="description" content="From CI/CD in engineering to shop-floor execution — solutions powered by Agentic AI and Cognitive Digital Twins.">
+  <meta property="og:title" content="virtauto Solutions — From Engineering to Shop Floor"/>
+  <meta property="og:url" content="https://www.virtauto.de/solutions.html"/>
+  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
+  <meta name="twitter:title" content="virtauto Solutions — From Engineering to Shop Floor"/>
+  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
 
   <link rel="stylesheet" href="assets/styles.css"/>
+  <link rel="stylesheet" href="assets/styles_unify.css"/>
   <script defer src="assets/site.js"></script>
 </head>
-  <script defer src="/assets/agent-status.js"></script>
+
 <body>
 <header class="header">
   <div class="container nav">
     <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+
     <nav class="menu" id="menu">
       <a href="index.html">Home</a>
       <a href="agents.html">Agents</a>
       <a href="architecture.html">Architecture</a>
       <a class="active" href="solutions.html">Solutions</a>
-      <a href="status.html">Status</a>
+      <a href="/status/">Status</a>
       <a href="contact.html">Contact</a>
       <a class="cta" href="solutions.html#george">Meet GEORGE</a>
     </nav>
-    <!-- add just under </nav> in the header on every page -->
-    <div id="agent-chips" class="agent-chips"></div>
-    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
+
+    <div id="agent-chips" class="agent-chips" aria-label="Agent health"></div>
+
+    <button class="burger" aria-label="Menu" type="button">
       <span></span><span></span><span></span>
     </button>
   </div>
@@ -50,7 +54,7 @@
     <div class="container card-grid three">
       <div class="card"><h3>Smart Production</h3><p>Factory IT integration, edge agents, quality loops &amp; traceability.</p></div>
       <div class="card"><h3>Engineering Cloud</h3><p>Build/Test pipelines, Digital Twins and policy gates.</p></div>
-      <div class="card"><h3>Operations</h3><p>Monitoring, health checks, auto‑mitigation &amp; observability.</p></div>
+      <div class="card"><h3>Operations</h3><p>Monitoring, health checks, auto-mitigation &amp; observability.</p></div>
     </div>
   </section>
 
@@ -59,7 +63,7 @@
       <h2>GEORGE — Generic Entity Orchestrating Resources &amp; Gathering Efficiency</h2>
       <p>The supervisory brain of virtauto.OS. Plans, routes, validates and learns across all domain agents.</p>
       <div class="actions">
-        <a class="btn" href="#contact">Request demo</a>
+        <a class="btn" href="contact.html">Request demo</a>
         <a class="btn ghost" href="architecture.html#flow">See responsibilities</a>
       </div>
       <img class="frame img-fluid responsive-img" src="assets/img/george_responsibilities.png" alt="GEORGE responsibilities" loading="eager" decoding="async"/>
@@ -72,6 +76,14 @@
     <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
     <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
     <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+  </div>
+
+  <div style="margin-top:24px;padding:12px 0;border-top:1px solid #1a2332;">
+    <a href="/status/" class="agentic-link" aria-label="Open System Status">
+      <small id="agentic-status" class="agentic-status" aria-live="polite">
+        <span class="dot"></span> Agentic Website — checking…
+      </small>
+    </a>
   </div>
 </footer>
 </body>
