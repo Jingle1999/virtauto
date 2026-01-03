@@ -4,35 +4,37 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Agents · virtauto®</title>
+
   <link rel="canonical" href="https://www.virtauto.de/agents.html">
-<meta name="description" content="Explore virtauto’s agents: Guardian, Quality, Root Cause, Supply Chain and more — orchestrated to automate engineering, production, and after-sales.">
-<meta property="og:title" content="virtauto Agents — Multi-Agent Orchestration for Industry"/>
-<meta property="og:url" content="https://www.virtauto.de/agents.html"/>
-<meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
-<meta name="twitter:title" content="virtauto Agents — Multi-Agent Orchestration for Industry"/>
-<meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
+  <meta name="description" content="Explore virtauto’s agents: Guardian, Quality, Root Cause, Supply Chain and more — orchestrated to automate engineering, production, and after-sales.">
+  <meta property="og:title" content="virtauto Agents — Multi-Agent Orchestration for Industry"/>
+  <meta property="og:url" content="https://www.virtauto.de/agents.html"/>
+  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
+  <meta name="twitter:title" content="virtauto Agents — Multi-Agent Orchestration for Industry"/>
+  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
 
   <link rel="stylesheet" href="assets/styles.css"/>
+  <link rel="stylesheet" href="assets/styles_unify.css"/>
   <script defer src="assets/site.js"></script>
 </head>
-  <script defer src="/assets/agent-status.js"></script>
+
 <body>
 <header class="header">
   <div class="container nav">
     <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+
     <nav class="menu" id="menu">
       <a href="index.html">Home</a>
       <a class="active" href="agents.html">Agents</a>
       <a href="architecture.html">Architecture</a>
-      <a href="solutions.html">Solutions</a>
-      <a href="status.html">Status</a>
+      <a href="/status/">Status</a>
       <a href="contact.html">Contact</a>
       <a class="cta" href="solutions.html#george">Meet GEORGE</a>
     </nav>
-    <!-- add just under </nav> in the header on every page -->
-    <div id="agent-chips" class="agent-chips"></div>
 
-    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
+    <div id="agent-chips" class="agent-chips" aria-label="Agent health"></div>
+
+    <button class="burger" aria-label="Menu" type="button">
       <span></span><span></span><span></span>
     </button>
   </div>
@@ -43,7 +45,7 @@
     <div class="container">
       <div class="kicker">Agents</div>
       <h1>From LLMs to Agent Teams</h1>
-      <p class="lead">Agents plan, act with tools, cooperate, and remember. <strong>GEORGE</strong> keeps them aligned and policy‑compliant.</p>
+      <p class="lead">Agents plan, act with tools, cooperate, and remember. <strong>GEORGE</strong> keeps them aligned and policy-compliant.</p>
     </div>
   </section>
 
@@ -51,8 +53,8 @@
     <div class="container">
       <h2>Agent vs. LLM vs. RAG</h2>
       <div class="card-grid three">
-        <div class="card"><h3>LLM</h3><p>Reasoning & generation from training data only.</p></div>
-        <div class="card"><h3>RAG</h3><p>Retrieval‑augmented: injects fresh, external knowledge.</p></div>
+        <div class="card"><h3>LLM</h3><p>Reasoning &amp; generation from training data only.</p></div>
+        <div class="card"><h3>RAG</h3><p>Retrieval-augmented: injects fresh, external knowledge.</p></div>
         <div class="card"><h3>Agent</h3><p>Decides, plans, calls tools/APIs, and executes workflows.</p></div>
       </div>
     </div>
@@ -62,12 +64,12 @@
     <div class="container">
       <h2>Building Blocks</h2>
       <ul class="list">
-        <li><strong>Role‑playing:</strong> Explicit responsibilities per agent.</li>
+        <li><strong>Role-playing:</strong> Explicit responsibilities per agent.</li>
         <li><strong>Focus/Tasks:</strong> Narrow scope, high reliability.</li>
-        <li><strong>Tools:</strong> Custom tools & MCP servers for reuse.</li>
-        <li><strong>Cooperation:</strong> Multi‑agent collaboration patterns.</li>
-        <li><strong>Guardrails:</strong> Validation, limits, fallback/human‑in‑the‑loop.</li>
-        <li><strong>Memory:</strong> Short‑term, long‑term, entity memory.</li>
+        <li><strong>Tools:</strong> Custom tools &amp; MCP servers for reuse.</li>
+        <li><strong>Cooperation:</strong> Multi-agent collaboration patterns.</li>
+        <li><strong>Guardrails:</strong> Validation, limits, fallback/human-in-the-loop.</li>
+        <li><strong>Memory:</strong> Short-term, long-term, entity memory.</li>
       </ul>
     </div>
   </section>
@@ -75,11 +77,11 @@
   <section class="section" id="george-overview">
     <div class="container">
       <h2>GEORGE (Orchestrator) — Overview</h2>
-      <p>GEORGE translates user intents into coordinated multi‑agent plans, governs tool access, enforces guardrails, and maintains memory across flows.</p>
+      <p>GEORGE translates user intents into coordinated multi-agent plans, governs tool access, enforces guardrails, and maintains memory across flows.</p>
       <div class="card-grid three">
         <div class="card"><h3>Task Orchestration</h3><p>Breaks down intents, assigns to domain agents, tracks completion.</p></div>
-        <div class="card"><h3>Policy &amp; Guardrails</h3><p>Constraints for cost/safety/data; human‑in‑the‑loop when needed.</p></div>
-        <div class="card"><h3>Tool &amp; Memory</h3><p>Registers MCP tools, rate‑limits usage; shares scoped context.</p></div>
+        <div class="card"><h3>Policy &amp; Guardrails</h3><p>Constraints for cost/safety/data; human-in-the-loop when needed.</p></div>
+        <div class="card"><h3>Tool &amp; Memory</h3><p>Registers MCP tools, rate-limits usage; shares scoped context.</p></div>
       </div>
     </div>
   </section>
@@ -102,6 +104,14 @@
     <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
     <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
     <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+  </div>
+
+  <div style="margin-top:24px;padding:12px 0;border-top:1px solid #1a2332;">
+    <a href="/status/" class="agentic-link" aria-label="Open System Status">
+      <small id="agentic-status" class="agentic-status" aria-live="polite">
+        <span class="dot"></span> Agentic Website — checking…
+      </small>
+    </a>
   </div>
 </footer>
 </body>
