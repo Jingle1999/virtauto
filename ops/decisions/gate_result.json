@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "decision_id": "967cb955-90b0-4c43-8dc7-f00abca4b674",
+  "decision_class": "operational",
+  "verdict": "ALLOW",
+  "exit_code": 0,
+  "reasons": [],
+  "todo": [],
+  "applied_policy": {
+    "mode": "enforced",
+    "decision_class": "operational",
+    "min_health_score": 0.75,
+    "require_guardian_ok": true,
+    "require_status_endpoint": false,
+    "require_trace": true,
+    "on_fail": "ESCALATE",
+    "default_action": "BLOCK",
+    "allow_human_override": true,
+    "signal_sources": {
+      "system_health_score": "signals.system_health_score",
+      "guardian_ok": "signals.guardian_ok",
+      "status_endpoint_ok": "signals.status_endpoint_ok",
+      "decision_trace_present": "signals.decision_trace_present"
+    }
+  }
+}

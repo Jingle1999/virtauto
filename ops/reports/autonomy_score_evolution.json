@@ -1,0 +1,26 @@
+[
+  {
+    "date": "2025-12-08",
+    "total": 7,
+    "executed": 7,
+    "success": 6,
+    "fail": 1,
+    "blocked": 0,
+    "execution_rate": 0.857,
+    "coverage": 1.0,
+    "stability": 0.857,
+    "autonomy_score": 0.907
+  },
+  {
+    "date": "2026-01-05",
+    "total": 1,
+    "executed": 1,
+    "success": 1,
+    "fail": 0,
+    "blocked": 0,
+    "execution_rate": 1.0,
+    "coverage": 1.0,
+    "stability": 1.0,
+    "autonomy_score": 1.0
+  }
+]
