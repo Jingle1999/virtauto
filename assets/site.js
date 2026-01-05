@@ -270,4 +270,3 @@
     setInterval(loadActivityFeed, 60000);
   });
 })();
-
