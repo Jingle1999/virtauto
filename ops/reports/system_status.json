@@ -1,20 +1,20 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2025-12-17T11:55:08Z",
+  "generated_at": "2026-01-05T06:08:21Z",
   "environment": "production",
-
-  "system_state": "ACTIVE",
+  "system_state": {
+    "status": "online",
+    "mode": "stabilization"
+  },
   "autonomy": "SUPERVISED",
-
   "system": {
     "state": "ACTIVE",
     "autonomy_mode": "SUPERVISED",
     "mode": "STABILIZATION",
     "last_incident": null
   },
-
   "autonomy_score": {
-    "value": 0.70,
+    "value": 0.7,
     "percent": 70,
     "mode": "SUPERVISED",
     "inputs": {
@@ -24,7 +24,6 @@
       "self_healing_factor": null
     }
   },
-
   "health": {
     "signal": "GREEN",
     "overall_score": 0.88,
@@ -35,7 +34,6 @@
       "mean_decision_latency_ms": 420
     }
   },
-
   "agents": {
     "george": {
       "status": "ok",
@@ -72,12 +70,47 @@
       "state": "PLANNED",
       "autonomy_mode": "MANUAL",
       "role": "observer"
+    },
+    "deploy": {
+      "status": "blocked",
+      "role": "deployment_agent",
+      "health": "yellow",
+      "mode": "simulation_only",
+      "last_action": "simulate_deploy_plan",
+      "last_request": null,
+      "timestamp": "2026-01-05T06:08:21Z",
+      "details": {
+        "readiness_ok": false,
+        "checks": {
+          "system_online": {
+            "ok": true,
+            "reason": "system_state.status='online'"
+          },
+          "guardian_green": {
+            "ok": false,
+            "reason": "guardian.health=''"
+          },
+          "health_threshold": {
+            "ok": true,
+            "reason": "health.overall_score=0.88 (min 0.70)"
+          },
+          "human_approval": {
+            "ok": false,
+            "reason": "deployment.human_approved=False, requires=True"
+          }
+        },
+        "artifacts": {
+          "deploy_plan": "ops/reports/deploy_plan.json",
+          "deploy_report": "ops/reports/deploy_agent_report.md"
+        }
+      }
     }
   },
-
   "links": {
     "latest_decision": "ops/decisions/latest.json",
     "gate_result": "ops/decisions/gate_result.json",
     "decision_trace": "ops/reports/decision_trace.jsonl"
-  }
+  },
+  "policy": {},
+  "source": "deploy_agent"
 }

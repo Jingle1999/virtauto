@@ -1,22 +1,74 @@
 {
-  "schema_version": "2.0",
-  "decision_id": "uuid",
-  "timestamp": "ISO-8601",
-  "agent": "george",
+  "decision_id": "967cb955-90b0-4c43-8dc7-f00abca4b674",
   "decision_class": "operational",
-  "decision": "deploy_requested",
-  "status": "blocked",
-
+  "authority_source": "george",
+  "health_context": {
+    "system_health": 100,
+    "guardian_status": "OK",
+    "performance_metrics": {
+      "agent_response_success_rate": 1.0,
+      "total_actions": 2,
+      "failed_actions": 0
+    }
+  },
+  "decision_trace": {
+    "complete": true,
+    "trace_id": "967cb955-90b0-4c43-8dc7-f00abca4b674",
+    "execution_path": [
+      "george",
+      "guardian",
+      "authority",
+      "executor"
+    ]
+  },
+  "trace": {
+    "complete": true,
+    "id": "967cb955-90b0-4c43-8dc7-f00abca4b674",
+    "trace_id": "967cb955-90b0-4c43-8dc7-f00abca4b674",
+    "path": [
+      "george",
+      "guardian",
+      "authority",
+      "executor"
+    ],
+    "execution_path": [
+      "george",
+      "guardian",
+      "authority",
+      "executor"
+    ]
+  },
+  "execution_context": {
+    "latency_ms": 0,
+    "dependencies": [],
+    "security_context": {
+      "authenticated": true,
+      "authorization_level": "standard"
+    }
+  },
   "signals": {
-    "system_health_score": 0.75,
-    "guardian_ok": false,
+    "system_health_score": 1.0,
+    "system_health_percent": 100,
+    "guardian_ok": true,
     "status_endpoint_ok": true,
     "decision_trace_present": true
   },
-
-  "decision_trace": {
-    "complete": true,
-    "trace_id": "uuid",
-    "execution_path": ["george", "guardian"]
-  }
+  "guardian": {
+    "ok": true,
+    "status": "OK",
+    "flag": null,
+    "recommendation": null
+  },
+  "id": "967cb955-90b0-4c43-8dc7-f00abca4b674",
+  "timestamp": "2026-01-05T06:08:21+00:00",
+  "source_event_id": "da10c7c8-6ef7-4585-b727-cf13fbae83db",
+  "agent": "george",
+  "action": "deploy_requested",
+  "intent": null,
+  "confidence": 0.8,
+  "status": "success",
+  "error_message": null,
+  "guardian_flag": null,
+  "follow_up": null,
+  "result_summary": "Simulated execution: agent='george', action='deploy_requested', event_id='da10c7c8-6ef7-4585-b727-cf13fbae83db', role='Central Orchestrator'."
 }

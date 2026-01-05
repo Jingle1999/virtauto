@@ -1,0 +1,19 @@
+{
+  "agents": [
+    {
+      "agent": "monitoring",
+      "status": "ok",
+      "timestamp": "2026-01-05T06:08:20Z"
+    },
+    {
+      "agent": "audit",
+      "status": "ok",
+      "timestamp": "2026-01-05T06:08:21Z"
+    },
+    {
+      "agent": "george",
+      "status": "ok",
+      "timestamp": "2026-01-05T06:08:21Z"
+    }
+  ]
+}

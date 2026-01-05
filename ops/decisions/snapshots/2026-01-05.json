@@ -1,0 +1,17 @@
+{
+  "date": "2026-01-05",
+  "total_decisions": 2,
+  "successful": 2,
+  "error": 0,
+  "blocked": 0,
+  "by_agent": {
+    "george": {
+      "total": 2,
+      "success": 2,
+      "error": 0,
+      "blocked": 0
+    }
+  },
+  "last_decision_id": "967cb955-90b0-4c43-8dc7-f00abca4b674",
+  "last_updated": "2026-01-05T06:08:21+00:00"
+}
