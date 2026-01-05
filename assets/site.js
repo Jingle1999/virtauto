@@ -1,128 +1,303 @@
-// assets/site.js
-// - Smooth scroll for in-page anchors
-// - Mobile navigation: burger toggles #menu.open across all pages
-// - Close menu on link click, outside click, ESC, and when switching to desktop
+/* --- Compatibility with existing markup (virtauto) --- */
+header.header{
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: saturate(1.1) blur(8px);
+  background: rgba(10,15,28,.75);
+  border-bottom: 1px solid var(--va-border);
+}
+.container.nav{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--va-6); padding: var(--va-4) 0;
+}
+.menu{
+  display: flex; align-items: center; gap: var(--va-4);
+}
+.menu a{
+  padding: .5rem .75rem; border-radius: 12px; transition: background .15s ease;
+}
+.menu a:hover{ background: rgba(56,189,248,.08); }
+.menu a.active{ background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.28); }
+.brand{ display:flex; align-items:center; gap:.5rem; font-weight:700; color:#fff; }
+/* ==========================================================================
+   virtauto Clean State 1.0 — Phase 1 (Visual & Layout Refinement)
+   Author: ChatGPT for Andreas Braun
+   Date: 2025-10-14
+   Notes:
+   - Drop-in replacement for your current `assets/styles_unify.css`
+   - Focus on: spacing, responsive type, layout primitives, buttons, cards, nav, hero,
+     WCAG-friendly focus, mobile polish. Non-breaking: class names are additive/safe.
+   ========================================================================== */
 
-(function () {
-  "use strict";
+/* 0) Reset */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { line-height: 1.6; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+img, picture, svg, video { display: block; max-width: 100%; }
+input, button, textarea, select { font: inherit; }
+:target { scroll-margin-top: 6rem; }
 
-  function $(sel, root = document) {
-    return root.querySelector(sel);
+/* 1) Tokens */
+:root {
+  --va-bg: #0A0F1C;
+  --va-bg-elev: #111827;
+  --va-surface: #0f172a;
+  --va-text: #E5E7EB;
+  --va-text-dim: #C7D2FE;
+  --va-muted: #94A3B8;
+  --va-primary: #00AEEF;
+  --va-primary-600: #0891B2;
+  --va-primary-300: #38BDF8;
+  --va-accent: #22d3ee;
+  --va-border: #233044;
+  --va-success: #22c55e;
+  --va-warning: #f59e0b;
+  --va-danger:  #ef4444;
+
+  --va-radius: 16px;
+  --va-shadow-sm: 0 4px 16px rgba(0,0,0,.25);
+  --va-shadow-md: 0 8px 28px rgba(0,0,0,.35);
+  --va-shadow-inset: inset 0 1px 0 rgba(255,255,255,.04);
+
+  --va-font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  --va-h1: clamp(2.0rem, 1.5rem + 2.2vw, 3.2rem);
+  --va-h2: clamp(1.5rem, 1.2rem + 1.2vw, 2.2rem);
+  --va-h3: clamp(1.25rem, 1.05rem + .8vw, 1.6rem);
+  --va-body: clamp(1rem, .96rem + .2vw, 1.075rem);
+
+  --va-0: 0;
+  --va-1: .25rem;
+  --va-2: .5rem;
+  --va-3: .75rem;
+  --va-4: 1rem;
+  --va-5: 1.25rem;
+  --va-6: 1.5rem;
+  --va-8: 2rem;
+  --va-10: 2.5rem;
+  --va-12: 3rem;
+  --va-16: 4rem;
+  --va-24: 6rem;
+
+  --va-container: 1200px;
+}
+
+/* 2) Base */
+body {
+  background: radial-gradient(1200px 600px at 20% -5%, rgba(34,211,238,.06) 0%, rgba(34,211,238,0) 60%),
+              radial-gradient(800px 400px at 100% 0%, rgba(0,174,239,.08) 0%, rgba(0,174,239,0) 70%),
+              var(--va-bg);
+  color: var(--va-text);
+  font-family: var(--va-font-sans);
+  font-size: var(--va-body);
+}
+a { color: var(--va-primary-300); text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: 0; border-top: 1px solid var(--va-border); margin: var(--va-8) 0; }
+h1, h2, h3, h4 { line-height: 1.2; font-weight: 700; margin: 0 0 var(--va-4); }
+h1 { font-size: var(--va-h1); letter-spacing: -0.01em; }
+h2 { font-size: var(--va-h2); letter-spacing: -0.005em; }
+h3 { font-size: var(--va-h3); }
+p  { margin: 0 0 var(--va-4); color: var(--va-text); }
+
+:focus-visible {
+  outline: 3px solid var(--va-primary-300);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.skip-link { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.skip-link:focus {
+  left: var(--va-4); top: var(--va-4); width: auto; height: auto; padding: var(--va-2) var(--va-4);
+  background: var(--va-bg-elev); color: #fff; border-radius: 8px; box-shadow: var(--va-shadow-sm);
+}
+
+/* 3) Layout */
+.container { max-width: var(--va-container); margin: 0 auto; padding: 0 var(--va-4); }
+.section   { padding: var(--va-16) 0; }
+.section--tight { padding: var(--va-12) 0; }
+.stack > * + * { margin-top: var(--va-4); }
+.grid { display: grid; gap: var(--va-6); }
+.grid-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+
+.card {
+  background: linear-gradient(180deg, var(--va-surface), #0b1325);
+  border: 1px solid var(--va-border);
+  border-radius: var(--va-radius);
+  box-shadow: var(--va-shadow-sm), var(--va-shadow-inset);
+  padding: var(--va-6);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--va-shadow-md); border-color: rgba(56,189,248,.4); }
+
+/* 4) Navigation */
+header.site-header {
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: saturate(1.1) blur(8px);
+  background: rgba(10,15,28,.75);
+  border-bottom: 1px solid var(--va-border);
+}
+.nav { display: flex; align-items: center; justify-content: space-between; gap: var(--va-6); padding: var(--va-4) 0; }
+.nav__brand { display: flex; align-items: center; gap: var(--va-3); font-weight: 700; color: #fff; }
+.nav__menu { display: flex; align-items: center; gap: var(--va-4); }
+.nav__menu a { padding: .5rem .75rem; border-radius: 12px; transition: background .15s ease; }
+.nav__menu a:hover { background: rgba(56,189,248,.08); }
+.nav__menu a[aria-current="page"] { background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.28); }
+
+/* 5) Hero */
+.hero {
+  padding: var(--va-16) 0 var(--va-12);
+  display: grid; gap: var(--va-8);
+  grid-template-columns: 1.2fr .8fr;
+  align-items: center;
+}
+.hero__title { margin: 0 0 var(--va-4); }
+.hero__lead  { color: var(--va-muted); max-width: 62ch; }
+.hero__img   { border-radius: var(--va-radius); overflow: hidden; border: 1px solid var(--va-border); box-shadow: var(--va-shadow-sm); }
+
+/* 6) Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .85rem 1.1rem;
+  border-radius: 12px; border: 1px solid rgba(255,255,255,.08);
+  color: #0b1325; background: linear-gradient(180deg, var(--va-primary), var(--va-primary-600));
+  box-shadow: 0 6px 20px rgba(0,174,239,.28);
+  font-weight: 600; transition: transform .1s ease, box-shadow .2s ease, filter .2s ease;
+}
+.btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.btn--ghost { background: transparent; color: var(--va-text); border-color: var(--va-border); }
+.btn--ghost:hover { background: rgba(56,189,248,.08); border-color: rgba(56,189,248,.3); }
+
+/* 7) Utilities & content */
+.kicker { color: var(--va-primary-300); text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
+.muted  { color: var(--va-muted); }
+.center { text-align: center; }
+.mt-0 { margin-top: 0 !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.mt-4 { margin-top: var(--va-4) !important; }
+.mb-4 { margin-bottom: var(--va-4) !important; }
+.mt-8 { margin-top: var(--va-8) !important; }
+.mb-8 { margin-bottom: var(--va-8) !important; }
+.badge { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .6rem; border-radius: 999px;
+         background: rgba(56,189,248,.12); color: var(--va-primary-300); border: 1px solid rgba(56,189,248,.3);}
+.feature-list { display: grid; gap: var(--va-4); }
+.feature-list li { display: flex; gap: .6rem; align-items: flex-start; }
+
+/* 8) Footer */
+footer.site-footer {
+  border-top: 1px solid var(--va-border);
+  padding: var(--va-12) 0;
+  color: var(--va-muted);
+  background: linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.12));
+}
+.site-footer a { color: var(--va-text-dim); }
+.site-footer small { display: block; margin-top: var(--va-4); }
+
+/* 9) Tables & Forms */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: .75rem 1rem; border-bottom: 1px solid var(--va-border); }
+th { text-align: left; color: var(--va-text-dim); font-weight: 600; }
+input[type="text"], input[type="email"], textarea {
+  width: 100%; padding: .8rem 1rem; border-radius: 12px;
+  background: var(--va-bg-elev); color: var(--va-text);
+  border: 1px solid var(--va-border);
+}
+input:focus, textarea:focus { outline: 2px solid var(--va-primary-300); outline-offset: 2px; }
+
+/* 10) Media queries */
+@media (max-width: 1200px) { .container { max-width: 1000px; } }
+@media (max-width: 992px)  {
+  .hero { grid-template-columns: 1fr; padding: var(--va-12) 0 var(--va-10); }
+  .nav__menu { gap: var(--va-3); }
+}
+@media (max-width: 768px)  {
+  .section { padding: var(--va-12) 0; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .btn { width: 100%; }
+  nav a { font-size: 1rem; }
+}
+@media (max-width: 480px)  {
+  h1 { letter-spacing: 0; }
+  .container { padding: 0 var(--va-3); }
+}
+
+/* 11) Reduced motion */
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* === Hotfix 2025-10-14: mobile scroll + ruhigeres Hover =================== */
+
+/* 1) Mobil: Scroll erzwingen, keine versehentlichen Locks von Alt-CSS */
+html, body {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* manche Frameworks setzen das auf Sektionen */
+section, main {
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
+/* 2) Header soll nicht die Seite „überdecken“ */
+header.header, header.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  pointer-events: auto;
+}
+
+/* 3) Ruhigeres Verhalten auf Desktop */
+.btn:hover    { transform: none; box-shadow: none; filter: none; }
+.card:hover   { transform: none; box-shadow: var(--va-shadow-sm); }
+
+/* Optional: Blur minimal schwächer, wirkt stabiler beim Scrollen */
+header.header, header.site-header {
+  backdrop-filter: saturate(1.05) blur(6px);
+}
+
+/* 4) Hero: sicher kein viewport-lock auf kleinen Screens */
+@media (max-width: 1024px) {
+  .hero { grid-template-columns: 1fr; }
+}
+/* === Mobile Nav: Burger sichtbar + Dropdown funktioniert ================== */
+@media (max-width: 992px) {
+  /* Burger-Button sichtbar machen */
+  .burger { 
+    display: inline-flex !important;
+    align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 10px;
+    border: 1px solid var(--va-border);
+    background: rgba(56,189,248,.08);
+    cursor: pointer;
   }
-  function $all(sel, root = document) {
-    return Array.from(root.querySelectorAll(sel));
+  .burger span, .burger span::before, .burger span::after {
+    display: block; width: 18px; height: 2px; background: #fff; position: relative;
+  }
+  .burger span::before, .burger span::after { content:""; position: absolute; left:0; }
+  .burger span::before { top: -6px; }
+  .burger span::after  { top:  6px; }
+
+  /* Menü standardmäßig einklappen */
+  nav .menu, #menu {
+    display: none !important;
+    flex-direction: column; gap: .75rem; 
+    width: 100%;
+    padding-top: .75rem;
+    background: rgba(10,15,28,.92);
+    border-top: 1px solid var(--va-border);
   }
 
-  function getMenu() {
-    // works with <nav id="menu" class="menu">...</nav>
-    return document.getElementById("menu") || $(".menu");
+  /* Beim Öffnen anzeigen (JS toggelt .open) */
+  #menu.open, nav .menu.open { 
+    display: flex !important;
   }
 
-  function getBurger() {
-    return $(".burger");
+  /* Links im Dropdown */
+  nav .menu a { 
+    display: block; padding: .75rem 0; 
+    border-radius: 10px; 
   }
 
-  function isMenuOpen(menu) {
-    return menu && menu.classList.contains("open");
-  }
-
-  function setMenuOpen(open) {
-    const menu = getMenu();
-    const burger = getBurger();
-    if (!menu) return;
-
-    menu.classList.toggle("open", !!open);
-
-    if (burger) {
-      burger.setAttribute("aria-expanded", open ? "true" : "false");
-      // Optional: aria-controls is helpful for accessibility
-      if (!burger.getAttribute("aria-controls")) burger.setAttribute("aria-controls", "menu");
-    }
-  }
-
-  function toggleMenu() {
-    const menu = getMenu();
-    if (!menu) return;
-    setMenuOpen(!isMenuOpen(menu));
-  }
-
-  function isMobile() {
-    // keep aligned with your CSS breakpoint for mobile nav
-    return window.matchMedia("(max-width: 992px)").matches;
-  }
-
-  // --- Smooth scroll for in-page anchors (#...)
-  document.addEventListener("click", (e) => {
-    const a = e.target.closest('a[href^="#"]');
-    if (!a) return;
-
-    const href = a.getAttribute("href");
-    if (!href || href === "#") return;
-
-    const el = document.querySelector(href);
-    if (!el) return;
-
-    e.preventDefault();
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-
-    // if a click happens inside the mobile menu, close it after navigating
-    if (isMobile()) setMenuOpen(false);
-  });
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const burger = getBurger();
-    const menu = getMenu();
-
-    if (burger) {
-      // Ensure button doesn't submit forms etc.
-      burger.type = "button";
-
-      // Ensure ARIA
-      burger.setAttribute("aria-label", burger.getAttribute("aria-label") || "Menu");
-      burger.setAttribute("aria-expanded", "false");
-      if (!burger.getAttribute("aria-controls")) burger.setAttribute("aria-controls", "menu");
-
-      // Toggle on burger click
-      burger.addEventListener("click", (e) => {
-        e.preventDefault();
-        toggleMenu();
-      });
-    }
-
-    // Close menu when clicking a normal navigation link (page navigation)
-    // (not only #anchors; this covers links to agents.html etc.)
-    if (menu) {
-      $all("a[href]", menu).forEach((link) => {
-        link.addEventListener("click", () => {
-          if (isMobile()) setMenuOpen(false);
-        });
-      });
-    }
-
-    // Close menu on outside click (mobile only)
-    document.addEventListener("click", (e) => {
-      if (!isMobile()) return;
-      const menuEl = getMenu();
-      if (!menuEl || !isMenuOpen(menuEl)) return;
-
-      const burgerEl = getBurger();
-      const clickedInsideMenu = e.target.closest("#menu") || e.target.closest(".menu");
-      const clickedBurger = burgerEl && (e.target === burgerEl || e.target.closest(".burger"));
-
-      if (!clickedInsideMenu && !clickedBurger) setMenuOpen(false);
-    });
-
-    // Close on ESC
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") setMenuOpen(false);
-    });
-
-    // If viewport becomes desktop, ensure menu isn't stuck in "open"
-    window.addEventListener("resize", () => {
-      if (!isMobile()) setMenuOpen(false);
-    });
-  });
-
-  // Expose a global helper (optional, keeps compatibility if any page still calls toggleMenu())
-  window.toggleMenu = toggleMenu;
-})();
+  /* Header über Inhalt halten */
+  header.header, header.site-header { z-index: 100; }
+}
