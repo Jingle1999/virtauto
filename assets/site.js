@@ -1,25 +1,19 @@
-/* assets/site.js
-   - Smooth scroll for in-page anchors
-   - Mobile navigation: burger toggles #menu /.menu open across all pages
-*/
-
+// assets/site.js
 (() => {
   'use strict';
 
-  const $  = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const $ = (sel, root = document) => root.querySelector(sel);
 
   function getMenu() {
-    // your markup uses <nav class="menu" id="menu"> on all pages
-    return $('#menu') || $('.menu');
+    return document.getElementById('menu') || $('.menu');
   }
 
   function getBurger() {
     return $('.burger');
   }
 
-  function isMobile() {
-    // match your CSS breakpoint (styles_unify.css uses 992px)
+  function isSmallScreen() {
+    // Align with your CSS intent; doesn't have to be perfect because toggling is unconditional
     return window.matchMedia('(max-width: 992px)').matches;
   }
 
@@ -32,9 +26,9 @@
 
     if (burger) {
       burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-      // optional linkage for a11y
-      if (!burger.getAttribute('aria-controls') && menu.id) {
-        burger.setAttribute('aria-controls', menu.id);
+      // optional accessibility wiring
+      if (!burger.getAttribute('aria-controls')) {
+        burger.setAttribute('aria-controls', menu.id || 'menu');
       }
     }
   }
@@ -45,13 +39,13 @@
     setMenuOpen(!menu.classList.contains('open'));
   }
 
-  // 1) Smooth scroll for in-page anchors (#...)
+  // 1) Smooth scroll for in-page anchors only (#...)
   document.addEventListener('click', (e) => {
     const a = e.target.closest('a[href^="#"]');
     if (!a) return;
 
     const href = a.getAttribute('href');
-    if (!href || href === '#') return;
+    if (!href || href === '#' || href === '#!') return;
 
     const el = document.querySelector(href);
     if (!el) return;
@@ -72,38 +66,40 @@
 
       burger.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation(); // IMPORTANT: prevents "click outside" from firing on same tap
         toggleMenu();
       });
     }
 
-    // Close after navigating (only on mobile)
     if (menu) {
+      // Clicking inside menu should not count as "outside"
       menu.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        // On small screens: close after choosing a link
         const link = e.target.closest('a');
-        if (!link) return;
-        if (isMobile()) setMenuOpen(false);
+        if (link && isSmallScreen()) {
+          setMenuOpen(false);
+        }
       });
     }
 
-    // Click outside closes (mobile)
-    document.addEventListener('click', (e) => {
-      if (!isMobile()) return;
-
+    // Click outside closes menu (when open)
+    document.addEventListener('click', () => {
       const menuEl = getMenu();
-      if (!menuEl || !menuEl.classList.contains('open')) return;
+      if (!menuEl) return;
+      if (!menuEl.classList.contains('open')) return;
 
-      const burgerEl = getBurger();
-      const clickedInsideMenu = menuEl.contains(e.target);
-      const clickedBurger = burgerEl && burgerEl.contains(e.target);
-
-      if (!clickedInsideMenu && !clickedBurger) {
-        setMenuOpen(false);
-      }
+      setMenuOpen(false);
     });
 
-    // Resize to desktop => ensure menu isn't stuck open
-    window.addEventListener('resize', () => {
-      if (!isMobile()) setMenuOpen(false);
-    }, { passive: true });
+    // On resize to desktop: ensure menu isn't stuck in open-state
+    window.addEventListener(
+      'resize',
+      () => {
+        if (!isSmallScreen()) setMenuOpen(false);
+      },
+      { passive: true }
+    );
   });
 })();
