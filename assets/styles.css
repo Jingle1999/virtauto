@@ -39,3 +39,36 @@ h1{font-size:2.1rem;line-height:1.2;margin:.3rem 0 1rem}
 .muted{color:var(--muted)}
 .status{min-height:220px}
 .iframe{width:100%;height:70vh;border:1px solid #243255;border-radius:.8rem;background:#0e1426}
+
+/* ==========================================================================
+   HOTFIX: index.html mobile burger not clickable (overlay/stacking issue)
+   Goal: header must always be topmost + receive pointer events on iOS Safari
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  header.header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 2147483647 !important; /* highest practical */
+    pointer-events: auto !important;
+  }
+
+  header.header * {
+    pointer-events: auto !important;
+  }
+
+  /* give page content room under fixed header */
+  body {
+    padding-top: 76px !important;
+  }
+
+  /* very common culprit: pseudo-element overlays catching taps */
+  .hero::before,
+  .hero::after,
+  body::before,
+  body::after {
+    pointer-events: none !important;
+  }
+}
