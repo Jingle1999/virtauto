@@ -1,4 +1,13 @@
-/* --- Compatibility with existing markup (virtauto) --- */
+/* ==========================================================================
+   assets/styles_unify.css — virtauto Clean State (patched)
+   Goal of this patch:
+   - Mobile burger always clickable (no overlay / no "dead" tap area)
+   - Burger icon always visible (3-span markup)
+   - Menu reliably opens via `.open` on #menu (your site.js)
+   - Agent chips cannot block the burger on small screens
+   ========================================================================== */
+
+/* --- Compatibility with existing markup (virtauto) ----------------------- */
 header.header{
   position: sticky; top: 0; z-index: 50;
   backdrop-filter: saturate(1.1) blur(8px);
@@ -6,34 +15,43 @@ header.header{
   border-bottom: 1px solid var(--va-border);
 }
 
-/* IMPORTANT: header layout must allow absolute dropdown */
-header.header .container.nav{
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--va-6); padding: var(--va-4) 0;
-  position: relative; /* enables #menu absolute positioning on mobile */
+/* IMPORTANT: allow wrapping so chips never overlay the burger */
+.container.nav{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--va-6);
+  padding: var(--va-4) 0;
+  flex-wrap: wrap;              /* key */
+  position: relative;           /* key */
 }
 
 .menu{
-  display: flex; align-items: center; gap: var(--va-4);
+  display: flex;
+  align-items: center;
+  gap: var(--va-4);
 }
+
 .menu a{
-  padding: .5rem .75rem; border-radius: 12px; transition: background .15s ease;
+  padding: .5rem .75rem;
+  border-radius: 12px;
+  transition: background .15s ease;
 }
+
 .menu a:hover{ background: rgba(56,189,248,.08); }
 .menu a.active{ background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.28); }
-.brand{ display:flex; align-items:center; gap:.5rem; font-weight:700; color:#fff; }
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  font-weight:700;
+  color:#fff;
+}
 
 /* ==========================================================================
-   virtauto Clean State 1.0 — Phase 1 (Visual & Layout Refinement)
-   Author: ChatGPT for Andreas Braun
-   Date: 2025-10-14
-   Notes:
-   - Drop-in replacement for your current `assets/styles_unify.css`
-   - Focus on: spacing, responsive type, layout primitives, buttons, cards, nav, hero,
-     WCAG-friendly focus, mobile polish. Non-breaking: class names are additive/safe.
+   0) Reset
    ========================================================================== */
-
-/* 0) Reset */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body { line-height: 1.6; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
@@ -41,7 +59,9 @@ img, picture, svg, video { display: block; max-width: 100%; }
 input, button, textarea, select { font: inherit; }
 :target { scroll-margin-top: 6rem; }
 
-/* 1) Tokens */
+/* ==========================================================================
+   1) Tokens
+   ========================================================================== */
 :root {
   --va-bg: #0A0F1C;
   --va-bg-elev: #111827;
@@ -85,22 +105,29 @@ input, button, textarea, select { font: inherit; }
   --va-container: 1200px;
 }
 
-/* 2) Base */
+/* ==========================================================================
+   2) Base
+   ========================================================================== */
 body {
-  background: radial-gradient(1200px 600px at 20% -5%, rgba(34,211,238,.06) 0%, rgba(34,211,238,0) 60%),
-              radial-gradient(800px 400px at 100% 0%, rgba(0,174,239,.08) 0%, rgba(0,174,239,0) 70%),
-              var(--va-bg);
+  background:
+    radial-gradient(1200px 600px at 20% -5%, rgba(34,211,238,.06) 0%, rgba(34,211,238,0) 60%),
+    radial-gradient(800px 400px at 100% 0%, rgba(0,174,239,.08) 0%, rgba(0,174,239,0) 70%),
+    var(--va-bg);
   color: var(--va-text);
   font-family: var(--va-font-sans);
   font-size: var(--va-body);
 }
+
 a { color: var(--va-primary-300); text-decoration: none; }
 a:hover { text-decoration: underline; }
+
 hr { border: 0; border-top: 1px solid var(--va-border); margin: var(--va-8) 0; }
+
 h1, h2, h3, h4 { line-height: 1.2; font-weight: 700; margin: 0 0 var(--va-4); }
 h1 { font-size: var(--va-h1); letter-spacing: -0.01em; }
 h2 { font-size: var(--va-h2); letter-spacing: -0.005em; }
 h3 { font-size: var(--va-h3); }
+
 p  { margin: 0 0 var(--va-4); color: var(--va-text); }
 
 :focus-visible {
@@ -108,17 +135,25 @@ p  { margin: 0 0 var(--va-4); color: var(--va-text); }
   outline-offset: 3px;
   border-radius: 6px;
 }
+
 .skip-link { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
 .skip-link:focus {
-  left: var(--va-4); top: var(--va-4); width: auto; height: auto; padding: var(--va-2) var(--va-4);
-  background: var(--va-bg-elev); color: #fff; border-radius: 8px; box-shadow: var(--va-shadow-sm);
+  left: var(--va-4); top: var(--va-4); width: auto; height: auto;
+  padding: var(--va-2) var(--va-4);
+  background: var(--va-bg-elev);
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: var(--va-shadow-sm);
 }
 
-/* 3) Layout */
+/* ==========================================================================
+   3) Layout
+   ========================================================================== */
 .container { max-width: var(--va-container); margin: 0 auto; padding: 0 var(--va-4); }
 .section   { padding: var(--va-16) 0; }
 .section--tight { padding: var(--va-12) 0; }
 .stack > * + * { margin-top: var(--va-4); }
+
 .grid { display: grid; gap: var(--va-6); }
 .grid-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
 .grid-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
@@ -133,13 +168,16 @@ p  { margin: 0 0 var(--va-4); color: var(--va-text); }
 }
 .card:hover { transform: translateY(-2px); box-shadow: var(--va-shadow-md); border-color: rgba(56,189,248,.4); }
 
-/* 4) Navigation (alt markup + optional BEM) */
+/* ==========================================================================
+   4) Navigation (generic)
+   ========================================================================== */
 header.site-header {
   position: sticky; top: 0; z-index: 50;
   backdrop-filter: saturate(1.1) blur(8px);
   background: rgba(10,15,28,.75);
   border-bottom: 1px solid var(--va-border);
 }
+
 .nav { display: flex; align-items: center; justify-content: space-between; gap: var(--va-6); padding: var(--va-4) 0; }
 .nav__brand { display: flex; align-items: center; gap: var(--va-3); font-weight: 700; color: #fff; }
 .nav__menu { display: flex; align-items: center; gap: var(--va-4); }
@@ -147,19 +185,28 @@ header.site-header {
 .nav__menu a:hover { background: rgba(56,189,248,.08); }
 .nav__menu a[aria-current="page"] { background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.28); }
 
-/* Make sure burger can always receive taps */
-.burger{
-  display: none; /* desktop hidden */
-  background: transparent;
-  border: 0;
-  padding: 0;
-  pointer-events: auto;
+/* --- Agent chips: never steal clicks from burger ------------------------- */
+.agent-chips{
+  position: static !important;    /* override any absolute in styles.css */
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  min-width: 0;
+  overflow: hidden;
+  z-index: 1;
 }
+/* If chips contain links: keep them, but prevent huge hit-area */
+.agent-chips a { display: inline-flex; max-width: 100%; }
 
-/* 5) Hero */
+/* ==========================================================================
+   5) Hero
+   ========================================================================== */
 .hero {
   padding: var(--va-16) 0 var(--va-12);
-  display: grid; gap: var(--va-8);
+  display: grid;
+  gap: var(--va-8);
   grid-template-columns: 1.2fr .8fr;
   align-items: center;
 }
@@ -167,23 +214,31 @@ header.site-header {
 .hero__lead  { color: var(--va-muted); max-width: 62ch; }
 .hero__img   { border-radius: var(--va-radius); overflow: hidden; border: 1px solid var(--va-border); box-shadow: var(--va-shadow-sm); }
 
-/* 6) Buttons */
+/* ==========================================================================
+   6) Buttons
+   ========================================================================== */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
   padding: .85rem 1.1rem;
-  border-radius: 12px; border: 1px solid rgba(255,255,255,.08);
-  color: #0b1325; background: linear-gradient(180deg, var(--va-primary), var(--va-primary-600));
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  color: #0b1325;
+  background: linear-gradient(180deg, var(--va-primary), var(--va-primary-600));
   box-shadow: 0 6px 20px rgba(0,174,239,.28);
-  font-weight: 600; transition: transform .1s ease, box-shadow .2s ease, filter .2s ease;
+  font-weight: 600;
+  transition: transform .1s ease, box-shadow .2s ease, filter .2s ease;
 }
 .btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
 .btn--ghost { background: transparent; color: var(--va-text); border-color: var(--va-border); }
 .btn--ghost:hover { background: rgba(56,189,248,.08); border-color: rgba(56,189,248,.3); }
 
-/* 7) Utilities & content */
+/* ==========================================================================
+   7) Utilities & content
+   ========================================================================== */
 .kicker { color: var(--va-primary-300); text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
 .muted  { color: var(--va-muted); }
 .center { text-align: center; }
+
 .mt-0 { margin-top: 0 !important; }
 .mb-0 { margin-bottom: 0 !important; }
 .mt-4 { margin-top: var(--va-4) !important; }
@@ -192,14 +247,20 @@ header.site-header {
 .mb-8 { margin-bottom: var(--va-8) !important; }
 
 .badge {
-  display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .6rem; border-radius: 999px;
-  background: rgba(56,189,248,.12); color: var(--va-primary-300); border: 1px solid rgba(56,189,248,.3);
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  background: rgba(56,189,248,.12);
+  color: var(--va-primary-300);
+  border: 1px solid rgba(56,189,248,.3);
 }
 
 .feature-list { display: grid; gap: var(--va-4); }
 .feature-list li { display: flex; gap: .6rem; align-items: flex-start; }
 
-/* 8) Footer */
+/* ==========================================================================
+   8) Footer
+   ========================================================================== */
 footer.site-footer {
   border-top: 1px solid var(--va-border);
   padding: var(--va-12) 0;
@@ -209,40 +270,123 @@ footer.site-footer {
 .site-footer a { color: var(--va-text-dim); }
 .site-footer small { display: block; margin-top: var(--va-4); }
 
-/* 9) Tables & Forms */
+/* ==========================================================================
+   9) Tables & Forms
+   ========================================================================== */
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: .75rem 1rem; border-bottom: 1px solid var(--va-border); }
 th { text-align: left; color: var(--va-text-dim); font-weight: 600; }
+
 input[type="text"], input[type="email"], textarea {
-  width: 100%; padding: .8rem 1rem; border-radius: 12px;
-  background: var(--va-bg-elev); color: var(--va-text);
+  width: 100%;
+  padding: .8rem 1rem;
+  border-radius: 12px;
+  background: var(--va-bg-elev);
+  color: var(--va-text);
   border: 1px solid var(--va-border);
 }
 input:focus, textarea:focus { outline: 2px solid var(--va-primary-300); outline-offset: 2px; }
 
-/* 10) Media queries */
+/* ==========================================================================
+   10) Media queries
+   ========================================================================== */
 @media (max-width: 1200px) { .container { max-width: 1000px; } }
+
 @media (max-width: 992px)  {
   .hero { grid-template-columns: 1fr; padding: var(--va-12) 0 var(--va-10); }
-  .nav__menu { gap: var(--va-3); }
+
+  /* Keep header click-safe + stable */
+  header.header, header.site-header { z-index: 100; }
+
+  /* Burger MUST be on top and clickable */
+  .burger{
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--va-border);
+    background: rgba(56,189,248,.08);
+    cursor: pointer;
+    z-index: 999;               /* key */
+    position: relative;         /* key */
+    pointer-events: auto;       /* key */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Use the REAL 3-span markup (no pseudo elements) */
+  .burger span{
+    display: block !important;
+    width: 20px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    margin: 3px 0;
+    opacity: 1;
+  }
+
+  /* Menu collapses by default on mobile */
+  #menu.menu,
+  nav .menu,
+  #menu{
+    display: none !important;
+    flex-direction: column;
+    gap: .75rem;
+    width: 100%;
+    padding: .75rem 0 0;
+    background: rgba(10,15,28,.92);
+    border-top: 1px solid var(--va-border);
+    order: 10;                  /* ensure it sits below header row */
+  }
+
+  /* Open state */
+  #menu.open,
+  nav .menu.open{
+    display: flex !important;
+  }
+
+  /* Make header row behave: brand left, burger right, chips below */
+  .container.nav{ align-items: center; }
+  .brand{ order: 1; }
+  .burger{ order: 2; margin-left: auto; }
+  .agent-chips{
+    order: 3;
+    flex: 0 0 100%;
+    justify-content: flex-start;
+    margin-top: .5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: .25rem;
+    /* IMPORTANT: chips must not block the burger area */
+    z-index: 1;
+  }
 }
+
 @media (max-width: 768px)  {
   .section { padding: var(--va-12) 0; }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .btn { width: 100%; }
   nav a { font-size: 1rem; }
 }
+
 @media (max-width: 480px)  {
   h1 { letter-spacing: 0; }
   .container { padding: 0 var(--va-3); }
 }
 
-/* 11) Reduced motion */
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+/* ==========================================================================
+   11) Reduced motion
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
 
-/* === Hotfix: mobile scroll + ruhigeres Hover =================== */
-
-/* 1) Mobil: Scroll erzwingen, keine versehentlichen Locks von Alt-CSS */
+/* ==========================================================================
+   Hotfixes (scroll + calmer hover)
+   ========================================================================== */
 html, body {
   height: auto !important;
   min-height: 100% !important;
@@ -250,102 +394,24 @@ html, body {
   overflow-x: hidden !important;
 }
 
-/* manche Frameworks setzen das auf Sektionen */
 section, main {
   min-height: auto !important;
   overflow: visible !important;
 }
 
-/* 2) Header soll nicht die Seite „überdecken“ */
 header.header, header.site-header {
   position: sticky;
   top: 0;
-  z-index: 50;
   pointer-events: auto;
 }
 
-/* Ensure ALL header children can receive taps */
-header.header * { pointer-events: auto; }
-
-/* 3) Ruhigeres Verhalten auf Desktop */
 .btn:hover    { transform: none; box-shadow: none; filter: none; }
 .card:hover   { transform: none; box-shadow: var(--va-shadow-sm); }
 
-/* Optional: Blur minimal schwächer, wirkt stabiler beim Scrollen */
 header.header, header.site-header {
   backdrop-filter: saturate(1.05) blur(6px);
 }
 
-/* 4) Hero: sicher kein viewport-lock auf kleinen Screens */
 @media (max-width: 1024px) {
   .hero { grid-template-columns: 1fr; }
-}
-
-/* === Mobile Nav: Burger klickbar + Dropdown sichtbar ================== */
-@media (max-width: 992px) {
-
-  /* 0) Agent chips sollen auf Mobile nicht den Burger überlagern */
-  .agent-chips{
-    display: none !important;         /* wichtigste Entlastung */
-    pointer-events: none !important;
-  }
-
-  /* 1) Burger sichtbar + sicher klickbar */
-  .burger {
-    display: inline-flex !important;
-    align-items: center; justify-content: center;
-    width: 44px; height: 44px;
-    border-radius: 10px;
-    border: 1px solid var(--va-border);
-    background: rgba(56,189,248,.08);
-    cursor: pointer;
-    position: relative !important;
-    z-index: 200 !important;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Burger icon for 3 spans */
-  .burger span{
-    display:block;
-    width: 18px;
-    height: 2px;
-    background: #fff;
-    margin: 2px 0;
-    border-radius: 2px;
-  }
-
-  /* 2) Menü als Dropdown-Overlay unter dem Header */
-  #menu,
-  nav .menu {
-    display: none !important;
-    position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    top: calc(100% + 1px) !important;
-    flex-direction: column;
-    gap: .5rem;
-    padding: .75rem var(--va-4) 1rem;
-    background: rgba(10,15,28,.96);
-    border-top: 1px solid var(--va-border);
-    border-bottom: 1px solid var(--va-border);
-    box-shadow: 0 18px 40px rgba(0,0,0,.45);
-    z-index: 150 !important;
-  }
-
-  /* Wenn JS .open setzt -> anzeigen */
-  #menu.open,
-  nav .menu.open {
-    display: flex !important;
-  }
-
-  /* Links im Dropdown */
-  #menu a,
-  nav .menu a {
-    display: block;
-    padding: .75rem .5rem;
-    border-radius: 10px;
-  }
-
-  /* Header über Inhalt halten */
-  header.header, header.site-header { z-index: 300; }
 }
