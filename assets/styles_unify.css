@@ -378,3 +378,11 @@ section::before, section::after {
 }
 /* ================= END DEBUG ==================== */
 
+/* DEBUG TEST: hero should not intercept taps */
+.hero,
+.hero * {
+  pointer-events: none !important;
+}
+
+
+
