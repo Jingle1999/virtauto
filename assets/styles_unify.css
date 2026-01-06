@@ -330,3 +330,40 @@ main, section{
   min-height: auto !important;
   overflow: visible !important;
 }
+
+/* === HOTFIX: Header must be topmost & clickable (esp. index.html) ========= */
+
+/* Make sure header wins all stacking contexts */
+header.header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 99999 !important;
+  isolation: isolate;            /* new stacking context for header */
+  pointer-events: auto !important;
+}
+
+/* Ensure header contents receive taps */
+header.header * {
+  pointer-events: auto !important;
+}
+
+/* Push main content below header stacking-wise */
+main, section, .hero, .content-section {
+  position: relative;
+  z-index: 0 !important;
+}
+
+/* If any hero overlays exist, they must not capture clicks */
+.hero::before, .hero::after,
+section::before, section::after {
+  pointer-events: none !important;
+}
+
+/* Burger should always be tappable on mobile */
+@media (max-width: 992px) {
+  .burger {
+    position: relative;
+    z-index: 100000 !important;
+  }
+}
+
