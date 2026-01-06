@@ -367,3 +367,14 @@ section::before, section::after {
   }
 }
 
+/* ================= DEBUG STEP 1 ================= */
+/* Show invisible click-blocking elements on homepage */
+
+.hero,
+.container.split,
+.hero *,
+.container.split * {
+  outline: 2px solid red !important;
+}
+/* ================= END DEBUG ==================== */
+
