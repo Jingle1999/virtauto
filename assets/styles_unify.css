@@ -301,4 +301,3 @@ header.header, header.site-header {
   /* Header über Inhalt halten */
   header.header, header.site-header { z-index: 100; }
 }
-
