@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Industry Model · virtauto®</title>
+
+  <link rel="canonical" href="https://www.virtauto.de/industrymodel.html">
+  <meta name="description" content="Industry Model: how virtauto’s factory world model is formed, governed, simulated, and executed — with Doorline as the first real instance.">
+  <meta property="og:title" content="virtauto Industry Model — So thinks our factory, before it acts."/>
+  <meta property="og:url" content="https://www.virtauto.de/industrymodel.html"/>
+  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
+  <meta name="twitter:title" content="virtauto Industry Model — So thinks our factory, before it acts."/>
+  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
+
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <link rel="stylesheet" href="assets/styles_unify.css"/>
+  <script defer src="assets/site.js"></script>
+</head>
+
+<body>
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+
+    <nav class="menu" id="menu">
+      <a href="index.html">Home</a>
+      <a href="agents.html">Agents</a>
+      <a href="architecture.html">Architecture</a>
+      <a class="active" href="industrymodel.html">Industry Model</a>
+      <a href="/status/">Status</a>
+      <a href="contact.html">Contact</a>
+      <a class="cta" href="solutions.html#george">Meet GEORGE</a>
+    </nav>
+
+    <div id="agent-chips" class="agent-chips" aria-label="Agent health"></div>
+
+    <button class="burger" aria-label="Menu" type="button">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="kicker">Industry Model</div>
+      <h1>So thinks our factory — before it acts.</h1>
+      <p class="lead">
+        We condense the factory’s world model into one coherent view — and introduce <strong>Doorline</strong>
+        as the first real, concrete instance within the <strong>Bodyshop</strong> subsystem.
+      </p>
+
+      <div class="card" style="margin-top:16px">
+        <strong>Hierarchy</strong>
+        <p class="muted" style="margin-top:8px;margin-bottom:0">
+          Industry Model → Bodyshop → Doorline → Doors (Front Left / Front Right / Rear Left / Rear Right)
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORLD MODEL DIAGRAM -->
+  <section class="section" id="world-model">
+    <div class="container">
+      <h2>Condensed World Model</h2>
+      <p class="muted">
+        A single representation of what exists (entities), what is true right now (state),
+        what is allowed (constraints &amp; policies), what is remembered (memory),
+        what can be tested safely (simulation), and what can be executed (tools &amp; process flow).
+      </p>
+
+      <div class="card" style="padding:16px">
+        <svg viewBox="0 0 1100 420" role="img" aria-label="Industry Model hierarchy diagram" style="width:100%;height:auto">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(0,174,239,.25)"/>
+              <stop offset="1" stop-color="rgba(34,211,238,.12)"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Background -->
+          <rect x="0" y="0" width="1100" height="420" rx="18" fill="url(#g1)" opacity="0.55"></rect>
+
+          <!-- Boxes -->
+          <g font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial" fill="#E5E7EB">
+            <!-- Industry Model -->
+            <rect x="60" y="50" width="980" height="80" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.35)"></rect>
+            <text x="90" y="95" font-size="26" font-weight="700">Industry Model</text>
+            <text x="90" y="120" font-size="14" fill="rgba(229,231,235,.75)">Unified representation of factory reality</text>
+
+            <!-- Bodyshop -->
+            <rect x="110" y="165" width="420" height="90" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.35)"></rect>
+            <text x="140" y="205" font-size="22" font-weight="700">Bodyshop</text>
+            <text x="140" y="232" font-size="14" fill="rgba(229,231,235,.75)">Subsystem within the Industry Model</text>
+
+            <!-- Doorline -->
+            <rect x="570" y="165" width="470" height="90" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.55)"></rect>
+            <text x="600" y="205" font-size="22" font-weight="700">Doorline</text>
+            <text x="600" y="232" font-size="14" fill="rgba(229,231,235,.75)">Manufacturing line inside Bodyshop</text>
+
+            <!-- Doors -->
+            <rect x="110" y="290" width="220" height="80" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.25)"></rect>
+            <text x="140" y="330" font-size="18" font-weight="700">Door FL</text>
+            <text x="140" y="352" font-size="13" fill="rgba(229,231,235,.75)">Front Left</text>
+
+            <rect x="350" y="290" width="220" height="80" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.25)"></rect>
+            <text x="380" y="330" font-size="18" font-weight="700">Door FR</text>
+            <text x="380" y="352" font-size="13" fill="rgba(229,231,235,.75)">Front Right</text>
+
+            <rect x="590" y="290" width="220" height="80" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.25)"></rect>
+            <text x="620" y="330" font-size="18" font-weight="700">Door RL</text>
+            <text x="620" y="352" font-size="13" fill="rgba(229,231,235,.75)">Rear Left</text>
+
+            <rect x="830" y="290" width="210" height="80" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.25)"></rect>
+            <text x="860" y="330" font-size="18" font-weight="700">Door RR</text>
+            <text x="860" y="352" font-size="13" fill="rgba(229,231,235,.75)">Rear Right</text>
+          </g>
+
+          <!-- Connectors -->
+          <g stroke="rgba(229,231,235,.55)" stroke-width="2" fill="none">
+            <path d="M 320 130 L 320 165"></path>
+            <path d="M 805 130 L 805 165"></path>
+            <path d="M 320 255 L 320 290"></path>
+            <path d="M 805 255 L 805 290"></path>
+            <path d="M 320 255 L 460 290"></path>
+            <path d="M 805 255 L 700 290"></path>
+            <path d="M 805 255 L 935 290"></path>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOORLINE AS FIRST REAL INSTANCE -->
+  <section class="section" id="doorline">
+    <div class="container">
+      <h2>Doorline as the First Real Instance</h2>
+      <div class="card-grid three">
+        <div class="card">
+          <h3>Context</h3>
+          <p class="muted">
+            Doorline is a manufacturing line within the Bodyshop subsystem.
+            It is structured around four concrete door variants: FL, FR, RL, RR.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Why it matters</h3>
+          <p class="muted">
+            The world model is not a slide — it becomes operational only when mapped to a real subsystem
+            and real entities that can be observed, governed, and improved.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Outcome</h3>
+          <p class="muted">
+            Doorline becomes the anchor point for consistent state, controlled actions, traceable decisions,
+            and resilient operation — inside one governed model.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCEPTS -->
+  <section class="section" id="concepts">
+    <div class="container">
+      <h2>What the model contains</h2>
+      <p class="muted">
+        The following building blocks define how the factory is represented and how it moves from sensing to action.
+      </p>
+
+      <div class="card-grid three">
+        <div class="card"><h3>Entities</h3><p class="muted">Real things in the factory model (systems, lines, products).</p></div>
+        <div class="card"><h3>State</h3><p class="muted">The current truth: conditions, availability, readiness, and signals.</p></div>
+        <div class="card"><h3>Constraints</h3><p class="muted">Hard limits that must never be violated (technical and operational).</p></div>
+
+        <div class="card"><h3>Policies</h3><p class="muted">Rules that shape permissible actions and required approvals.</p></div>
+        <div class="card"><h3>Memory</h3><p class="muted">What the system retains to remain consistent and improve over time.</p></div>
+        <div class="card"><h3>Simulation</h3><p class="muted">Safe evaluation of possible decisions before committing to execution.</p></div>
+
+        <div class="card"><h3>Tools</h3><p class="muted">Controlled capabilities to observe, validate, and (only when allowed) act.</p></div>
+        <div class="card"><h3>Process Flow</h3><p class="muted">The ordered path from sensing to governed execution and recovery.</p></div>
+        <div class="card"><h3>Intent</h3><p class="muted">The “why”: desired outcomes expressed as goals, not manual steps.</p></div>
+
+        <div class="card"><h3>Governance</h3><p class="muted">Guardrails, approvals, accountability, and evidence for decisions.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS FLOW -->
+  <section class="section" id="flow">
+    <div class="container">
+      <h2>From perception to action</h2>
+      <p class="muted">The model follows a deliberate sequence — the factory thinks first, then acts.</p>
+
+      <div class="card">
+        <ol class="list" style="margin:0">
+          <li><strong>Perception</strong> — status and signals are captured.</li>
+          <li><strong>World Model Update</strong> — states are updated consistently.</li>
+          <li><strong>Reasoning &amp; Simulation</strong> — possible decisions are evaluated.</li>
+          <li><strong>Governance Check</strong> — rules and approvals are enforced.</li>
+          <li><strong>Execution</strong> — only then actions are performed.</li>
+          <li><strong>Resilience</strong> — detect deviations, stabilize, and recover safely (with traceable outcomes).</li>
+        </ol>
+      </div>
+
+      <div class="actions" style="margin-top:16px">
+        <a class="btn" href="solutions.html">Explore Solutions</a>
+        <a class="btn ghost" href="contact.html">Request a demo</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container cols">
+    <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
+    <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
+    <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+  </div>
+
+  <div style="margin-top:24px;padding:12px 0;border-top:1px solid #1a2332;">
+    <a href="/status/" class="agentic-link" aria-label="Open System Status">
+      <small id="agentic-status" class="agentic-status" aria-live="polite">
+        <span class="dot"></span> Agentic Website — checking…
+      </small>
+    </a>
+  </div>
+</footer>
+</body>
+</html>
