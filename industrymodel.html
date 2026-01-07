@@ -5,13 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Industry Model · virtauto®</title>
 
+  <!-- SEO -->
   <link rel="canonical" href="https://www.virtauto.de/industrymodel.html">
   <meta name="description" content="Industry Model: how virtauto’s factory world model is formed, governed, simulated, and executed — with Doorline as the first real instance.">
-  <meta property="og:title" content="virtauto Industry Model — So thinks our factory, before it acts."/>
-  <meta property="og:url" content="https://www.virtauto.de/industrymodel.html"/>
-  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
-  <meta name="twitter:title" content="virtauto Industry Model — So thinks our factory, before it acts."/>
-  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="virtauto Industry Model — So thinks our factory, before it acts.">
+  <meta property="og:description" content="A condensed factory world model: entities, state, constraints, policies, memory, simulation, tools, process flow, intent, and governance — grounded in a real Bodyshop Doorline.">
+  <meta property="og:url" content="https://www.virtauto.de/industrymodel.html">
+  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="virtauto Industry Model — So thinks our factory, before it acts.">
+  <meta name="twitter:description" content="A condensed factory world model with Doorline as the first real instance inside Bodyshop.">
+  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <link rel="stylesheet" href="assets/styles.css"/>
   <link rel="stylesheet" href="assets/styles_unify.css"/>
@@ -55,7 +64,7 @@
       <div class="card" style="margin-top:16px">
         <strong>Hierarchy</strong>
         <p class="muted" style="margin-top:8px;margin-bottom:0">
-          Industry Model → Bodyshop → Doorline → Doors (Front Left / Front Right / Rear Left / Rear Right)
+          Industry Model → Bodyshop → Doorlines (Front Left / Front Right / Rear Left / Rear Right)
         </p>
       </div>
     </div>
@@ -72,6 +81,7 @@
       </p>
 
       <div class="card" style="padding:16px">
+        <!-- NOTE: Corrected structure: all four doorlines sit under Bodyshop (no extra intermediate node). -->
         <svg viewBox="0 0 1100 420" role="img" aria-label="Industry Model hierarchy diagram" style="width:100%;height:auto">
           <defs>
             <linearGradient id="g1" x1="0" x2="1">
@@ -91,42 +101,38 @@
             <text x="90" y="120" font-size="14" fill="rgba(229,231,235,.75)">Unified representation of factory reality</text>
 
             <!-- Bodyshop -->
-            <rect x="110" y="165" width="420" height="90" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.35)"></rect>
+            <rect x="110" y="165" width="880" height="90" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.35)"></rect>
             <text x="140" y="205" font-size="22" font-weight="700">Bodyshop</text>
             <text x="140" y="232" font-size="14" fill="rgba(229,231,235,.75)">Subsystem within the Industry Model</text>
 
-            <!-- Doorline -->
-            <rect x="570" y="165" width="470" height="90" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.55)"></rect>
-            <text x="600" y="205" font-size="22" font-weight="700">Doorline</text>
-            <text x="600" y="232" font-size="14" fill="rgba(229,231,235,.75)">Manufacturing line inside Bodyshop</text>
-
-            <!-- Doors -->
+            <!-- Doorlines (all under Bodyshop) -->
             <rect x="110" y="290" width="220" height="80" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.25)"></rect>
-            <text x="140" y="330" font-size="18" font-weight="700">Door FL</text>
+            <text x="140" y="330" font-size="18" font-weight="700">Doorline FL</text>
             <text x="140" y="352" font-size="13" fill="rgba(229,231,235,.75)">Front Left</text>
 
             <rect x="350" y="290" width="220" height="80" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.25)"></rect>
-            <text x="380" y="330" font-size="18" font-weight="700">Door FR</text>
+            <text x="380" y="330" font-size="18" font-weight="700">Doorline FR</text>
             <text x="380" y="352" font-size="13" fill="rgba(229,231,235,.75)">Front Right</text>
 
             <rect x="590" y="290" width="220" height="80" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.25)"></rect>
-            <text x="620" y="330" font-size="18" font-weight="700">Door RL</text>
+            <text x="620" y="330" font-size="18" font-weight="700">Doorline RL</text>
             <text x="620" y="352" font-size="13" fill="rgba(229,231,235,.75)">Rear Left</text>
 
             <rect x="830" y="290" width="210" height="80" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.25)"></rect>
-            <text x="860" y="330" font-size="18" font-weight="700">Door RR</text>
+            <text x="860" y="330" font-size="18" font-weight="700">Doorline RR</text>
             <text x="860" y="352" font-size="13" fill="rgba(229,231,235,.75)">Rear Right</text>
           </g>
 
           <!-- Connectors -->
           <g stroke="rgba(229,231,235,.55)" stroke-width="2" fill="none">
-            <path d="M 320 130 L 320 165"></path>
-            <path d="M 805 130 L 805 165"></path>
-            <path d="M 320 255 L 320 290"></path>
-            <path d="M 805 255 L 805 290"></path>
-            <path d="M 320 255 L 460 290"></path>
-            <path d="M 805 255 L 700 290"></path>
-            <path d="M 805 255 L 935 290"></path>
+            <!-- Industry Model -> Bodyshop (center) -->
+            <path d="M 550 130 L 550 165"></path>
+
+            <!-- Bodyshop -> Doorlines -->
+            <path d="M 550 255 L 220 290"></path>
+            <path d="M 550 255 L 460 290"></path>
+            <path d="M 550 255 L 700 290"></path>
+            <path d="M 550 255 L 935 290"></path>
           </g>
         </svg>
       </div>
@@ -216,7 +222,10 @@
 
 <footer class="footer">
   <div class="container cols">
-    <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
+    <div>
+      <strong>virtauto®</strong><br/>
+      <small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small>
+    </div>
     <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
     <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
   </div>
