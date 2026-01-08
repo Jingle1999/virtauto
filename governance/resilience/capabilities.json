@@ -1,0 +1,36 @@
+{
+  "capabilities": [
+    {
+      "name": "deploy",
+      "description": "Deploy and rollback production artifacts",
+      "must_never_do": [
+        "deploy without governance approval",
+        "bypass rollback safety"
+      ]
+    },
+    {
+      "name": "monitoring_read",
+      "description": "Read system health, metrics, and signals",
+      "must_never_do": [
+        "modify system state",
+        "suppress health signals"
+      ]
+    },
+    {
+      "name": "content",
+      "description": "Ingest and publish governed content",
+      "must_never_do": [
+        "publish without trace",
+        "overwrite existing content silently"
+      ]
+    },
+    {
+      "name": "guardian",
+      "description": "Enforce governance and policy checks",
+      "must_never_do": [
+        "approve its own actions",
+        "skip governance gates"
+      ]
+    }
+  ]
+}
