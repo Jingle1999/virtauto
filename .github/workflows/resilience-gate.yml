@@ -1,0 +1,24 @@
+name: resilience-gate
+
+on:
+  push:
+    paths:
+      - "governance/resilience/**"
+  pull_request:
+    paths:
+      - "governance/resilience/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run resilience gate (validate + simulate trace)
+        run: node governance/resilience/tests/resilience_gate.js
+
+      - name: Upload failover trace artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: failover-trace
+          path: governance/resilience/tests/failover_trace_latest.json
