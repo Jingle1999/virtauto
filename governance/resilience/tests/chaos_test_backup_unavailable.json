@@ -1,0 +1,19 @@
+{
+  "scenario": "backup_unavailable_escalate",
+  "capability": "deploy",
+  "inject_faults": [
+    { "agent": "deploy_agent_v1", "fault": "down" },
+    { "agent": "deploy_agent_v1_backup", "fault": "down" }
+  ],
+  "expected_behavior": {
+    "routing": "escalate_to_human",
+    "allowed_actions": [
+      "escalate_to_human"
+    ],
+    "disallowed_actions": [
+      "retry_with_llm",
+      "auto_change_prompts",
+      "auto_optimize_parameters"
+    ]
+  }
+}
