@@ -1,0 +1,17 @@
+{
+  "scenario": "backup_unavailable_escalate",
+  "capability_required": "deploy",
+  "expected_decision": {
+    "routed_to": "human_escalation",
+    "reason": "no_healthy_agent_available",
+    "mechanism": "deterministic_failover"
+  },
+  "expected_evidence_fields": [
+    "timestamp_utc",
+    "capability_required",
+    "primary_agent",
+    "secondary_agent",
+    "observed_health",
+    "decision"
+  ]
+}
