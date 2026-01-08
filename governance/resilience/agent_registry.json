@@ -1,0 +1,48 @@
+{
+  "agents": [
+    {
+      "agent_id": "deploy_agent_v1",
+      "capabilities": ["deploy"],
+      "priority": 1
+    },
+    {
+      "agent_id": "deploy_agent_v1_backup",
+      "capabilities": ["deploy"],
+      "priority": 2,
+      "backup_of": "deploy_agent_v1"
+    },
+    {
+      "agent_id": "monitoring_agent_v1",
+      "capabilities": ["monitoring_read"],
+      "priority": 1
+    },
+    {
+      "agent_id": "monitoring_agent_v1_backup",
+      "capabilities": ["monitoring_read"],
+      "priority": 2,
+      "backup_of": "monitoring_agent_v1"
+    },
+    {
+      "agent_id": "content_agent_v1",
+      "capabilities": ["content"],
+      "priority": 1
+    },
+    {
+      "agent_id": "content_agent_v1_backup",
+      "capabilities": ["content"],
+      "priority": 2,
+      "backup_of": "content_agent_v1"
+    },
+    {
+      "agent_id": "guardian_agent_v1",
+      "capabilities": ["guardian"],
+      "priority": 1
+    },
+    {
+      "agent_id": "guardian_agent_v1_backup",
+      "capabilities": ["guardian"],
+      "priority": 2,
+      "backup_of": "guardian_agent_v1"
+    }
+  ]
+}
