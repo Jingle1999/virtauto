@@ -1,0 +1,238 @@
+{
+  "version": "phase8-resilience-backlog-1.0",
+  "scope": "virtauto",
+  "phase": 8,
+  "principles": {
+    "resilience_first": true,
+    "no_single_point_of_failure": true,
+    "no_implicit_fallbacks": true,
+    "no_magic_recovery": true,
+    "failover_is_mechanism_not_decision": true,
+    "trace_everything": true
+  },
+  "explicit_non_goals": [
+    "no_learning",
+    "no_optimization",
+    "no_prompt_changes",
+    "no_policy_generation",
+    "no_autonomy_increase",
+    "no_llm_in_failover"
+  ],
+  "health_signals": {
+    "heartbeat": {
+      "description": "Agent reports liveness at a fixed interval.",
+      "unit": "seconds_since_last_heartbeat",
+      "freshness_required": true
+    },
+    "execution_success": {
+      "description": "Rolling success ratio for recent runs (bounded window).",
+      "unit": "ratio_0_to_1",
+      "freshness_required": true
+    },
+    "freshness": {
+      "description": "Age of last successful check/report.",
+      "unit": "seconds_since_last_success",
+      "freshness_required": true
+    },
+    "rule_evaluation": {
+      "description": "Guardian can evaluate required rules without errors.",
+      "unit": "boolean",
+      "freshness_required": true
+    }
+  },
+  "capabilities": [
+    {
+      "capability": "deploy",
+      "criticality": "critical",
+      "primary_agent": "deploy_agent_v1",
+      "secondary_agent": "deploy_agent_v1_backup",
+      "health": {
+        "metric": "heartbeat",
+        "threshold": {
+          "max_seconds_since_last_heartbeat": 30
+        }
+      },
+      "routing": {
+        "mode": "capability_routing",
+        "priority": ["deploy_agent_v1", "deploy_agent_v1_backup"],
+        "failover_allowed": true
+      },
+      "governance_constraints": [
+        "no_deploy_without_guardian_approval",
+        "human_approval_required_for_production"
+      ],
+      "notes": "Backup agent duplicates capability only; no new behavior."
+    },
+    {
+      "capability": "monitoring",
+      "criticality": "critical",
+      "primary_agent": "monitoring_agent_v1",
+      "secondary_agent": "monitoring_agent_v1_backup",
+      "health": {
+        "metric": "freshness",
+        "threshold": {
+          "max_seconds_since_last_success": 60
+        }
+      },
+      "routing": {
+        "mode": "capability_routing",
+        "priority": ["monitoring_agent_v1", "monitoring_agent_v1_backup"],
+        "failover_allowed": true
+      },
+      "governance_constraints": [
+        "monitoring_must_never_fail_silently",
+        "status_outputs_must_be_traceable"
+      ],
+      "notes": "Monitoring failure triggers alert/escalation; no auto-fixes beyond routing."
+    },
+    {
+      "capability": "content",
+      "criticality": "important",
+      "primary_agent": "content_agent_v1",
+      "secondary_agent": "content_agent_v1_backup",
+      "health": {
+        "metric": "execution_success",
+        "threshold": {
+          "min_success_ratio": 0.9,
+          "window_runs": 10
+        }
+      },
+      "routing": {
+        "mode": "capability_routing",
+        "priority": ["content_agent_v1", "content_agent_v1_backup"],
+        "failover_allowed": true
+      },
+      "governance_constraints": [
+        "content_changes_require_evidence",
+        "no_auto_publish_without_approval"
+      ],
+      "notes": "Content may be delayed; must not be lost. Backup ensures continuity."
+    },
+    {
+      "capability": "guardian",
+      "criticality": "critical",
+      "primary_agent": "guardian_agent_v1",
+      "secondary_agent": "guardian_agent_v1_backup",
+      "health": {
+        "metric": "rule_evaluation",
+        "threshold": {
+          "must_be_true": true
+        }
+      },
+      "routing": {
+        "mode": "capability_routing",
+        "priority": ["guardian_agent_v1", "guardian_agent_v1_backup"],
+        "failover_allowed": true
+      },
+      "governance_constraints": [
+        "guardian_failure_blocks_autonomy",
+        "no_action_without_governance_check"
+      ],
+      "notes": "If both guardian instances unhealthy -> system enters 'block' state."
+    }
+  ],
+  "deterministic_failover_rules": [
+    {
+      "id": "failover-001",
+      "name": "route_to_backup_on_health_drop",
+      "description": "Deterministic routing to secondary agent when primary health violates threshold.",
+      "if": {
+        "agent_health_below_threshold": true,
+        "capability_required": true,
+        "secondary_available": true
+      },
+      "then": {
+        "route_to": "secondary_agent",
+        "emit_trace": "failover_trace",
+        "escalate": false
+      },
+      "forbidden": [
+        "llm_decision",
+        "heuristic_selection",
+        "policy_change",
+        "permission_change"
+      ]
+    },
+    {
+      "id": "failover-002",
+      "name": "block_if_no_governor",
+      "description": "If guardian capability is unavailable, block all governed actions.",
+      "if": {
+        "capability": "guardian",
+        "no_available_agents": true
+      },
+      "then": {
+        "system_state": "blocked",
+        "emit_trace": "failover_trace",
+        "escalate": true
+      },
+      "forbidden": [
+        "auto_bypass_governance",
+        "auto_grant_permissions"
+      ]
+    }
+  ],
+  "required_artifacts": [
+    {
+      "name": "capability_graph.json",
+      "purpose": "Machine-readable registry for capability-based routing and failover."
+    },
+    {
+      "name": "failover_trace.jsonl",
+      "purpose": "Append-only evidence for every failover decision (deterministic)."
+    },
+    {
+      "name": "chaos_test_plan.md",
+      "purpose": "Planned tests that intentionally disable an agent to verify no wrong decisions occur."
+    }
+  ],
+  "chaos_tests": [
+    {
+      "id": "chaos-001",
+      "title": "Kill primary deploy agent",
+      "inject": {
+        "capability": "deploy",
+        "agent_to_disable": "deploy_agent_v1"
+      },
+      "expected": [
+        "route_to_backup",
+        "failover_trace_written",
+        "no_governance_bypass",
+        "deploy_requires_guardian_still"
+      ]
+    },
+    {
+      "id": "chaos-002",
+      "title": "Kill primary guardian agent",
+      "inject": {
+        "capability": "guardian",
+        "agent_to_disable": "guardian_agent_v1"
+      },
+      "expected": [
+        "route_to_backup",
+        "failover_trace_written",
+        "system_not_more_autonomous"
+      ]
+    },
+    {
+      "id": "chaos-003",
+      "title": "Kill both guardian agents",
+      "inject": {
+        "capability": "guardian",
+        "agents_to_disable": ["guardian_agent_v1", "guardian_agent_v1_backup"]
+      },
+      "expected": [
+        "system_state_blocked",
+        "escalation_triggered",
+        "no_actions_executed"
+      ]
+    }
+  ],
+  "exit_criteria": [
+    "every_critical_capability_has_primary_and_secondary",
+    "failover_rules_are_deterministic_and_documented",
+    "failover_events_are_traceable_and_append_only",
+    "chaos_test_kill_primary_routes_to_backup_without_policy_change",
+    "guardian_unavailable_blocks_actions"
+  ]
+}
