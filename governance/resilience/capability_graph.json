@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "phase": "8_resilience_first",
+  "updated_at": "2026-01-08T00:00:00Z",
+  "principles": {
+    "routing_is_mechanism": true,
+    "no_llm_in_failover": true,
+    "trace_every_routing_decision": true
+  },
+  "capabilities": [
+    {
+      "capability": "deploy",
+      "required": true,
+      "primary_agent": "deploy_agent_v1",
+      "secondary_agent": "deploy_agent_v1_backup",
+      "health_threshold": 0.8,
+      "routing_policy": {
+        "mode": "priority_then_failover",
+        "priority": ["deploy_agent_v1", "deploy_agent_v1_backup"]
+      },
+      "failover_rules_ref": "/governance/failover_rules.json"
+    },
+    {
+      "capability": "content",
+      "required": true,
+      "primary_agent": "content_agent_v1",
+      "secondary_agent": "content_agent_v1_backup",
+      "health_threshold": 0.8,
+      "routing_policy": {
+        "mode": "priority_then_failover",
+        "priority": ["content_agent_v1", "content_agent_v1_backup"]
+      },
+      "failover_rules_ref": "/governance/failover_rules.json"
+    },
+    {
+      "capability": "monitoring",
+      "required": true,
+      "primary_agent": "monitoring_agent_v1",
+      "secondary_agent": "monitoring_agent_v1_backup",
+      "health_threshold": 0.85,
+      "routing_policy": {
+        "mode": "priority_then_failover",
+        "priority": ["monitoring_agent_v1", "monitoring_agent_v1_backup"]
+      },
+      "failover_rules_ref": "/governance/failover_rules.json"
+    },
+    {
+      "capability": "guardian",
+      "required": true,
+      "primary_agent": "guardian_agent_v1",
+      "secondary_agent": "guardian_agent_v1_backup",
+      "health_threshold": 0.9,
+      "routing_policy": {
+        "mode": "priority_then_failover",
+        "priority": ["guardian_agent_v1", "guardian_agent_v1_backup"]
+      },
+      "failover_rules_ref": "/governance/failover_rules.json"
+    }
+  ],
+  "routing_trace_schema": {
+    "trace_id": "string",
+    "timestamp": "ISO-8601",
+    "capability": "string",
+    "requested_by": "string",
+    "selected_agent": "string",
+    "selected_reason": "primary|failover|manual_override",
+    "health_snapshot": {
+      "primary": "number",
+      "secondary": "number"
+    },
+    "rule_evidence": {
+      "failover_rule_id": "string",
+      "failover_rules_file": "string"
+    }
+  }
+}
