@@ -1,0 +1,57 @@
+{
+  "test_id": "chaos_test_agent_failover_v1",
+  "phase": "phase_8_resilience",
+  "description": "Deliberate failure of a primary agent to verify deterministic failover without decision-making.",
+  "preconditions": {
+    "capability": "deploy",
+    "primary_agent": "deploy_agent_v1",
+    "secondary_agent": "deploy_agent_v1_backup",
+    "agent_health_threshold": 0.7,
+    "initial_agent_health": {
+      "deploy_agent_v1": 0.95,
+      "deploy_agent_v1_backup": 0.92
+    }
+  },
+  "fault_injection": {
+    "action": "simulate_agent_failure",
+    "target_agent": "deploy_agent_v1",
+    "failure_mode": "hard_stop",
+    "timestamp": "injected_at_runtime"
+  },
+  "expected_behavior": {
+    "decision_making": "none",
+    "routing": {
+      "capability": "deploy",
+      "routed_to": "deploy_agent_v1_backup",
+      "reason": "agent_health_below_threshold"
+    },
+    "governance": {
+      "rules_applied": [
+        "failover_rule_deploy_v1"
+      ],
+      "approval_required": false
+    }
+  },
+  "trace_requirements": {
+    "events": [
+      "agent_health_drop_detected",
+      "failover_rule_evaluated",
+      "capability_routed_to_backup",
+      "primary_agent_marked_unavailable"
+    ],
+    "trace_level": "full",
+    "trace_persistence": true
+  },
+  "post_conditions": {
+    "system_state": "operational",
+    "active_agent": "deploy_agent_v1_backup",
+    "capability_available": true,
+    "incorrect_actions": false
+  },
+  "exit_criteria": {
+    "failover_executed": true,
+    "no_llm_decision_used": true,
+    "trace_complete": true,
+    "system_remains_governed": true
+  }
+}
