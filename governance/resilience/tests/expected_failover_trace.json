@@ -1,0 +1,39 @@
+{
+  "test_id": "chaos_failover_primary_down_routes_to_backup",
+  "expectations": [
+    {
+      "name": "failover_is_mechanism_not_decision",
+      "must_hold": true,
+      "checks": [
+        "routing.used_llm == false",
+        "routing.rule_id != null",
+        "routing.reason == 'primary_unhealthy'"
+      ]
+    },
+    {
+      "name": "backup_selected_for_required_capability",
+      "must_hold": true,
+      "checks": [
+        "capability_required == true",
+        "selected_agent.role == 'secondary'",
+        "selected_agent.capability == capability_required_name"
+      ]
+    },
+    {
+      "name": "evidence_written",
+      "must_hold": true,
+      "checks": [
+        "trace.event_count >= 3",
+        "trace.contains('health_check') == true",
+        "trace.contains('routing_decision') == true",
+        "trace.contains('execution_attempt') == true"
+      ]
+    }
+  ],
+  "non_goals": [
+    "no_learning",
+    "no_prompt_changes",
+    "no_automatic_policy_mutation",
+    "no_autonomy_increase"
+  ]
+}
