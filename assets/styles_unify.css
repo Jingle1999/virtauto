@@ -367,3 +367,120 @@ section::before, section::after {
   }
 }
 
+/* ================================
+   Agentic Presence — Header Strip
+   ================================ */
+
+.agent-chips { min-width: 0; }
+
+.agentic-strip{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:.6rem;
+  flex-wrap:wrap;
+}
+
+.agentic-strip__left,
+.agentic-strip__right{
+  display:flex;
+  align-items:center;
+  gap:.45rem;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.agentic-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:.4rem;
+  padding:.22rem .55rem;
+  border-radius:999px;
+  border:1px solid rgba(36,50,85,.9);
+  background: rgba(15,22,41,.95);
+  color:#dbe7ff;
+  font-size:.78rem;
+  line-height:1.2;
+  white-space:nowrap;
+  max-width:100%;
+}
+
+.agentic-pill .dot{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background: rgba(125,211,252,.95);
+  flex:0 0 auto;
+}
+
+.agentic-pill.ok{ border-color: rgba(34,197,94,.45); }
+.agentic-pill.ok .dot{ background: rgba(34,197,94,.95); }
+
+.agentic-pill.warn{ border-color: rgba(245,158,11,.45); }
+.agentic-pill.warn .dot{ background: rgba(245,158,11,.95); }
+
+.agentic-pill.crit{ border-color: rgba(239,68,68,.45); }
+.agentic-pill.crit .dot{ background: rgba(239,68,68,.95); }
+
+.agentic-meta{
+  font-size:.75rem;
+  color: rgba(229,231,235,.7);
+  padding:.18rem .2rem;
+  white-space:nowrap;
+}
+
+.agent-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  padding:.22rem .5rem;
+  border-radius:999px;
+  border:1px solid rgba(36,50,85,.9);
+  background: rgba(11,18,32,.9);
+  color:#dbe7ff;
+  font-size:.76rem;
+  line-height:1.2;
+  max-width: 100%;
+}
+
+.agent-chip .dot{
+  width:7px;
+  height:7px;
+  border-radius:999px;
+  background: rgba(125,211,252,.95);
+  flex:0 0 auto;
+}
+
+.agent-chip.ok{ border-color: rgba(34,197,94,.45); }
+.agent-chip.ok .dot{ background: rgba(34,197,94,.95); }
+
+.agent-chip.warn{ border-color: rgba(245,158,11,.45); }
+.agent-chip.warn .dot{ background: rgba(245,158,11,.95); }
+
+.agent-chip.crit{ border-color: rgba(239,68,68,.45); }
+.agent-chip.crit .dot{ background: rgba(239,68,68,.95); }
+
+.agent-chip__name{
+  max-width: 16ch;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.agent-chip__state{
+  color: rgba(229,231,235,.75);
+  font-size:.72rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+/* Mobile: keep it readable */
+@media (max-width: 720px){
+  .agentic-strip{
+    justify-content:flex-start;
+  }
+  .agentic-strip__left, .agentic-strip__right{
+    justify-content:flex-start;
+  }
+}
+
