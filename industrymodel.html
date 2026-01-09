@@ -7,24 +7,62 @@
 
   <!-- SEO -->
   <link rel="canonical" href="https://www.virtauto.de/industrymodel.html">
-  <meta name="description" content="Industry Model: how virtauto’s factory world model is formed, governed, simulated, and executed — with Doorline as the first real instance.">
+  <meta name="description" content="Industry Model: how virtauto’s factory world model is formed, governed, simulated, audited, and executed — grounded in a real Bodyshop Doorline.">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="virtauto Industry Model — So thinks our factory, before it acts.">
-  <meta property="og:description" content="A condensed factory world model: entities, state, constraints, policies, memory, simulation, tools, process flow, intent, and governance — grounded in a real Bodyshop Doorline.">
+  <meta property="og:description" content="A condensed factory world model: entities, state, constraints, policies, memory, simulation, tools, process flow, intent, governance — grounded in a real Bodyshop Doorline and an audit-first quality system.">
   <meta property="og:url" content="https://www.virtauto.de/industrymodel.html">
   <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="virtauto Industry Model — So thinks our factory, before it acts.">
-  <meta name="twitter:description" content="A condensed factory world model with Doorline as the first real instance inside Bodyshop.">
+  <meta name="twitter:description" content="A condensed factory world model with Doorline as the first real instance inside Bodyshop — audit-first, evidence-driven.">
   <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <link rel="stylesheet" href="assets/styles.css"/>
   <link rel="stylesheet" href="assets/styles_unify.css"/>
   <script defer src="assets/site.js"></script>
+
+  <!-- Page-local styling (kept minimal, aligned with existing theme) -->
+  <style>
+    .pill-row { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem; }
+    .pill {
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.25rem .55rem; border-radius:999px;
+      border:1px solid #2a3a5e; background:#0f1629; color:#dbe7ff;
+      font-size:.82rem; line-height:1.2;
+    }
+    .pill .dot { width:8px; height:8px; border-radius:999px; display:inline-block; background: rgba(125,211,252,.95); }
+    .stage-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap:1rem; }
+    .stage-card h3 { margin:.1rem 0 .5rem; }
+    .stage-meta { display:flex; gap:.5rem; flex-wrap:wrap; margin:.25rem 0 .75rem; }
+    .stage-tag {
+      font-size:.75rem; padding:.18rem .5rem; border-radius:.55rem;
+      border:1px solid #243255; background:#0b1220; color:var(--muted);
+    }
+    .kpi { display:flex; gap:1rem; flex-wrap:wrap; margin-top:.75rem; }
+    .kpi .k { padding:.55rem .7rem; border:1px solid #243255; border-radius:.7rem; background:#0f1526; }
+    .kpi .k strong { display:block; font-size:1.05rem; }
+    .list-tight { margin:.4rem 0 0; padding-left:1.1rem; }
+    .list-tight li { margin:.18rem 0; }
+    .codeblock {
+      background:#0a0f1b; border:1px solid #243255; border-radius:.8rem;
+      padding:.85rem; overflow:auto; font-size:.85rem; line-height:1.45; color:#dbe7ff;
+    }
+    .callout {
+      background: linear-gradient(135deg, rgba(125,211,252,.12), rgba(34,211,238,.06));
+      border: 1px solid rgba(125,211,252,.25);
+    }
+    .anchors { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.8rem; }
+    .anchors a { border:1px solid #243255; border-radius:999px; padding:.28rem .6rem; background:#0f1629; color:#dbe7ff; }
+    .anchors a:hover { border-color:#3c5080; }
+    @media (max-width: 840px) {
+      .stage-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 
 <body>
@@ -57,8 +95,9 @@
       <div class="kicker">Industry Model</div>
       <h1>So thinks our factory — before it acts.</h1>
       <p class="lead">
-        We condense the factory’s world model into one coherent view — and introduce <strong>Doorline</strong>
-        as the first real, concrete instance within the <strong>Bodyshop</strong> subsystem.
+        We condense the factory’s world model into one coherent view — and ground it in a real <strong>Bodyshop</strong>
+        example: the <strong>Doorline</strong>, shown here as a concrete, auditable process for a BIW door
+        (<strong>Front Left</strong>).
       </p>
 
       <div class="card" style="margin-top:16px">
@@ -66,6 +105,26 @@
         <p class="muted" style="margin-top:8px;margin-bottom:0">
           Industry Model → Bodyshop → Doorlines (Front Left / Front Right / Rear Left / Rear Right)
         </p>
+
+        <div class="kpi">
+          <div class="k">
+            <strong>Focus</strong>
+            <span class="muted">Doorline — BIW Door Front Left (TVL)</span>
+          </div>
+          <div class="k">
+            <strong>Principle</strong>
+            <span class="muted">Change state • Leave evidence • Respect governance • Recover gracefully</span>
+          </div>
+        </div>
+
+        <div class="anchors" aria-label="Jump links">
+          <a href="#world-model">World Model</a>
+          <a href="#doorline">Doorline</a>
+          <a href="#process-stages">Process Stages</a>
+          <a href="#sensors">Sensors</a>
+          <a href="#audit-trace">Audit Trace</a>
+          <a href="#flow">Think → Act</a>
+        </div>
       </div>
     </div>
   </section>
@@ -78,10 +137,10 @@
         A single representation of what exists (entities), what is true right now (state),
         what is allowed (constraints &amp; policies), what is remembered (memory),
         what can be tested safely (simulation), and what can be executed (tools &amp; process flow).
+        For real factories, that only becomes credible when it is paired with <strong>audit-grade evidence</strong>.
       </p>
 
       <div class="card" style="padding:16px">
-        <!-- NOTE: Corrected structure: all four doorlines sit under Bodyshop (no extra intermediate node). -->
         <svg viewBox="0 0 1100 420" role="img" aria-label="Industry Model hierarchy diagram" style="width:100%;height:auto">
           <defs>
             <linearGradient id="g1" x1="0" x2="1">
@@ -105,7 +164,7 @@
             <text x="140" y="205" font-size="22" font-weight="700">Bodyshop</text>
             <text x="140" y="232" font-size="14" fill="rgba(229,231,235,.75)">Subsystem within the Industry Model</text>
 
-            <!-- Doorlines (all under Bodyshop) -->
+            <!-- Doorlines -->
             <rect x="110" y="290" width="220" height="80" rx="16" fill="rgba(15,23,42,.85)" stroke="rgba(56,189,248,.25)"></rect>
             <text x="140" y="330" font-size="18" font-weight="700">Doorline FL</text>
             <text x="140" y="352" font-size="13" fill="rgba(229,231,235,.75)">Front Left</text>
@@ -125,10 +184,7 @@
 
           <!-- Connectors -->
           <g stroke="rgba(229,231,235,.55)" stroke-width="2" fill="none">
-            <!-- Industry Model -> Bodyshop (center) -->
             <path d="M 550 130 L 550 165"></path>
-
-            <!-- Bodyshop -> Doorlines -->
             <path d="M 550 255 L 220 290"></path>
             <path d="M 550 255 L 460 290"></path>
             <path d="M 550 255 L 700 290"></path>
@@ -148,23 +204,32 @@
           <h3>Context</h3>
           <p class="muted">
             Doorline is a manufacturing line within the Bodyshop subsystem.
-            It is structured around four concrete door variants: FL, FR, RL, RR.
+            For the showcase, we zoom into one concrete product path: <strong>BIW Door Front Left (TVL)</strong>.
           </p>
         </div>
         <div class="card">
           <h3>Why it matters</h3>
           <p class="muted">
-            The world model is not a slide — it becomes operational only when mapped to a real subsystem
-            and real entities that can be observed, governed, and improved.
+            A world model becomes operational only when it is mapped to real entities and real signals —
+            and when decisions can be audited with evidence (not “explained” after the fact).
           </p>
         </div>
         <div class="card">
           <h3>Outcome</h3>
           <p class="muted">
-            Doorline becomes the anchor point for consistent state, controlled actions, traceable decisions,
+            Doorline becomes the anchor for consistent state, controlled actions, traceable decisions,
             and resilient operation — inside one governed model.
           </p>
         </div>
+      </div>
+
+      <div class="card callout" style="margin-top:16px;padding:16px">
+        <strong>One-sentence showcase</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          A BIW doorline turns stamped parts into a geometry- and surface-critical product —
+          across pre-assembly, reinforcement, hemming, structural completion, and a hard quality gate
+          for <strong>gap/flush</strong> and <strong>surface</strong>.
+        </p>
       </div>
     </div>
   </section>
@@ -174,23 +239,451 @@
     <div class="container">
       <h2>What the model contains</h2>
       <p class="muted">
-        The following building blocks define how the factory is represented and how it moves from sensing to action.
+        These building blocks define how the factory is represented and how it moves from sensing to governed execution —
+        with an audit-first mindset: every meaningful change must produce evidence.
       </p>
 
       <div class="card-grid three">
-        <div class="card"><h3>Entities</h3><p class="muted">Real things in the factory model (systems, lines, products).</p></div>
-        <div class="card"><h3>State</h3><p class="muted">The current truth: conditions, availability, readiness, and signals.</p></div>
+        <div class="card"><h3>Entities</h3><p class="muted">Real things in the factory model (systems, stations, fixtures, products).</p></div>
+        <div class="card"><h3>State</h3><p class="muted">The current truth: conditions, availability, readiness, signals, and quality status.</p></div>
         <div class="card"><h3>Constraints</h3><p class="muted">Hard limits that must never be violated (technical and operational).</p></div>
 
-        <div class="card"><h3>Policies</h3><p class="muted">Rules that shape permissible actions and required approvals.</p></div>
-        <div class="card"><h3>Memory</h3><p class="muted">What the system retains to remain consistent and improve over time.</p></div>
+        <div class="card"><h3>Policies</h3><p class="muted">Rules that shape permissible actions, approvals, and escalation paths.</p></div>
+        <div class="card"><h3>Memory</h3><p class="muted">What the system retains to remain consistent and improve over time (governed).</p></div>
         <div class="card"><h3>Simulation</h3><p class="muted">Safe evaluation of possible decisions before committing to execution.</p></div>
 
         <div class="card"><h3>Tools</h3><p class="muted">Controlled capabilities to observe, validate, and (only when allowed) act.</p></div>
-        <div class="card"><h3>Process Flow</h3><p class="muted">The ordered path from sensing to governed execution and recovery.</p></div>
-        <div class="card"><h3>Intent</h3><p class="muted">The “why”: desired outcomes expressed as goals, not manual steps.</p></div>
+        <div class="card"><h3>Process Flow</h3><p class="muted">The ordered path from sensing to governed execution, including recovery.</p></div>
+        <div class="card"><h3>Intent</h3><p class="muted">Desired outcomes expressed as goals (e.g., “gap/flush within spec”), not manual steps.</p></div>
 
         <div class="card"><h3>Governance</h3><p class="muted">Guardrails, approvals, accountability, and evidence for decisions.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS STAGES 1–6 -->
+  <section class="section" id="process-stages">
+    <div class="container">
+      <h2>Doorline (TVL) — Process Stages 1–6</h2>
+      <p class="muted">
+        The following stages describe a realistic BIW flow for a <strong>Front Left Door</strong>.
+        Each stage is written in “world-model form”: entities, signals, state updates, decisions, and audit evidence.
+      </p>
+
+      <!-- Stage 0: Input -->
+      <div class="card" style="margin-top:14px">
+        <h3 style="margin:.1rem 0 .5rem">Starting point (Input)</h3>
+        <p class="muted" style="margin:0">
+          Stamped/formed parts arrive from press shop / kitting:
+          <strong>Inner Panel</strong>, <strong>Outer Panel</strong>, reinforcements (side impact beam, hinge/lock reinforcements, beltline/frame areas),
+          plus optional inserts (studs, nuts, brackets, guides). The target state is a geometrically stable, joined BIW door
+          ready for downstream (paint, assembly).
+        </p>
+        <div class="pill-row" aria-label="Input artifacts">
+          <span class="pill"><span class="dot"></span>Part ID (barcode/QR/RFID)</span>
+          <span class="pill"><span class="dot"></span>Variant / sequence (TVL)</span>
+          <span class="pill"><span class="dot"></span>Kitting completeness</span>
+          <span class="pill"><span class="dot"></span>Door ID created</span>
+        </div>
+      </div>
+
+      <div class="stage-grid" style="margin-top:16px">
+        <!-- Stage 1 -->
+        <div class="card stage-card">
+          <div class="stage-meta">
+            <span class="stage-tag">Process Stage 1</span>
+            <span class="stage-tag">Pre-Assembly</span>
+            <span class="stage-tag">Inner Structure</span>
+          </div>
+          <h3>Inner build-up (start the base body)</h3>
+          <p class="muted">
+            The door “begins” as an inner structure: the inner panel is positioned in fixtures and first reinforcements are placed and tack-fixed.
+          </p>
+
+          <strong>Entities</strong>
+          <ul class="list-tight muted">
+            <li>Inner Panel, fixture/clamps, base reinforcements, Door ID (TVL)</li>
+          </ul>
+
+          <strong>Signals (explicit sensors / scanners)</strong>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Barcode/QR/RFID reader</span>
+            <span class="pill"><span class="dot"></span>2D/3D vision (pose check)</span>
+            <span class="pill"><span class="dot"></span>Clamp position sensors</span>
+          </div>
+
+          <strong>State update</strong>
+          <ul class="list-tight muted">
+            <li><code>door.variant</code> confirmed</li>
+            <li><code>fixture.clamped</code> = true</li>
+            <li><code>parts.present</code> = inner + initial reinforcements</li>
+          </ul>
+
+          <strong>Decision & governance</strong>
+          <ul class="list-tight muted">
+            <li>Edge validates “part present + orientation OK” → otherwise HOLD</li>
+            <li>Orchestrator schedules transfer only if constraints pass</li>
+            <li>Guardian blocks continuation if variant mismatch or clamp not OK</li>
+          </ul>
+
+          <strong>Evidence</strong>
+          <ul class="list-tight muted">
+            <li>Pose snapshot + clamp confirmation stored under Door ID</li>
+            <li>Decision record: <em>OK / HOLD</em> with rule reference</li>
+          </ul>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="card stage-card">
+          <div class="stage-meta">
+            <span class="stage-tag">Process Stage 2</span>
+            <span class="stage-tag">Reinforcements</span>
+            <span class="stage-tag">Functional Zones</span>
+          </div>
+          <h3>Hinge, lock & crash structure</h3>
+          <p class="muted">
+            Critical functional zones are reinforced (hinge, lock, side impact). Presence and coarse positioning are verified before transfer.
+          </p>
+
+          <strong>Entities</strong>
+          <ul class="list-tight muted">
+            <li>Hinge/lock reinforcements, crash beam, studs/nuts/brackets, joining points</li>
+          </ul>
+
+          <strong>Signals (explicit sensors / scanners)</strong>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Structured-light 3D scan</span>
+            <span class="pill"><span class="dot"></span>Vision presence check</span>
+            <span class="pill"><span class="dot"></span>Force/torque sensors (joining)</span>
+          </div>
+
+          <strong>State update</strong>
+          <ul class="list-tight muted">
+            <li><code>reinforcements.hinge</code>/<code>reinforcements.lock</code>/<code>reinforcements.crash</code> = present</li>
+            <li><code>join.tack_complete</code> = true</li>
+          </ul>
+
+          <strong>Decision & governance</strong>
+          <ul class="list-tight muted">
+            <li>Edge flags missing reinforcement → HOLD or rework route</li>
+            <li>Orchestrator ensures sequence correctness and station readiness</li>
+            <li>Guardian enforces “no transfer without presence evidence”</li>
+          </ul>
+
+          <strong>Evidence</strong>
+          <ul class="list-tight muted">
+            <li>3D alignment summary (pass/fail + delta)</li>
+            <li>Joining force/torque trace attached to Door ID</li>
+          </ul>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="card stage-card">
+          <div class="stage-meta">
+            <span class="stage-tag">Process Stage 3</span>
+            <span class="stage-tag">Outer Panel</span>
+            <span class="stage-tag">Bonding & Hemming</span>
+          </div>
+          <h3>Outer panel joining (surface risk begins)</h3>
+          <p class="muted">
+            The outer panel is applied and hemmed. This stage heavily influences surface appearance and later gap/flush behavior.
+          </p>
+
+          <strong>Entities</strong>
+          <ul class="list-tight muted">
+            <li>Outer panel, adhesive/sealer, hemming tooling (pre-hem / final hem)</li>
+          </ul>
+
+          <strong>Signals (explicit sensors / scanners)</strong>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Vision/line scan (surface defects)</span>
+            <span class="pill"><span class="dot"></span>3D scan (alignment & flush)</span>
+            <span class="pill"><span class="dot"></span>Sealer thickness / bead monitoring</span>
+          </div>
+
+          <strong>State update</strong>
+          <ul class="list-tight muted">
+            <li><code>outer_panel.aligned</code> = true/false</li>
+            <li><code>hemming.pre</code> and <code>hemming.final</code> results stored</li>
+          </ul>
+
+          <strong>Decision & governance</strong>
+          <ul class="list-tight muted">
+            <li>Edge detects surface risk (dent/scratch imprint) → HOLD / rework</li>
+            <li>Orchestrator may run a “proceed risk” simulation step (policy-gated)</li>
+            <li>Guardian enforces “no final hem without alignment evidence”</li>
+          </ul>
+
+          <strong>Evidence</strong>
+          <ul class="list-tight muted">
+            <li>Surface map snapshot + defect flags (if any)</li>
+            <li>Adhesive/hemming parameters appended to trace</li>
+          </ul>
+        </div>
+
+        <!-- Stage 4 -->
+        <div class="card stage-card">
+          <div class="stage-meta">
+            <span class="stage-tag">Process Stage 4</span>
+            <span class="stage-tag">Structural Completion</span>
+            <span class="stage-tag">Finalize Joining</span>
+          </div>
+          <h3>Finalize structure & completeness</h3>
+          <p class="muted">
+            Remaining joining operations are completed and verified. The objective is structural completeness and stability.
+          </p>
+
+          <strong>Entities</strong>
+          <ul class="list-tight muted">
+            <li>Final weld/rivet/clinch points, hard-to-reach joins, BIW features</li>
+          </ul>
+
+          <strong>Signals (explicit sensors / scanners)</strong>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Weld process monitoring (current/time)</span>
+            <span class="pill"><span class="dot"></span>Force/torque (rivet/clinch)</span>
+            <span class="pill"><span class="dot"></span>3D spot verification scan</span>
+          </div>
+
+          <strong>State update</strong>
+          <ul class="list-tight muted">
+            <li><code>join.complete</code> = true</li>
+            <li><code>integrity.score</code> updated (rule-based)</li>
+          </ul>
+
+          <strong>Decision & governance</strong>
+          <ul class="list-tight muted">
+            <li>Edge flags missing join evidence → HOLD</li>
+            <li>Orchestrator routes to rework if allowed by policy</li>
+            <li>Guardian prevents “OK” if any mandatory join lacks evidence</li>
+          </ul>
+
+          <strong>Evidence</strong>
+          <ul class="list-tight muted">
+            <li>Join parameter logs + completeness report linked to Door ID</li>
+          </ul>
+        </div>
+
+        <!-- Stage 5 -->
+        <div class="card stage-card">
+          <div class="stage-meta">
+            <span class="stage-tag">Process Stage 5</span>
+            <span class="stage-tag">Hard Quality Gate</span>
+            <span class="stage-tag">Geometry + Surface</span>
+          </div>
+          <h3>Quality Gate: geometry & surface</h3>
+          <p class="muted">
+            The door is released or diverted. This is the “audit-grade” gate: gap/flush and surface drive downstream cost and customer perception.
+          </p>
+
+          <strong>Entities</strong>
+          <ul class="list-tight muted">
+            <li>Measurement plan, tolerance rules, door surfaces, datum points, audit case</li>
+          </ul>
+
+          <strong>Signals (explicit sensors / scanners)</strong>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>High-precision 3D scanner</span>
+            <span class="pill"><span class="dot"></span>Surface vision / defect scan</span>
+            <span class="pill"><span class="dot"></span>Gap/flush measurement</span>
+          </div>
+
+          <strong>State update</strong>
+          <ul class="list-tight muted">
+            <li><code>quality.geometry</code> = pass/fail + deltas</li>
+            <li><code>quality.surface</code> = pass/fail + defect tags</li>
+            <li><code>classification</code> = OK / REWORK / SCRAP / HOLD</li>
+          </ul>
+
+          <strong>Decision & governance</strong>
+          <ul class="list-tight muted">
+            <li>Edge performs deterministic pre-checks (no “intuition”)</li>
+            <li>Orchestrator validates rule application and creates an audit case if needed</li>
+            <li>Guardian enforces release logic and evidence completeness</li>
+          </ul>
+
+          <strong>Evidence</strong>
+          <ul class="list-tight muted">
+            <li>Scan artifacts (IDs + summaries) attached to Door ID</li>
+            <li>Rule references + classification decision stored as audit trace</li>
+          </ul>
+        </div>
+
+        <!-- Stage 6 -->
+        <div class="card stage-card">
+          <div class="stage-meta">
+            <span class="stage-tag">Process Stage 6</span>
+            <span class="stage-tag">Final Audit</span>
+            <span class="stage-tag">Handover</span>
+          </div>
+          <h3>Final audit & handover</h3>
+          <p class="muted">
+            The inspected door is formally handed over — physically and digitally — with a final state and a complete evidence chain.
+          </p>
+
+          <strong>Entities</strong>
+          <ul class="list-tight muted">
+            <li>Door ID, batch/sequence, logistics buffer, downstream consumer, evidence links</li>
+          </ul>
+
+          <strong>Signals (explicit sensors / scanners)</strong>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Label print & scan verification</span>
+            <span class="pill"><span class="dot"></span>RFID/QR tracking scan</span>
+            <span class="pill"><span class="dot"></span>System status handshake</span>
+          </div>
+
+          <strong>State update</strong>
+          <ul class="list-tight muted">
+            <li><code>door.state</code> = RELEASED / QUARANTINE / HOLD</li>
+            <li><code>handover.complete</code> = true</li>
+          </ul>
+
+          <strong>Decision & governance</strong>
+          <ul class="list-tight muted">
+            <li>Orchestrator issues final handover only if Stage 5 evidence exists</li>
+            <li>Guardian blocks shipment on missing audit references</li>
+          </ul>
+
+          <strong>Evidence</strong>
+          <ul class="list-tight muted">
+            <li>Final trace entry links all prior stage evidence + final disposition</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card callout" style="margin-top:16px;padding:16px">
+        <strong>Audit-first interpretation</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          This process description is not “documentation for humans only”. It is intentionally structured so it can be executed and audited:
+          each stage updates state, produces evidence, and remains governance-controlled.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SENSORS / SCANNERS OVERVIEW (explicit) -->
+  <section class="section" id="sensors">
+    <div class="container">
+      <h2>Sensors & scanners (explicit)</h2>
+      <p class="muted">
+        Below is the explicit sensor layer used across the stages. This is the “Perception” substrate of the world model — the source of truth for audits.
+      </p>
+
+      <div class="card-grid three">
+        <div class="card">
+          <h3>Identification</h3>
+          <p class="muted">Variant and sequence correctness for TVL, preventing early mismatch errors.</p>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Barcode / QR</span>
+            <span class="pill"><span class="dot"></span>RFID</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Pose & presence</h3>
+          <p class="muted">Ensures parts are present and correctly seated before joining operations proceed.</p>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>2D / 3D vision</span>
+            <span class="pill"><span class="dot"></span>Proximity sensors</span>
+            <span class="pill"><span class="dot"></span>Clamp sensors</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Joining process</h3>
+          <p class="muted">Captures process parameters as evidence for structural integrity and completeness.</p>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Weld monitoring</span>
+            <span class="pill"><span class="dot"></span>Force / torque</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Geometry</h3>
+          <p class="muted">Measures deltas to nominal; feeds deterministic classification at the quality gate.</p>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Structured-light 3D</span>
+            <span class="pill"><span class="dot"></span>Laser scanning</span>
+            <span class="pill"><span class="dot"></span>Gap/flush measurement</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Surface</h3>
+          <p class="muted">Detects dents, scratches, imprints — the key risk during outer panel joining & hemming.</p>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Surface vision</span>
+            <span class="pill"><span class="dot"></span>Line scan</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Traceability</h3>
+          <p class="muted">Guarantees every critical decision is traceable and linked to a Door ID.</p>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Label print/verify</span>
+            <span class="pill"><span class="dot"></span>Tracking scan</span>
+            <span class="pill"><span class="dot"></span>System handshake</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUDIT TRACE (explicit) -->
+  <section class="section" id="audit-trace">
+    <div class="container">
+      <h2>Audit trace (example)</h2>
+      <p class="muted">
+        An “intelligent product audit” requires that every classification (OK / REWORK / SCRAP / HOLD) is backed by
+        deterministic rules and referenced evidence. Below is a compact example trace for one Door ID.
+      </p>
+
+      <div class="card" style="padding:16px">
+        <strong>Example: Stage 5 classification record</strong>
+        <pre class="codeblock" aria-label="Example audit trace JSON">{
+  "door_id": "TVL-2025-01-08-001284",
+  "variant": "FrontLeft_BIW",
+  "timestamp_utc": "2026-01-09T10:58:12.483Z",
+  "stage": 5,
+  "audit": {
+    "intent": "Release only if geometry AND surface pass deterministic rules",
+    "ruleset_version": "biw-door-qg-v1.0",
+    "classification": "OK",
+    "decisions": [
+      {
+        "check": "geometry",
+        "scanner": "high_precision_3d_scan",
+        "result": "PASS",
+        "evidence_ref": "scan:3d:TVL-001284:geom:8f2c"
+      },
+      {
+        "check": "gap_flush",
+        "scanner": "gap_flush_measurement",
+        "result": "PASS",
+        "evidence_ref": "scan:gf:TVL-001284:3c19"
+      },
+      {
+        "check": "surface",
+        "scanner": "surface_vision",
+        "result": "PASS",
+        "evidence_ref": "scan:surface:TVL-001284:1a77"
+      }
+    ],
+    "governance": {
+      "guardian_check": "PASS",
+      "policy": "release_requires_complete_evidence_chain",
+      "approval": "auto_allowed_under_policy"
+    }
+  },
+  "state_update": {
+    "quality.geometry": "pass",
+    "quality.surface": "pass",
+    "door.state": "RELEASED"
+  }
+}</pre>
+
+        <p class="muted" style="margin:.75rem 0 0">
+          Key point: The trace references concrete evidence IDs (scanner outputs / measurements),
+          the ruleset version, and a governance result — not a free-form explanation.
+        </p>
       </div>
     </div>
   </section>
