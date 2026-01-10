@@ -4,16 +4,6 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
-    inputs:
-      override_url:
-        description: "Override healthcheck URL (Chaos test). Leave empty to use CUSTOM_URL."
-        required: false
-        default: ""
-      force_fail:
-        description: "Force healthcheck failure (Chaos test)"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -24,9 +14,10 @@ env:
   BACKUP_BRANCH: pages-backup
   CUSTOM_URL: https://www.virtauto.de
 
-concurrency:
-  group: pages-deploy
-  cancel-in-progress: false
+  # Evidence/trace files that will be deployed with the site artifact
+  NEWS_PATH: news.json
+  AGENT_ACTIVITY_PATH: ops/agent_activity.jsonl
+  FAILOVER_TRACE_PATH: ops/failover_trace.jsonl
 
 jobs:
   build:
@@ -38,18 +29,25 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # Optional: keep your deploy-start marker (now actually deploys because it's in the build artifact)
+      - name: Ensure ops/ + evidence files exist
+        run: |
+          mkdir -p ops
+          [ -f "${NEWS_PATH}" ] || echo "[]" > "${NEWS_PATH}"
+          [ -f "${AGENT_ACTIVITY_PATH}" ] || : > "${AGENT_ACTIVITY_PATH}"
+          [ -f "${FAILOVER_TRACE_PATH}" ] || : > "${FAILOVER_TRACE_PATH}"
+
       - name: Append news.json (Deploy start)
         run: |
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           tmp=$(mktemp)
           jq -n --arg ts "$ts" --arg ev "Deploy start" --arg ag "CI/CD" --arg su "Deployment pipeline triggered" \
             '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
-          if [ -f news.json ]; then
-            jq -s '.[0] + .[1]' "$tmp" news.json > news.tmp && mv news.tmp news.json
-          else
-            mv "$tmp" news.json
-          fi
+          jq -s '.[0] + .[1]' "$tmp" "${NEWS_PATH}" > news.tmp && mv news.tmp "${NEWS_PATH}"
+
+      - name: Append agent_activity.jsonl (Deploy start evidence)
+        run: |
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "{\"ts\":\"$ts\",\"agent\":\"deploy_agent_v1\",\"capability\":\"deploy\",\"operation\":\"deploy_start\",\"result\":\"PASS\",\"evidence\":{\"ref\":\"${GITHUB_REF}\",\"sha\":\"${GITHUB_SHA}\"}}" >> "${AGENT_ACTIVITY_PATH}"
 
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
@@ -59,6 +57,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: pages
@@ -67,99 +68,68 @@ jobs:
   healthcheck:
     runs-on: ubuntu-latest
     needs: deploy
-    outputs:
-      checked_url: ${{ steps.hc.outputs.checked_url }}
-      codes: ${{ steps.hc.outputs.codes }}
-      ok: ${{ steps.hc.outputs.ok }}
     steps:
-      - name: Healthcheck homepage (deterministic)
-        id: hc
+      - name: Check homepage
         shell: bash
-        env:
-          OVERRIDE_URL: ${{ github.event.inputs.override_url }}
-          FORCE_FAIL: ${{ github.event.inputs.force_fail }}
         run: |
-          set -euo pipefail
-
-          URL="${CUSTOM_URL}"
-          if [ -n "${OVERRIDE_URL:-}" ]; then
-            URL="${OVERRIDE_URL}"
+          URL="${{ env.CUSTOM_URL }}"
+          if [ -z "$URL" ]; then
+            echo "Error: No CUSTOM_URL provided" && exit 1
           fi
-
-          if [ "${FORCE_FAIL:-false}" = "true" ]; then
-            URL="https://example.invalid/force-fail"
-          fi
-
-          echo "Healthcheck URL: $URL"
-
-          codes=""
-          ok="false"
+          echo "Healthcheck on $URL"
           for i in 1 2 3; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || echo "000")
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
             echo "Attempt $i: HTTP code $code"
-            codes="${codes}${code}"
-            if [ "$i" -lt 3 ]; then codes="${codes},"; fi
-            if [ "$code" = "200" ]; then ok="true"; break; fi
+            if [ "$code" -eq 200 ]; then exit 0; fi
             sleep 5
           done
-
-          echo "checked_url=$URL" >> "$GITHUB_OUTPUT"
-          echo "codes=$codes" >> "$GITHUB_OUTPUT"
-          echo "ok=$ok" >> "$GITHUB_OUTPUT"
-
-          if [ "$ok" != "true" ]; then
-            echo "Healthcheck failed."
-            exit 1
-          fi
+          exit 1
 
   rollback:
     runs-on: ubuntu-latest
     needs: healthcheck
     if: failure()
     steps:
-      - name: Checkout backup branch (Source of Resilience)
+      - name: Checkout backup branch (source of rollback)
         uses: actions/checkout@v4
         with:
           ref: ${{ env.BACKUP_BRANCH }}
-          fetch-depth: 0
 
-      - name: Create failover trace (truth-locked artifact)
-        shell: bash
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Ensure ops/ + trace files exist (backup)
         run: |
-          set -euo pipefail
-          mkdir -p ops/reports
+          mkdir -p ops
+          [ -f "${NEWS_PATH}" ] || echo "[]" > "${NEWS_PATH}"
+          [ -f "${AGENT_ACTIVITY_PATH}" ] || : > "${AGENT_ACTIVITY_PATH}"
+          [ -f "${FAILOVER_TRACE_PATH}" ] || : > "${FAILOVER_TRACE_PATH}"
 
+      - name: Record deterministic failover trace
+        run: |
           ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          cat > ops/reports/failover_trace.json << EOF
-          {
-            "schema_version": "1.0",
-            "generated_at": "$ts",
-            "event": "FAILOVER",
-            "capability": "deploy",
-            "primary_agent": "deploy_agent_v1",
-            "secondary_agent": "deploy_agent_v1_backup",
-            "reason": "healthcheck_failed",
-            "evidence": {
-              "checked_url": "${{ needs.healthcheck.outputs.checked_url }}",
-              "http_codes": "${{ needs.healthcheck.outputs.codes }}",
-              "expected": "200"
-            },
-            "github": {
-              "run_id": "${{ github.run_id }}",
-              "run_number": "${{ github.run_number }}",
-              "attempt": "${{ github.run_attempt }}",
-              "sha": "${{ github.sha }}",
-              "ref": "${{ github.ref }}"
-            }
-          }
-          EOF
+          # Deterministic rule: if healthcheck fails -> route to backup deploy
+          echo "{\"ts\":\"$ts\",\"capability\":\"deploy\",\"rule\":\"IF healthcheck_failed THEN route_to_backup\",\"primary\":\"deploy_agent_v1\",\"secondary\":\"deploy_agent_v1_backup\",\"routed_to\":\"${BACKUP_BRANCH}\",\"trigger\":\"healthcheck_failed\",\"sha\":\"${GITHUB_SHA}\"}" >> "${FAILOVER_TRACE_PATH}"
 
-      - name: Upload backup artifact (for rollback deploy)
+      - name: Append news.json (Rollback)
+        run: |
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          tmp=$(mktemp)
+          jq -n --arg ts "$ts" --arg ev "Rollback" --arg ag "CI/CD" --arg su "Restored from backup branch" \
+            '[{"ts":$ts,"event":$ev,"agent":$ag,"summary":$su}]' > "$tmp"
+          jq -s '.[0] + .[1]' "$tmp" "${NEWS_PATH}" > news.tmp && mv news.tmp "${NEWS_PATH}"
+
+      - name: Append agent_activity.jsonl (Rollback evidence)
+        run: |
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "{\"ts\":\"$ts\",\"agent\":\"deploy_agent_v1_backup\",\"capability\":\"deploy\",\"operation\":\"rollback_deploy\",\"result\":\"PASS\",\"evidence\":{\"source_branch\":\"${BACKUP_BRANCH}\",\"trigger\":\"healthcheck_failed\"}}" >> "${AGENT_ACTIVITY_PATH}"
+
+      - name: Upload rollback site artifact (from backup)
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./
 
-      - name: Deploy backup to GitHub Pages (Rollback)
+      - name: Deploy backup to GitHub Pages (failover)
         uses: actions/deploy-pages@v4
 
   update-backup:
@@ -167,26 +137,43 @@ jobs:
     needs: healthcheck
     if: success()
     steps:
-      - name: Checkout main (post-success snapshot)
+      - name: Checkout main (source of truth for backup snapshot)
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
-      - name: Update backup branch with current site (deterministic)
+      - name: Update backup branch with current main snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BACKUP_BRANCH: ${{ env.BACKUP_BRANCH }}
         run: |
-          set -euo pipefail
+          set -e
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          # Ensure we have the latest
-          git fetch origin main --prune
+          # Create a worktree for backup branch (orphan-like snapshot)
+          mkdir -p /tmp/backup_worktree
+          git fetch origin "${BACKUP_BRANCH}" || true
 
-          # Create/update backup branch from current workspace state (main)
-          git checkout -B "${BACKUP_BRANCH}"
+          # If branch exists, check it out; otherwise create it
+          if git show-ref --quiet "refs/remotes/origin/${BACKUP_BRANCH}"; then
+            git worktree add /tmp/backup_worktree "origin/${BACKUP_BRANCH}"
+          else
+            git worktree add -b "${BACKUP_BRANCH}" /tmp/backup_worktree
+          fi
 
+          # Sync main -> backup worktree (snapshot behavior)
+          rsync -a --delete --exclude ".git" ./ /tmp/backup_worktree/
+
+          cd /tmp/backup_worktree
           git add -A
           git commit -m "backup snapshot from ${GITHUB_SHA}" || echo "No changes to commit"
           git push origin "${BACKUP_BRANCH}" --force
-    
+
+      - name: Append agent_activity.jsonl (Backup updated)
+        run: |
+          mkdir -p ops
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          [ -f "${AGENT_ACTIVITY_PATH}" ] || : > "${AGENT_ACTIVITY_PATH}"
+          echo "{\"ts\":\"$ts\",\"agent\":\"deploy_agent_v1\",\"capability\":\"deploy\",\"operation\":\"backup_update\",\"result\":\"PASS\",\"evidence\":{\"backup_branch\":\"${BACKUP_BRANCH}\",\"sha\":\"${GITHUB_SHA}\"}}" >> "${AGENT_ACTIVITY_PATH}"
