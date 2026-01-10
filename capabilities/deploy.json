@@ -1,6 +1,6 @@
 {
   "capability": "deploy",
-  "description": "Deploy the website to production via GitHub Pages with health check and deterministic rollback to backup branch.",
+  "description": "Deploy the website to production via GitHub Pages with deterministic health check and rollback.",
   "critical": true,
 
   "agents": {
