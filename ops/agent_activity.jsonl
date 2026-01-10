@@ -1,0 +1,3 @@
+{"agent":"status_agent","operation":"truth_refresh","result":"PASS","timestamp":"2026-01-10T00:00:30Z","evidence":{"system_health":"HEALTHY","governance":"OPERATIONAL","decision_trace":false}}
+{"agent":"status_agent","operation":"health_check","result":"PASS","timestamp":"2026-01-10T00:01:00Z","evidence":{"health_signal":"GREEN","health_score":0.99}}
+{"agent":"status_agent","operation":"governance_check","result":"PASS","timestamp":"2026-01-10T00:01:30Z","evidence":{"gate_active":true,"truth_locked":true}}
