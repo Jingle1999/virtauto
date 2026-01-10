@@ -51,7 +51,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      flex-wrap: wrap; /* prevents badge overlap on narrow widths */
+      flex-wrap: wrap;
       min-width: 0;
     }
 
@@ -118,11 +118,10 @@
       display: grid;
       grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.4fr);
       gap: 1.5rem;
-      align-items: start; /* important: prevents weird stretching/overlap */
+      align-items: start;
       min-width: 0;
     }
 
-    /* extra breakpoint to avoid mid-field collisions */
     @media (max-width: 1040px) {
       main {
         grid-template-columns: minmax(0, 1fr);
@@ -135,7 +134,7 @@
       border: 1px solid var(--border);
       padding: 1.3rem 1.4rem 1.3rem;
       box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
-      min-width: 0; /* critical for grid overflow */
+      min-width: 0;
     }
 
     .card-header {
@@ -189,7 +188,7 @@
 
     .status-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* a bit wider for chip text */
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 0.85rem;
       min-width: 0;
     }
@@ -208,14 +207,14 @@
       gap: 0.35rem;
       min-height: 132px;
       min-width: 0;
-      overflow: hidden; /* prevent inner overflow from overlapping neighbors */
+      overflow: hidden;
     }
 
     .status-title-row {
       display: flex;
       justify-content: space-between;
       gap: 0.55rem;
-      align-items: flex-start; /* avoids vertical collision when title wraps */
+      align-items: flex-start;
       min-width: 0;
     }
 
@@ -223,7 +222,7 @@
       font-size: 0.9rem;
       font-weight: 600;
       min-width: 0;
-      overflow-wrap: anywhere; /* long names won't break layout */
+      overflow-wrap: anywhere;
       line-height: 1.15;
     }
 
@@ -243,23 +242,10 @@
       text-overflow: ellipsis;
     }
 
-    .status-chip.ok {
-      border-color: rgba(34, 197, 94, 0.65);
-      color: #bbf7d0;
-    }
-    .status-chip.warn {
-      border-color: rgba(245, 158, 11, 0.75);
-      color: #fed7aa;
-    }
-    .status-chip.crit {
-      border-color: rgba(239, 68, 68, 0.75);
-      color: #fecaca;
-    }
-    .status-chip.soon {
-      border-style: dashed;
-      border-color: rgba(148, 163, 184, 0.7);
-      color: var(--muted);
-    }
+    .status-chip.ok { border-color: rgba(34, 197, 94, 0.65); color: #bbf7d0; }
+    .status-chip.warn { border-color: rgba(245, 158, 11, 0.75); color: #fed7aa; }
+    .status-chip.crit { border-color: rgba(239, 68, 68, 0.75); color: #fecaca; }
+    .status-chip.soon { border-style: dashed; border-color: rgba(148, 163, 184, 0.7); color: var(--muted); }
 
     .status-meta {
       display: flex;
@@ -487,6 +473,167 @@
       font-size: 12px;
       overflow-x: auto;
     }
+
+    /* =========================
+       Status Agent Evidence UI
+       ========================= */
+    .subhead {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:.75rem;
+      margin-top: 1.1rem;
+      margin-bottom: .6rem;
+      min-width:0;
+    }
+    .subhead h3 {
+      font-size: .85rem;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      color: var(--muted);
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .mini-pill {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--muted);
+      white-space: nowrap;
+      flex: 0 0 auto;
+      max-width: 48%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-pill.ok { border-color: rgba(34, 197, 94, 0.65); color: #bbf7d0; }
+    .mini-pill.warn { border-color: rgba(245, 158, 11, 0.75); color: #fed7aa; }
+    .mini-pill.crit { border-color: rgba(239, 68, 68, 0.75); color: #fecaca; }
+
+    .agent-evidence {
+      border-radius: 0.9rem;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      padding: 0.85rem 0.9rem;
+      background: rgba(15, 23, 42, 0.72);
+      min-width:0;
+      overflow:hidden;
+    }
+
+    .agent-evidence-grid {
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .55rem .7rem;
+      margin-top: .55rem;
+      min-width:0;
+    }
+
+    .kv {
+      border-radius: .75rem;
+      border: 1px solid rgba(55, 65, 81, 0.85);
+      background: rgba(15, 23, 42, 0.55);
+      padding: .55rem .6rem;
+      min-width:0;
+      overflow:hidden;
+    }
+    .kv .k {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--muted);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .kv .v {
+      font-size: .95rem;
+      font-weight: 600;
+      margin-top: .15rem;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .kv .v code {
+      color:#c4b5fd;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: .82rem;
+    }
+
+    .feed {
+      margin-top: .75rem;
+      border-top: 1px solid rgba(55,65,81,0.7);
+      padding-top: .65rem;
+      display:flex;
+      flex-direction:column;
+      gap:.4rem;
+      min-width:0;
+    }
+
+    .feed-item {
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:.75rem;
+      padding:.5rem .55rem;
+      border-radius:.75rem;
+      border: 1px solid rgba(55, 65, 81, 0.75);
+      background: rgba(2, 6, 23, 0.35);
+      min-width:0;
+      overflow:hidden;
+    }
+    .feed-left { min-width:0; }
+    .feed-left .t {
+      font-size:.78rem;
+      color: var(--text);
+      font-weight: 600;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width: 58vw;
+    }
+    .feed-left .m {
+      font-size:.72rem;
+      color: var(--muted);
+      margin-top:.12rem;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width: 58vw;
+    }
+    .feed-right {
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      padding:.18rem .45rem;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,0.35);
+      color: var(--muted);
+      white-space:nowrap;
+      flex:0 0 auto;
+      max-width: 40%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .feed-right.ok { border-color: rgba(34,197,94,0.65); color:#bbf7d0; }
+    .feed-right.warn { border-color: rgba(245,158,11,0.75); color:#fed7aa; }
+    .feed-right.crit { border-color: rgba(239,68,68,0.75); color:#fecaca; }
+
+    .evidence-note {
+      margin-top: .55rem;
+      font-size: .75rem;
+      color: var(--muted);
+      line-height: 1.4;
+      overflow-wrap:anywhere;
+    }
+    .evidence-note code {
+      color:#c4b5fd;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: .75rem;
+    }
   </style>
 </head>
 <body>
@@ -539,6 +686,49 @@
 
         <div class="status-grid" id="agents-grid">
           <!-- populated by JS (truth-locked) -->
+        </div>
+
+        <!-- =========================
+             STATUS AGENT (EVIDENCE)
+             ========================= -->
+        <div class="subhead">
+          <h3>Status Agent (Evidence)</h3>
+          <span class="mini-pill" id="status-agent-pill">UNKNOWN</span>
+        </div>
+
+        <div class="agent-evidence" aria-label="Status Agent evidence panel">
+          <div class="status-meta">
+            <span>Source:</span>
+            <span><code id="status-agent-source">—</code></span>
+          </div>
+
+          <div class="agent-evidence-grid">
+            <div class="kv">
+              <div class="k">Last Run (UTC)</div>
+              <div class="v" id="status-agent-last">—</div>
+            </div>
+            <div class="kv">
+              <div class="k">Freshness</div>
+              <div class="v" id="status-agent-freshness">—</div>
+            </div>
+            <div class="kv">
+              <div class="k">Last Result</div>
+              <div class="v" id="status-agent-result">—</div>
+            </div>
+            <div class="kv">
+              <div class="k">Total Runs</div>
+              <div class="v" id="status-agent-ops">—</div>
+            </div>
+          </div>
+
+          <div class="feed" id="status-agent-feed" aria-label="Status Agent recent activity">
+            <!-- populated by JS from JSONL -->
+          </div>
+
+          <div class="evidence-note" id="status-agent-note">
+            This panel displays <strong>server-side evidence</strong> produced by the Status Agent.
+            The browser does not generate operations.
+          </div>
         </div>
       </section>
 
@@ -626,6 +816,15 @@
             </div>
             <span class="guard-pill" id="guard-trace-pill">—</span>
           </div>
+
+          <!-- NEW: Status Agent guard -->
+          <div class="guard-row">
+            <div class="guard-left">
+              <div class="guard-name">Status Agent</div>
+              <div class="guard-value" id="guard-status-agent">—</div>
+            </div>
+            <span class="guard-pill" id="guard-status-agent-pill">—</span>
+          </div>
         </div>
       </aside>
     </main>
@@ -640,6 +839,10 @@
   // TRUTH SOURCE (Single Source of Truth)
   // =========================
   const TRUTH_PATH = "/ops/reports/system_status.json";
+
+  // Status Agent evidence source (server-produced JSONL)
+  // NOTE: This panel renders evidence; it does not generate operations.
+  const STATUS_AGENT_LOG_PATH = "/ops/agent_activity.jsonl";
 
   // =========================
   // Helpers
@@ -685,6 +888,11 @@
     if (kind) el.classList.add(kind);
   }
 
+  function setMiniPill(el, kind) {
+    el.classList.remove("ok", "warn", "crit");
+    if (kind) el.classList.add(kind);
+  }
+
   function showFatal(err) {
     $("fatal-src").textContent = TRUTH_PATH;
     $("fatal-err").textContent = String(err && err.message ? err.message : err);
@@ -698,6 +906,50 @@
     const json = await res.json();
     if (!json || typeof json !== "object") throw new Error("Truth source returned invalid JSON.");
     return json;
+  }
+
+  async function fetchText(path) {
+    const res = await fetch(path, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to load evidence source (${res.status}) at ${path}`);
+    return await res.text();
+  }
+
+  function parseJSONL(text) {
+    const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const out = [];
+    for (const line of lines) {
+      try {
+        const obj = JSON.parse(line);
+        if (obj && typeof obj === "object") out.push(obj);
+      } catch (_) {
+        // ignore malformed lines (truth: they simply don't parse)
+      }
+    }
+    return out;
+  }
+
+  function minutesAgo(iso) {
+    if (!iso) return null;
+    const t = new Date(iso).getTime();
+    if (!Number.isFinite(t)) return null;
+    const diff = Date.now() - t;
+    return Math.max(0, Math.round(diff / 60000));
+  }
+
+  function classifyFreshness(mins) {
+    // thresholds per plan: <45 OK, 45-90 WARN, >90 CRIT
+    if (mins === null) return { label: "UNKNOWN", kind: "warn" };
+    if (mins < 45) return { label: "OPERATIONAL", kind: "ok" };
+    if (mins <= 90) return { label: "STALE", kind: "warn" };
+    return { label: "OFFLINE", kind: "crit" };
+  }
+
+  function briefResultTag(r) {
+    const s = String(r || "").toUpperCase();
+    if (s.includes("PASS") || s.includes("OK")) return { text: "PASS", kind: "ok" };
+    if (s.includes("WARN") || s.includes("REVIEW") || s.includes("STALE")) return { text: "WARN", kind: "warn" };
+    if (s.includes("FAIL") || s.includes("CRIT") || s.includes("ERROR")) return { text: "FAIL", kind: "crit" };
+    return { text: s || "UNKNOWN", kind: "warn" };
   }
 
   // =========================
@@ -730,7 +982,7 @@
     const cls = classifyPillBySignal(signal);
     if (cls) pill.classList.add(cls);
 
-    pill.textContent = ""; // avoid HTML injection & layout weirdness
+    pill.textContent = "";
     const dot = document.createElement("span");
     dot.className = "dot";
     pill.appendChild(dot);
@@ -917,6 +1169,112 @@
     else { $("guard-trace-pill").textContent = "UNLINKED"; setGuardPill($("guard-trace-pill"), "warn"); }
   }
 
+  function renderStatusAgentEvidence(events, loadError) {
+    $("status-agent-source").textContent = STATUS_AGENT_LOG_PATH;
+
+    const pill = $("status-agent-pill");
+    const feed = $("status-agent-feed");
+
+    // default state
+    $("status-agent-last").textContent = "—";
+    $("status-agent-freshness").textContent = "—";
+    $("status-agent-result").textContent = "—";
+    $("status-agent-ops").textContent = "—";
+    feed.innerHTML = "";
+
+    if (loadError) {
+      pill.textContent = "MISSING";
+      setMiniPill(pill, "warn");
+
+      $("status-agent-note").innerHTML =
+        `Evidence source missing or unreadable: <code>${STATUS_AGENT_LOG_PATH}</code>. ` +
+        `This is not simulated in the browser.`;
+      // Guard mirror
+      $("guard-status-agent").textContent = "Evidence source missing";
+      $("guard-status-agent-pill").textContent = "MISSING";
+      setGuardPill($("guard-status-agent-pill"), "warn");
+      return;
+    }
+
+    // Filter only status_agent lines
+    const statusEvents = (events || []).filter(e => String(e.agent || "").toLowerCase() === "status_agent");
+    const total = statusEvents.length;
+
+    if (!total) {
+      pill.textContent = "NO DATA";
+      setMiniPill(pill, "warn");
+
+      $("status-agent-ops").textContent = "0";
+      $("status-agent-note").innerHTML =
+        `Evidence loaded, but no <code>{"agent":"status_agent"}</code> events found.`;
+      // Guard mirror
+      $("guard-status-agent").textContent = "No status_agent events";
+      $("guard-status-agent-pill").textContent = "NO DATA";
+      setGuardPill($("guard-status-agent-pill"), "warn");
+      return;
+    }
+
+    // Latest by timestamp (descending)
+    statusEvents.sort((a,b) => {
+      const ta = new Date(a.timestamp || 0).getTime();
+      const tb = new Date(b.timestamp || 0).getTime();
+      return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
+    });
+
+    const latest = statusEvents[0];
+    const lastIso = latest.timestamp || null;
+    const age = minutesAgo(lastIso);
+    const freshness = classifyFreshness(age);
+
+    pill.textContent = freshness.label;
+    setMiniPill(pill, freshness.kind);
+
+    $("status-agent-last").textContent = lastIso ? fmtDate(lastIso) : "—";
+    $("status-agent-freshness").textContent = (age === null) ? "—" : `${age} min ago`;
+    $("status-agent-ops").textContent = String(total);
+
+    const rr = briefResultTag(latest.result || latest.status || "");
+    $("status-agent-result").textContent = rr.text;
+
+    // Guard mirror (right side)
+    $("guard-status-agent").textContent =
+      (age === null) ? "—" : `${freshness.label} · ${age} min`;
+    $("guard-status-agent-pill").textContent = freshness.label;
+    setGuardPill($("guard-status-agent-pill"), freshness.kind);
+
+    // Render last 6 events
+    const slice = statusEvents.slice(0, 6);
+    for (const e of slice) {
+      const ts = e.timestamp ? fmtDate(e.timestamp) : "—";
+      const op = String(e.operation || "operation").replace(/_/g, " ");
+      const tag = briefResultTag(e.result || e.status || "UNKNOWN");
+
+      // short evidence summary (non-sensitive)
+      let evidenceSummary = "";
+      if (e.evidence && typeof e.evidence === "object") {
+        const pairs = [];
+        if ("system_health" in e.evidence) pairs.push(`health=${String(e.evidence.system_health)}`);
+        if ("governance" in e.evidence) pairs.push(`governance=${String(e.evidence.governance)}`);
+        if ("decision_trace" in e.evidence) pairs.push(`trace=${e.evidence.decision_trace ? "yes" : "no"}`);
+        evidenceSummary = pairs.length ? pairs.join(" · ") : "";
+      }
+
+      const item = document.createElement("div");
+      item.className = "feed-item";
+      item.innerHTML = `
+        <div class="feed-left">
+          <div class="t">[${ts} UTC] Status Agent — ${op}</div>
+          <div class="m">${evidenceSummary || "Evidence recorded."}</div>
+        </div>
+        <div class="feed-right ${tag.kind}">${tag.text}</div>
+      `;
+      feed.appendChild(item);
+    }
+
+    $("status-agent-note").innerHTML =
+      `Rendered from <code>${STATUS_AGENT_LOG_PATH}</code>. No client-side timers, no simulated operations.`;
+  }
+
   // =========================
   // Boot
   // =========================
@@ -927,6 +1285,17 @@
       renderKPIs(status);
       renderAgents(status);
       renderGuards(status);
+
+      // Status Agent evidence is optional to the page’s existence,
+      // but it never simulates: missing evidence is shown as missing.
+      try {
+        const txt = await fetchText(STATUS_AGENT_LOG_PATH);
+        const events = parseJSONL(txt);
+        renderStatusAgentEvidence(events, null);
+      } catch (e) {
+        console.warn(e);
+        renderStatusAgentEvidence([], e);
+      }
     } catch (err) {
       console.error(err);
       showFatal(err);
