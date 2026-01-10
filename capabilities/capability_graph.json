@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "generated_at": null,
+  "registry": {
+    "deploy": {
+      "critical": true,
+      "agents": [
+        {
+          "id": "deploy_agent_v1",
+          "priority": 1,
+          "role": "primary"
+        },
+        {
+          "id": "deploy_agent_v1_backup",
+          "priority": 2,
+          "role": "secondary"
+        }
+      ],
+      "routing": {
+        "strategy": "deterministic_failover",
+        "health_threshold": 0.8,
+        "rules": [
+          {
+            "if": {
+              "agent_health_below_threshold": true
+            },
+            "then": {
+              "route_to": "secondary"
+            }
+          },
+          {
+            "if": {
+              "execution_failed": true
+            },
+            "then": {
+              "route_to": "secondary"
+            }
+          }
+        ]
+      },
+      "constraints": {
+        "learning_allowed": false,
+        "optimization_allowed": false,
+        "autonomy_increase_allowed": false
+      },
+      "traceability": {
+        "trace_required": true,
+        "trace_sink": "/ops/reports/failover_trace.jsonl"
+      }
+    }
+  }
+}
