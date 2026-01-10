@@ -1,0 +1,36 @@
+{
+  "capability": "deploy",
+  "description": "Deploy the website to production via GitHub Pages with health check and rollback.",
+  "critical": true,
+
+  "agents": {
+    "primary": "deploy_agent_v1",
+    "secondary": "deploy_agent_v1_backup"
+  },
+
+  "routing": {
+    "strategy": "deterministic_failover",
+    "failover_conditions": [
+      {
+        "condition": "agent_health_below_threshold",
+        "threshold": 0.8,
+        "action": "route_to_secondary"
+      },
+      {
+        "condition": "execution_failed",
+        "action": "route_to_secondary"
+      }
+    ]
+  },
+
+  "constraints": {
+    "learning_allowed": false,
+    "optimization_allowed": false,
+    "autonomy_increase_allowed": false
+  },
+
+  "traceability": {
+    "trace_required": true,
+    "trace_artifact": "deploy_trace.jsonl"
+  }
+}
