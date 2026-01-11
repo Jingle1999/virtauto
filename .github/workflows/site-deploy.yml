@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      force_failover:
+        description: "Chaos test: force failover after primary deploy (true/false)"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -49,7 +54,6 @@ jobs:
         run: |
           echo "{\"ts\":\"${{ steps.trace_meta.outputs.ts_start }}\",\"capability\":\"deploy\",\"event\":\"deploy_start\",\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\",\"ref\":\"${GITHUB_REF_NAME}\",\"primary_agent\":\"deploy_agent_v1\",\"secondary_agent\":\"deploy_agent_v1_backup\",\"mode\":\"SUPERVISED\"}" >> "${TRACE_PATH}"
 
-      # OPTIONAL: if you want to keep "news.json" as visible site artifact, do it here (build-time only).
       - name: Ensure news.json exists (optional)
         shell: bash
         run: |
@@ -118,8 +122,14 @@ jobs:
           echo "checked_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$GITHUB_OUTPUT"
           exit 1
 
+      - name: Chaos test (optional forced failover)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.force_failover == 'true' }}
+        run: |
+          echo "Forcing failover for chaos test."
+          exit 1
+
   update-backup:
-    name: Update backup branch (only if healthy)
+    name: Update backup branch (only if healthy) + publish success trace
     runs-on: ubuntu-latest
     needs: [build, healthcheck]
     if: needs.healthcheck.outputs.ok == 'true'
@@ -127,6 +137,8 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v4
 
+      # IMPORTANT: This is the missing piece in your current workflow.
+      # We append deploy_success AND then re-upload + re-deploy so the trace is actually visible on the live site.
       - name: Append deploy trace (success) to site artifact
         shell: bash
         run: |
@@ -134,7 +146,15 @@ jobs:
           touch "${TRACE_PATH}"
           echo "{\"ts\":\"${{ needs.healthcheck.outputs.checked_at }}\",\"capability\":\"deploy\",\"event\":\"deploy_success\",\"http_code\":${{ needs.healthcheck.outputs.http_code }},\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\",\"primary_agent\":\"deploy_agent_v1\",\"result\":\"PASS\"}" >> "${TRACE_PATH}"
 
-      - name: Force-update backup branch snapshot
+      - name: Re-upload Pages artifact (with success trace)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./
+
+      - name: Re-deploy Pages (publish success trace)
+        uses: actions/deploy-pages@v4
+
+      - name: Force-update backup branch snapshot (last known good)
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -142,7 +162,6 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          # Create backup branch from current workspace snapshot (main)
           git checkout -B "${BACKUP_BRANCH}"
           git add -A
           git commit -m "backup snapshot from ${GITHUB_SHA}" || echo "No changes to commit"
@@ -159,7 +178,7 @@ jobs:
         with:
           ref: ${{ env.BACKUP_BRANCH }}
 
-      - name: Ensure trace exists and append rollback event
+      - name: Ensure trace exists and append failover event
         shell: bash
         run: |
           mkdir -p "$(dirname "${TRACE_PATH}")"
