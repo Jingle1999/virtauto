@@ -15,12 +15,18 @@ permissions:
   pages: write
   id-token: write
 
+# IMPORTANT:
+# Do NOT share concurrency group with site-deploy.yml ("pages-deploy"),
+# otherwise a deploy can cancel monitoring (or vice versa).
 concurrency:
-  group: pages-deploy
+  group: truth-regeneration
   cancel-in-progress: true
 
 env:
   CUSTOM_URL: https://www.virtauto.de
+  STATUS_JSON: ops/reports/system_status.json
+  STATUS_TRACE: ops/reports/status_trace.jsonl
+  ACTIVITY_PATH: ops/agent_activity.jsonl
 
 jobs:
   generate_truth:
@@ -28,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       used_agent: ${{ steps.meta.outputs.used_agent }}
+      verdict: ${{ steps.meta.outputs.verdict }}
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -38,34 +45,86 @@ jobs:
           python-version: "3.11"
 
       - name: Ensure report folders exist
+        shell: bash
         run: |
           mkdir -p ops/reports
-          touch ops/reports/status_trace.jsonl
-          touch ops/agent_activity.jsonl
+          touch "${STATUS_TRACE}"
+          touch "${ACTIVITY_PATH}"
 
       - name: Primary Status Agent
         id: primary
         if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.force_backup == 'true') }}
         continue-on-error: true
+        shell: bash
         run: |
           python ops/status_agent.py --agent primary
 
       - name: Backup Status Agent (deterministic failover)
         id: backup
         if: ${{ (github.event_name == 'workflow_dispatch' && inputs.force_backup == 'true') || steps.primary.outcome != 'success' }}
+        continue-on-error: true
+        shell: bash
         run: |
           python ops/status_agent.py --agent backup
 
-      - name: Record used agent
-        id: meta
+      - name: Hard check: truth must exist & be valid JSON
+        id: truth_check
+        shell: bash
         run: |
-          if [ "${{ steps.primary.outcome }}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${{ inputs.force_backup }}" != "true" ]; then
-            echo "used_agent=status_agent_v1" >> "$GITHUB_OUTPUT"
-          else
-            echo "used_agent=status_agent_v1_backup" >> "$GITHUB_OUTPUT"
+          if [ ! -f "${STATUS_JSON}" ]; then
+            echo "Missing truth output: ${STATUS_JSON}" >&2
+            exit 2
           fi
 
+          # Validate JSON is parseable
+          python - <<'PY'
+import json
+p="ops/reports/system_status.json"
+with open(p,"r",encoding="utf-8") as f:
+    j=json.load(f)
+if not isinstance(j, dict):
+    raise SystemExit("system_status.json must be an object")
+# Minimal sanity checks (non-opinionated)
+for k in ["generated_at", "environment"]:
+    if k not in j:
+        raise SystemExit(f"system_status.json missing required field: {k}")
+print("OK")
+PY
+
+      - name: Record used agent + verdict
+        id: meta
+        shell: bash
+        run: |
+          used="UNKNOWN"
+          if [ "${{ steps.primary.outcome }}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${{ inputs.force_backup }}" != "true" ]; then
+            used="status_agent_v1"
+          elif [ "${{ steps.backup.outcome }}" = "success" ]; then
+            used="status_agent_v1_backup"
+          fi
+
+          if [ "$used" = "UNKNOWN" ]; then
+            echo "Both primary and backup failed. Deterministic failover exhausted." >&2
+            echo "used_agent=UNKNOWN" >> "$GITHUB_OUTPUT"
+            echo "verdict=FAIL" >> "$GITHUB_OUTPUT"
+            exit 3
+          fi
+
+          echo "used_agent=$used" >> "$GITHUB_OUTPUT"
+          echo "verdict=PASS" >> "$GITHUB_OUTPUT"
+
+      - name: Upload evidence (audit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: status-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ops/reports/system_status.json
+            ops/reports/status_trace.jsonl
+            ops/agent_activity.jsonl
+          if-no-files-found: error
+
       - name: Upload Pages artifact (truth updated)
+        # Only publish if truth_check + meta passed (i.e., valid truth exists)
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./
