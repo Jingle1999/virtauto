@@ -33,6 +33,10 @@ jobs:
   guardian_gate:
     name: Guardian Gate (primary → backup)
     runs-on: ubuntu-latest
+    outputs:
+      used_agent: ${{ steps.meta.outputs.used_agent }}
+      verdict: ${{ steps.read_verdict.outputs.verdict }}
+      reasons: ${{ steps.read_verdict.outputs.reasons }}
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -63,6 +67,16 @@ jobs:
         run: |
           python ops/guardian_agent.py --agent backup
 
+      - name: Record used agent
+        id: meta
+        shell: bash
+        run: |
+          if [ "${{ steps.primary.outcome }}" = "success" ]; then
+            echo "used_agent=guardian_agent_v1" >> "$GITHUB_OUTPUT"
+          else
+            echo "used_agent=guardian_agent_v1_backup" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload governance evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -74,23 +88,37 @@ jobs:
             ops/agent_activity.jsonl
           if-no-files-found: error
 
-      - name: Enforce gate result (BLOCK stops pipeline)
+      - name: Read verdict + reasons
+        id: read_verdict
         shell: bash
         run: |
           if [ ! -f "${GOV_OUT}" ]; then
             echo "Missing governance output ${GOV_OUT}" >&2
+            echo "verdict=UNKNOWN" >> "$GITHUB_OUTPUT"
+            echo "reasons=[\"MISSING_GOVERNANCE_OUTPUT\"]" >> "$GITHUB_OUTPUT"
             exit 3
           fi
 
-          verdict=$(python - <<'PY'
+          python - <<'PY'
 import json
 p="ops/reports/governance_outputs.json"
 with open(p,"r",encoding="utf-8") as f:
     j=json.load(f)
-print(j.get("verdict","UNKNOWN"))
-PY
-)
+verdict=j.get("verdict","UNKNOWN")
+reasons=j.get("reasons",[])
+if not isinstance(reasons,list):
+    reasons=[str(reasons)]
+print(f"verdict={verdict}")
+print("reasons="+json.dumps(reasons, ensure_ascii=False))
+PY >> "$GITHUB_OUTPUT"
+
+      - name: Enforce gate result (BLOCK stops pipeline)
+        shell: bash
+        run: |
+          verdict="${{ steps.read_verdict.outputs.verdict }}"
+          reasons='${{ steps.read_verdict.outputs.reasons }}'
           echo "Guardian verdict: ${verdict}"
+          echo "Guardian reasons: ${reasons}"
           if [ "${verdict}" != "PASS" ]; then
             echo "Guardian gate BLOCKED. See ${GOV_OUT}" >&2
             exit 2
@@ -121,10 +149,10 @@ PY
           echo "ts_start=$ts_start" >> "$GITHUB_OUTPUT"
           echo "trace_id=$trace_id" >> "$GITHUB_OUTPUT"
 
-      - name: Append deploy trace (start)
+      - name: Append deploy trace (start) incl. gate
         shell: bash
         run: |
-          echo "{\"ts\":\"${{ steps.trace_meta.outputs.ts_start }}\",\"capability\":\"deploy\",\"event\":\"deploy_start\",\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\",\"ref\":\"${GITHUB_REF_NAME}\",\"primary_agent\":\"deploy_agent_v1\",\"secondary_agent\":\"deploy_agent_v1_backup\",\"mode\":\"SUPERVISED\"}" >> "${TRACE_PATH}"
+          echo "{\"ts\":\"${{ steps.trace_meta.outputs.ts_start }}\",\"capability\":\"deploy\",\"event\":\"deploy_start\",\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\",\"ref\":\"${GITHUB_REF_NAME}\",\"primary_agent\":\"deploy_agent_v1\",\"secondary_agent\":\"deploy_agent_v1_backup\",\"mode\":\"SUPERVISED\",\"guardian_verdict\":\"${{ needs.guardian_gate.outputs.verdict }}\",\"guardian_agent\":\"${{ needs.guardian_gate.outputs.used_agent }}\"}" >> "${TRACE_PATH}"
 
       - name: Ensure news.json exists (optional)
         shell: bash
@@ -203,7 +231,7 @@ PY
   update-backup:
     name: Update backup branch (only if healthy) + publish success trace
     runs-on: ubuntu-latest
-    needs: [build, healthcheck]
+    needs: [build, healthcheck, guardian_gate]
     if: needs.healthcheck.outputs.ok == 'true'
     steps:
       - name: Checkout main
@@ -214,7 +242,7 @@ PY
         run: |
           mkdir -p "$(dirname "${TRACE_PATH}")"
           touch "${TRACE_PATH}"
-          echo "{\"ts\":\"${{ needs.healthcheck.outputs.checked_at }}\",\"capability\":\"deploy\",\"event\":\"deploy_success\",\"http_code\":${{ needs.healthcheck.outputs.http_code }},\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\",\"primary_agent\":\"deploy_agent_v1\",\"result\":\"PASS\"}" >> "${TRACE_PATH}"
+          echo "{\"ts\":\"${{ needs.healthcheck.outputs.checked_at }}\",\"capability\":\"deploy\",\"event\":\"deploy_success\",\"http_code\":${{ needs.healthcheck.outputs.http_code }},\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\",\"primary_agent\":\"deploy_agent_v1\",\"result\":\"PASS\",\"guardian_verdict\":\"${{ needs.guardian_gate.outputs.verdict }}\",\"guardian_agent\":\"${{ needs.guardian_gate.outputs.used_agent }}\"}" >> "${TRACE_PATH}"
 
       - name: Re-upload Pages artifact (with success trace)
         uses: actions/upload-pages-artifact@v3
@@ -238,7 +266,7 @@ PY
           git push origin "${BACKUP_BRANCH}" --force
 
   rollback:
-    name: Rollback (route to secondary)
+    name: Rollback (route to secondary, governed)
     runs-on: ubuntu-latest
     needs: [healthcheck]
     if: needs.healthcheck.outputs.ok != 'true'
@@ -248,11 +276,48 @@ PY
         with:
           ref: ${{ env.BACKUP_BRANCH }}
 
-      - name: Ensure trace exists and append failover event
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Ensure evidence paths exist
         shell: bash
         run: |
+          mkdir -p ops/reports
+          touch "${GUARD_TRACE_PATH}"
+          touch "${ACTIVITY_PATH}"
           mkdir -p "$(dirname "${TRACE_PATH}")"
           touch "${TRACE_PATH}"
+
+      - name: Guardian check on backup branch (must PASS to publish rollback)
+        id: guardian_backup
+        shell: bash
+        run: |
+          python ops/guardian_agent.py --agent backup
+
+          if [ ! -f "${GOV_OUT}" ]; then
+            echo "Missing governance output ${GOV_OUT} on backup branch" >&2
+            exit 3
+          fi
+
+          verdict=$(python - <<'PY'
+import json
+p="ops/reports/governance_outputs.json"
+with open(p,"r",encoding="utf-8") as f:
+    j=json.load(f)
+print(j.get("verdict","UNKNOWN"))
+PY
+)
+          echo "Backup-guardian verdict: ${verdict}"
+          if [ "${verdict}" != "PASS" ]; then
+            echo "Rollback blocked: backup branch failed Guardian gate." >&2
+            exit 2
+          fi
+
+      - name: Append failover event (secondary) to deploy trace
+        shell: bash
+        run: |
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           echo "{\"ts\":\"$ts\",\"capability\":\"deploy\",\"event\":\"failover_to_secondary\",\"condition\":\"healthcheck_failed\",\"http_code\":${{ needs.healthcheck.outputs.http_code }},\"secondary_agent\":\"deploy_agent_v1_backup\",\"result\":\"ROLLBACK\"}" >> "${TRACE_PATH}"
 
@@ -264,9 +329,14 @@ PY
       - name: Deploy backup to GitHub Pages
         uses: actions/deploy-pages@v4
 
-      - name: Upload rollback trace as workflow artifact
+      - name: Upload rollback evidence (audit)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: deploy-trace-rollback-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ env.TRACE_PATH }}
+          name: deploy-rollback-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ops/reports/governance_outputs.json
+            ops/reports/guardian_trace.jsonl
+            ops/reports/deploy_trace.jsonl
+            ops/agent_activity.jsonl
           if-no-files-found: error
