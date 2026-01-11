@@ -24,17 +24,22 @@ concurrency:
 
 env:
   CUSTOM_URL: https://www.virtauto.de
+
   STATUS_JSON: ops/reports/system_status.json
   STATUS_TRACE: ops/reports/status_trace.jsonl
   ACTIVITY_PATH: ops/agent_activity.jsonl
 
+  # GLOBAL STATE (single authoritative state artifact for this capability)
+  GLOBAL_STATE: ops/reports/global_state.json
+
 jobs:
   generate_truth:
-    name: Generate Truth (primary → backup)
+    name: Generate Truth (primary → backup) + GLOBAL STATE
     runs-on: ubuntu-latest
     outputs:
       used_agent: ${{ steps.meta.outputs.used_agent }}
       verdict: ${{ steps.meta.outputs.verdict }}
+      global_state_path: ${{ steps.meta.outputs.global_state_path }}
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -76,7 +81,6 @@ jobs:
             exit 2
           fi
 
-          # Validate JSON is parseable
           python - <<'PY'
 import json
 p="ops/reports/system_status.json"
@@ -84,33 +88,94 @@ with open(p,"r",encoding="utf-8") as f:
     j=json.load(f)
 if not isinstance(j, dict):
     raise SystemExit("system_status.json must be an object")
-# Minimal sanity checks (non-opinionated)
-for k in ["generated_at", "environment"]:
-    if k not in j:
-        raise SystemExit(f"system_status.json missing required field: {k}")
+
+# Minimal required keys (deterministic, non-opinionated)
+required = ["generated_at", "environment"]
+missing = [k for k in required if k not in j]
+if missing:
+    raise SystemExit("system_status.json missing required field(s): " + ", ".join(missing))
+
 print("OK")
 PY
 
-      - name: Record used agent + verdict
+      - name: Write GLOBAL STATE + record used agent + verdict
         id: meta
         shell: bash
         run: |
+          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
           used="UNKNOWN"
-          if [ "${{ steps.primary.outcome }}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${{ inputs.force_backup }}" != "true" ]; then
+          primary_outcome="${{ steps.primary.outcome }}"
+          backup_outcome="${{ steps.backup.outcome }}"
+          forced="${{ github.event_name == 'workflow_dispatch' && inputs.force_backup == 'true' }}"
+
+          # Determine which agent actually produced truth (deterministic)
+          if [ "${primary_outcome}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${{ inputs.force_backup }}" != "true" ]; then
             used="status_agent_v1"
-          elif [ "${{ steps.backup.outcome }}" = "success" ]; then
+          elif [ "${backup_outcome}" = "success" ]; then
             used="status_agent_v1_backup"
           fi
 
+          verdict="PASS"
+          reasons="[]"
+
+          # Deterministic failure if neither ran successfully
           if [ "$used" = "UNKNOWN" ]; then
-            echo "Both primary and backup failed. Deterministic failover exhausted." >&2
-            echo "used_agent=UNKNOWN" >> "$GITHUB_OUTPUT"
-            echo "verdict=FAIL" >> "$GITHUB_OUTPUT"
-            exit 3
+            verdict="BLOCK"
+            reasons='["FAILOVER_EXHAUSTED_PRIMARY_AND_BACKUP_FAILED"]'
           fi
 
+          # Deterministic failure if truth_check failed earlier (job would exit),
+          # but keep this as belt-and-suspenders for global_state completeness.
+          if [ ! -f "${STATUS_JSON}" ]; then
+            verdict="BLOCK"
+            reasons='["MISSING_SYSTEM_STATUS_JSON"]'
+          fi
+
+          # Write GLOBAL STATE (single authoritative state artifact for this capability)
+          mkdir -p "$(dirname "${GLOBAL_STATE}")"
+          python - <<PY
+import json, os
+ts = "${ts}"
+used = "${used}"
+verdict = "${verdict}"
+reasons = json.loads('${reasons}')
+state = {
+  "schema_version": "1.0",
+  "generated_at": ts,
+  "environment": "production",
+  "capability": "monitoring_status",
+  "verdict": verdict,
+  "reasons": reasons,
+  "used_agent": used,
+  "execution": {
+    "run_id": os.getenv("GITHUB_RUN_ID"),
+    "run_attempt": os.getenv("GITHUB_RUN_ATTEMPT"),
+    "sha": os.getenv("GITHUB_SHA"),
+    "ref": os.getenv("GITHUB_REF_NAME"),
+    "event_name": os.getenv("GITHUB_EVENT_NAME"),
+    "forced_backup": ${forced}
+  },
+  "artifacts": {
+    "system_status_json": "${STATUS_JSON}",
+    "status_trace_jsonl": "${STATUS_TRACE}",
+    "agent_activity_jsonl": "${ACTIVITY_PATH}"
+  }
+}
+with open("${GLOBAL_STATE}", "w", encoding="utf-8") as f:
+    json.dump(state, f, ensure_ascii=False, indent=2)
+print("WROTE_GLOBAL_STATE")
+PY
+
           echo "used_agent=$used" >> "$GITHUB_OUTPUT"
-          echo "verdict=PASS" >> "$GITHUB_OUTPUT"
+          echo "verdict=${verdict}" >> "$GITHUB_OUTPUT"
+          echo "global_state_path=${GLOBAL_STATE}" >> "$GITHUB_OUTPUT"
+
+          # HARD GATE: if verdict is BLOCK, stop BEFORE publish steps
+          if [ "${verdict}" != "PASS" ]; then
+            echo "GLOBAL STATE BLOCK. used_agent=${used} verdict=${verdict} reasons=${reasons}" >&2
+            exit 3
+          fi
 
       - name: Upload evidence (audit)
         if: always()
@@ -121,10 +186,11 @@ PY
             ops/reports/system_status.json
             ops/reports/status_trace.jsonl
             ops/agent_activity.jsonl
+            ops/reports/global_state.json
           if-no-files-found: error
 
-      - name: Upload Pages artifact (truth updated)
-        # Only publish if truth_check + meta passed (i.e., valid truth exists)
+      - name: Upload Pages artifact (truth + global state published)
+        # Only runs if meta step passed (i.e., GLOBAL STATE verdict == PASS)
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./
@@ -133,6 +199,7 @@ PY
     name: Deploy Pages (truth published)
     runs-on: ubuntu-latest
     needs: generate_truth
+    if: needs.generate_truth.outputs.verdict == 'PASS'
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
