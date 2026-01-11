@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -836,9 +836,11 @@
 
 <script>
   // =========================
-  // TRUTH SOURCE (Single Source of Truth)
+  // SINGLE SOURCE OF TRUTH (GLOBAL STATE)
   // =========================
-  const TRUTH_PATH = "/ops/reports/system_status.json";
+  // IMPORTANT: This page reads from ONE file only.
+  // If it is missing/unreadable, we hard-fail (truth lock).
+  const GLOBAL_STATE_PATH = "/ops/reports/global_state.json";
 
   // Status Agent evidence source (server-produced JSONL)
   // NOTE: This panel renders evidence; it does not generate operations.
@@ -870,7 +872,7 @@
 
   function classifyPillBySignal(signal) {
     const s = String(signal || "").toUpperCase();
-    if (s.includes("RED") || s.includes("CRIT") || s.includes("FAIL")) return "crit";
+    if (s.includes("RED") || s.includes("CRIT") || s.includes("FAIL") || s.includes("BLOCK")) return "crit";
     if (s.includes("YELLOW") || s.includes("WARN") || s.includes("DEGRADED") || s.includes("REVIEW")) return "warn";
     return "";
   }
@@ -879,7 +881,7 @@
     const s = String(state || "").toUpperCase();
     if (s === "ACTIVE" || s === "OK" || s === "GREEN" || s === "ONLINE" || s === "INITIALIZED") return "ok";
     if (s === "PLANNED" || s === "MVP" || s === "IN_PROGRESS" || s === "UNKNOWN" || s === "SUPERVISED" || s === "MANUAL") return "warn";
-    if (s === "FAIL" || s === "FAILED" || s === "DOWN" || s === "CRITICAL" || s === "ISSUE") return "crit";
+    if (s === "FAIL" || s === "FAILED" || s === "DOWN" || s === "CRITICAL" || s === "ISSUE" || s === "BLOCK") return "crit";
     return "soon";
   }
 
@@ -894,17 +896,17 @@
   }
 
   function showFatal(err) {
-    $("fatal-src").textContent = TRUTH_PATH;
+    $("fatal-src").textContent = GLOBAL_STATE_PATH;
     $("fatal-err").textContent = String(err && err.message ? err.message : err);
     $("fatal").style.display = "flex";
     $("page").style.display = "none";
   }
 
-  async function fetchTruth() {
-    const res = await fetch(TRUTH_PATH, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Failed to load truth source (${res.status}) at ${TRUTH_PATH}`);
+  async function fetchGlobalState() {
+    const res = await fetch(GLOBAL_STATE_PATH, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to load global state (${res.status}) at ${GLOBAL_STATE_PATH}`);
     const json = await res.json();
-    if (!json || typeof json !== "object") throw new Error("Truth source returned invalid JSON.");
+    if (!json || typeof json !== "object") throw new Error("global_state.json returned invalid JSON.");
     return json;
   }
 
@@ -922,7 +924,7 @@
         const obj = JSON.parse(line);
         if (obj && typeof obj === "object") out.push(obj);
       } catch (_) {
-        // ignore malformed lines (truth: they simply don't parse)
+        // ignore malformed lines
       }
     }
     return out;
@@ -948,35 +950,60 @@
     const s = String(r || "").toUpperCase();
     if (s.includes("PASS") || s.includes("OK")) return { text: "PASS", kind: "ok" };
     if (s.includes("WARN") || s.includes("REVIEW") || s.includes("STALE")) return { text: "WARN", kind: "warn" };
-    if (s.includes("FAIL") || s.includes("CRIT") || s.includes("ERROR")) return { text: "FAIL", kind: "crit" };
+    if (s.includes("FAIL") || s.includes("CRIT") || s.includes("ERROR") || s.includes("BLOCK")) return { text: "FAIL", kind: "crit" };
     return { text: s || "UNKNOWN", kind: "warn" };
+  }
+
+  // =========================
+  // Global State normalization
+  // =========================
+  function normalizeState(gs) {
+    // Goal: tolerate schema evolution, but still truth-lock to ONE file.
+    // Preferred: global_state.json contains a "system_status" object with the previous schema.
+    // Fallback: global_state.json itself already IS the previous schema.
+    const status = (gs && typeof gs.system_status === "object") ? gs.system_status : gs;
+
+    // Provide optional convenience views (if present in global state)
+    const gate = gs.gate || status.gate || {};
+    const links = gs.links || status.links || {};
+    const generatedAt =
+      gs.generated_at || gs.generatedAt || status.generated_at || status.generatedAt || status.timestamp || gs.timestamp || null;
+
+    const environment = gs.environment || status.environment || "—";
+
+    return { gs, status, gate, links, generatedAt, environment };
   }
 
   // =========================
   // Rendering
   // =========================
-  function renderHeader(status) {
-    $("truth-source").textContent = "system_status.json";
-    $("truth-path").textContent = TRUTH_PATH;
+  function renderHeader(n) {
+    $("truth-source").textContent = "global_state.json";
+    $("truth-path").textContent = GLOBAL_STATE_PATH;
 
-    const generatedAt = status.generated_at || status.generatedAt || status.timestamp || null;
-    $("freshness").textContent = generatedAt ? fmtDate(generatedAt) : "—";
-
-    $("generated-at").textContent = generatedAt ? fmtDate(generatedAt) : "—";
-    $("environment").textContent = status.environment || "—";
+    $("freshness").textContent = n.generatedAt ? fmtDate(n.generatedAt) : "—";
+    $("generated-at").textContent = n.generatedAt ? fmtDate(n.generatedAt) : "—";
+    $("environment").textContent = n.environment || "—";
 
     const sysState =
-      (status.system && status.system.state) ||
-      (status.system_state && status.system_state.state) ||
-      status.system_state ||
+      (n.status.system && n.status.system.state) ||
+      (n.status.system_state && n.status.system_state.state) ||
+      n.status.system_state ||
+      (n.gs.system && n.gs.system.state) ||
       "—";
 
     const sysMode =
-      (status.system && status.system.mode) ||
-      status.mode ||
+      (n.status.system && n.status.system.mode) ||
+      n.status.mode ||
+      (n.gs.system && n.gs.system.mode) ||
+      n.gs.mode ||
       "—";
 
-    const signal = (status.health && status.health.signal) || "—";
+    const signal =
+      (n.status.health && n.status.health.signal) ||
+      (n.gs.health && n.gs.health.signal) ||
+      "—";
+
     const pill = $("system-pill");
     pill.classList.remove("warn", "crit");
     const cls = classifyPillBySignal(signal);
@@ -989,8 +1016,8 @@
     pill.appendChild(document.createTextNode(` ${safeUpper(sysState)} · ${safeUpper(sysMode)}`));
   }
 
-  function renderKPIs(status) {
-    const agentsObj = status.agents || {};
+  function renderKPIs(n) {
+    const agentsObj = n.status.agents || n.gs.agents || {};
     const agentKeys = Object.keys(agentsObj);
     const total = agentKeys.length || 0;
     let active = 0;
@@ -1002,33 +1029,45 @@
 
     $("kpi-agent-health").textContent = total ? `${active} / ${total}` : "—";
 
-    const autonomyObj = status.autonomy_score || status.autonomy || {};
+    const autonomyObj = n.status.autonomy_score || n.status.autonomy || n.gs.autonomy_score || n.gs.autonomy || {};
     const autonomyMode =
-      (status.system && status.system.autonomy_mode) ||
+      (n.status.system && n.status.system.autonomy_mode) ||
       (autonomyObj && autonomyObj.mode) ||
-      (status.system && status.system.autonomy) ||
+      (n.status.system && n.status.system.autonomy) ||
+      (n.gs.system && n.gs.system.autonomy_mode) ||
+      (n.gs.system && n.gs.system.autonomy) ||
       "—";
 
     const autonomyPct =
       (autonomyObj && (autonomyObj.percent ?? autonomyObj.value ?? autonomyObj.current_level)) ??
-      (status.autonomy && status.autonomy.current_level) ??
+      (n.status.autonomy && n.status.autonomy.current_level) ??
+      (n.gs.autonomy && n.gs.autonomy.current_level) ??
       null;
 
     $("kpi-autonomy").textContent = fmtPctFrom(autonomyPct);
     $("kpi-autonomy-note").textContent = `Mode: ${safeUpper(autonomyMode)}`;
 
-    const healthOverall = (status.health && (status.health.overall_score || status.health.score)) || null;
-    const healthSignal = (status.health && status.health.signal) || "—";
+    const healthOverall =
+      (n.status.health && (n.status.health.overall_score || n.status.health.score)) ||
+      (n.gs.health && (n.gs.health.overall_score || n.gs.health.score)) ||
+      null;
+
+    const healthSignal =
+      (n.status.health && n.status.health.signal) ||
+      (n.gs.health && n.gs.health.signal) ||
+      "—";
+
     $("kpi-health").textContent = fmtPctFrom(healthOverall);
     $("kpi-health-note").textContent = `Signal: ${safeUpper(healthSignal)}`;
 
     const gateVerdict =
       (autonomyObj && autonomyObj.gate_verdict) ||
-      (status.autonomy && status.autonomy.gate_verdict) ||
-      (status.gate && status.gate.verdict) ||
+      (n.status.autonomy && n.status.autonomy.gate_verdict) ||
+      (n.gate && n.gate.verdict) ||
+      (n.status.gate && n.status.gate.verdict) ||
       "—";
 
-    const links = status.links || {};
+    const links = n.links || n.status.links || n.gs.links || {};
     const auditTrailAvailable = Boolean(links.decision_trace || links.decision_trace_jsonl || links.latest_decision);
     const governanceValue = auditTrailAvailable ? "ENFORCED" : "LIMITED";
     $("kpi-governance").textContent = governanceValue;
@@ -1046,8 +1085,8 @@
     lp.appendChild(document.createTextNode(` ${safeUpper(healthSignal)}`));
   }
 
-  function renderAgents(status) {
-    const agents = status.agents || {};
+  function renderAgents(n) {
+    const agents = n.status.agents || n.gs.agents || {};
     const grid = $("agents-grid");
     grid.innerHTML = "";
 
@@ -1106,7 +1145,7 @@
           <div class="status-chip ${cls}" title="${safeUpper(chipText)}">${safeUpper(chipText)}</div>
         </div>
         <div class="status-meta"><span>Agent</span><span>Truth locked</span></div>
-        <p class="status-note">Status rendered from system_status.json.</p>
+        <p class="status-note">Status rendered from global_state.json.</p>
       `;
       grid.appendChild(article);
     }
@@ -1120,16 +1159,15 @@
           <div class="status-chip warn">UNKNOWN</div>
         </div>
         <div class="status-meta"><span>No agent map found</span></div>
-        <p class="status-note">system_status.json contains no "agents" object.</p>
+        <p class="status-note">global_state.json contains no "agents" object.</p>
       `;
       grid.appendChild(article);
     }
   }
 
-  function renderGuards(status) {
-    const generatedAt = status.generated_at || status.generatedAt || status.timestamp || null;
+  function renderGuards(n) {
     const now = Date.now();
-    const ts = generatedAt ? new Date(generatedAt).getTime() : NaN;
+    const ts = n.generatedAt ? new Date(n.generatedAt).getTime() : NaN;
     const ageMin = Number.isFinite(ts) ? Math.max(0, Math.round((now - ts) / 60000)) : null;
 
     if (ageMin === null) {
@@ -1143,8 +1181,13 @@
       else { $("guard-freshness-pill").textContent = "EXPIRED"; setGuardPill($("guard-freshness-pill"), "crit"); }
     }
 
-    const autonomyObj = status.autonomy_score || status.autonomy || {};
-    const gate = (autonomyObj && autonomyObj.gate_verdict) || (status.gate && status.gate.verdict) || "—";
+    const autonomyObj = n.status.autonomy_score || n.status.autonomy || n.gs.autonomy_score || n.gs.autonomy || {};
+    const gate =
+      (autonomyObj && autonomyObj.gate_verdict) ||
+      (n.gate && n.gate.verdict) ||
+      (n.status.gate && n.status.gate.verdict) ||
+      "—";
+
     $("guard-gate").textContent = safeUpper(gate);
     if (String(gate).toUpperCase().includes("ALLOW") || String(gate).toUpperCase().includes("PASS")) {
       $("guard-gate-pill").textContent = "PASS";
@@ -1157,7 +1200,7 @@
       setGuardPill($("guard-gate-pill"), "crit");
     }
 
-    const links = status.links || {};
+    const links = n.links || n.status.links || n.gs.links || {};
     const auditAvail = Boolean(links.latest_decision || links.decision_trace || links.decision_trace_jsonl);
     $("guard-audit").textContent = auditAvail ? "Available" : "Missing";
     $("guard-audit-pill").textContent = auditAvail ? "OK" : "MISSING";
@@ -1175,7 +1218,6 @@
     const pill = $("status-agent-pill");
     const feed = $("status-agent-feed");
 
-    // default state
     $("status-agent-last").textContent = "—";
     $("status-agent-freshness").textContent = "—";
     $("status-agent-result").textContent = "—";
@@ -1189,14 +1231,13 @@
       $("status-agent-note").innerHTML =
         `Evidence source missing or unreadable: <code>${STATUS_AGENT_LOG_PATH}</code>. ` +
         `This is not simulated in the browser.`;
-      // Guard mirror
+
       $("guard-status-agent").textContent = "Evidence source missing";
       $("guard-status-agent-pill").textContent = "MISSING";
       setGuardPill($("guard-status-agent-pill"), "warn");
       return;
     }
 
-    // Filter only status_agent lines
     const statusEvents = (events || []).filter(e => String(e.agent || "").toLowerCase() === "status_agent");
     const total = statusEvents.length;
 
@@ -1207,14 +1248,13 @@
       $("status-agent-ops").textContent = "0";
       $("status-agent-note").innerHTML =
         `Evidence loaded, but no <code>{"agent":"status_agent"}</code> events found.`;
-      // Guard mirror
+
       $("guard-status-agent").textContent = "No status_agent events";
       $("guard-status-agent-pill").textContent = "NO DATA";
       setGuardPill($("guard-status-agent-pill"), "warn");
       return;
     }
 
-    // Latest by timestamp (descending)
     statusEvents.sort((a,b) => {
       const ta = new Date(a.timestamp || 0).getTime();
       const tb = new Date(b.timestamp || 0).getTime();
@@ -1236,20 +1276,17 @@
     const rr = briefResultTag(latest.result || latest.status || "");
     $("status-agent-result").textContent = rr.text;
 
-    // Guard mirror (right side)
     $("guard-status-agent").textContent =
       (age === null) ? "—" : `${freshness.label} · ${age} min`;
     $("guard-status-agent-pill").textContent = freshness.label;
     setGuardPill($("guard-status-agent-pill"), freshness.kind);
 
-    // Render last 6 events
     const slice = statusEvents.slice(0, 6);
     for (const e of slice) {
       const ts = e.timestamp ? fmtDate(e.timestamp) : "—";
       const op = String(e.operation || "operation").replace(/_/g, " ");
       const tag = briefResultTag(e.result || e.status || "UNKNOWN");
 
-      // short evidence summary (non-sensitive)
       let evidenceSummary = "";
       if (e.evidence && typeof e.evidence === "object") {
         const pairs = [];
@@ -1280,14 +1317,20 @@
   // =========================
   (async function boot() {
     try {
-      const status = await fetchTruth();
-      renderHeader(status);
-      renderKPIs(status);
-      renderAgents(status);
-      renderGuards(status);
+      const gs = await fetchGlobalState();
+      const n = normalizeState(gs);
 
-      // Status Agent evidence is optional to the page’s existence,
-      // but it never simulates: missing evidence is shown as missing.
+      // Minimal truth-lock sanity (still ONE file): required keys
+      // If you enforce different fields, adjust here, but keep hard-fail behavior.
+      if (!n.generatedAt) throw new Error("global_state.json missing generated_at (or equivalent).");
+      if (!n.environment || n.environment === "—") throw new Error("global_state.json missing environment.");
+
+      renderHeader(n);
+      renderKPIs(n);
+      renderAgents(n);
+      renderGuards(n);
+
+      // Evidence panel: never simulated; missing evidence shown as missing.
       try {
         const txt = await fetchText(STATUS_AGENT_LOG_PATH);
         const events = parseJSONL(txt);
