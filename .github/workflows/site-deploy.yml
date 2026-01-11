@@ -24,10 +24,82 @@ env:
   CUSTOM_URL: https://www.virtauto.de
   TRACE_PATH: ops/reports/deploy_trace.jsonl
 
+  # Guardian/Authority artifacts (Phase 8)
+  GOV_OUT: ops/reports/governance_outputs.json
+  GUARD_TRACE_PATH: ops/reports/guardian_trace.jsonl
+  ACTIVITY_PATH: ops/agent_activity.jsonl
+
 jobs:
+  guardian_gate:
+    name: Guardian Gate (primary → backup)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Ensure evidence paths exist
+        shell: bash
+        run: |
+          mkdir -p ops/reports
+          touch "${GUARD_TRACE_PATH}"
+          touch "${ACTIVITY_PATH}"
+
+      - name: Run Guardian Agent (primary)
+        id: primary
+        continue-on-error: true
+        shell: bash
+        run: |
+          python ops/guardian_agent.py --agent primary
+
+      - name: Run Guardian Agent (backup) deterministic failover
+        id: backup
+        if: ${{ steps.primary.outcome != 'success' }}
+        shell: bash
+        run: |
+          python ops/guardian_agent.py --agent backup
+
+      - name: Upload governance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guardian-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ops/reports/governance_outputs.json
+            ops/reports/guardian_trace.jsonl
+            ops/agent_activity.jsonl
+          if-no-files-found: error
+
+      - name: Enforce gate result (BLOCK stops pipeline)
+        shell: bash
+        run: |
+          if [ ! -f "${GOV_OUT}" ]; then
+            echo "Missing governance output ${GOV_OUT}" >&2
+            exit 3
+          fi
+
+          verdict=$(python - <<'PY'
+import json
+p="ops/reports/governance_outputs.json"
+with open(p,"r",encoding="utf-8") as f:
+    j=json.load(f)
+print(j.get("verdict","UNKNOWN"))
+PY
+)
+          echo "Guardian verdict: ${verdict}"
+          if [ "${verdict}" != "PASS" ]; then
+            echo "Guardian gate BLOCKED. See ${GOV_OUT}" >&2
+            exit 2
+          fi
+
   build:
     name: Build (Truth-locked artifact)
     runs-on: ubuntu-latest
+    needs: guardian_gate
     outputs:
       trace_id: ${{ steps.trace_meta.outputs.trace_id }}
       ts_start: ${{ steps.trace_meta.outputs.ts_start }}
@@ -137,8 +209,6 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v4
 
-      # IMPORTANT: This is the missing piece in your current workflow.
-      # We append deploy_success AND then re-upload + re-deploy so the trace is actually visible on the live site.
       - name: Append deploy trace (success) to site artifact
         shell: bash
         run: |
