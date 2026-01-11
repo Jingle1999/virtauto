@@ -1,0 +1,79 @@
+name: Status Monitoring (Truth Regeneration) + Deterministic Failover
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 minutes
+  workflow_dispatch:
+    inputs:
+      force_backup:
+        description: "Chaos test: force backup agent (true/false)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+env:
+  CUSTOM_URL: https://www.virtauto.de
+
+jobs:
+  generate_truth:
+    name: Generate Truth (primary → backup)
+    runs-on: ubuntu-latest
+    outputs:
+      used_agent: ${{ steps.meta.outputs.used_agent }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Ensure report folders exist
+        run: |
+          mkdir -p ops/reports
+          touch ops/reports/status_trace.jsonl
+          touch ops/agent_activity.jsonl
+
+      - name: Primary Status Agent
+        id: primary
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.force_backup == 'true') }}
+        continue-on-error: true
+        run: |
+          python ops/status_agent.py --agent primary
+
+      - name: Backup Status Agent (deterministic failover)
+        id: backup
+        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.force_backup == 'true') || steps.primary.outcome != 'success' }}
+        run: |
+          python ops/status_agent.py --agent backup
+
+      - name: Record used agent
+        id: meta
+        run: |
+          if [ "${{ steps.primary.outcome }}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${{ inputs.force_backup }}" != "true" ]; then
+            echo "used_agent=status_agent_v1" >> "$GITHUB_OUTPUT"
+          else
+            echo "used_agent=status_agent_v1_backup" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload Pages artifact (truth updated)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./
+
+  deploy_pages:
+    name: Deploy Pages (truth published)
+    runs-on: ubuntu-latest
+    needs: generate_truth
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
