@@ -1,0 +1,48 @@
+{
+  "policy_version": "guardian_policy_v1",
+  "mode": "SUPERVISED",
+  "truth": {
+    "required_truth_paths": [
+      "ops/reports/system_status.json"
+    ],
+    "status_page_must_reference_truth_path": "/ops/reports/system_status.json",
+    "status_page_path": "status/index.html"
+  },
+  "messaging_controls": {
+    "scan_paths": [
+      "index.html",
+      "agents.html",
+      "architecture.html",
+      "solutions.html",
+      "contact.html",
+      "status/index.html",
+      "status/agents.html"
+    ],
+    "avoid_phrases_case_insensitive": [
+      "self-thinking",
+      "unlimited capabilities",
+      "revolutionary technology",
+      "machine learning",
+      "smart factory solutions",
+      "ai-powered manufacturing",
+      "autonomous systems"
+    ],
+    "require_phrases_anywhere_case_insensitive": [
+      "governed",
+      "audit"
+    ]
+  },
+  "authority": {
+    "must_never_claim_without_evidence": [
+      "industrial integration",
+      "factory integration",
+      "live sensor data"
+    ]
+  },
+  "enforcement": {
+    "block_on_missing_truth": true,
+    "block_on_status_truth_mismatch": true,
+    "block_on_avoid_phrase_match": true,
+    "block_on_missing_required_phrases": false
+  }
+}
