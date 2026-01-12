@@ -1,4 +1,4 @@
-name: Status Monitoring (Truth Regeneration) + Deterministic Failover — OptionC: commit-only
+name: Status Monitoring (Truth Regeneration) + Deterministic Failover — Option A (commit-only)
 
 on:
   schedule:
@@ -10,9 +10,7 @@ on:
         required: false
         default: "false"
 
-# Option A:
-# This workflow commits truth back to main.
-# It MUST NOT deploy GitHub Pages (single publisher is site-deploy.yml).
+# Option A: commits truth to main; DOES NOT deploy Pages (single publisher = site-deploy.yml)
 permissions:
   contents: write
 
@@ -27,7 +25,6 @@ env:
   STATUS_TRACE: ops/reports/status_trace.jsonl
   ACTIVITY_PATH: ops/agent_activity.jsonl
 
-  # GLOBAL STATE (single authoritative state artifact for this capability)
   GLOBAL_STATE: ops/reports/global_state.json
 
 jobs:
@@ -50,7 +47,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Ensure folders & files exist
+      - name: Ensure folders exist (FIX for ops/agent_activity.jsonl)
         shell: bash
         run: |
           mkdir -p ops ops/reports
@@ -94,24 +91,23 @@ required = ["generated_at", "environment"]
 missing = [k for k in required if k not in j]
 if missing:
     raise SystemExit("system_status.json missing required field(s): " + ", ".join(missing))
+
 print("OK")
 PY
 
-      - name: Write GLOBAL STATE + determine used agent + verdict (HARD GATE)
+      - name: Write GLOBAL STATE + record used agent + verdict (HARD GATE)
         id: meta
         shell: bash
         env:
           FORCE_BACKUP: ${{ inputs.force_backup || 'false' }}
         run: |
-          set -e
-
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
           primary_outcome="${{ steps.primary.outcome }}"
           backup_outcome="${{ steps.backup.outcome }}"
 
           used="UNKNOWN"
-          if [ "${primary_outcome}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${FORCE_BACKUP}" != "true" ]; then
+          if [ "${primary_outcome}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${{ inputs.force_backup }}" != "true" ]; then
             used="status_agent_v1"
           elif [ "${backup_outcome}" = "success" ]; then
             used="status_agent_v1_backup"
@@ -139,7 +135,6 @@ used = "${used}"
 verdict = "${verdict}"
 reasons = json.loads('${reasons}')
 forced = (os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch" and os.environ.get("FORCE_BACKUP","false") == "true")
-
 state = {
   "schema_version": "1.0",
   "generated_at": ts,
@@ -162,7 +157,6 @@ state = {
     "agent_activity_jsonl": os.getenv("ACTIVITY_PATH")
   }
 }
-
 out_path = os.getenv("GLOBAL_STATE")
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump(state, f, ensure_ascii=False, indent=2)
@@ -191,12 +185,15 @@ PY
           if-no-files-found: error
 
       - name: Commit + push truth to main (Option A)
-        if: ${{ steps.meta.outcome == 'success' }}
+        if: ${{ steps.meta.outputs.verdict == 'PASS' }}
         shell: bash
         run: |
           set -e
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
+          # Avoid "expected branch to point to ..." by rebasing latest main
+          git pull --rebase origin main
 
           git add "${STATUS_JSON}" "${STATUS_TRACE}" "${ACTIVITY_PATH}" "${GLOBAL_STATE}" || true
 
@@ -207,17 +204,4 @@ PY
 
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           git commit -m "truth: status regeneration ${ts} (global_state)"
-
-          # Push robustly (cron can overlap)
-          for i in 1 2 3; do
-            git pull --rebase origin main || true
-            if git push origin HEAD:main; then
-              echo "Pushed truth successfully."
-              exit 0
-            fi
-            echo "Push failed, retrying ($i/3)..." >&2
-            sleep $((5*i))
-          done
-
-          echo "Failed to push after retries." >&2
-          exit 4
+          git push origin HEAD:main
