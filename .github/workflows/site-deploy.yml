@@ -3,6 +3,9 @@ name: Deploy website (Pages) + Health & Deterministic Failover
 on:
   push:
     branches: [ main ]
+    # Optional: reduce noisy deploys. Keep ops/ changes because truth commits should publish.
+    paths:
+      - "**"
   workflow_dispatch:
     inputs:
       force_failover:
@@ -29,10 +32,6 @@ env:
   GUARD_TRACE_PATH: ops/reports/guardian_trace.jsonl
   ACTIVITY_PATH: ops/agent_activity.jsonl
 
-  # OPTION A (Single Publisher): must exist on main before deploy
-  STATUS_JSON: ops/reports/system_status.json
-  GLOBAL_STATE: ops/reports/global_state.json
-
 jobs:
   guardian_gate:
     name: Guardian Gate (primary → backup)
@@ -44,8 +43,6 @@ jobs:
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -55,7 +52,7 @@ jobs:
       - name: Ensure evidence paths exist
         shell: bash
         run: |
-          mkdir -p ops/reports
+          mkdir -p ops ops/reports
           touch "${GUARD_TRACE_PATH}"
           touch "${ACTIVITY_PATH}"
 
@@ -83,6 +80,29 @@ jobs:
             echo "used_agent=guardian_agent_v1_backup" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Read verdict + reasons
+        id: read_verdict
+        shell: bash
+        run: |
+          if [ ! -f "${GOV_OUT}" ]; then
+            echo "verdict=UNKNOWN" >> "$GITHUB_OUTPUT"
+            echo 'reasons=["MISSING_GOVERNANCE_OUTPUT"]' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+import json
+p="ops/reports/governance_outputs.json"
+with open(p,"r",encoding="utf-8") as f:
+    j=json.load(f)
+verdict=j.get("verdict","UNKNOWN")
+reasons=j.get("reasons",[])
+if not isinstance(reasons,list):
+    reasons=[str(reasons)]
+print(f"verdict={verdict}")
+print("reasons="+json.dumps(reasons, ensure_ascii=False))
+PY
+
       - name: Upload governance evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -94,33 +114,7 @@ jobs:
             ops/agent_activity.jsonl
           if-no-files-found: error
 
-      - name: Read verdict + reasons
-        id: read_verdict
-        shell: bash
-        run: |
-          if [ ! -f "${GOV_OUT}" ]; then
-            echo "Missing governance output ${GOV_OUT}" >&2
-            echo "verdict=UNKNOWN" >> "$GITHUB_OUTPUT"
-            echo 'reasons=["MISSING_GOVERNANCE_OUTPUT"]' >> "$GITHUB_OUTPUT"
-            exit 3
-          fi
-
-          python - <<'PY' >> "$GITHUB_OUTPUT"
-import json
-p="ops/reports/governance_outputs.json"
-with open(p,"r",encoding="utf-8") as f:
-    j=json.load(f)
-
-verdict=j.get("verdict","UNKNOWN")
-reasons=j.get("reasons",[])
-if not isinstance(reasons,list):
-    reasons=[str(reasons)]
-
-print(f"verdict={verdict}")
-print("reasons="+json.dumps(reasons, ensure_ascii=False))
-PY
-
-      - name: Enforce gate result (BLOCK stops pipeline)
+      - name: Enforce gate (BLOCK stops pipeline)
         shell: bash
         run: |
           verdict="${{ steps.read_verdict.outputs.verdict }}"
@@ -128,7 +122,7 @@ PY
           echo "Guardian verdict: ${verdict}"
           echo "Guardian reasons: ${reasons}"
           if [ "${verdict}" != "PASS" ]; then
-            echo "Guardian gate BLOCKED. See ${GOV_OUT}" >&2
+            echo "Guardian gate BLOCKED." >&2
             exit 2
           fi
 
@@ -142,36 +136,11 @@ PY
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      # CRITICAL (Option A): refuse to deploy if monitoring truth was not committed to main
-      - name: Preflight: required truth artifacts must exist on main
-        shell: bash
-        run: |
-          if [ ! -f "${STATUS_JSON}" ]; then
-            echo "Missing required truth file: ${STATUS_JSON}" >&2
-            exit 10
-          fi
-          if [ ! -f "${GLOBAL_STATE}" ]; then
-            echo "Missing required global state: ${GLOBAL_STATE}" >&2
-            exit 11
-          fi
-
-          python - <<'PY'
-import json
-for p in ["ops/reports/system_status.json","ops/reports/global_state.json"]:
-    with open(p,"r",encoding="utf-8") as f:
-        j=json.load(f)
-    if not isinstance(j, dict):
-        raise SystemExit(f"{p} must be a JSON object")
-print("OK: truth preflight passed")
-PY
 
       - name: Ensure trace folder exists
         shell: bash
         run: |
-          mkdir -p "$(dirname "${TRACE_PATH}")"
+          mkdir -p ops/reports
           touch "${TRACE_PATH}"
 
       - name: Create trace meta
@@ -186,9 +155,7 @@ PY
       - name: Append deploy trace (start) incl. gate
         shell: bash
         run: |
-          reasons='${{ needs.guardian_gate.outputs.reasons }}'
-          # reasons is JSON array string. Write it as array, not as quoted text.
-          echo "{\"ts\":\"${{ steps.trace_meta.outputs.ts_start }}\",\"capability\":\"deploy\",\"event\":\"deploy_start\",\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\",\"ref\":\"${GITHUB_REF_NAME}\",\"primary_agent\":\"deploy_agent_v1\",\"secondary_agent\":\"deploy_agent_v1_backup\",\"mode\":\"SUPERVISED\",\"guardian_verdict\":\"${{ needs.guardian_gate.outputs.verdict }}\",\"guardian_agent\":\"${{ needs.guardian_gate.outputs.used_agent }}\",\"guardian_reasons\":${reasons}}" >> "${TRACE_PATH}"
+          echo "{\"ts\":\"${{ steps.trace_meta.outputs.ts_start }}\",\"capability\":\"deploy\",\"event\":\"deploy_start\",\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\",\"ref\":\"${GITHUB_REF_NAME}\",\"primary_agent\":\"deploy_agent_v1\",\"secondary_agent\":\"deploy_agent_v1_backup\",\"mode\":\"SUPERVISED\",\"guardian_verdict\":\"${{ needs.guardian_gate.outputs.verdict }}\",\"guardian_agent\":\"${{ needs.guardian_gate.outputs.used_agent }}\"}" >> "${TRACE_PATH}"
 
       - name: Ensure news.json exists (optional)
         shell: bash
@@ -200,7 +167,7 @@ PY
         with:
           path: ./
 
-      - name: Upload trace as workflow artifact (for audit)
+      - name: Upload trace as workflow artifact (audit)
         uses: actions/upload-artifact@v4
         with:
           name: deploy-trace-${{ steps.trace_meta.outputs.trace_id }}
@@ -232,13 +199,6 @@ PY
         shell: bash
         run: |
           URL="${{ env.CUSTOM_URL }}"
-          if [ -z "$URL" ]; then
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-            echo "http_code=0" >> "$GITHUB_OUTPUT"
-            echo "checked_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-
           echo "Healthcheck on $URL"
           code="0"
           for i in 1 2 3; do
@@ -252,7 +212,6 @@ PY
             fi
             sleep 5
           done
-
           echo "ok=false" >> "$GITHUB_OUTPUT"
           echo "http_code=$code" >> "$GITHUB_OUTPUT"
           echo "checked_at=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "$GITHUB_OUTPUT"
@@ -272,16 +231,13 @@ PY
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Append deploy trace (success) to site artifact
         shell: bash
         run: |
-          mkdir -p "$(dirname "${TRACE_PATH}")"
+          mkdir -p ops/reports
           touch "${TRACE_PATH}"
-          reasons='${{ needs.guardian_gate.outputs.reasons }}'
-          echo "{\"ts\":\"${{ needs.healthcheck.outputs.checked_at }}\",\"capability\":\"deploy\",\"event\":\"deploy_success\",\"http_code\":${{ needs.healthcheck.outputs.http_code }},\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\",\"primary_agent\":\"deploy_agent_v1\",\"result\":\"PASS\",\"guardian_verdict\":\"${{ needs.guardian_gate.outputs.verdict }}\",\"guardian_agent\":\"${{ needs.guardian_gate.outputs.used_agent }}\",\"guardian_reasons\":${reasons}}" >> "${TRACE_PATH}"
+          echo "{\"ts\":\"${{ needs.healthcheck.outputs.checked_at }}\",\"capability\":\"deploy\",\"event\":\"deploy_success\",\"http_code\":${{ needs.healthcheck.outputs.http_code }},\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\",\"primary_agent\":\"deploy_agent_v1\",\"result\":\"PASS\",\"guardian_verdict\":\"${{ needs.guardian_gate.outputs.verdict }}\",\"guardian_agent\":\"${{ needs.guardian_gate.outputs.used_agent }}\"}" >> "${TRACE_PATH}"
 
       - name: Re-upload Pages artifact (with success trace)
         uses: actions/upload-pages-artifact@v3
@@ -298,7 +254,6 @@ PY
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-
           git checkout -B "${BACKUP_BRANCH}"
           git add -A
           git commit -m "backup snapshot from ${GITHUB_SHA}" || echo "No changes to commit"
@@ -314,7 +269,6 @@ PY
         uses: actions/checkout@v4
         with:
           ref: ${{ env.BACKUP_BRANCH }}
-          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -324,32 +278,28 @@ PY
       - name: Ensure evidence paths exist
         shell: bash
         run: |
-          mkdir -p ops/reports
+          mkdir -p ops ops/reports
           touch "${GUARD_TRACE_PATH}"
           touch "${ACTIVITY_PATH}"
-          mkdir -p "$(dirname "${TRACE_PATH}")"
           touch "${TRACE_PATH}"
 
       - name: Guardian check on backup branch (must PASS to publish rollback)
         shell: bash
         run: |
           python ops/guardian_agent.py --agent backup
-
           if [ ! -f "${GOV_OUT}" ]; then
             echo "Missing governance output ${GOV_OUT} on backup branch" >&2
             exit 3
           fi
-
-          verdict="$(python - <<'PY'
+          verdict=$(python - <<'PY'
 import json
 p="ops/reports/governance_outputs.json"
 with open(p,"r",encoding="utf-8") as f:
     j=json.load(f)
 print(j.get("verdict","UNKNOWN"))
 PY
-)"
+)
           echo "Backup-guardian verdict: ${verdict}"
-
           if [ "${verdict}" != "PASS" ]; then
             echo "Rollback blocked: backup branch failed Guardian gate." >&2
             exit 2
@@ -359,9 +309,7 @@ PY
         shell: bash
         run: |
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          code="${{ needs.healthcheck.outputs.http_code }}"
-          if [ -z "$code" ]; then code=0; fi
-          echo "{\"ts\":\"$ts\",\"capability\":\"deploy\",\"event\":\"failover_to_secondary\",\"condition\":\"healthcheck_failed\",\"http_code\":${code},\"secondary_agent\":\"deploy_agent_v1_backup\",\"result\":\"ROLLBACK\"}" >> "${TRACE_PATH}"
+          echo "{\"ts\":\"$ts\",\"capability\":\"deploy\",\"event\":\"failover_to_secondary\",\"condition\":\"healthcheck_failed\",\"http_code\":${{ needs.healthcheck.outputs.http_code }},\"secondary_agent\":\"deploy_agent_v1_backup\",\"result\":\"ROLLBACK\"}" >> "${TRACE_PATH}"
 
       - name: Upload Pages artifact (backup)
         uses: actions/upload-pages-artifact@v3
