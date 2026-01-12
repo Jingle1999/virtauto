@@ -1,8 +1,8 @@
-name: Status Monitoring (Truth Regeneration) + Deterministic Failover — Option A (commit-only)
+name: Status Monitoring (Truth Regeneration) + Deterministic Failover — OptionC: commit-only
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # every 15 minutes
+    - cron: "*/15 * * * *"
   workflow_dispatch:
     inputs:
       force_backup:
@@ -11,7 +11,7 @@ on:
         default: "false"
 
 # Option A:
-# This workflow MUST be allowed to commit truth back to main.
+# This workflow commits truth back to main.
 # It MUST NOT deploy GitHub Pages (single publisher is site-deploy.yml).
 permissions:
   contents: write
@@ -35,9 +35,9 @@ jobs:
     name: Generate Truth (primary → backup) + GLOBAL STATE + commit to main
     runs-on: ubuntu-latest
     outputs:
-      used_agent: ${{ steps.finalize.outputs.used_agent }}
-      verdict: ${{ steps.finalize.outputs.verdict }}
-      global_state_path: ${{ steps.finalize.outputs.global_state_path }}
+      used_agent: ${{ steps.meta.outputs.used_agent }}
+      verdict: ${{ steps.meta.outputs.verdict }}
+      global_state_path: ${{ steps.meta.outputs.global_state_path }}
 
     steps:
       - name: Checkout main
@@ -50,10 +50,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Ensure report folders exist
+      - name: Ensure folders & files exist
         shell: bash
         run: |
-          mkdir -p ops/reports
+          mkdir -p ops ops/reports
           touch "${STATUS_TRACE}"
           touch "${ACTIVITY_PATH}"
 
@@ -94,34 +94,31 @@ required = ["generated_at", "environment"]
 missing = [k for k in required if k not in j]
 if missing:
     raise SystemExit("system_status.json missing required field(s): " + ", ".join(missing))
-
 print("OK")
 PY
 
-      - name: Write GLOBAL STATE + record used agent + verdict (HARD GATE)
-        id: finalize
+      - name: Write GLOBAL STATE + determine used agent + verdict (HARD GATE)
+        id: meta
         shell: bash
+        env:
+          FORCE_BACKUP: ${{ inputs.force_backup || 'false' }}
         run: |
-          set -euo pipefail
+          set -e
+
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
           primary_outcome="${{ steps.primary.outcome }}"
           backup_outcome="${{ steps.backup.outcome }}"
-          forced_backup="false"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_backup }}" = "true" ]; then
-            forced_backup="true"
-          fi
 
           used="UNKNOWN"
-          # Determine which agent actually produced truth (deterministic)
-          if [ "$forced_backup" = "false" ] && [ "$primary_outcome" = "success" ]; then
+          if [ "${primary_outcome}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${FORCE_BACKUP}" != "true" ]; then
             used="status_agent_v1"
-          elif [ "$backup_outcome" = "success" ]; then
+          elif [ "${backup_outcome}" = "success" ]; then
             used="status_agent_v1_backup"
           fi
 
           verdict="PASS"
-          reasons='[]'
+          reasons="[]"
 
           if [ "$used" = "UNKNOWN" ]; then
             verdict="BLOCK"
@@ -137,10 +134,11 @@ PY
 
           python - <<PY
 import json, os
-ts = ${ts!r}
-used = ${used!r}
-verdict = ${verdict!r}
-reasons = json.loads(${reasons!r})
+ts = "${ts}"
+used = "${used}"
+verdict = "${verdict}"
+reasons = json.loads('${reasons}')
+forced = (os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch" and os.environ.get("FORCE_BACKUP","false") == "true")
 
 state = {
   "schema_version": "1.0",
@@ -156,7 +154,7 @@ state = {
     "sha": os.getenv("GITHUB_SHA"),
     "ref": os.getenv("GITHUB_REF_NAME"),
     "event_name": os.getenv("GITHUB_EVENT_NAME"),
-    "forced_backup": ${forced_backup}
+    "forced_backup": forced
   },
   "artifacts": {
     "system_status_json": os.getenv("STATUS_JSON"),
@@ -172,12 +170,11 @@ print("WROTE_GLOBAL_STATE", out_path)
 PY
 
           echo "used_agent=$used" >> "$GITHUB_OUTPUT"
-          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+          echo "verdict=${verdict}" >> "$GITHUB_OUTPUT"
           echo "global_state_path=${GLOBAL_STATE}" >> "$GITHUB_OUTPUT"
 
-          # HARD GATE: BLOCK means stop BEFORE commit/push
-          if [ "$verdict" != "PASS" ]; then
-            echo "GLOBAL STATE BLOCK. used_agent=$used verdict=$verdict reasons=$reasons" >&2
+          if [ "${verdict}" != "PASS" ]; then
+            echo "GLOBAL STATE BLOCK. used_agent=${used} verdict=${verdict} reasons=${reasons}" >&2
             exit 3
           fi
 
@@ -193,11 +190,11 @@ PY
             ops/reports/global_state.json
           if-no-files-found: error
 
-      - name: Commit + push truth to main (Option A: single publisher is site-deploy.yml)
-        if: ${{ steps.finalize.outputs.verdict == 'PASS' }}
+      - name: Commit + push truth to main (Option A)
+        if: ${{ steps.meta.outcome == 'success' }}
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
@@ -211,19 +208,16 @@ PY
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           git commit -m "truth: status regeneration ${ts} (global_state)"
 
-          # Rebase to avoid non-fast-forward in case main moved
-          git pull --rebase origin main
-
-          # Push with a small retry (transient contention)
+          # Push robustly (cron can overlap)
           for i in 1 2 3; do
+            git pull --rebase origin main || true
             if git push origin HEAD:main; then
-              echo "Pushed truth to main."
+              echo "Pushed truth successfully."
               exit 0
             fi
-            echo "Push failed (attempt $i). Retrying after rebase..."
-            sleep 2
-            git pull --rebase origin main
+            echo "Push failed, retrying ($i/3)..." >&2
+            sleep $((5*i))
           done
 
-          echo "Failed to push truth after retries." >&2
-          exit 9
+          echo "Failed to push after retries." >&2
+          exit 4
