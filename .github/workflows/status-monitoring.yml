@@ -16,9 +16,6 @@ on:
 permissions:
   contents: write
 
-# IMPORTANT:
-# Do NOT share concurrency group with site-deploy.yml ("pages-deploy"),
-# otherwise a deploy can cancel monitoring (or vice versa).
 concurrency:
   group: truth-regeneration
   cancel-in-progress: true
@@ -38,9 +35,9 @@ jobs:
     name: Generate Truth (primary → backup) + GLOBAL STATE + commit to main
     runs-on: ubuntu-latest
     outputs:
-      used_agent: ${{ steps.meta.outputs.used_agent }}
-      verdict: ${{ steps.meta.outputs.verdict }}
-      global_state_path: ${{ steps.meta.outputs.global_state_path }}
+      used_agent: ${{ steps.finalize.outputs.used_agent }}
+      verdict: ${{ steps.finalize.outputs.verdict }}
+      global_state_path: ${{ steps.finalize.outputs.global_state_path }}
 
     steps:
       - name: Checkout main
@@ -102,32 +99,35 @@ print("OK")
 PY
 
       - name: Write GLOBAL STATE + record used agent + verdict (HARD GATE)
-        id: meta
+        id: finalize
         shell: bash
         run: |
+          set -euo pipefail
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
-          used="UNKNOWN"
           primary_outcome="${{ steps.primary.outcome }}"
           backup_outcome="${{ steps.backup.outcome }}"
+          forced_backup="false"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_backup }}" = "true" ]; then
+            forced_backup="true"
+          fi
 
+          used="UNKNOWN"
           # Determine which agent actually produced truth (deterministic)
-          if [ "${primary_outcome}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${{ inputs.force_backup }}" != "true" ]; then
+          if [ "$forced_backup" = "false" ] && [ "$primary_outcome" = "success" ]; then
             used="status_agent_v1"
-          elif [ "${backup_outcome}" = "success" ]; then
+          elif [ "$backup_outcome" = "success" ]; then
             used="status_agent_v1_backup"
           fi
 
           verdict="PASS"
-          reasons="[]"
+          reasons='[]'
 
-          # Deterministic failure if neither ran successfully
           if [ "$used" = "UNKNOWN" ]; then
             verdict="BLOCK"
             reasons='["FAILOVER_EXHAUSTED_PRIMARY_AND_BACKUP_FAILED"]'
           fi
 
-          # Belt-and-suspenders: truth must exist
           if [ ! -f "${STATUS_JSON}" ]; then
             verdict="BLOCK"
             reasons='["MISSING_SYSTEM_STATUS_JSON"]'
@@ -135,14 +135,12 @@ PY
 
           mkdir -p "$(dirname "${GLOBAL_STATE}")"
 
-          python - <<'PY'
+          python - <<PY
 import json, os
-ts = os.environ["TS"]
-used = os.environ["USED"]
-verdict = os.environ["VERDICT"]
-reasons = json.loads(os.environ["REASONS"])
-
-forced = (os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch" and os.environ.get("FORCE_BACKUP","false") == "true")
+ts = ${ts!r}
+used = ${used!r}
+verdict = ${verdict!r}
+reasons = json.loads(${reasons!r})
 
 state = {
   "schema_version": "1.0",
@@ -158,7 +156,7 @@ state = {
     "sha": os.getenv("GITHUB_SHA"),
     "ref": os.getenv("GITHUB_REF_NAME"),
     "event_name": os.getenv("GITHUB_EVENT_NAME"),
-    "forced_backup": forced
+    "forced_backup": ${forced_backup}
   },
   "artifacts": {
     "system_status_json": os.getenv("STATUS_JSON"),
@@ -167,88 +165,6 @@ state = {
   }
 }
 
-out_path = os.getenv("GLOBAL_STATE")
-with open(out_path, "w", encoding="utf-8") as f:
-    json.dump(state, f, ensure_ascii=False, indent=2)
-
-print("WROTE_GLOBAL_STATE", out_path)
-PY
-        env:
-          TS: ${{ format('{0}', github.run_id) }}
-          # NOTE: We pass these explicitly below to avoid bash quoting issues
-          USED: ${{ '' }}
-          VERDICT: ${{ '' }}
-          REASONS: ${{ '' }}
-          FORCE_BACKUP: ${{ inputs.force_backup || 'false' }}
-        # We re-run with correct env populated in a second mini step
-      - name: Finalize GLOBAL STATE env + enforce gate
-        id: meta_finalize
-        shell: bash
-        run: |
-          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-
-          used="UNKNOWN"
-          primary_outcome="${{ steps.primary.outcome }}"
-          backup_outcome="${{ steps.backup.outcome }}"
-
-          if [ "${primary_outcome}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${{ inputs.force_backup }}" != "true" ]; then
-            used="status_agent_v1"
-          elif [ "${backup_outcome}" = "success" ]; then
-            used="status_agent_v1_backup"
-          fi
-
-          verdict="PASS"
-          reasons="[]"
-
-          if [ "$used" = "UNKNOWN" ]; then
-            verdict="BLOCK"
-            reasons='["FAILOVER_EXHAUSTED_PRIMARY_AND_BACKUP_FAILED"]'
-          fi
-
-          if [ ! -f "${STATUS_JSON}" ]; then
-            verdict="BLOCK"
-            reasons='["MISSING_SYSTEM_STATUS_JSON"]'
-          fi
-
-          export TS="$ts"
-          export USED="$used"
-          export VERDICT="$verdict"
-          export REASONS="$reasons"
-          export FORCE_BACKUP="${{ inputs.force_backup || 'false' }}"
-
-          mkdir -p "$(dirname "${GLOBAL_STATE}")"
-
-          python - <<'PY'
-import json, os
-ts = os.environ["TS"]
-used = os.environ["USED"]
-verdict = os.environ["VERDICT"]
-reasons = json.loads(os.environ["REASONS"])
-
-forced = (os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch" and os.environ.get("FORCE_BACKUP","false") == "true")
-
-state = {
-  "schema_version": "1.0",
-  "generated_at": ts,
-  "environment": "production",
-  "capability": "monitoring_status",
-  "verdict": verdict,
-  "reasons": reasons,
-  "used_agent": used,
-  "execution": {
-    "run_id": os.getenv("GITHUB_RUN_ID"),
-    "run_attempt": os.getenv("GITHUB_RUN_ATTEMPT"),
-    "sha": os.getenv("GITHUB_SHA"),
-    "ref": os.getenv("GITHUB_REF_NAME"),
-    "event_name": os.getenv("GITHUB_EVENT_NAME"),
-    "forced_backup": forced
-  },
-  "artifacts": {
-    "system_status_json": os.getenv("STATUS_JSON"),
-    "status_trace_jsonl": os.getenv("STATUS_TRACE"),
-    "agent_activity_jsonl": os.getenv("ACTIVITY_PATH")
-  }
-}
 out_path = os.getenv("GLOBAL_STATE")
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump(state, f, ensure_ascii=False, indent=2)
@@ -256,11 +172,12 @@ print("WROTE_GLOBAL_STATE", out_path)
 PY
 
           echo "used_agent=$used" >> "$GITHUB_OUTPUT"
-          echo "verdict=${verdict}" >> "$GITHUB_OUTPUT"
+          echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
           echo "global_state_path=${GLOBAL_STATE}" >> "$GITHUB_OUTPUT"
 
-          if [ "${verdict}" != "PASS" ]; then
-            echo "GLOBAL STATE BLOCK. used_agent=${used} verdict=${verdict} reasons=${reasons}" >&2
+          # HARD GATE: BLOCK means stop BEFORE commit/push
+          if [ "$verdict" != "PASS" ]; then
+            echo "GLOBAL STATE BLOCK. used_agent=$used verdict=$verdict reasons=$reasons" >&2
             exit 3
           fi
 
@@ -277,10 +194,10 @@ PY
           if-no-files-found: error
 
       - name: Commit + push truth to main (Option A: single publisher is site-deploy.yml)
-        if: ${{ steps.meta_finalize.outcome == 'success' }}
+        if: ${{ steps.finalize.outputs.verdict == 'PASS' }}
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
@@ -293,4 +210,20 @@ PY
 
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           git commit -m "truth: status regeneration ${ts} (global_state)"
-          git push origin HEAD:main
+
+          # Rebase to avoid non-fast-forward in case main moved
+          git pull --rebase origin main
+
+          # Push with a small retry (transient contention)
+          for i in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "Pushed truth to main."
+              exit 0
+            fi
+            echo "Push failed (attempt $i). Retrying after rebase..."
+            sleep 2
+            git pull --rebase origin main
+          done
+
+          echo "Failed to push truth after retries." >&2
+          exit 9
