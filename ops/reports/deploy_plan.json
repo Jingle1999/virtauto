@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-01-05T06:08:21Z",
+  "agent": "deploy",
+  "mode": "simulation_only",
+  "environment": "production",
+  "system_mode": "stabilization",
+  "trigger_event": {
+    "timestamp": "2025-12-16T20:59:00Z",
+    "agent": "george",
+    "event": "deploy_requested",
+    "message": "SIMULATION: deploy requested after content update (health below threshold)",
+    "mode": "simulation"
+  },
+  "actions": [
+    {
+      "type": "readiness_check",
+      "source": "ops/reports/system_status.json"
+    },
+    {
+      "type": "simulate_deploy",
+      "note": "No workflow dispatch performed by deploy agent."
+    },
+    {
+      "type": "simulate_post_deploy_healthcheck",
+      "note": "No external calls in skeleton."
+    }
+  ],
+  "safety": {
+    "real_deploy_executed": false,
+    "human_approval_required_for_real_deploy": true
+  }
+}
