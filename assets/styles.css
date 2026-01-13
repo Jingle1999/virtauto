@@ -6,6 +6,25 @@ a{color:var(--brand);text-decoration:none}
 .container{max-width:1100px;margin:0 auto;padding:0 1rem}
 .header{position:sticky;top:0;background:rgba(13,18,32,.75);backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid #1f2a44;z-index:20}
 .nav{display:flex;align-items:center;gap:1rem;padding:.75rem 0}
+
+/* =========================
+   Agentic Website Flag
+   ========================= */
+
+.agent-flag {
+  margin-left: auto;
+  font-size: .75rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  padding: .35rem .7rem;
+  border-radius: 999px;
+  color: var(--accent);
+  background: rgba(139, 92, 246, .12);
+  border: 1px solid rgba(139, 92, 246, .35);
+  white-space: nowrap;
+}
+
+
 .brand{font-weight:700;color:#fff}
 .badge{margin-left:.25rem;font-size:.7rem;padding:.2rem .4rem;border:1px solid #324265;border-radius:.4rem;color:var(--muted)}
 .menu{display:flex;gap:.75rem;align-items:center;margin-left:auto}
