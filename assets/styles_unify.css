@@ -483,4 +483,13 @@ section::before, section::after {
     justify-content:flex-start;
   }
 }
+/* =========================
+   Header — agent chips (compact)
+   Keep only the first chip to avoid clutter
+   ========================= */
+#agent-chips .chip:not(:first-child),
+#agent-chips .agent-chip:not(:first-child),
+#agent-chips .pill:not(:first-child) {
+  display: none !important;
+}
 
