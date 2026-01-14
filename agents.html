@@ -1,4 +1,3 @@
-<!-- agents.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,18 +7,18 @@
 
   <link rel="canonical" href="https://www.virtauto.de/agents.html">
   <meta name="description" content="Explore virtauto’s agents: Guardian, Quality, Root Cause, Supply Chain and more — orchestrated to automate engineering, production, and after-sales.">
-  <meta property="og:title" content="virtauto Agents — Multi-Agent Orchestration for Industry"/>
+  <meta property="og:title" content="virtaauto Agents — Multi-Agent Orchestration for Industry"/>
   <meta property="og:url" content="https://www.virtauto.de/agents.html"/>
   <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
-  <meta name="twitter:title" content="virtauto Agents — Multi-Agent Orchestration for Industry"/>
+  <meta name="twitter:title" content="virtaauto Agents — Multi-Agent Orchestration for Industry"/>
   <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg"/>
 
   <link rel="stylesheet" href="assets/styles.css"/>
   <link rel="stylesheet" href="assets/styles_unify.css"/>
 
-  <!-- cache-bust to defeat GH Pages CDN stale delivery -->
-  <script defer src="assets/site.js?v=20250113a"></script>
-  <script defer src="assets/agent-status.js?v=20250113a"></script>
+  <script defer src="assets/site.js"></script>
+  <!-- Cache-buster to avoid GitHub Pages serving old JS -->
+  <script defer src="assets/agent-status.js?v=20250113-final"></script>
 </head>
 
 <body>
@@ -36,9 +35,7 @@
       <a class="cta" href="solutions.html#george">Meet GEORGE</a>
     </nav>
 
-    <!-- IMPORTANT:
-         - Exactly ONE #agent-chips on the page
-         - Must live in the header (not in <head>) -->
+    <!-- SINGLE, UNIQUE container. JS owns this. -->
     <div id="agent-chips" class="agent-chips" aria-label="Agentic Website"></div>
 
     <button class="burger" aria-label="Menu" type="button">
