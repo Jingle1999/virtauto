@@ -4,6 +4,9 @@
  <!DOCTYPE html>
  <html lang="en">
  <head>
+<link rel="stylesheet" href="../assets/styles.css"/>
+<link rel="stylesheet" href="../assets/styles_unify.css"/>
+<script defer src="../assets/site.js"></script>
 +  <!-- Phase 8: truth-locked global_state.json + deterministic signal override -->
    <meta charset="UTF-8" />
    <title>virtauto.OS — Live System Status</title>
@@ -192,3 +195,27 @@
        renderKPIs(n);
        renderAgents(n);
        renderGuards(n);
+   <header class="header">
+  <div class="container nav">
+    <a class="brand" href="../index.html">virtauto<span class="badge">OS</span></a>
+
+    <nav class="menu" id="menu">
+      <a href="../index.html">Home</a>
+      <a href="../agents.html">Agents</a>
+      <a href="../architecture.html">Architecture</a>
+      <a href="/status/" class="active">Status</a>
+      <a href="../contact.html">Contact</a>
+      <a class="cta" href="../solutions.html#george">Meet GEORGE</a>
+    </nav>
+
+    <!-- rechts oben: statt Agent-Chips -->
+    <div class="agent-flag" aria-label="Agentic Website">
+      <a href="/status/" class="agent-link">Agentic Website</a>
+    </div>
+
+    <button class="burger" aria-label="Menu" type="button">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+   
