@@ -5,208 +5,103 @@
   <title>virtauto.OS — Live System Status</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Global Styles -->
+  <!-- Global layout -->
   <link rel="stylesheet" href="../assets/styles.css" />
   <link rel="stylesheet" href="../assets/styles_unify.css" />
 
-  <!-- Global JS (Menu, Burger, etc.) -->
-  <script defer src="../assets/site.js"></script>
+  <!-- Status-only styles -->
+  <style>
+    main { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+    h1 { margin-bottom: 24px; }
+    .kv { margin: 6px 0; }
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; }
+    .ok { background:#1f7a4f; }
+    .warn { background:#8a6d1d; }
+    .crit { background:#8a1d1d; }
+    section { margin-top: 40px; }
+  </style>
 </head>
 
-<body class="page-status">
+<body>
 
-  <!-- =========================
-       GLOBAL HEADER (UNIFIED)
-       ========================= -->
-  <header class="header">
-    <div class="container nav">
-      <a class="brand" href="../index.html">
-        virtauto<span class="badge">OS</span>
-      </a>
+<!-- ✅ GLOBAL HEADER (identisch zu allen anderen Seiten) -->
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="../index.html">virtauto<span class="badge">OS</span></a>
 
-      <nav class="menu" id="menu">
-        <a href="../index.html">Home</a>
-        <a href="../agents.html">Agents</a>
-        <a href="../architecture.html">Architecture</a>
-        <a href="/status/" class="active">Status</a>
-        <a href="../contact.html">Contact</a>
-        <a class="cta" href="../solutions.html#george">Meet GEORGE</a>
-      </nav>
+    <nav class="menu">
+      <a href="../index.html">Home</a>
+      <a href="../agents.html">Agents</a>
+      <a href="../architecture.html">Architecture</a>
+      <a href="/status/" class="active">Status</a>
+      <a href="../contact.html">Contact</a>
+      <a class="cta" href="../solutions.html#george">Meet GEORGE</a>
+    </nav>
 
-      <!-- Agentic Website Flag -->
-      <div class="agent-flag" aria-label="Agentic Website">
-        <a href="/status/" class="agent-link">Agentic Website</a>
-      </div>
-
-      <button class="burger" aria-label="Menu" type="button">
-        <span></span><span></span><span></span>
-      </button>
+    <div class="agent-flag">
+      <a href="/status/" class="agent-link">Agentic Website</a>
     </div>
-  </header>
+  </div>
+</header>
 
-  <!-- =========================
-       MAIN CONTENT
-       ========================= -->
-  <main class="container status">
+<main>
+  <h1>virtauto.OS — Live System Status</h1>
 
-    <h1>virtauto.OS — Live System Status</h1>
+  <div id="meta">
+    <div class="kv"><strong>Truth source:</strong> <span id="truth">—</span></div>
+    <div class="kv"><strong>Generated:</strong> <span id="generated">—</span></div>
+    <div class="kv"><strong>Environment:</strong> <span id="env">—</span></div>
+    <div class="kv"><strong>Signal:</strong> <span id="signal" class="pill">—</span></div>
+  </div>
 
-    <!-- HEADER INFO -->
-    <section class="status-header">
-      <div><strong>Truth source:</strong> <span id="truth-source">—</span></div>
-      <div><strong>Path:</strong> <span id="truth-path">—</span></div>
-      <div><strong>Generated:</strong> <span id="generated-at">—</span></div>
-      <div><strong>Environment:</strong> <span id="environment">—</span></div>
+  <section>
+    <h2>Agents</h2>
+    <ul id="agents"></ul>
+  </section>
 
-      <div class="pill" id="system-pill">—</div>
-    </section>
+  <section>
+    <h2>Guards</h2>
+    <div id="freshness">—</div>
+  </section>
+</main>
 
-    <!-- KPIs -->
-    <section class="status-kpis">
-      <div class="kpi">
-        <div class="kpi-value" id="kpi-health">—</div>
-        <div class="kpi-note" id="kpi-health-note">—</div>
-      </div>
-    </section>
+<script>
+const PATH = "/ops/reports/global_state.json";
 
-    <!-- AGENTS -->
-    <section>
-      <h2>Agents</h2>
-      <div id="agents-list"></div>
-    </section>
+function cls(sig){
+  sig = (sig||"").toUpperCase();
+  if(sig.includes("GREEN")||sig.includes("OK")) return "pill ok";
+  if(sig.includes("YELLOW")||sig.includes("WARN")) return "pill warn";
+  return "pill crit";
+}
 
-    <!-- GUARDS -->
-    <section>
-      <h2>Guards</h2>
-      <div>
-        Freshness:
-        <span id="guard-freshness">—</span>
-        <span class="pill" id="guard-freshness-pill">—</span>
-      </div>
-    </section>
+fetch(PATH,{cache:"no-store"})
+.then(r=>r.json())
+.then(gs=>{
+  document.getElementById("truth").textContent = "global_state.json";
+  document.getElementById("generated").textContent = gs.generated_at || "—";
+  document.getElementById("env").textContent = gs.environment || "—";
 
-  </main>
+  const sig = (gs.health && gs.health.signal) || "UNKNOWN";
+  const sp = document.getElementById("signal");
+  sp.textContent = sig;
+  sp.className = cls(sig);
 
-  <!-- =========================
-       STATUS LOGIC (PHASE 8)
-       ========================= -->
-  <script>
-    const GLOBAL_STATE_PATH = "/global_state.json";
+  const ul = document.getElementById("agents");
+  Object.entries(gs.agents||{}).forEach(([k,v])=>{
+    const li = document.createElement("li");
+    li.textContent = `${k}: ${v.state||"—"}`;
+    ul.appendChild(li);
+  });
 
-    const FRESH_OK_MIN = 45;
-    const FRESH_WARN_MIN = 90;
-
-    const GUARD_FRESH_OK_MIN = FRESH_OK_MIN;
-    const GUARD_FRESH_WARN_MIN = FRESH_WARN_MIN;
-
-    function $(id) { return document.getElementById(id); }
-    function safeUpper(v) { return String(v || "—").toUpperCase(); }
-
-    function classifyPillBySignal(signal) {
-      if (signal === "GREEN") return "ok";
-      if (signal === "YELLOW") return "warn";
-      if (signal === "RED") return "crit";
-      return null;
-    }
-
-    function computeAgeMinFromGeneratedAt(iso) {
-      if (!iso) return null;
-      const t = new Date(iso).getTime();
-      if (!Number.isFinite(t)) return null;
-      return Math.max(0, Math.round((Date.now() - t) / 60000));
-    }
-
-    function effectiveSignal(base, ageMin, verdict) {
-      const sig = String(base || "").toUpperCase();
-      const v = String(verdict || "").toUpperCase();
-      if (v && v !== "PASS" && v !== "—") return "RED";
-      if (ageMin === null) return "YELLOW";
-      if (ageMin > FRESH_WARN_MIN) return "RED";
-      if (ageMin >= FRESH_OK_MIN) return "YELLOW";
-      return sig || "GREEN";
-    }
-
-    async function fetchGlobalState() {
-      const res = await fetch(GLOBAL_STATE_PATH, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to load global_state.json");
-      return res.json();
-    }
-
-    function normalizeState(gs) {
-      const status = gs.status || {};
-      const generatedAt =
-        gs.generated_at || gs.generatedAt || status.generated_at || status.generatedAt || null;
-
-      const environment = gs.environment || status.environment || "—";
-      const verdict =
-        gs.verdict || gs.gate_verdict || status.verdict || (status.gate && status.gate.verdict) || "—";
-
-      const ageMin = computeAgeMinFromGeneratedAt(generatedAt);
-      const baseSignal =
-        (status.health && status.health.signal) || (gs.health && gs.health.signal) || "—";
-
-      const signal = effectiveSignal(baseSignal, ageMin, verdict);
-
-      return { gs, status, generatedAt, environment, verdict, ageMin, signal };
-    }
-
-    function renderHeader(n) {
-      $("truth-source").textContent = "global_state.json";
-      $("truth-path").textContent = GLOBAL_STATE_PATH;
-      $("generated-at").textContent = n.generatedAt || "—";
-      $("environment").textContent = n.environment;
-
-      const pill = $("system-pill");
-      pill.textContent = safeUpper(n.signal);
-      pill.classList.remove("ok", "warn", "crit");
-      const cls = classifyPillBySignal(n.signal);
-      if (cls) pill.classList.add(cls);
-    }
-
-    function renderKPIs(n) {
-      $("kpi-health").textContent = safeUpper(n.signal);
-      $("kpi-health-note").textContent =
-        `Signal: ${safeUpper(n.signal)} · Verdict: ${safeUpper(n.verdict)}`;
-    }
-
-    function renderGuards(n) {
-      const ageMin = n.ageMin;
-      if (ageMin === null) {
-        $("guard-freshness").textContent = "—";
-        $("guard-freshness-pill").textContent = "UNKNOWN";
-        return;
-      }
-      $("guard-freshness").textContent = `${ageMin} min ago`;
-      const pill = $("guard-freshness-pill");
-
-      if (ageMin < GUARD_FRESH_OK_MIN) {
-        pill.textContent = "OPERATIONAL";
-        pill.className = "pill ok";
-      } else if (ageMin <= GUARD_FRESH_WARN_MIN) {
-        pill.textContent = "STALE";
-        pill.className = "pill warn";
-      } else {
-        pill.textContent = "OFFLINE";
-        pill.className = "pill crit";
-      }
-    }
-
-    (async function boot() {
-      try {
-        const gs = await fetchGlobalState();
-        const n = normalizeState(gs);
-
-        if (!n.generatedAt) throw new Error("Missing generated_at");
-        if (!n.environment || n.environment === "—") throw new Error("Missing environment");
-
-        renderHeader(n);
-        renderKPIs(n);
-        renderGuards(n);
-      } catch (e) {
-        console.error("[status] boot failed:", e);
-      }
-    })();
-  </script>
+  document.getElementById("freshness").textContent =
+    gs.generated_at ? "updated " + gs.generated_at : "—";
+})
+.catch(e=>{
+  document.getElementById("signal").textContent = "ERROR";
+  document.getElementById("signal").className = "pill crit";
+});
+</script>
 
 </body>
 </html>
