@@ -6,38 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- shared layout -->
-  <link rel="stylesheet" href="../assets/styles.css" />
-  <link rel="stylesheet" href="../assets/styles_unify.css" />
-  <script defer src="../assets/site.js"></script>
+  <link rel="stylesheet" href="../assets/styles.css"/>
+  <link rel="stylesheet" href="../assets/styles_unify.css"/>
 
   <style>
-    .status-box {
-      margin-top: 40px;
-      padding: 24px;
-      border-radius: 12px;
-      background: #0f1623;
-      border: 1px solid #1a2332;
-    }
-    .status-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #1a2332;
-      font-size: 14px;
-    }
-    .status-row:last-child {
-      border-bottom: none;
-    }
-    .pill {
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .ok { background: #123a2b; color: #7dffd4; }
-    .warn { background: #3a2e12; color: #ffd37d; }
-    .crit { background: #3a1212; color: #ff7d7d; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    body { background:#0b0f14; color:#e6e9ef; }
+    main { max-width:1100px; margin:40px auto; padding:0 16px; }
+    .card { background:#121826; border:1px solid #1f2937; border-radius:12px; padding:20px; margin-bottom:20px; }
+    .ok { color:#22c55e; }
+    .warn { color:#f59e0b; }
+    .crit { color:#ef4444; }
+    .muted { color:#9ca3af; }
+    pre { background:#0b0f14; padding:12px; border-radius:8px; overflow:auto; }
   </style>
 </head>
 
@@ -53,75 +33,60 @@
       <a href="../architecture.html">Architecture</a>
       <a href="/status/" class="active">Status</a>
       <a href="../contact.html">Contact</a>
-      <a class="cta" href="../solutions.html#george">Meet GEORGE</a>
     </nav>
 
     <div class="agent-flag">
       <a href="/status/" class="agent-link">Agentic Website</a>
     </div>
-
-    <button class="burger" aria-label="Menu" type="button">
-      <span></span><span></span><span></span>
-    </button>
   </div>
 </header>
 
-<main class="container">
-  <h1 style="margin-top:40px;">System Status</h1>
-  <p class="lead">Authoritative system state derived from <code>global_state.json</code>.</p>
+<main>
+  <h1>System Status</h1>
 
-  <div id="status" class="status-box">
-    <div class="status-row">
-      <span>Loading status…</span>
-    </div>
+  <div id="summary" class="card">
+    <div class="muted">Loading status…</div>
+  </div>
+
+  <div class="card">
+    <h3>Raw global_state.json</h3>
+    <pre id="raw">loading…</pre>
   </div>
 </main>
 
 <script>
 (async function () {
-  const box = document.getElementById("status");
+  const SUMMARY = document.getElementById("summary");
+  const RAW = document.getElementById("raw");
 
   try {
     const res = await fetch("/ops/reports/global_state.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("Fetch failed: " + res.status);
+    if (!res.ok) throw new Error("HTTP " + res.status);
 
     const gs = await res.json();
+    RAW.textContent = JSON.stringify(gs, null, 2);
 
     const verdict = (gs.verdict || "UNKNOWN").toUpperCase();
-    const generated = gs.generated_at || "—";
     const env = gs.environment || "—";
+    const ts = gs.generated_at || "—";
+    const agent = gs.used_agent || "—";
 
-    const cls =
-      verdict === "PASS" ? "ok" :
-      verdict === "BLOCK" ? "crit" :
-      "warn";
+    let cls = "warn";
+    if (verdict === "PASS") cls = "ok";
+    if (verdict === "BLOCK" || verdict === "FAIL") cls = "crit";
 
-    box.innerHTML = `
-      <div class="status-row">
-        <strong>Verdict</strong>
-        <span class="pill ${cls}">${verdict}</span>
-      </div>
-      <div class="status-row">
-        <strong>Environment</strong>
-        <span>${env}</span>
-      </div>
-      <div class="status-row">
-        <strong>Generated at</strong>
-        <span class="mono">${generated}</span>
-      </div>
-      <div class="status-row">
-        <strong>Source</strong>
-        <span class="mono">/ops/reports/global_state.json</span>
-      </div>
+    SUMMARY.innerHTML = `
+      <h2 class="${cls}">${verdict}</h2>
+      <p><strong>Environment:</strong> ${env}</p>
+      <p><strong>Generated at:</strong> ${ts}</p>
+      <p><strong>Agent:</strong> ${agent}</p>
     `;
-  } catch (err) {
-    box.innerHTML = `
-      <div class="status-row">
-        <strong>Error</strong>
-        <span class="pill crit">STATUS UNAVAILABLE</span>
-      </div>
-      <div class="status-row mono">${err.message}</div>
+  } catch (e) {
+    SUMMARY.innerHTML = `
+      <h2 class="crit">STATUS UNAVAILABLE</h2>
+      <p>${e.message}</p>
     `;
+    RAW.textContent = e.toString();
   }
 })();
 </script>
