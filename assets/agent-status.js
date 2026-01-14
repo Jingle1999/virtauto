@@ -34,8 +34,7 @@ function upper(v, fallback = "") {
 function fmtPct(v) {
   const n = Number(v);
   if (!Number.isFinite(n)) return null;
-  // Accept either 0..1 or 0..100
-  const pct = n <= 1 ? n * 100 : n;
+  const pct = n <= 1 ? n * 100 : n; // Accept either 0..1 or 0..100
   return `${pct.toFixed(1)}%`;
 }
 
@@ -60,24 +59,9 @@ function fmtTs(ts) {
 ========================= */
 function classifySignal(state) {
   const s = upper(state, "");
-  if (
-    ["ACTIVE", "OK", "GREEN", "ONLINE", "PASS", "OPERATIONAL", "ENFORCED"].some((k) =>
-      s.includes(k)
-    )
-  ) return "ok";
-
-  if (
-    ["WARN", "IN_PROGRESS", "UNKNOWN", "SUPERVISED", "MANUAL", "LIMITED"].some((k) =>
-      s.includes(k)
-    )
-  ) return "warn";
-
-  if (
-    ["FAIL", "FAILED", "DOWN", "CRITICAL", "ISSUE", "BLOCK"].some((k) =>
-      s.includes(k)
-    )
-  ) return "crit";
-
+  if (["ACTIVE", "OK", "GREEN", "ONLINE", "PASS", "OPERATIONAL", "ENFORCED"].some((k) => s.includes(k))) return "ok";
+  if (["WARN", "IN_PROGRESS", "UNKNOWN", "SUPERVISED", "MANUAL", "LIMITED"].some((k) => s.includes(k))) return "warn";
+  if (["FAIL", "FAILED", "DOWN", "CRITICAL", "ISSUE", "BLOCK"].some((k) => s.includes(k))) return "crit";
   return "warn";
 }
 
@@ -113,9 +97,23 @@ function resolveAgentKey(agentsObj, aliases) {
 }
 
 /* =========================
-   DOM targets
+   DOM targets (defensive)
 ========================= */
 function ensureContainer() {
+  // Prefer header container to avoid "rendering into head" mistakes or duplicated IDs.
+  const headerContainer = document.querySelector("header #agent-chips");
+  if (headerContainer) {
+    // If multiple exist, remove non-header duplicates (prevents invisible render).
+    const all = Array.from(document.querySelectorAll("#agent-chips"));
+    for (const el of all) {
+      if (el !== headerContainer) {
+        try { el.remove(); } catch (_) {}
+      }
+    }
+    return headerContainer;
+  }
+
+  // Fallback: first occurrence (legacy)
   return document.getElementById("agent-chips");
 }
 
@@ -123,7 +121,6 @@ function ensureContainer() {
    Desktop: single chip
 ========================= */
 function renderDesktopFlag(container) {
-  container.setAttribute("data-agent-mode", "desktop");
   container.innerHTML = `
     <div class="agent-flag">
       <a href="/status/" class="agent-link">Agentic Website</a>
@@ -148,38 +145,19 @@ function renderSystemIndicators(container, status) {
   if (!left) return;
 
   const generatedAt =
-    status?.generated_at ||
-    status?.generatedAt ||
-    status?.timestamp ||
-    status?.generated ||
-    null;
+    status?.generated_at || status?.generatedAt || status?.timestamp || status?.generated || null;
 
   const sysState =
-    status?.system?.state ||
-    status?.system_state ||
-    status?.systemState ||
-    status?.state ||
-    null;
+    status?.system?.state || status?.system_state || status?.systemState || status?.state || null;
 
   const sysMode =
-    status?.system?.mode ||
-    status?.system_mode ||
-    status?.systemMode ||
-    status?.mode ||
-    null;
+    status?.system?.mode || status?.system_mode || status?.systemMode || status?.mode || null;
 
   const healthSignal =
-    status?.health?.signal ||
-    status?.health_signal ||
-    status?.healthSignal ||
-    null;
+    status?.health?.signal || status?.health_signal || status?.healthSignal || null;
 
   const healthScore =
-    status?.health?.overall_score ||
-    status?.health?.score ||
-    status?.health_overall_score ||
-    status?.health_score ||
-    null;
+    status?.health?.overall_score || status?.health?.score || status?.health_overall_score || status?.health_score || null;
 
   const autonomyObj = status?.autonomy_score || status?.autonomy || null;
   const autonomyPct = autonomyObj?.percent ?? autonomyObj?.pct ?? autonomyObj?.value ?? null;
@@ -226,11 +204,7 @@ function renderAgents(container, status) {
 
   const agentObj = status?.agents || status?.agent || status?.agent_status || {};
   const generatedAt =
-    status?.generated_at ||
-    status?.generatedAt ||
-    status?.timestamp ||
-    status?.generated ||
-    null;
+    status?.generated_at || status?.generatedAt || status?.timestamp || status?.generated || null;
 
   const items = AGENTS.map((spec) => {
     const key = resolveAgentKey(agentObj, spec.aliases);
@@ -240,9 +214,7 @@ function renderAgents(container, status) {
     const rawMode = data?.autonomy_mode ?? data?.autonomy ?? data?.mode ?? null;
 
     const cls = classifyAgentState(rawState);
-
-    const labelState =
-      cls === "ok" ? "OPERATIONAL" : cls === "crit" ? "DEGRADED" : "UNKNOWN";
+    const labelState = cls === "ok" ? "OPERATIONAL" : cls === "crit" ? "DEGRADED" : "UNKNOWN";
 
     const titleBits = [
       spec.label,
@@ -325,14 +297,7 @@ async function bootOnce() {
   }
 }
 
-/* =========================
-   Init (single-run + single-interval)
-========================= */
-function initAgentStatus() {
-  // Prevent multiple initialization (e.g., double script include)
-  if (window.__agentStatusInitDone) return;
-  window.__agentStatusInitDone = true;
-
+document.addEventListener("DOMContentLoaded", () => {
   const container = ensureContainer();
   if (!container) return;
 
@@ -342,16 +307,5 @@ function initAgentStatus() {
   }
 
   bootOnce();
-
-  // Ensure only one interval ever exists
-  if (window.__agentStatusIntervalId) {
-    clearInterval(window.__agentStatusIntervalId);
-  }
-  window.__agentStatusIntervalId = window.setInterval(bootOnce, REFRESH_MS);
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initAgentStatus);
-} else {
-  initAgentStatus();
-}
+  window.setInterval(bootOnce, REFRESH_MS);
+});
