@@ -5,67 +5,208 @@
   <title>virtauto.OS — Live System Status</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- shared site styles -->
-  <link rel="stylesheet" href="../assets/styles.css"/>
-  <link rel="stylesheet" href="../assets/styles_unify.css"/>
+  <!-- Global Styles -->
+  <link rel="stylesheet" href="../assets/styles.css" />
+  <link rel="stylesheet" href="../assets/styles_unify.css" />
 
-  <!-- shared site behavior -->
+  <!-- Global JS (Menu, Burger, etc.) -->
   <script defer src="../assets/site.js"></script>
 </head>
 
-<body>
+<body class="page-status">
 
-<!-- =====================================================
-     GLOBAL HEADER (IDENTICAL TO ALL OTHER PAGES)
-===================================================== -->
-<header class="header">
-  <div class="container nav">
-    <a class="brand" href="../index.html">virtauto<span class="badge">OS</span></a>
+  <!-- =========================
+       GLOBAL HEADER (UNIFIED)
+       ========================= -->
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="../index.html">
+        virtauto<span class="badge">OS</span>
+      </a>
 
-    <nav class="menu" id="menu">
-      <a href="../index.html">Home</a>
-      <a href="../agents.html">Agents</a>
-      <a href="../architecture.html">Architecture</a>
-      <a href="/status/" class="active">Status</a>
-      <a href="../contact.html">Contact</a>
-      <a class="cta" href="../solutions.html#george">Meet GEORGE</a>
-    </nav>
+      <nav class="menu" id="menu">
+        <a href="../index.html">Home</a>
+        <a href="../agents.html">Agents</a>
+        <a href="../architecture.html">Architecture</a>
+        <a href="/status/" class="active">Status</a>
+        <a href="../contact.html">Contact</a>
+        <a class="cta" href="../solutions.html#george">Meet GEORGE</a>
+      </nav>
 
-    <!-- right side: ONLY the banner -->
-    <div class="agent-flag" aria-label="Agentic Website">
-      <a href="/status/" class="agent-link">Agentic Website</a>
+      <!-- Agentic Website Flag -->
+      <div class="agent-flag" aria-label="Agentic Website">
+        <a href="/status/" class="agent-link">Agentic Website</a>
+      </div>
+
+      <button class="burger" aria-label="Menu" type="button">
+        <span></span><span></span><span></span>
+      </button>
     </div>
+  </header>
 
-    <button class="burger" aria-label="Menu" type="button">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-</header>
-
-<!-- =====================================================
-     STATUS APP (UNTOUCHED LOGIC)
-===================================================== -->
-<main class="section">
-  <div class="container">
+  <!-- =========================
+       MAIN CONTENT
+       ========================= -->
+  <main class="container status">
 
     <h1>virtauto.OS — Live System Status</h1>
 
-    <!--
-      ↓↓↓
-      AB HIER BEGINNT DEIN BESTEHENDER STATUS-CODE
-      (JS, KPIs, Guards, Agent Tables, etc.)
-      NICHT VERÄNDERT
-      ↓↓↓
-    -->
+    <!-- HEADER INFO -->
+    <section class="status-header">
+      <div><strong>Truth source:</strong> <span id="truth-source">—</span></div>
+      <div><strong>Path:</strong> <span id="truth-path">—</span></div>
+      <div><strong>Generated:</strong> <span id="generated-at">—</span></div>
+      <div><strong>Environment:</strong> <span id="environment">—</span></div>
 
-    <!-- IMPORTANT:
-         Paste here EXACTLY your existing status markup
-         + scripts from global_state.json rendering
-         (the logic you already validated)
-    -->
+      <div class="pill" id="system-pill">—</div>
+    </section>
 
-  </div>
-</main>
+    <!-- KPIs -->
+    <section class="status-kpis">
+      <div class="kpi">
+        <div class="kpi-value" id="kpi-health">—</div>
+        <div class="kpi-note" id="kpi-health-note">—</div>
+      </div>
+    </section>
+
+    <!-- AGENTS -->
+    <section>
+      <h2>Agents</h2>
+      <div id="agents-list"></div>
+    </section>
+
+    <!-- GUARDS -->
+    <section>
+      <h2>Guards</h2>
+      <div>
+        Freshness:
+        <span id="guard-freshness">—</span>
+        <span class="pill" id="guard-freshness-pill">—</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================
+       STATUS LOGIC (PHASE 8)
+       ========================= -->
+  <script>
+    const GLOBAL_STATE_PATH = "/global_state.json";
+
+    const FRESH_OK_MIN = 45;
+    const FRESH_WARN_MIN = 90;
+
+    const GUARD_FRESH_OK_MIN = FRESH_OK_MIN;
+    const GUARD_FRESH_WARN_MIN = FRESH_WARN_MIN;
+
+    function $(id) { return document.getElementById(id); }
+    function safeUpper(v) { return String(v || "—").toUpperCase(); }
+
+    function classifyPillBySignal(signal) {
+      if (signal === "GREEN") return "ok";
+      if (signal === "YELLOW") return "warn";
+      if (signal === "RED") return "crit";
+      return null;
+    }
+
+    function computeAgeMinFromGeneratedAt(iso) {
+      if (!iso) return null;
+      const t = new Date(iso).getTime();
+      if (!Number.isFinite(t)) return null;
+      return Math.max(0, Math.round((Date.now() - t) / 60000));
+    }
+
+    function effectiveSignal(base, ageMin, verdict) {
+      const sig = String(base || "").toUpperCase();
+      const v = String(verdict || "").toUpperCase();
+      if (v && v !== "PASS" && v !== "—") return "RED";
+      if (ageMin === null) return "YELLOW";
+      if (ageMin > FRESH_WARN_MIN) return "RED";
+      if (ageMin >= FRESH_OK_MIN) return "YELLOW";
+      return sig || "GREEN";
+    }
+
+    async function fetchGlobalState() {
+      const res = await fetch(GLOBAL_STATE_PATH, { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed to load global_state.json");
+      return res.json();
+    }
+
+    function normalizeState(gs) {
+      const status = gs.status || {};
+      const generatedAt =
+        gs.generated_at || gs.generatedAt || status.generated_at || status.generatedAt || null;
+
+      const environment = gs.environment || status.environment || "—";
+      const verdict =
+        gs.verdict || gs.gate_verdict || status.verdict || (status.gate && status.gate.verdict) || "—";
+
+      const ageMin = computeAgeMinFromGeneratedAt(generatedAt);
+      const baseSignal =
+        (status.health && status.health.signal) || (gs.health && gs.health.signal) || "—";
+
+      const signal = effectiveSignal(baseSignal, ageMin, verdict);
+
+      return { gs, status, generatedAt, environment, verdict, ageMin, signal };
+    }
+
+    function renderHeader(n) {
+      $("truth-source").textContent = "global_state.json";
+      $("truth-path").textContent = GLOBAL_STATE_PATH;
+      $("generated-at").textContent = n.generatedAt || "—";
+      $("environment").textContent = n.environment;
+
+      const pill = $("system-pill");
+      pill.textContent = safeUpper(n.signal);
+      pill.classList.remove("ok", "warn", "crit");
+      const cls = classifyPillBySignal(n.signal);
+      if (cls) pill.classList.add(cls);
+    }
+
+    function renderKPIs(n) {
+      $("kpi-health").textContent = safeUpper(n.signal);
+      $("kpi-health-note").textContent =
+        `Signal: ${safeUpper(n.signal)} · Verdict: ${safeUpper(n.verdict)}`;
+    }
+
+    function renderGuards(n) {
+      const ageMin = n.ageMin;
+      if (ageMin === null) {
+        $("guard-freshness").textContent = "—";
+        $("guard-freshness-pill").textContent = "UNKNOWN";
+        return;
+      }
+      $("guard-freshness").textContent = `${ageMin} min ago`;
+      const pill = $("guard-freshness-pill");
+
+      if (ageMin < GUARD_FRESH_OK_MIN) {
+        pill.textContent = "OPERATIONAL";
+        pill.className = "pill ok";
+      } else if (ageMin <= GUARD_FRESH_WARN_MIN) {
+        pill.textContent = "STALE";
+        pill.className = "pill warn";
+      } else {
+        pill.textContent = "OFFLINE";
+        pill.className = "pill crit";
+      }
+    }
+
+    (async function boot() {
+      try {
+        const gs = await fetchGlobalState();
+        const n = normalizeState(gs);
+
+        if (!n.generatedAt) throw new Error("Missing generated_at");
+        if (!n.environment || n.environment === "—") throw new Error("Missing environment");
+
+        renderHeader(n);
+        renderKPIs(n);
+        renderGuards(n);
+      } catch (e) {
+        console.error("[status] boot failed:", e);
+      }
+    })();
+  </script>
 
 </body>
 </html>
