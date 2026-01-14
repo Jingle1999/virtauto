@@ -2,31 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>virtauto — System Status</title>
+  <title>virtauto.OS — System Status</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- shared layout -->
-  <link rel="stylesheet" href="../assets/styles.css"/>
-  <link rel="stylesheet" href="../assets/styles_unify.css"/>
-
-  <style>
-    body { background:#0b0f14; color:#e6e9ef; }
-    main { max-width:1100px; margin:40px auto; padding:0 16px; }
-    .card { background:#121826; border:1px solid #1f2937; border-radius:12px; padding:20px; margin-bottom:20px; }
-    .ok { color:#22c55e; }
-    .warn { color:#f59e0b; }
-    .crit { color:#ef4444; }
-    .muted { color:#9ca3af; }
-    pre { background:#0b0f14; padding:12px; border-radius:8px; overflow:auto; }
-  </style>
+  <link rel="stylesheet" href="../assets/styles.css" />
+  <link rel="stylesheet" href="../assets/styles_unify.css" />
 </head>
 
 <body>
-
 <header class="header">
   <div class="container nav">
     <a class="brand" href="../index.html">virtauto<span class="badge">OS</span></a>
-
     <nav class="menu">
       <a href="../index.html">Home</a>
       <a href="../agents.html">Agents</a>
@@ -34,62 +19,23 @@
       <a href="/status/" class="active">Status</a>
       <a href="../contact.html">Contact</a>
     </nav>
-
-    <div class="agent-flag">
-      <a href="/status/" class="agent-link">Agentic Website</a>
-    </div>
+    <div class="agent-flag">Agentic Website</div>
   </div>
 </header>
 
-<main>
+<main class="container" style="padding-top:3rem">
   <h1>System Status</h1>
 
-  <div id="summary" class="card">
-    <div class="muted">Loading status…</div>
+  <div class="card error">
+    <strong>Status unavailable</strong><br/>
+    No global_state.json found.<br/><br/>
+    This is a data-source issue, not a UI failure.
   </div>
 
-  <div class="card">
-    <h3>Raw global_state.json</h3>
-    <pre id="raw">loading…</pre>
-  </div>
+  <p style="opacity:.6;margin-top:2rem">
+    Expected path:<br/>
+    <code>/global_state.json</code>
+  </p>
 </main>
-
-<script>
-(async function () {
-  const SUMMARY = document.getElementById("summary");
-  const RAW = document.getElementById("raw");
-
-  try {
-    const res = await fetch("/ops/reports/global_state.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-
-    const gs = await res.json();
-    RAW.textContent = JSON.stringify(gs, null, 2);
-
-    const verdict = (gs.verdict || "UNKNOWN").toUpperCase();
-    const env = gs.environment || "—";
-    const ts = gs.generated_at || "—";
-    const agent = gs.used_agent || "—";
-
-    let cls = "warn";
-    if (verdict === "PASS") cls = "ok";
-    if (verdict === "BLOCK" || verdict === "FAIL") cls = "crit";
-
-    SUMMARY.innerHTML = `
-      <h2 class="${cls}">${verdict}</h2>
-      <p><strong>Environment:</strong> ${env}</p>
-      <p><strong>Generated at:</strong> ${ts}</p>
-      <p><strong>Agent:</strong> ${agent}</p>
-    `;
-  } catch (e) {
-    SUMMARY.innerHTML = `
-      <h2 class="crit">STATUS UNAVAILABLE</h2>
-      <p>${e.message}</p>
-    `;
-    RAW.textContent = e.toString();
-  }
-})();
-</script>
-
 </body>
 </html>
