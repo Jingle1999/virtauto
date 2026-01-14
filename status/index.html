@@ -1,201 +1,37 @@
-„--- a/status/index.html
-+++ b/status/index.html
-@@ -1,6 +1,7 @@
- <!DOCTYPE html>
- <html lang="en">
- <head>
-<link rel="stylesheet" href="../assets/styles.css"/>
-<link rel="stylesheet" href="../assets/styles_unify.css"/>
-<script defer src="../assets/site.js"></script>
-+  <!-- Phase 8: truth-locked global_state.json + deterministic signal override -->
-   <meta charset="UTF-8" />
-   <title>virtauto.OS — Live System Status</title>
-   <meta name="viewport" content="width=device-width, initial-scale=1" />
-@@ -520,6 +521,18 @@
-   // =========================
-   // Helpers
-   // =========================
-+  // Phase 8 thresholds (single source of truth for freshness classification)
-+  // <45 min = OPERATIONAL, 45-90 = STALE, >90 = OFFLINE
-+  const FRESH_OK_MIN = 45;
-+  const FRESH_WARN_MIN = 90;
-+
-+  // Guard labels for the UI row (more human readable)
-+  const GUARD_FRESH_OK_MIN = FRESH_OK_MIN;
-+  const GUARD_FRESH_WARN_MIN = FRESH_WARN_MIN;
-+
-   function $(id) { return document.getElementById(id); }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>virtauto.OS — Live System Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-   function safeUpper(v) {
-@@ -594,6 +607,31 @@
-     return Math.max(0, Math.round(diff / 60000));
-   }
+  <!-- Global Styles -->
+  <link rel="stylesheet" href="../assets/styles.css" />
+  <link rel="stylesheet" href="../assets/styles_unify.css" />
 
-   function classifyFreshness(mins) {
--    // thresholds per plan: <45 OK, 45-90 WARN, >90 CRIT
-+    // thresholds per plan: <45 OK, 45-90 WARN, >90 CRIT
-     if (mins === null) return { label: "UNKNOWN", kind: "warn" };
--    if (mins < 45) return { label: "OPERATIONAL", kind: "ok" };
--    if (mins <= 90) return { label: "STALE", kind: "warn" };
-+    if (mins < FRESH_OK_MIN) return { label: "OPERATIONAL", kind: "ok" };
-+    if (mins <= FRESH_WARN_MIN) return { label: "STALE", kind: "warn" };
-     return { label: "OFFLINE", kind: "crit" };
-   }
-+
-+  function computeAgeMinFromGeneratedAt(generatedAtIso) {
-+    if (!generatedAtIso) return null;
-+    const t = new Date(generatedAtIso).getTime();
-+    if (!Number.isFinite(t)) return null;
-+    return Math.max(0, Math.round((Date.now() - t) / 60000));
-+  }
-+
-+  // Phase 8: deterministically override any "GREEN" if the system is stale/offline or verdict blocks.
-+  function effectiveSignal(originalSignal, ageMin, globalVerdict) {
-+    const sig = String(originalSignal || "").toUpperCase();
-+    const verdict = String(globalVerdict || "").toUpperCase();
-+    if (verdict && verdict !== "PASS" && verdict !== "—") return "RED";
-+    if (ageMin === null) return "YELLOW";
-+    if (ageMin > FRESH_WARN_MIN) return "RED";
-+    if (ageMin >= FRESH_OK_MIN) return "YELLOW";
-+    return sig || "GREEN";
-+  }
+  <!-- Site JS (Burger, Nav etc.) -->
+  <script defer src="../assets/site.js"></script>
 
-   function briefResultTag(r) {
-     const s = String(r || "").toUpperCase();
-@@ -622,6 +660,10 @@
-   function normalizeState(gs) {
-     // Goal: tolerate schema evolution, but still truth-lock to ONE file.
-@@ -639,11 +681,20 @@
-     const generatedAt =
-       gs.generated_at || gs.generatedAt || status.generated_at || status.generatedAt || status.timestamp || gs.timestamp || null;
+  <style>
+    .status-box { margin-top: 2rem; }
+    .status-row { margin: .4rem 0; }
+    .pill {
+      display: inline-block;
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 600;
+    }
+    .ok { background:#1eaa6e; color:#fff; }
+    .warn { background:#e0a800; color:#000; }
+    .crit { background:#c0392b; color:#fff; }
+  </style>
+</head>
 
-     const environment = gs.environment || status.environment || "—";
-+
-+    // Phase 8: global verdict comes from global_state.json (preferred).
-+    // If your schema evolves, keep this tolerant.
-+    const verdict =
-+      gs.verdict || gs.gate_verdict || status.verdict || (status.gate && status.gate.verdict) || "—";
-+
-+    const ageMin = computeAgeMinFromGeneratedAt(generatedAt);
-+    const baseSignal =
-+      (status.health && status.health.signal) || (gs.health && gs.health.signal) || "—";
-+    const signal = effectiveSignal(baseSignal, ageMin, verdict);
+<body>
 
--    return { gs, status, gate, links, generatedAt, environment };
-+    return { gs, status, gate, links, generatedAt, environment, verdict, ageMin, baseSignal, signal };
-   }
-
-   // =========================
-   // Rendering
-@@ -651,17 +702,16 @@
-   function renderHeader(n) {
--    $("truth-source").textContent = "global_state.json";
-+    $("truth-source").textContent = "global_state.json";
-     $("truth-path").textContent = GLOBAL_STATE_PATH;
-
-     $("freshness").textContent = n.generatedAt ? fmtDate(n.generatedAt) : "—";
-     $("generated-at").textContent = n.generatedAt ? fmtDate(n.generatedAt) : "—";
-     $("environment").textContent = n.environment || "—";
-
-     const sysState =
-       (n.status.system && n.status.system.state) ||
-       (n.status.system_state && n.status.system_state.state) ||
-       n.status.system_state ||
-       (n.gs.system && n.gs.system.state) ||
-       "—";
-
-     const sysMode =
-       (n.status.system && n.status.system.mode) ||
-       n.status.mode ||
-       (n.gs.system && n.gs.system.mode) ||
-       n.gs.mode ||
-       "—";
-
--    const signal =
--      (n.status.health && n.status.health.signal) ||
--      (n.gs.health && n.gs.health.signal) ||
--      "—";
-+    const signal = n.signal || "—";
-
-     const pill = $("system-pill");
-     pill.classList.remove("warn", "crit");
-     const cls = classifyPillBySignal(signal);
-     if (cls) pill.classList.add(cls);
-@@ -680,7 +730,7 @@
-   function renderKPIs(n) {
-     const agentsObj = n.status.agents || n.gs.agents || {};
-@@ -730,12 +780,12 @@
-     const healthOverall =
-       (n.status.health && (n.status.health.overall_score || n.status.health.score)) ||
-       (n.gs.health && (n.gs.health.overall_score || n.gs.health.score)) ||
-       null;
-
--    const healthSignal =
--      (n.status.health && n.status.health.signal) ||
--      (n.gs.health && n.gs.health.signal) ||
--      "—";
-+    // Phase 8: show effective signal, but keep base signal available if you want to display it.
-+    const healthSignal = n.signal || "—";
-
-     $("kpi-health").textContent = fmtPctFrom(healthOverall);
--    $("kpi-health-note").textContent = `Signal: ${safeUpper(healthSignal)}`;
-+    $("kpi-health-note").textContent = `Signal: ${safeUpper(healthSignal)} · Verdict: ${safeUpper(n.verdict)}`;
-
-@@ -759,7 +809,7 @@
-     const lp = $("launch-pill");
-     lp.classList.remove("warn", "crit");
-     const cls = classifyPillBySignal(healthSignal);
-     if (cls) lp.classList.add(cls);
-
-@@ -868,29 +918,33 @@
-   function renderGuards(n) {
--    const now = Date.now();
--    const ts = n.generatedAt ? new Date(n.generatedAt).getTime() : NaN;
--    const ageMin = Number.isFinite(ts) ? Math.max(0, Math.round((now - ts) / 60000)) : null;
-+    const ageMin = (typeof n.ageMin === "number") ? n.ageMin : null;
-
-     if (ageMin === null) {
-       $("guard-freshness").textContent = "—";
-       $("guard-freshness-pill").textContent = "UNKNOWN";
-       setGuardPill($("guard-freshness-pill"), "warn");
-     } else {
-       $("guard-freshness").textContent = `${ageMin} min ago`;
--      if (ageMin <= 15) { $("guard-freshness-pill").textContent = "FRESH"; setGuardPill($("guard-freshness-pill"), "ok"); }
--      else if (ageMin <= 60) { $("guard-freshness-pill").textContent = "STALE"; setGuardPill($("guard-freshness-pill"), "warn"); }
--      else { $("guard-freshness-pill").textContent = "EXPIRED"; setGuardPill($("guard-freshness-pill"), "crit"); }
-+      if (ageMin < GUARD_FRESH_OK_MIN) {
-+        $("guard-freshness-pill").textContent = "OPERATIONAL";
-+        setGuardPill($("guard-freshness-pill"), "ok");
-+      } else if (ageMin <= GUARD_FRESH_WARN_MIN) {
-+        $("guard-freshness-pill").textContent = "STALE";
-+        setGuardPill($("guard-freshness-pill"), "warn");
-+      } else {
-+        $("guard-freshness-pill").textContent = "OFFLINE";
-+        setGuardPill($("guard-freshness-pill"), "crit");
-+      }
-     }
-
-     const autonomyObj = n.status.autonomy_score || n.status.autonomy || n.gs.autonomy_score || n.gs.autonomy || {};
-@@ -1018,6 +1072,16 @@
-   (async function boot() {
-     try {
-       const gs = await fetchGlobalState();
-       const n = normalizeState(gs);
-
-       // Minimal truth-lock sanity (still ONE file): required keys
-       // If you enforce different fields, adjust here, but keep hard-fail behavior.
-       if (!n.generatedAt) throw new Error("global_state.json missing generated_at (or equivalent).");
-       if (!n.environment || n.environment === "—") throw new Error("global_state.json missing environment.");
-+
-+      // Phase 8: if verdict is missing, we still render, but signal logic will treat it as "—".
-+      // If you want to hard-fail on missing verdict, uncomment:
-+      // if (!n.verdict || n.verdict === "—") throw new Error("global_state.json missing verdict.");
-
-       renderHeader(n);
-       renderKPIs(n);
-       renderAgents(n);
-       renderGuards(n);
-   <header class="header">
+<!-- HEADER (identisch zur Website) -->
+<header class="header">
   <div class="container nav">
     <a class="brand" href="../index.html">virtauto<span class="badge">OS</span></a>
 
@@ -208,13 +44,61 @@
       <a class="cta" href="../solutions.html#george">Meet GEORGE</a>
     </nav>
 
-    <!-- rechts oben: statt Agent-Chips -->
-    <div class="agent-flag" aria-label="Agentic Website">
-      <a href="/status/" class="agent-link">Agentic Website</a>
-    </div>
-
     <button class="burger" aria-label="Menu" type="button">
       <span></span><span></span><span></span>
     </button>
   </div>
 </header>
+
+<main class="container">
+
+  <h1>virtauto.OS — Live System Status</h1>
+
+  <div class="status-box">
+    <div class="status-row">Truth source: <strong id="truth">—</strong></div>
+    <div class="status-row">Generated: <strong id="generated">—</strong></div>
+    <div class="status-row">Environment: <strong id="env">—</strong></div>
+    <div class="status-row">Signal:
+      <span id="signal" class="pill warn">UNKNOWN</span>
+    </div>
+  </div>
+
+</main>
+
+<script>
+(async function () {
+  try {
+    const res = await fetch("/global_state.json", { cache: "no-store" });
+    if (!res.ok) throw new Error("Fetch failed");
+
+    const gs = await res.json();
+
+    document.getElementById("truth").textContent = "global_state.json";
+    document.getElementById("generated").textContent =
+      gs.generated_at || gs.generatedAt || "—";
+    document.getElementById("env").textContent =
+      gs.environment || "—";
+
+    const rawSignal =
+      (gs.health && gs.health.signal) || "UNKNOWN";
+
+    const pill = document.getElementById("signal");
+    pill.textContent = rawSignal;
+
+    pill.classList.remove("ok", "warn", "crit");
+    if (rawSignal === "GREEN") pill.classList.add("ok");
+    else if (rawSignal === "YELLOW") pill.classList.add("warn");
+    else pill.classList.add("crit");
+
+  } catch (e) {
+    const pill = document.getElementById("signal");
+    pill.textContent = "ERROR";
+    pill.classList.remove("ok", "warn");
+    pill.classList.add("crit");
+    console.error("Status load failed:", e);
+  }
+})();
+</script>
+
+</body>
+</html>
