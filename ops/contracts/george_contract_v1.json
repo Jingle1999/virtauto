@@ -1,0 +1,96 @@
+{
+  "contract_id": "george_contract_v1",
+  "version": "1.0.0",
+  "effective_from": "2026-01-15T00:00:00Z",
+  "default_mode": "HUMAN_GUARDED",
+  "modes": {
+    "HUMAN_GUARDED": {
+      "can_apply": false,
+      "can_propose": true,
+      "requires_human_approval": true
+    },
+    "NIGHT_SHIFT": {
+      "can_apply": true,
+      "can_propose": true,
+      "requires_human_approval": false
+    }
+  },
+  "action_policy": {
+    "allowlist": [
+      {
+        "action_id": "SWITCH_DEGRADED_MODE",
+        "scope": [
+          "website"
+        ],
+        "requires": [
+          "dry_run_ok"
+        ],
+        "rate_limit": {
+          "max": 1,
+          "per_minutes": 10
+        },
+        "reversible": true
+      },
+      {
+        "action_id": "ROLLBACK_TO_LAST_KNOWN_GOOD",
+        "scope": [
+          "status_site"
+        ],
+        "requires": [
+          "dry_run_ok",
+          "lkg_available"
+        ],
+        "rate_limit": {
+          "max": 1,
+          "per_minutes": 60
+        },
+        "reversible": true
+      },
+      {
+        "action_id": "RESTART_PROBE_WORKER",
+        "scope": [
+          "ops"
+        ],
+        "requires": [
+          "dry_run_ok"
+        ],
+        "rate_limit": {
+          "max": 2,
+          "per_minutes": 30
+        },
+        "reversible": true
+      }
+    ],
+    "denylist": [
+      {
+        "pattern": "DEPLOY_*",
+        "reason": "No autonomous deploys in v1"
+      },
+      {
+        "pattern": "DELETE_*",
+        "reason": "Destructive actions not allowed"
+      },
+      {
+        "pattern": "EXFILTRATE_*",
+        "reason": "Data exfiltration forbidden"
+      }
+    ]
+  },
+  "stop_rules": [
+    {
+      "if": "2_consecutive_failures_same_action",
+      "then": "CIRCUIT_BREAK"
+    },
+    {
+      "if": "freshness_s > 300",
+      "then": "NO_APPLY_ONLY_PROPOSE"
+    }
+  ],
+  "escalation": {
+    "severity_threshold": "HIGH",
+    "channels": [
+      "github_issue",
+      "status_banner"
+    ]
+  }
+}
