@@ -62,8 +62,6 @@
     // Avoid double-binding when header is injected after initial load
     if (burger && burger.dataset && burger.dataset.wired === '1') return;
 
-    const burger = getBurger();
-    const menu = getMenu();
 
     if (burger) {
       burger.type = 'button';

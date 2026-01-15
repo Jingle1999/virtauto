@@ -16,6 +16,7 @@
     if (p === '/index.html' || p === '/home.html') return 'home';
     if (p.endsWith('/agents.html') || p.endsWith('/self-agents.html')) return 'agents';
     if (p.endsWith('/architecture.html')) return 'architecture';
+    if (p.endsWith('/industrymodel.html')) return 'industry';
     if (p === '/status' || p.startsWith('/status/')) return 'status';
     if (p.endsWith('/contact.html')) return 'contact';
     if (p.endsWith('/solutions.html') || p.endsWith('/use-cases.html') || p.endsWith('/usecases.html')) return 'solutions';

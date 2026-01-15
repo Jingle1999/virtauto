@@ -12,7 +12,7 @@ a{color:var(--brand);text-decoration:none}
    ========================= */
 
 .agent-flag {
-  margin-left: auto;
+  margin-left: 1rem;
   font-size: .75rem;
   letter-spacing: .14em;
   text-transform: uppercase;
