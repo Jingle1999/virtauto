@@ -1,8 +1,6 @@
 name: Status Monitoring (Truth Regeneration) — Phase 9 (commit-only)
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 # Commits truth to main; DOES NOT deploy Pages (single publisher = site-deploy.yml)
