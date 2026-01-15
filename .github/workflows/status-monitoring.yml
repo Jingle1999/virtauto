@@ -40,9 +40,6 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          # Rebase on latest main (avoids non-fast-forward)
-          git pull --rebase origin main
-
           git add ops/reports/system_status.json ops/reports/decision_trace.json ops/reports/decision_trace.jsonl ops/agent_activity.jsonl ops/decisions/gate_result.json || true
 
           if git diff --cached --quiet; then
