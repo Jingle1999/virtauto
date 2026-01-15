@@ -8,7 +8,7 @@ permissions:
   contents: write
   pull-requests: write
 concurrency:
-  group: status-monitoring
+  group: status-monitoring-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
