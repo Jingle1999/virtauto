@@ -1,12 +1,14 @@
-name: Status Monitoring (Truth Regeneration) — Phase 9 (commit-only)
+name: Status Monitoring (Truth Regeneration) — Phase 9 (PR-truth)
 
 on:
   workflow_dispatch:
+  # schedule:
+  #   - cron: "*/15 * * * *"   # später wieder aktivieren, aber eher 1x pro Stunde/Tag
 
-# Commits truth to main; DOES NOT deploy Pages (single publisher = site-deploy.yml)
 permissions:
   contents: write
   pull-requests: write
+
 concurrency:
   group: status-monitoring-${{ github.ref }}
   cancel-in-progress: true
@@ -25,53 +27,23 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Sync with main (before generating)
-        run: |
-          git fetch origin main
-          git rebase origin/main
-
       - name: Regenerate truth (system_status + traces)
-        shell: bash
         run: |
-          set -euo pipefail
           python ops/status_agent.py --env production
 
-            - name: Commit truth to local branch
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-
-          git add ops/reports/system_status.json ops/reports/decision_trace.json ops/reports/decision_trace.jsonl ops/agent_activity.jsonl ops/decisions/gate_result.json || true
-
-          if git diff --cached --quiet; then
-            echo "No truth changes to commit."
-            echo "NO_CHANGES=true" >> $GITHUB_ENV
-            exit 0
-          fi
-
-          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          git commit -m "truth: status regeneration (${ts})"
-
-      - name: Open Pull Request (Truth Regeneration)
-        if: env.NO_CHANGES != 'true'
+      - name: Open PR (Truth Regeneration)
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "truth: status regeneration"
           branch: truth/status-regeneration
           delete-branch: true
-          title: "Truth regeneration (Phase 9): system_status + traces"
+          title: "Truth regeneration (Phase 9)"
           body: |
-            Automated Truth regeneration produced updated operational artifacts.
-
-            - ops/reports/system_status.json
-            - ops/reports/decision_trace.json (+ .jsonl)
-            - ops/decisions/gate_result.json
-            - ops/agent_activity.jsonl
-
-            This PR is commit-only (no deploy). Merge to publish Truth.
-          labels: |
-            truth
-            phase-9
-            automation
+            Automated truth regeneration. Contains updated operational artifacts.
+          add-paths: |
+            ops/reports/system_status.json
+            ops/reports/decision_trace.json
+            ops/reports/decision_trace.jsonl
+            ops/agent_activity.jsonl
+            ops/decisions/gate_result.json
