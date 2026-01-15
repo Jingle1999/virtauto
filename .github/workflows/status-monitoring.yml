@@ -27,6 +27,11 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Sync with main (before generating)
+        run: |
+          git fetch origin main
+          git rebase origin/main
+
       - name: Regenerate truth (system_status + traces)
         shell: bash
         run: |
