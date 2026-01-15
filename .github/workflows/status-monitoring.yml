@@ -8,7 +8,7 @@ on:
 # Commits truth to main; DOES NOT deploy Pages (single publisher = site-deploy.yml)
 permissions:
   contents: write
-
+  pull-requests: write
 concurrency:
   group: status-monitoring
   cancel-in-progress: true
@@ -38,7 +38,7 @@ jobs:
           set -euo pipefail
           python ops/status_agent.py --env production
 
-      - name: Commit + push truth to main
+            - name: Commit truth to local branch
         shell: bash
         run: |
           set -euo pipefail
@@ -49,9 +49,31 @@ jobs:
 
           if git diff --cached --quiet; then
             echo "No truth changes to commit."
+            echo "NO_CHANGES=true" >> $GITHUB_ENV
             exit 0
           fi
 
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          git commit -m "truth: status regeneration ${ts}"
-          git push origin HEAD:main
+          git commit -m "truth: status regeneration (${ts})"
+
+      - name: Open Pull Request (Truth Regeneration)
+        if: env.NO_CHANGES != 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: truth/status-regeneration
+          delete-branch: true
+          title: "Truth regeneration (Phase 9): system_status + traces"
+          body: |
+            Automated Truth regeneration produced updated operational artifacts.
+
+            - ops/reports/system_status.json
+            - ops/reports/decision_trace.json (+ .jsonl)
+            - ops/decisions/gate_result.json
+            - ops/agent_activity.jsonl
+
+            This PR is commit-only (no deploy). Merge to publish Truth.
+          labels: |
+            truth
+            phase-9
+            automation
