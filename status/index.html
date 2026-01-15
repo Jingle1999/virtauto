@@ -635,6 +635,12 @@
       font-size: .75rem;
     }
   </style>
+
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="stylesheet" href="/assets/styles_unify.css" />
+
+  <script src="/assets/header_include.js" defer></script>
+  <script src="/assets/site.js" defer></script>
 </head>
 <body>
   <div class="fatal" id="fatal">
@@ -653,25 +659,7 @@
   </div>
 
   <div class="page" id="page">
-    <header>
-      <h1>
-        virtauto.OS — Live System Status
-        <span class="badge">TRUTH-LOCKED</span>
-      </h1>
-      <p>
-        This dashboard is the single authoritative interface for the operational state of
-        <strong>www.virtauto.de</strong>.
-        Every value on this page is rendered from the Single Source of Truth and refuses to show if the truth source is missing.
-      </p>
-      <div class="meta-row">
-        <div class="meta-pill">
-          <span class="meta-dot"></span>
-          Agentic Website — Live in Production
-        </div>
-        <div class="meta-pill">Truth Source: <strong id="truth-source">—</strong></div>
-        <div class="meta-pill">Freshness: <strong id="freshness">—</strong></div>
-      </div>
-    </header>
+    <div id="site-header"></div>
 
     <main>
       <!-- LEFT: AGENTS & LAYERS -->
