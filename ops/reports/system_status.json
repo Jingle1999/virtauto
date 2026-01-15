@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2025-12-17T11:55:08Z",
+  "environment": "production",
+
+  "system_state": "ACTIVE",
+  "autonomy": "SUPERVISED",
+
+  "system": {
+    "state": "ACTIVE",
+    "autonomy_mode": "SUPERVISED",
+    "mode": "STABILIZATION",
+    "last_incident": null
+  },
+
+  "autonomy_score": {
+    "value": 0.70,
+    "percent": 70,
+    "mode": "SUPERVISED",
+    "inputs": {
+      "trace_coverage": null,
+      "gate_verdict": "ALLOW",
+      "human_override_rate": null,
+      "self_healing_factor": null
+    }
+  },
+
+  "health": {
+    "signal": "GREEN",
+    "overall_score": 0.88,
+    "metrics": {
+      "agent_response_success_rate": 0.96,
+      "system_stability_score": 0.82,
+      "self_detected_errors_24h": 0,
+      "mean_decision_latency_ms": 420
+    }
+  },
+
+  "agents": {
+    "george": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "SUPERVISED",
+      "role": "orchestrator"
+    },
+    "guardian": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "AUTONOMOUS",
+      "role": "guardian"
+    },
+    "monitoring": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "AUTONOMOUS",
+      "role": "observer"
+    },
+    "content": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "SUPERVISED",
+      "role": "executor"
+    },
+    "deploy_agent": {
+      "status": "ok",
+      "state": "PLANNED",
+      "autonomy_mode": "MANUAL",
+      "role": "executor"
+    },
+    "site_audit": {
+      "status": "ok",
+      "state": "PLANNED",
+      "autonomy_mode": "MANUAL",
+      "role": "observer"
+    }
+  },
+
+  "links": {
+    "latest_decision": "ops/decisions/latest.json",
+    "gate_result": "ops/decisions/gate_result.json",
+    "decision_trace": "ops/reports/decision_trace.jsonl"
+  }
+}
