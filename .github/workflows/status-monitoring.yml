@@ -1,201 +1,49 @@
-name: Status Monitoring (Truth Regeneration) + Deterministic Failover — Option A (commit-only)
+name: Status Monitoring (Truth Regeneration) — Phase 9 (commit-only)
 
 on:
   schedule:
     - cron: "*/15 * * * *"
   workflow_dispatch:
-    inputs:
-      force_backup:
-        description: "Chaos test: force backup agent (true/false)"
-        required: false
-        default: "false"
 
-# Option A: commits truth to main; DOES NOT deploy Pages (single publisher = site-deploy.yml)
+# Commits truth to main; DOES NOT deploy Pages (single publisher = site-deploy.yml)
 permissions:
   contents: write
 
 concurrency:
-  group: truth-regeneration
+  group: status-monitoring
   cancel-in-progress: true
 
-env:
-  CUSTOM_URL: https://www.virtauto.de
-
-  STATUS_JSON: ops/reports/system_status.json
-  STATUS_TRACE: ops/reports/status_trace.jsonl
-  ACTIVITY_PATH: ops/agent_activity.jsonl
-
-  GLOBAL_STATE: ops/reports/global_state.json
-
 jobs:
-  generate_truth:
-    name: Generate Truth (primary → backup) + GLOBAL STATE + commit to main
+  regenerate-truth:
     runs-on: ubuntu-latest
-    outputs:
-      used_agent: ${{ steps.meta.outputs.used_agent }}
-      verdict: ${{ steps.meta.outputs.verdict }}
-      global_state_path: ${{ steps.meta.outputs.global_state_path }}
-
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Ensure folders exist (FIX for ops/agent_activity.jsonl)
+      - name: Regenerate truth (system_status + traces)
         shell: bash
         run: |
-          mkdir -p ops ops/reports
-          touch "${STATUS_TRACE}"
-          touch "${ACTIVITY_PATH}"
+          set -euo pipefail
+          python ops/status_agent.py --env production
 
-      - name: Primary Status Agent
-        id: primary
-        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.force_backup == 'true') }}
-        continue-on-error: true
+      - name: Commit + push truth to main
         shell: bash
         run: |
-          python ops/status_agent.py --agent primary
-
-      - name: Backup Status Agent (deterministic failover)
-        id: backup
-        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.force_backup == 'true') || steps.primary.outcome != 'success' }}
-        continue-on-error: true
-        shell: bash
-        run: |
-          python ops/status_agent.py --agent backup
-
-      - name: Hard check: truth must exist & be valid JSON
-        id: truth_check
-        shell: bash
-        run: |
-          if [ ! -f "${STATUS_JSON}" ]; then
-            echo "Missing truth output: ${STATUS_JSON}" >&2
-            exit 2
-          fi
-
-          python - <<'PY'
-import json
-p="ops/reports/system_status.json"
-with open(p,"r",encoding="utf-8") as f:
-    j=json.load(f)
-if not isinstance(j, dict):
-    raise SystemExit("system_status.json must be an object")
-
-required = ["generated_at", "environment"]
-missing = [k for k in required if k not in j]
-if missing:
-    raise SystemExit("system_status.json missing required field(s): " + ", ".join(missing))
-
-print("OK")
-PY
-
-      - name: Write GLOBAL STATE + record used agent + verdict (HARD GATE)
-        id: meta
-        shell: bash
-        env:
-          FORCE_BACKUP: ${{ inputs.force_backup || 'false' }}
-        run: |
-          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-
-          primary_outcome="${{ steps.primary.outcome }}"
-          backup_outcome="${{ steps.backup.outcome }}"
-
-          used="UNKNOWN"
-          if [ "${primary_outcome}" = "success" ] && [ "${{ github.event_name }}" != "workflow_dispatch" -o "${{ inputs.force_backup }}" != "true" ]; then
-            used="status_agent_v1"
-          elif [ "${backup_outcome}" = "success" ]; then
-            used="status_agent_v1_backup"
-          fi
-
-          verdict="PASS"
-          reasons="[]"
-
-          if [ "$used" = "UNKNOWN" ]; then
-            verdict="BLOCK"
-            reasons='["FAILOVER_EXHAUSTED_PRIMARY_AND_BACKUP_FAILED"]'
-          fi
-
-          if [ ! -f "${STATUS_JSON}" ]; then
-            verdict="BLOCK"
-            reasons='["MISSING_SYSTEM_STATUS_JSON"]'
-          fi
-
-          mkdir -p "$(dirname "${GLOBAL_STATE}")"
-
-          python - <<PY
-import json, os
-ts = "${ts}"
-used = "${used}"
-verdict = "${verdict}"
-reasons = json.loads('${reasons}')
-forced = (os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch" and os.environ.get("FORCE_BACKUP","false") == "true")
-state = {
-  "schema_version": "1.0",
-  "generated_at": ts,
-  "environment": "production",
-  "capability": "monitoring_status",
-  "verdict": verdict,
-  "reasons": reasons,
-  "used_agent": used,
-  "execution": {
-    "run_id": os.getenv("GITHUB_RUN_ID"),
-    "run_attempt": os.getenv("GITHUB_RUN_ATTEMPT"),
-    "sha": os.getenv("GITHUB_SHA"),
-    "ref": os.getenv("GITHUB_REF_NAME"),
-    "event_name": os.getenv("GITHUB_EVENT_NAME"),
-    "forced_backup": forced
-  },
-  "artifacts": {
-    "system_status_json": os.getenv("STATUS_JSON"),
-    "status_trace_jsonl": os.getenv("STATUS_TRACE"),
-    "agent_activity_jsonl": os.getenv("ACTIVITY_PATH")
-  }
-}
-out_path = os.getenv("GLOBAL_STATE")
-with open(out_path, "w", encoding="utf-8") as f:
-    json.dump(state, f, ensure_ascii=False, indent=2)
-print("WROTE_GLOBAL_STATE", out_path)
-PY
-
-          echo "used_agent=$used" >> "$GITHUB_OUTPUT"
-          echo "verdict=${verdict}" >> "$GITHUB_OUTPUT"
-          echo "global_state_path=${GLOBAL_STATE}" >> "$GITHUB_OUTPUT"
-
-          if [ "${verdict}" != "PASS" ]; then
-            echo "GLOBAL STATE BLOCK. used_agent=${used} verdict=${verdict} reasons=${reasons}" >&2
-            exit 3
-          fi
-
-      - name: Upload evidence (audit)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: status-evidence-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            ops/reports/system_status.json
-            ops/reports/status_trace.jsonl
-            ops/agent_activity.jsonl
-            ops/reports/global_state.json
-          if-no-files-found: error
-
-      - name: Commit + push truth to main (Option A)
-        if: ${{ steps.meta.outputs.verdict == 'PASS' }}
-        shell: bash
-        run: |
-          set -e
+          set -euo pipefail
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          # Avoid "expected branch to point to ..." by rebasing latest main
+          # Rebase on latest main (avoids non-fast-forward)
           git pull --rebase origin main
 
-          git add "${STATUS_JSON}" "${STATUS_TRACE}" "${ACTIVITY_PATH}" "${GLOBAL_STATE}" || true
+          git add ops/reports/system_status.json ops/reports/decision_trace.json ops/reports/decision_trace.jsonl ops/agent_activity.jsonl ops/decisions/gate_result.json || true
 
           if git diff --cached --quiet; then
             echo "No truth changes to commit."
@@ -203,5 +51,5 @@ PY
           fi
 
           ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          git commit -m "truth: status regeneration ${ts} (global_state)"
+          git commit -m "truth: status regeneration ${ts}"
           git push origin HEAD:main
