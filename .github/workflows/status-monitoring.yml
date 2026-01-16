@@ -3,18 +3,14 @@ name: Status Monitoring (Truth Regeneration) — Phase 1 (Status Agent)
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"  # heartbeat every 10 minutes
-
-# Phase 1 goal: make agency *visible*.
-# This workflow regenerates ONLY the Status Agent evidence file and publishes it.
-# Publishing method (Option A): PR + immediate merge (no auto-merge feature needed).
+    - cron: "*/10 * * * *"   # Heartbeat alle 10 Minuten
 
 permissions:
   contents: write
   pull-requests: write
 
 concurrency:
-  group: status-agent-heartbeat-${{ github.ref }}
+  group: status-monitoring
   cancel-in-progress: true
 
 jobs:
@@ -22,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -32,63 +28,21 @@ jobs:
         with:
           python-version: "3.11"
 
-      # Generates ops/agent_activity.json (Status Agent evidence)
-      # NOTE: We intentionally only commit that one file in Phase 1.
-      - name: Run Status Agent (evidence heartbeat)
-        shell: bash
+      - name: Run Status Agent (heartbeat + evidence)
         run: |
-          set -euo pipefail
           python ops/status_agent.py --env production
 
-      - name: Commit evidence to branch
-        id: commit
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          # Only publish the evidence file in Phase 1
-          git add ops/agent_activity.json || true
-
-          if git diff --cached --quiet; then
-            echo "No changes to ops/agent_activity.json"
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-
-          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          git checkout -B truth/status-agent-heartbeat
-          git commit -m "truth: status agent heartbeat (${ts})"
-          git push --force origin truth/status-agent-heartbeat
-
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-
-      - name: Create/Update PR (Phase 1 — evidence only)
-        if: steps.commit.outputs.changed == 'true'
-        id: cpr
+      - name: Create / Update PR (Truth Regeneration)
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: truth/status-agent-heartbeat
-          base: main
-          delete-branch: true
+          commit-message: "truth: status agent heartbeat"
           title: "Status Agent heartbeat (Phase 1)"
           body: |
             Automated Status Agent heartbeat.
-
-            Phase 1 publishes *only* ops/agent_activity.json (visible agency evidence).
+            Contains refreshed agent activity and system status evidence.
+          branch: truth/status-agent-heartbeat
+          delete-branch: true
           add-paths: |
             ops/agent_activity.json
-
-      # Merge immediately (Option A) so main updates without a human click.
-      # This avoids GitHub's auto-merge feature and its org/repo restrictions.
-      - name: Merge PR (squash)
-        if: steps.commit.outputs.changed == 'true'
-        uses: peter-evans/merge-pull-request@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pull-request: ${{ steps.cpr.outputs.pull-request-number }}
-          merge-method: squash
-          commit-message: "squash"
+            ops/reports/system_status.json
