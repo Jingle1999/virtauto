@@ -3,15 +3,14 @@ name: Status Monitoring (Truth Regeneration) — Phase 1 (Status Agent)
 on:
   workflow_dispatch:
   schedule:
-    # Phase 1 heartbeat: keep Status Agent evidence fresh
-    - cron: '*/10 * * * *'
+    # Heartbeat every 10 Minutes
+    - cron: "*/10 * * * *"
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 concurrency:
-  group: status-monitoring-${{ github.ref }}
+  group: status-monitoring-phase1
   cancel-in-progress: true
 
 jobs:
@@ -19,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -27,49 +26,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Run Status Agent (heartbeat + evidence)
         run: |
-          echo "Running Status Agent heartbeat…"
+          echo "▶ Running Status Agent heartbeat"
           python ops/status_agent.py --env production
 
-      - name: Commit updated truth artifacts (if changed)
-        shell: bash
+      # ⛔️ KEIN commit
+      # ⛔️ KEIN git push
+      # ⛔️ KEIN PR
+      # Phase-1 = Sichtbarkeit, nicht Mutation
+
+      - name: Verify evidence files exist
         run: |
-          set -euo pipefail
-
-          git config user.name "status-agent"
-          git config user.email "status-agent@virtauto.local"
-
-          # Only add files that actually exist.
-          CANDIDATES=(
-            "ops/agent_activity.json"
-            "ops/reports/system_status.json"
-            "ops/reports/system_status.jsonl"
-            "ops/reports/decision_trace.json"
-            "ops/reports/decision_trace.jsonl"
-            "ops/decisions/gate_result.json"
-          )
-
-          EXISTING=()
-          for f in "${CANDIDATES[@]}"; do
-            if [[ -f "$f" ]]; then
-              EXISTING+=("$f")
-            fi
-          done
-
-          if [[ ${#EXISTING[@]} -eq 0 ]]; then
-            echo "No expected artifact files found after run. Skipping commit."
-            exit 0
-          fi
-
-          git add -- "${EXISTING[@]}"
-
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-            exit 0
-          fi
-
-          git commit -m "chore(status-agent): heartbeat truth update"
-          git push origin HEAD:${{ github.ref_name }}
+          echo "▶ Verifying generated evidence"
+          ls -lah ops/agent_activity.json || true
+          ls -lah ops/reports/ || true
