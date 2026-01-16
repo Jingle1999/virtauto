@@ -1221,13 +1221,13 @@
 
     // Latest by timestamp (descending)
     statusEvents.sort((a,b) => {
-      const ta = new Date(a.timestamp || 0).getTime();
-      const tb = new Date(b.timestamp || 0).getTime();
+      const ta = new Date(a.timestamp || a.ts || 0).getTime();
+      const tb = new Date(b.timestamp || b.ts || 0).getTime();
       return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
     });
 
     const latest = statusEvents[0];
-    const lastIso = latest.timestamp || null;
+    const lastIso = latest.timestamp || latest.ts || latest.time || null;
     const age = minutesAgo(lastIso);
     const freshness = classifyFreshness(age);
 
