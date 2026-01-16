@@ -3,22 +3,24 @@ name: Status Monitoring (Truth Regeneration) — Phase 1 (Status Agent)
 on:
   workflow_dispatch:
   schedule:
-    # Keep Status Agent evidence alive (heart-beat). Adjust later if needed.
-    - cron: '*/10 * * * *'
+    - cron: "*/10 * * * *"  # heartbeat every 10 minutes
 
-# Creates/updates a PR with regenerated truth + agent evidence.
-# Does NOT push to main directly (works with protected branches).
+# Phase 1 goal: make agency *visible*.
+# This workflow regenerates ONLY the Status Agent evidence file and publishes it.
+# Publishing method (Option A): PR + immediate merge (no auto-merge feature needed).
+
 permissions:
   contents: write
   pull-requests: write
 
 concurrency:
-  group: status-monitoring-${{ github.ref }}
+  group: status-agent-heartbeat-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  regenerate-truth:
+  status-agent-heartbeat:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,39 +30,65 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      # Generates:
-      # - ops/reports/system_status.json
-      # - ops/reports/decision_trace.json
-      # - ops/reports/decision_trace.jsonl
-      # - ops/agent_activity.jsonl   (Status Agent evidence)
-      # - ops/decisions/gate_result.json
-      - name: Regenerate truth (system_status + traces + agent evidence)
+      # Generates ops/agent_activity.json (Status Agent evidence)
+      # NOTE: We intentionally only commit that one file in Phase 1.
+      - name: Run Status Agent (evidence heartbeat)
+        shell: bash
         run: |
+          set -euo pipefail
           python ops/status_agent.py --env production
 
-      - name: Create / Update PR (Truth Regeneration)
+      - name: Commit evidence to branch
+        id: commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Only publish the evidence file in Phase 1
+          git add ops/agent_activity.json || true
+
+          if git diff --cached --quiet; then
+            echo "No changes to ops/agent_activity.json"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          git checkout -B truth/status-agent-heartbeat
+          git commit -m "truth: status agent heartbeat (${ts})"
+          git push --force origin truth/status-agent-heartbeat
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create/Update PR (Phase 1 — evidence only)
+        if: steps.commit.outputs.changed == 'true'
+        id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'truth: status regeneration (phase 1)'
-          branch: truth/status-regeneration
+          branch: truth/status-agent-heartbeat
+          base: main
           delete-branch: true
-          title: 'Truth regeneration (Phase 1 — Status Agent)'
+          title: "Status Agent heartbeat (Phase 1)"
           body: |
-            Automated truth regeneration.
+            Automated Status Agent heartbeat.
 
-            Phase 1 goal: visible agency via Status Agent evidence.
-            This PR updates operational artifacts only (no marketing simulation).
-
+            Phase 1 publishes *only* ops/agent_activity.json (visible agency evidence).
           add-paths: |
-            ops/reports/system_status.json
-            ops/reports/decision_trace.json
-            ops/reports/decision_trace.jsonl
-            ops/agent_activity.jsonl
-            ops/decisions/gate_result.json
+            ops/agent_activity.json
 
-      # NOTE:
-      # We intentionally DO NOT enable auto-merge here.
-      # Some repos/orgs disable auto-merge via API, which would make this workflow fail.
+      # Merge immediately (Option A) so main updates without a human click.
+      # This avoids GitHub's auto-merge feature and its org/repo restrictions.
+      - name: Merge PR (squash)
+        if: steps.commit.outputs.changed == 'true'
+        uses: peter-evans/merge-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
+          commit-message: "squash"
