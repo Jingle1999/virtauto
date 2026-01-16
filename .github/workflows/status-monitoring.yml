@@ -3,46 +3,36 @@ name: Status Monitoring (Truth Regeneration) — Phase 1 (Status Agent)
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"   # Heartbeat alle 10 Minuten
+    - cron: "*/10 * * * *"   # Heartbeat
 
 permissions:
   contents: write
   pull-requests: write
 
-concurrency:
-  group: status-monitoring
-  cancel-in-progress: true
-
 jobs:
   status-agent-heartbeat:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Run Status Agent (heartbeat + evidence)
+      - name: Run Status Agent (heartbeat)
         run: |
           python ops/status_agent.py --env production
 
-      - name: Create / Update PR (Truth Regeneration)
+      - name: Create PR (truth regeneration)
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "truth: status agent heartbeat"
-          title: "Status Agent heartbeat (Phase 1)"
+          commit-message: "chore: status agent heartbeat"
+          branch: truth/status-agent
+          delete-branch: true
+          title: "Status Agent heartbeat"
           body: |
             Automated Status Agent heartbeat.
-            Contains refreshed agent activity and system status evidence.
-          branch: truth/status-agent-heartbeat
-          delete-branch: true
           add-paths: |
             ops/agent_activity.json
             ops/reports/system_status.json
