@@ -26,15 +26,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      # Avoid non-fast-forward AND avoid "cannot pull with rebase: You have unstaged changes".
-      # We sync BEFORE running the agent so the working tree stays clean.
       - name: Sync branch (main) before generating artifacts
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin main
-          git checkout -B main origin/main
-          git pull --rebase --autostash origin main
+          git checkout main
+          git reset --hard origin/main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -57,8 +55,6 @@ jobs:
           echo "Running Status Agent heartbeat..."
           python ops/status_agent.py --env production
 
-      # GitHub Pages serves the /status/ directory.
-      # Anything under /ops is NOT published, therefore we mirror evidence into /status/ops/.
       - name: Mirror evidence into /status/ops (GitHub Pages-served)
         shell: bash
         run: |
@@ -66,7 +62,7 @@ jobs:
 
           mkdir -p status/ops status/ops/reports status/ops/decisions
 
-          # Copy if they exist (agent may generate a subset)
+          # Copy only if present (no failing on missing files)
           [ -f ops/agent_activity.json ] && cp -f ops/agent_activity.json status/ops/agent_activity.json || true
           [ -f ops/agent_activity.jsonl ] && cp -f ops/agent_activity.jsonl status/ops/agent_activity.jsonl || true
 
@@ -84,7 +80,6 @@ jobs:
           git config user.name "status-agent"
           git config user.email "status-agent@virtauto.local"
 
-          # Only add files that actually exist (avoid 'pathspec ... did not match any files')
           CANDIDATES=(
             "ops/agent_activity.json"
             "ops/agent_activity.jsonl"
