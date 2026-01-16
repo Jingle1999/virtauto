@@ -3,9 +3,11 @@ name: Status Monitoring (Truth Regeneration) — Phase 1 (Status Agent)
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/15 * * * *'  # every 15 min (Phase 1: make agency visible)
+    # Keep Status Agent evidence alive (heart-beat). Adjust later if needed.
+    - cron: '*/10 * * * *'
 
-# Creates/updates a PR with regenerated truth artifacts (does NOT deploy pages directly)
+# Creates/updates a PR with regenerated truth + agent evidence.
+# Does NOT push to main directly (works with protected branches).
 permissions:
   contents: write
   pull-requests: write
@@ -28,27 +30,30 @@ jobs:
         with:
           python-version: '3.11'
 
+      # Generates:
+      # - ops/reports/system_status.json
+      # - ops/reports/decision_trace.json
+      # - ops/reports/decision_trace.jsonl
+      # - ops/agent_activity.jsonl   (Status Agent evidence)
+      # - ops/decisions/gate_result.json
       - name: Regenerate truth (system_status + traces + agent evidence)
-        shell: bash
         run: |
-          set -euo pipefail
           python ops/status_agent.py --env production
 
-      - name: Create / update PR (Truth regeneration)
-        id: cpr
+      - name: Create / Update PR (Truth Regeneration)
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'truth: status regeneration'
+          commit-message: 'truth: status regeneration (phase 1)'
           branch: truth/status-regeneration
           delete-branch: true
-          title: 'Truth regeneration (Phase 1)'
+          title: 'Truth regeneration (Phase 1 — Status Agent)'
           body: |
             Automated truth regeneration.
 
-            Contains updated operational artifacts (truth + traces + agent activity evidence).
+            Phase 1 goal: visible agency via Status Agent evidence.
+            This PR updates operational artifacts only (no marketing simulation).
 
-            If you see this regularly, the Status Agent is alive.
           add-paths: |
             ops/reports/system_status.json
             ops/reports/decision_trace.json
@@ -56,12 +61,6 @@ jobs:
             ops/agent_activity.jsonl
             ops/decisions/gate_result.json
 
-      # Best-effort auto-merge: keeps truth fresh on main without manual work.
-      # If branch protection blocks auto-merge, PR remains for manual approval/merge.
-      - name: Enable PR auto-merge (best effort)
-        if: ${{ steps.cpr.outputs.pull-request-number != '' }}
-        uses: peter-evans/enable-pull-request-automerge@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
-          merge-method: squash
+      # NOTE:
+      # We intentionally DO NOT enable auto-merge here.
+      # Some repos/orgs disable auto-merge via API, which would make this workflow fail.
