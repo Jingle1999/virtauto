@@ -1,78 +1,36 @@
 {
-  "meta": {
-    "system": "virtauto",
-    "governance_mode": "enforced",
-    "version": "v1",
-    "generated_by": "GEORGE",
-    "description": "Runtime decision trace for authority-enforced system decisions"
-  },
-  "decisions": [
+  "schema_version": "1.0",
+  "generated_at": "2026-01-16T08:54:24Z",
+  "trace_id": "trc_20260116_085424_decision",
+  "because": [
     {
-      "decision_id": "2024-12-24T18:45:00Z-GEORGE-001",
-      "timestamp": "2024-12-24T18:45:00Z",
-      "actor": "GEORGE",
-      "decision_type": "runtime_enforcement_enable",
-      "input_signals": {
-        "workflow_status": "green",
-        "security_checks": "passed",
-        "branch_protection": "active",
-        "governance_config": "present"
-      },
-      "authority": {
-        "level": "system",
-        "mode": "hard_enforced",
-        "human_override_allowed": true
-      },
-      "decision": {
-        "result": "enabled",
-        "enforcement_applied": true
-      },
-      "confidence": 0.95,
-      "notes": "Runtime authority enforcement activated successfully"
+      "rule": "TRUTH_GENERATED",
+      "evidence": "ev_status_agent_run"
     },
     {
-      "decision_id": "2024-12-24T18:47:30Z-GEORGE-002",
-      "timestamp": "2024-12-24T18:47:30Z",
-      "actor": "GEORGE",
-      "decision_type": "merge_permission",
-      "input_signals": {
-        "required_checks": "passed",
-        "approvals": "sufficient",
-        "policy_compliance": "confirmed"
-      },
-      "authority": {
-        "level": "system",
-        "mode": "hard_enforced",
-        "human_override_allowed": true
-      },
-      "decision": {
-        "result": "allowed",
-        "enforcement_applied": true
-      },
-      "confidence": 0.92,
-      "notes": "Merge allowed under enforced governance rules"
-    },
-    {
-      "decision_id": "2024-12-24T18:50:10Z-GEORGE-003",
-      "timestamp": "2024-12-24T18:50:10Z",
-      "actor": "GEORGE",
-      "decision_type": "autonomy_status_update",
-      "input_signals": {
-        "decision_trace_coverage": "partial",
-        "authority_matrix": "pending",
-        "system_health": "stable"
-      },
-      "authority": {
-        "level": "system",
-        "mode": "hard_enforced",
-        "human_override_allowed": false
-      },
-      "decision": {
-        "result": "autonomy_calculation_deferred",
-        "enforcement_applied": true
-      },
-      "confidence": 0.88,
-      "notes": "Autonomy calculation deferred until authority matrix is finalized"
+      "rule": "NO_EMERGENCY_LOCK",
+      "evidence": "ev_emergency_lock"
     }
-  ]
+  ],
+  "inputs": [
+    "ops/autonomy.json",
+    "ops/decisions/latest.json",
+    "ops/emergency_lock.json"
+  ],
+  "outputs": [
+    "ops/reports/system_status.json",
+    "ops/decisions/gate_result.json"
+  ],
+  "evidence": {
+    "ev_status_agent_run": {
+      "type": "agent_run",
+      "ts": "2026-01-16T08:54:24Z",
+      "ref": "ops/agent_activity.jsonl"
+    },
+    "ev_emergency_lock": {
+      "type": "config",
+      "ts": "2026-01-16T08:54:24Z",
+      "ref": "ops/emergency_lock.json"
+    }
+  }
 }

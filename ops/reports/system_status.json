@@ -1,33 +1,27 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2025-12-17T11:55:08Z",
+  "generated_at": "2026-01-16T08:54:24Z",
   "environment": "production",
-
   "system_state": "ACTIVE",
   "autonomy": "SUPERVISED",
-
   "system": {
     "state": "ACTIVE",
     "autonomy_mode": "SUPERVISED",
-    "mode": "STABILIZATION",
+    "note": "Phase 9: truth regeneration active (GitHub-native).",
     "last_incident": null
   },
-
   "autonomy_score": {
-    "value": 0.70,
-    "percent": 70,
+    "value": 50.0,
+    "percent": 50.0,
     "mode": "SUPERVISED",
-    "inputs": {
-      "trace_coverage": null,
-      "gate_verdict": "ALLOW",
-      "human_override_rate": null,
-      "self_healing_factor": null
-    }
+    "trace_coverage": null,
+    "gate_verdict": "ALLOW",
+    "human_override_rate": null,
+    "self_healing_factor": null
   },
-
   "health": {
     "signal": "GREEN",
-    "overall_score": 0.88,
+    "overall_score": 0.9,
     "metrics": {
       "agent_response_success_rate": 0.96,
       "system_stability_score": 0.82,
@@ -35,7 +29,6 @@
       "mean_decision_latency_ms": 420
     }
   },
-
   "agents": {
     "george": {
       "status": "ok",
@@ -74,7 +67,6 @@
       "role": "observer"
     }
   },
-
   "links": {
     "latest_decision": "ops/decisions/latest.json",
     "gate_result": "ops/decisions/gate_result.json",
