@@ -3,36 +3,51 @@ name: Status Monitoring (Truth Regeneration) — Phase 1 (Status Agent)
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/10 * * * *"   # Heartbeat
+    # Heartbeat every 10 minutes
+    - cron: "*/10 * * * *"
 
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: status-monitoring
+  cancel-in-progress: true
+
 jobs:
   status-agent-heartbeat:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Run Status Agent (heartbeat)
+      - name: Run Status Agent (heartbeat + evidence)
         run: |
+          echo "▶ Running Status Agent heartbeat"
           python ops/status_agent.py --env production
 
-      - name: Create PR (truth regeneration)
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: status agent heartbeat"
-          branch: truth/status-agent
-          delete-branch: true
-          title: "Status Agent heartbeat"
-          body: |
-            Automated Status Agent heartbeat.
-          add-paths: |
-            ops/agent_activity.json
-            ops/reports/system_status.json
+      - name: Commit updated truth artifacts (if changed)
+        run: |
+          git config user.name "status-agent"
+          git config user.email "status-agent@virtauto.local"
+
+          git add \
+            ops/agent_activity.json \
+            ops/reports/system_status.json \
+            ops/reports/decision_trace.json \
+            ops/decisions/gate_result.json
+
+          if git diff --cached --quiet; then
+            echo "✓ No changes to commit"
+          else
+            git commit -m "chore(status-agent): heartbeat truth update"
+            git push
+          fi
