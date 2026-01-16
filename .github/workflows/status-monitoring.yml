@@ -1,14 +1,11 @@
-name: Status Monitoring (Truth Regeneration) — Phase 9 (PR-truth)
+name: Status Monitoring (Truth Regeneration) — Phase 1 (Status Agent)
 
 on:
-  # Manual trigger
   workflow_dispatch:
-
-  # Keep the Status Agent visibly "alive" by regenerating Truth on a cadence.
-  # If you want less churn, change to hourly: '0 * * * *'
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '*/15 * * * *'  # every 15 min (Phase 1: make agency visible)
 
+# Creates/updates a PR with regenerated truth artifacts (does NOT deploy pages directly)
 permissions:
   contents: write
   pull-requests: write
@@ -20,7 +17,6 @@ concurrency:
 jobs:
   regenerate-truth:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,14 +28,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Regenerate truth (system_status + traces)
+      - name: Regenerate truth (system_status + traces + agent evidence)
         shell: bash
         run: |
           set -euo pipefail
-          python ops/status_agent.py --agent primary
+          python ops/status_agent.py --env production
 
-      # Create/Update a PR instead of pushing to main (main is protected).
-      - name: Open PR (Truth Regeneration)
+      - name: Create / update PR (Truth regeneration)
         id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
@@ -47,37 +42,26 @@ jobs:
           commit-message: 'truth: status regeneration'
           branch: truth/status-regeneration
           delete-branch: true
-          title: 'Truth regeneration (Phase 9)'
+          title: 'Truth regeneration (Phase 1)'
           body: |
-            Automated Truth regeneration. Contains updated operational artifacts.
+            Automated truth regeneration.
 
-            Files updated:
-            - ops/reports/system_status.json
-            - ops/agent_activity.jsonl
-            - ops/reports/status_trace.jsonl
-            - ops/decisions/gate_result.json
-            - ops/reports/decision_trace.jsonl
+            Contains updated operational artifacts (truth + traces + agent activity evidence).
+
+            If you see this regularly, the Status Agent is alive.
           add-paths: |
             ops/reports/system_status.json
-            ops/agent_activity.jsonl
-            ops/reports/status_trace.jsonl
-            ops/decisions/gate_result.json
+            ops/reports/decision_trace.json
             ops/reports/decision_trace.jsonl
-          labels: |
-            truth
-            phase-9
-            automation
+            ops/agent_activity.jsonl
+            ops/decisions/gate_result.json
 
-      # Optional: if Auto-merge is enabled in repo settings, this will merge the PR
-      # once required checks pass. If Auto-merge is not enabled, this step is a no-op.
-      - name: Enable auto-merge (if available)
+      # Best-effort auto-merge: keeps truth fresh on main without manual work.
+      # If branch protection blocks auto-merge, PR remains for manual approval/merge.
+      - name: Enable PR auto-merge (best effort)
         if: ${{ steps.cpr.outputs.pull-request-number != '' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          pr="${{ steps.cpr.outputs.pull-request-number }}"
-          echo "PR created/updated: #$pr"
-          # Try to enable auto-merge; don't fail the workflow if repo disallows it.
-          gh pr merge "$pr" --auto --merge --delete-branch || true
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
