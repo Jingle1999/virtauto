@@ -1,3 +1,5 @@
-# JSONL audit logs are append-only → auto-merge by union
+# JSONL audit logs are append-only → union merge
 ops/reports/decision_trace.jsonl merge=union
+
+# Other JSONL reports are also append-only
 ops/reports/*.jsonl merge=union
