@@ -1,0 +1,56 @@
+name: Self-Healing (Phase 9) — PR-only Regression Recovery
+
+on:
+  workflow_run:
+    workflows:
+      - "Status Monitoring (Truth Regeneration) - Phase 1 (Status Agent)"
+      - "Guardian Authority"
+      - "GEORGE Orchestrator"
+    types:
+      - completed
+  workflow_dispatch: {}
+
+concurrency:
+  group: self-healing-phase9
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  self-heal:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (if present)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
+            python -m pip install -r requirements.txt
+          fi
+          # ensure gh is present (usually preinstalled on ubuntu-latest)
+          gh --version
+
+      - name: Run Self-Healing (R3 first)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SELF_HEALING_TRIGGER: ${{ github.event_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m self_healing.heal
