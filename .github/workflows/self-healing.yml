@@ -1,18 +1,7 @@
 name: Self-Healing (Phase 9) — PR-only Regression Recovery
 
 on:
-  workflow_run:
-    workflows:
-      - "Status Monitoring (Truth Regeneration) - Phase 1 (Status Agent)"
-      - "Guardian Authority"
-      - "GEORGE Orchestrator"
-    types:
-      - completed
-  workflow_dispatch: {}
-
-concurrency:
-  group: self-healing-phase9
-  cancel-in-progress: false
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -21,23 +10,20 @@ permissions:
 jobs:
   self-heal:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled' }}
-
     steps:
       - name: Checkout (default branch / manual)
-        if: ${{ github.event_name != 'workflow_run' }}
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true
 
-      - name: Checkout (workflow_run head_branch)
-        if: ${{ github.event_name == 'workflow_run' }}
+      # Optional: if you want to ensure you run on the workflow-run head branch when triggered differently
+      # (keep if you already rely on it; otherwise you can remove)
+      - name: Checkout (workflow_run head branch)
+        if: ${{ github.event_name != 'workflow_dispatch' && github.event.workflow_run.head_branch != '' }}
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          persist-credentials: true
           ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -55,22 +41,22 @@ jobs:
 
       - name: Run Self-Healing (R3 -> R2 -> R1)
         id: heal
+        shell: bash
         env:
           SELF_HEALING_TRIGGER: ${{ github.event_name }}
-        shell: bash
         run: |
           set -euo pipefail
           python self_healing/heal.py
 
-      # R5 (workflow-side) cleanup: extra belt & suspenders (fixes your current guard failures)
       - name: Cleanup non-governed noise (deterministic)
         shell: bash
         run: |
           set -euo pipefail
-          # remove any egg-info anywhere
-          find . -type d -name "*.egg-info" -prune -exec rm -rf {} + || true
-          # remove caches
+          # remove egg-info anywhere
+          find . -name "*.egg-info" -prune -exec rm -rf {} + || true
+          # remove __pycache__ anywhere
           find . -type d -name "__pycache__" -prune -exec rm -rf {} + || true
+          # remove common caches
           find . -type d -name ".pytest_cache" -prune -exec rm -rf {} + || true
           find . -type d -name ".mypy_cache" -prune -exec rm -rf {} + || true
           # remove pyc
@@ -81,16 +67,15 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Only these paths may be changed/untracked by self-healing:
+          # Allow ONLY these governed artifacts to be modified/created/deleted by self-healing.
           allowed_regex='^(ops/reports/latest\.json|ops/reports/self_healing_trace\.jsonl|ops/reports/decision_trace\.jsonl|ops/decisions/gate_result\.json|ops/reports/system_status\.json|governance/resilience/capability_graph\.json)$'
 
-          bad="$(git status --porcelain=v1 | awk '{print $2}' | grep -Ev "$allowed_regex" || true)"
-          if [ -n "${bad}" ]; then
+          # list changed/untracked files (2nd column is the path in --porcelain=v1)
+          bad="$(git status --porcelain=v1 -unormal | awk '{print $2}' | grep -Ev "$allowed_regex" || true)"
+
+          if [ -n "$bad" ]; then
             echo "ERROR: Non-governed changes detected:"
-            echo "${bad}"
-            echo ""
-            echo "Full status:"
-            git status --porcelain=v1 || true
+            echo "$bad"
             exit 1
           fi
 
@@ -101,13 +86,16 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           base: main
+
           commit-message: "self-healing: recover regression ${{ steps.heal.outputs.regression_id }}"
           title: "${{ steps.heal.outputs.pr_title }}"
           body: "${{ steps.heal.outputs.pr_body }}"
+
           branch: "${{ steps.heal.outputs.pr_branch }}"
           delete-branch: false
           labels: self-healing,phase-9,governed
-          # Commit ONLY governed artifacts (prevents egg-info etc.)
+
+          # Only include governed artifacts (prevents egg-info etc.)
           add-paths: |
             ops/reports/latest.json
             ops/reports/self_healing_trace.jsonl
