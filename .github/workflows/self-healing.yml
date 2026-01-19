@@ -24,11 +24,20 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled' }}
 
     steps:
-      - name: Checkout
+      - name: Checkout (default branch / manual)
+        if: ${{ github.event_name != 'workflow_run' }}
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: true
+
+      - name: Checkout (workflow_run head_sha)
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,18 +48,27 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then
-            python -m pip install --upgrade pip
             python -m pip install -r requirements.txt
           fi
-          # ensure gh is present (usually preinstalled on ubuntu-latest)
-          gh --version
 
       - name: Run Self-Healing (R3 first)
+        id: heal
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SELF_HEALING_TRIGGER: ${{ github.event_name }}
         shell: bash
         run: |
           set -euo pipefail
-          python -m self_healing.heal
+          python self_healing/heal.py
+
+      - name: Open PR (only if regression)
+        if: ${{ steps.heal.outputs.regression == 'true' }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "self-healing: recover regression ${{ steps.heal.outputs.regression_id }}"
+          title: "${{ steps.heal.outputs.pr_title }}"
+          body: "${{ steps.heal.outputs.pr_body }}"
+          branch: "${{ steps.heal.outputs.pr_branch }}"
+          delete-branch: false
+          labels: self-healing,phase-9,governed
