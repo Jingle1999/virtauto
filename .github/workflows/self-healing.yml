@@ -31,13 +31,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Checkout (workflow_run head_sha)
+      - name: Checkout (workflow_run head_branch)
         if: ${{ github.event_name == 'workflow_run' }}
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: true
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_branch }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -66,6 +66,7 @@ jobs:
         if: ${{ steps.heal.outputs.regression == 'true' }}
         uses: peter-evans/create-pull-request@v6
         with:
+          base: ${{ github.event.repository.default_branch }}
           commit-message: "self-healing: recover regression ${{ steps.heal.outputs.regression_id }}"
           title: "${{ steps.heal.outputs.pr_title }}"
           body: "${{ steps.heal.outputs.pr_body }}"
