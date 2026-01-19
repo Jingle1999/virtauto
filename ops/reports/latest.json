@@ -1,0 +1,10 @@
+{
+  "artifacts": {
+    "decision_trace_jsonl": "ops/reports/decision_trace.jsonl",
+    "gate_result": "ops/decisions/gate_result.json",
+    "system_status": "ops/reports/system_status.json"
+  },
+  "environment": "production",
+  "generated_at": "2026-01-19T12:17:20.371268Z",
+  "note": "placeholder created by self-healing (R3)."
+}
