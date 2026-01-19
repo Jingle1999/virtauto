@@ -62,6 +62,10 @@ jobs:
           set -euo pipefail
           python self_healing/heal.py
 
+      - name: Configure git union merge for decision trace
+        run: |
+          git config --global merge.union.driver true
+
       - name: Open PR (only if regression)
         if: ${{ steps.heal.outputs.regression == 'true' }}
         uses: peter-evans/create-pull-request@v6
