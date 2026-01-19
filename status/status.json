@@ -4,12 +4,17 @@
       "agent": "self_content",
       "status": "ok",
       "timestamp": "2026-01-19T06:09:31Z"
+    },
+    {
+      "agent": "self_guardian",
+      "status": "ok",
+      "timestamp": "2026-01-19T06:15:58Z"
     }
   ],
   "pipelines": {
     "monitoring": "unknown",
     "audit": "unknown",
-    "guardian": "unknown",
+    "guardian": "ok",
     "deploy": "unknown",
     "content": "ok"
   }
