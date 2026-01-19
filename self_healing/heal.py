@@ -79,15 +79,15 @@ def append_jsonl(path: Path, obj: Dict[str, Any]) -> None:
 
 def gh_set_output(key: str, value: str) -> None:
     """
-    Writes outputs for GitHub Actions (multiline-safe).
-    Fixes: 'Unable to process file command output' / 'Invalid format' errors.
+    Writes outputs for GitHub Actions.
+    IMPORTANT: must support multiline values (e.g. pr_body).
     """
     out = os.environ.get("GITHUB_OUTPUT")
     if not out:
         return
 
-    # Always use multiline block to be safe (newlines, colons, etc.)
-    delimiter = "EOF_SELF_HEALING_OUTPUT"
+    # Always use multiline-safe form to avoid "Invalid format" errors.
+    delimiter = "EOF"
     with open(out, "a", encoding="utf-8") as f:
         f.write(f"{key}<<{delimiter}\n{value}\n{delimiter}\n")
 
@@ -129,7 +129,7 @@ def cleanup_non_governed_noise() -> None:
     Removes known, deterministic build/cache artifacts that must never end up in governed PRs.
     Safe to call in CI; ignores errors.
     """
-    # Remove any *.egg-info directories anywhere in repo (robust)
+    # Remove *.egg-info dirs/files anywhere
     try:
         for p in REPO_ROOT.rglob("*.egg-info"):
             if p.is_dir():
@@ -137,14 +137,8 @@ def cleanup_non_governed_noise() -> None:
                     if sub.is_file():
                         sub.unlink(missing_ok=True)
                     elif sub.is_dir():
-                        try:
-                            sub.rmdir()
-                        except Exception:
-                            pass
-                try:
-                    p.rmdir()
-                except Exception:
-                    pass
+                        sub.rmdir()
+                p.rmdir()
             elif p.is_file():
                 p.unlink(missing_ok=True)
     except Exception:
@@ -159,18 +153,12 @@ def cleanup_non_governed_noise() -> None:
                         if sub.is_file():
                             sub.unlink(missing_ok=True)
                         elif sub.is_dir():
-                            try:
-                                sub.rmdir()
-                            except Exception:
-                                pass
-                    try:
-                        d.rmdir()
-                    except Exception:
-                        pass
+                            sub.rmdir()
+                    d.rmdir()
         except Exception:
             pass
 
-    # Remove pyc
+    # Remove *.pyc anywhere
     try:
         for f in REPO_ROOT.rglob("*.pyc"):
             if f.is_file():
@@ -298,6 +286,7 @@ def detect_r1_capability_graph_invalid() -> DetectorResult:
         )
 
     data = read_json(path)
+
     primaries = 0
     if isinstance(data, dict):
         nodes = data.get("nodes")
@@ -378,7 +367,7 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
                 "generated_at": now,
                 "environment": "production",
                 "system": {"state": "UNKNOWN", "mode": "SUPERVISED"},
-                "health": {"signal": "YELLOW", " "overall_score": 0},
+                "health": {"signal": "YELLOW", "overall_score": 0},
                 "agents": {},
                 "links": {
                     "decision_trace_jsonl": "ops/reports/decision_trace.jsonl",
@@ -411,6 +400,9 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
 
 
 def playbook_r2_restore_status_template(det: DetectorResult) -> List[str]:
+    """
+    Restores a minimal valid status file (without guessing).
+    """
     now = utc_now_iso()
     p_status = OPS_REPORTS_DIR / "system_status.json"
     write_json(
@@ -426,13 +418,20 @@ def playbook_r2_restore_status_template(det: DetectorResult) -> List[str]:
                 "gate_result": "ops/decisions/gate_result.json",
                 "latest": "ops/reports/latest.json",
             },
-            "self_healing": {"regression": "R2", "reason": det.details.get("reason", "status invalid")},
+            "self_healing": {
+                "regression": "R2",
+                "reason": det.details.get("reason", "status invalid"),
+            },
         },
     )
     return [safe_rel(p_status)]
 
 
 def playbook_r1_restore_capability_graph(det: DetectorResult) -> List[str]:
+    """
+    Restores capability_graph.json from a deterministic minimal template.
+    (No creative reconstruction.)
+    """
     now = utc_now_iso()
     p_graph = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
     p_graph.parent.mkdir(parents=True, exist_ok=True)
@@ -489,6 +488,10 @@ def pick_regression() -> DetectorResult:
 
 
 def build_pr_metadata(det: DetectorResult) -> Tuple[str, str, str]:
+    """
+    Returns (branch, title, body)
+    Branch naming: self-heal/<timestamp>-<regression-id>
+    """
     ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     rid = det.regression_id or "RX"
     branch = f"self-heal/{ts}-{rid}"
@@ -501,15 +504,15 @@ def build_pr_metadata(det: DetectorResult) -> Tuple[str, str, str]:
     title = title_map.get(rid, f"Self-Healing PR ({rid}): Regression detected")
 
     body = (
-        f"## Self-Healing (Phase 9)\n\n"
+        "## Self-Healing (Phase 9)\n\n"
         f"**Regression:** {rid} · {det.type}\n"
         f"**Severity:** {det.severity}\n\n"
-        f"### Detector Output (machine-readable)\n"
+        "### Detector Output (machine-readable)\n"
         f"```json\n{json.dumps(det.details, indent=2, sort_keys=True)}\n```\n\n"
-        f"### Governance\n"
-        f"- PR-only: ✅ (no direct write to `main`)\n"
-        f"- Deterministic: ✅ (known playbooks only)\n"
-        f"- Decision-traced: ✅ (`ops/reports/self_healing_trace.jsonl`)\n"
+        "### Governance\n"
+        "- PR-only: ✅ (no direct write to `main`)\n"
+        "- Deterministic: ✅ (known playbooks only)\n"
+        "- Decision-traced: ✅ (`ops/reports/self_healing_trace.jsonl`)\n"
     )
     return branch, title, body
 
@@ -517,6 +520,7 @@ def build_pr_metadata(det: DetectorResult) -> Tuple[str, str, str]:
 def main() -> int:
     det = pick_regression()
 
+    # No regression -> noop
     if not det.regression:
         print("No regression detected. noop.")
         gh_set_output("regression", "false")
@@ -553,7 +557,7 @@ def main() -> int:
 
     write_self_healing_trace(det, playbook_name, pr_branch, changed)
 
-    # R5: cleanup non-governed noise deterministically (prevents egg-info, pyc, caches)
+    # R5: cleanup non-governed noise deterministically
     cleanup_non_governed_noise()
 
     gh_set_output("regression", "true")
