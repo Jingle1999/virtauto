@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -77,12 +78,32 @@ def append_jsonl(path: Path, obj: Dict[str, Any]) -> None:
 def gh_set_output(key: str, value: str) -> None:
     """
     Writes outputs for GitHub Actions.
+
+    IMPORTANT:
+    GitHub Actions requires multiline outputs to use the heredoc style:
+      key<<DELIM
+      <value>
+      DELIM
     """
     out = os.environ.get("GITHUB_OUTPUT")
     if not out:
         return
+
+    # Normalize value to string and ensure no None
+    if value is None:
+        value = ""
+
+    value = str(value)
+
+    # Use a unique delimiter to avoid collisions with content.
+    delim = f"__GH_OUT_{key}_{uuid.uuid4().hex}__"
+
     with open(out, "a", encoding="utf-8") as f:
-        f.write(f"{key}={value}\n")
+        f.write(f"{key}<<{delim}\n")
+        f.write(value)
+        if not value.endswith("\n"):
+            f.write("\n")
+        f.write(f"{delim}\n")
 
 
 def safe_rel(path: Path) -> str:
@@ -239,18 +260,15 @@ def detect_r1_capability_graph_invalid() -> DetectorResult:
         )
 
     data = read_json(path)
-    # Expect list/dict structure; keep minimal
     # Determinism rule: exactly 1 primary
     primaries = 0
     if isinstance(data, dict):
-        # common patterns: nodes list, or map of capabilities
         nodes = data.get("nodes")
         if isinstance(nodes, list):
             for n in nodes:
                 if isinstance(n, dict) and n.get("primary") is True:
                     primaries += 1
         else:
-            # allow dict-of-dicts fallback
             for _, v in data.items():
                 if isinstance(v, dict) and v.get("primary") is True:
                     primaries += 1
@@ -265,7 +283,11 @@ def detect_r1_capability_graph_invalid() -> DetectorResult:
             regression_id="R1",
             type="CAPABILITY_GRAPH_INVALID",
             severity="blocking",
-            details={"reason": "determinism rule violated (exactly 1 primary)", "primary_count": primaries, "path": safe_rel(path)},
+            details={
+                "reason": "determinism rule violated (exactly 1 primary)",
+                "primary_count": primaries,
+                "path": safe_rel(path),
+            },
         )
 
     return DetectorResult(
@@ -385,7 +407,6 @@ def playbook_r1_restore_capability_graph(det: DetectorResult) -> List[str]:
     p_graph = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
     p_graph.parent.mkdir(parents=True, exist_ok=True)
 
-    # Minimal template with exactly one primary (determinism rule satisfied)
     template = {
         "version": 1,
         "generated_at": now,
@@ -469,7 +490,6 @@ def build_pr_metadata(det: DetectorResult) -> Tuple[str, str, str]:
 def main() -> int:
     det = pick_regression()
 
-    # No regression -> noop
     if not det.regression:
         print("No regression detected. noop.")
         gh_set_output("regression", "false")
@@ -480,7 +500,6 @@ def main() -> int:
         gh_set_output("changed_files", "")
         return 0
 
-    # Regression found -> apply playbook (deterministic)
     pr_branch, pr_title, pr_body = build_pr_metadata(det)
 
     changed: List[str] = []
@@ -496,7 +515,6 @@ def main() -> int:
         playbook_name = "restore_capability_graph"
         changed = playbook_r1_restore_capability_graph(det)
     else:
-        # Unknown regression id -> fail safe (no changes)
         print(f"Unknown regression_id={det.regression_id}. Refusing to act.")
         gh_set_output("regression", "true")
         gh_set_output("regression_id", det.regression_id or "")
@@ -506,10 +524,8 @@ def main() -> int:
         gh_set_output("changed_files", "")
         return 2
 
-    # Always write trace (even if changed empty -> still governance signal)
     write_self_healing_trace(det, playbook_name, pr_branch, changed)
 
-    # Emit outputs for workflow PR creation
     gh_set_output("regression", "true")
     gh_set_output("regression_id", det.regression_id or "")
     gh_set_output("pr_branch", pr_branch)
