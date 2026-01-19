@@ -19,7 +19,6 @@ from __future__ import annotations
 import json
 import os
 import sys
-import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -77,26 +76,28 @@ def append_jsonl(path: Path, obj: Dict[str, Any]) -> None:
 
 def gh_set_output(key: str, value: str) -> None:
     """
-    Writes outputs for GitHub Actions.
+    Writes outputs for GitHub Actions via $GITHUB_OUTPUT.
 
-    IMPORTANT:
-    GitHub Actions requires multiline outputs to use the heredoc style:
+    IMPORTANT: Values may be multiline (e.g. PR body). For multiline values we must use
+    the heredoc form:
+
       key<<DELIM
-      <value>
+      ...value...
       DELIM
     """
     out = os.environ.get("GITHUB_OUTPUT")
     if not out:
         return
 
-    # Normalize value to string and ensure no None
+    # Normalize to string
     if value is None:
         value = ""
 
-    value = str(value)
-
-    # Use a unique delimiter to avoid collisions with content.
-    delim = f"__GH_OUT_{key}_{uuid.uuid4().hex}__"
+    # Always use heredoc to be safe (works for single-line too)
+    delim = "EOF_SELF_HEALING_OUTPUT"
+    # Ensure delimiter does not appear in value (extremely unlikely, but deterministic)
+    if delim in value:
+        delim = "EOF_SELF_HEALING_OUTPUT_2"
 
     with open(out, "a", encoding="utf-8") as f:
         f.write(f"{key}<<{delim}\n")
@@ -179,8 +180,6 @@ def detect_r3_missing_artifacts() -> DetectorResult:
 
 # -----------------------------
 # R2 — Status validation fails
-# (Deterministic check: file exists + JSON + minimal required keys)
-# You can later harden this by calling ops/validate_status.py in the workflow.
 # -----------------------------
 def detect_r2_status_invalid() -> DetectorResult:
     path = OPS_REPORTS_DIR / "system_status.json"
@@ -203,7 +202,6 @@ def detect_r2_status_invalid() -> DetectorResult:
         )
 
     data = read_json(path)
-    # Minimal truth requirements (keep minimal & deterministic)
     required_top = ["generated_at", "environment"]
     missing = [k for k in required_top if k not in data]
     if missing:
@@ -215,7 +213,6 @@ def detect_r2_status_invalid() -> DetectorResult:
             details={"reason": "missing required fields", "missing": missing, "path": safe_rel(path)},
         )
 
-    # Basic type sanity
     if not isinstance(data.get("generated_at"), str) or not isinstance(data.get("environment"), str):
         return DetectorResult(
             regression=True,
@@ -236,8 +233,6 @@ def detect_r2_status_invalid() -> DetectorResult:
 
 # -----------------------------
 # R1 — Capability graph invalid
-# Minimal deterministic checks (JSON parse + exactly one primary)
-# You can later extend with schema/refs (against ops/capability_profiles.json).
 # -----------------------------
 def detect_r1_capability_graph_invalid() -> DetectorResult:
     path = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
@@ -260,7 +255,6 @@ def detect_r1_capability_graph_invalid() -> DetectorResult:
         )
 
     data = read_json(path)
-    # Determinism rule: exactly 1 primary
     primaries = 0
     if isinstance(data, dict):
         nodes = data.get("nodes")
@@ -303,23 +297,18 @@ def detect_r1_capability_graph_invalid() -> DetectorResult:
 # Playbooks (known repair paths)
 # -----------------------------
 def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
-    """
-    Creates minimal, valid placeholders for missing mandatory artifacts.
-    """
     changed: List[str] = []
     now = utc_now_iso()
 
     missing = det.details.get("missing", [])
     missing_set = set(str(x) for x in missing)
 
-    # decision_trace.jsonl: create if missing (empty JSONL is acceptable)
     p_trace = DECISION_TRACE_JSONL
     if safe_rel(p_trace) in missing_set:
         p_trace.parent.mkdir(parents=True, exist_ok=True)
         p_trace.write_text("", encoding="utf-8")
         changed.append(safe_rel(p_trace))
 
-    # gate_result.json: minimal valid structure
     p_gate = DECISIONS_DIR / "gate_result.json"
     if safe_rel(p_gate) in missing_set:
         write_json(
@@ -332,7 +321,6 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
         )
         changed.append(safe_rel(p_gate))
 
-    # system_status.json: minimal truth-locked status
     p_status = OPS_REPORTS_DIR / "system_status.json"
     if safe_rel(p_status) in missing_set:
         write_json(
@@ -352,7 +340,6 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
         )
         changed.append(safe_rel(p_status))
 
-    # latest.json: canonical pointer file
     p_latest = OPS_REPORTS_DIR / "latest.json"
     if safe_rel(p_latest) in missing_set:
         write_json(
@@ -374,9 +361,6 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
 
 
 def playbook_r2_restore_status_template(det: DetectorResult) -> List[str]:
-    """
-    Restores a minimal valid status file (without guessing).
-    """
     now = utc_now_iso()
     p_status = OPS_REPORTS_DIR / "system_status.json"
     write_json(
@@ -399,10 +383,6 @@ def playbook_r2_restore_status_template(det: DetectorResult) -> List[str]:
 
 
 def playbook_r1_restore_capability_graph(det: DetectorResult) -> List[str]:
-    """
-    Restores capability_graph.json from a deterministic minimal template.
-    (No creative reconstruction.)
-    """
     now = utc_now_iso()
     p_graph = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
     p_graph.parent.mkdir(parents=True, exist_ok=True)
@@ -446,10 +426,6 @@ def write_self_healing_trace(det: DetectorResult, playbook: str, pr_branch: str,
 # Orchestration
 # -----------------------------
 def pick_regression() -> DetectorResult:
-    """
-    Deterministic order per plan:
-    R3 -> R2 -> R1
-    """
     for fn in (detect_r3_missing_artifacts, detect_r2_status_invalid, detect_r1_capability_graph_invalid):
         res = fn()
         if res.regression:
@@ -458,10 +434,6 @@ def pick_regression() -> DetectorResult:
 
 
 def build_pr_metadata(det: DetectorResult) -> Tuple[str, str, str]:
-    """
-    Returns (branch, title, body)
-    Branch naming: self-heal/<timestamp>-<regression-id>
-    """
     ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     rid = det.regression_id or "RX"
     branch = f"self-heal/{ts}-{rid}"
