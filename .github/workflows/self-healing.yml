@@ -62,9 +62,26 @@ jobs:
           set -euo pipefail
           python self_healing/heal.py
 
-      - name: Configure git union merge for decision trace
+      # R5: Ensure PR contains only governed artifacts (prevents egg-info etc.)
+      - name: Guard working tree (governed-only)
+        if: ${{ steps.heal.outputs.regression == 'true' }}
+        shell: bash
         run: |
-          git config --global merge.union.driver true
+          set -euo pipefail
+
+          # 1) remove known junk deterministically
+          rm -rf *.egg-info __pycache__ .pytest_cache .mypy_cache || true
+          find . -name "*.pyc" -delete || true
+
+          # 2) fail if anything outside governed list is modified/untracked
+          allowed_regex='^(ops/reports/latest\.json|ops/reports/self_healing_trace\.jsonl|ops/decisions/gate_result\.json|ops/reports/system_status\.json|governance/resilience/capability_graph\.json)$'
+          bad=$(git status --porcelain | awk '{print $2}' | grep -Ev "$allowed_regex" || true)
+
+          if [ -n "${bad}" ]; then
+            echo "ERROR: Non-governed changes detected:"
+            echo "${bad}"
+            exit 1
+          fi
 
       - name: Open PR (only if regression)
         if: ${{ steps.heal.outputs.regression == 'true' }}
@@ -73,6 +90,7 @@ jobs:
           base: main
           add-paths: |
             ops/reports/latest.json
+            ops/reports/self_healing_trace.jsonl
             ops/decisions/gate_result.json
             ops/reports/system_status.json
             governance/resilience/capability_graph.json
@@ -82,9 +100,3 @@ jobs:
           branch: "${{ steps.heal.outputs.pr_branch }}"
           delete-branch: false
           labels: self-healing,phase-9,governed
-          # IMPORTANT: only commit governed artifacts (prevents egg-info etc.)
-          add-paths: |
-            ops/reports/latest.json
-            ops/reports/decision_trace.jsonl
-            ops/reports/system_status.json
-            ops/decisions/gate_result.json
