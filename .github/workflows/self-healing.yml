@@ -24,12 +24,20 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'cancelled' }}
 
     steps:
-      - name: Checkout (main)
+      - name: Checkout (default branch / manual)
+        if: ${{ github.event_name != 'workflow_run' }}
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: true
-          ref: main
+
+      - name: Checkout (workflow_run head_sha)
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -60,20 +68,7 @@ jobs:
         with:
           commit-message: "self-healing: recover regression ${{ steps.heal.outputs.regression_id }}"
           title: "${{ steps.heal.outputs.pr_title }}"
-          body: |
-            ## Self-Healing (Phase 9)
-
-            Regression: ${{ steps.heal.outputs.regression_id }}
-            Trigger: ${{ github.event_name }}
-
-            Evidence / Trace:
-            - ops/reports/decision_trace.jsonl
-
-            Governance:
-            - PR-only ✅ (no direct write to main)
-            - Deterministic ✅ (known playbooks)
-            - Decision-traced ✅
-          base: main
+          body: "${{ steps.heal.outputs.pr_body }}"
           branch: "${{ steps.heal.outputs.pr_branch }}"
           delete-branch: false
           labels: self-healing,phase-9,governed
