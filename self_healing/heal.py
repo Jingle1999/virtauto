@@ -19,7 +19,6 @@ from __future__ import annotations
 import json
 import os
 import sys
-import shutil
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -80,17 +79,17 @@ def append_jsonl(path: Path, obj: Dict[str, Any]) -> None:
 
 def gh_set_output(key: str, value: str) -> None:
     """
-    Writes outputs for GitHub Actions.
-    IMPORTANT: must support multiline values (e.g. PR body).
+    Writes outputs for GitHub Actions (multiline-safe).
+    Fixes: 'Unable to process file command output' / 'Invalid format' errors.
     """
     out = os.environ.get("GITHUB_OUTPUT")
     if not out:
         return
 
-    # Always use multiline-safe delimiter format
-    delim = "EOF"
+    # Always use multiline block to be safe (newlines, colons, etc.)
+    delimiter = "EOF_SELF_HEALING_OUTPUT"
     with open(out, "a", encoding="utf-8") as f:
-        f.write(f"{key}<<{delim}\n{value}\n{delim}\n")
+        f.write(f"{key}<<{delimiter}\n{value}\n{delimiter}\n")
 
 
 def safe_rel(path: Path) -> str:
@@ -129,44 +128,53 @@ def cleanup_non_governed_noise() -> None:
     """
     Removes known, deterministic build/cache artifacts that must never end up in governed PRs.
     Safe to call in CI; ignores errors.
-
-    NOTE:
-    - Use robust directory removal (shutil.rmtree) and scan recursively.
-    - Remove *.egg-info dirs anywhere (not only repo root).
-    - Remove __pycache__ dirs anywhere.
-    - Remove *.pyc/*.pyo anywhere.
     """
-    # egg-info anywhere
+    # Remove any *.egg-info directories anywhere in repo (robust)
     try:
         for p in REPO_ROOT.rglob("*.egg-info"):
             if p.is_dir():
-                shutil.rmtree(p, ignore_errors=True)
-            elif p.is_file():
+                for sub in sorted(p.rglob("*"), reverse=True):
+                    if sub.is_file():
+                        sub.unlink(missing_ok=True)
+                    elif sub.is_dir():
+                        try:
+                            sub.rmdir()
+                        except Exception:
+                            pass
                 try:
-                    p.unlink(missing_ok=True)
+                    p.rmdir()
                 except Exception:
                     pass
+            elif p.is_file():
+                p.unlink(missing_ok=True)
     except Exception:
         pass
 
-    # common cache dirs anywhere under repo
+    # Remove cache dirs anywhere under repo
     for name in ("__pycache__", ".pytest_cache", ".mypy_cache"):
         try:
             for d in REPO_ROOT.rglob(name):
                 if d.is_dir():
-                    shutil.rmtree(d, ignore_errors=True)
+                    for sub in sorted(d.rglob("*"), reverse=True):
+                        if sub.is_file():
+                            sub.unlink(missing_ok=True)
+                        elif sub.is_dir():
+                            try:
+                                sub.rmdir()
+                            except Exception:
+                                pass
+                    try:
+                        d.rmdir()
+                    except Exception:
+                        pass
         except Exception:
             pass
 
-    # pyc/pyo anywhere
+    # Remove pyc
     try:
-        for ext in ("*.pyc", "*.pyo"):
-            for f in REPO_ROOT.rglob(ext):
-                if f.is_file():
-                    try:
-                        f.unlink(missing_ok=True)
-                    except Exception:
-                        pass
+        for f in REPO_ROOT.rglob("*.pyc"):
+            if f.is_file():
+                f.unlink(missing_ok=True)
     except Exception:
         pass
 
@@ -214,7 +222,6 @@ def detect_r3_missing_artifacts() -> DetectorResult:
 # -----------------------------
 # R2 — Status validation fails
 # (Deterministic check: file exists + JSON + minimal required keys)
-# You can later harden this by calling ops/validate_status.py in the workflow.
 # -----------------------------
 def detect_r2_status_invalid() -> DetectorResult:
     path = OPS_REPORTS_DIR / "system_status.json"
@@ -237,7 +244,6 @@ def detect_r2_status_invalid() -> DetectorResult:
         )
 
     data = read_json(path)
-    # Minimal truth requirements (keep minimal & deterministic)
     required_top = ["generated_at", "environment"]
     missing = [k for k in required_top if k not in data]
     if missing:
@@ -249,7 +255,6 @@ def detect_r2_status_invalid() -> DetectorResult:
             details={"reason": "missing required fields", "missing": missing, "path": safe_rel(path)},
         )
 
-    # Basic type sanity
     if not isinstance(data.get("generated_at"), str) or not isinstance(data.get("environment"), str):
         return DetectorResult(
             regression=True,
@@ -271,7 +276,6 @@ def detect_r2_status_invalid() -> DetectorResult:
 # -----------------------------
 # R1 — Capability graph invalid
 # Minimal deterministic checks (JSON parse + exactly one primary)
-# You can later extend with schema/refs (against ops/capability_profiles.json).
 # -----------------------------
 def detect_r1_capability_graph_invalid() -> DetectorResult:
     path = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
@@ -294,18 +298,14 @@ def detect_r1_capability_graph_invalid() -> DetectorResult:
         )
 
     data = read_json(path)
-    # Expect list/dict structure; keep minimal
-    # Determinism rule: exactly 1 primary
     primaries = 0
     if isinstance(data, dict):
-        # common patterns: nodes list, or map of capabilities
         nodes = data.get("nodes")
         if isinstance(nodes, list):
             for n in nodes:
                 if isinstance(n, dict) and n.get("primary") is True:
                     primaries += 1
         else:
-            # allow dict-of-dicts fallback
             for _, v in data.items():
                 if isinstance(v, dict) and v.get("primary") is True:
                     primaries += 1
@@ -343,7 +343,7 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
     """
     Creates minimal, valid placeholders for missing mandatory artifacts.
     """
-    changed hooking: List[str] = []
+    changed: List[str] = []
     now = utc_now_iso()
 
     missing = det.details.get("missing", [])
@@ -354,7 +354,7 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
     if safe_rel(p_trace) in missing_set:
         p_trace.parent.mkdir(parents=True, exist_ok=True)
         p_trace.write_text("", encoding="utf-8")
-        changed hooking.append(safe_rel(p_trace))
+        changed.append(safe_rel(p_trace))
 
     # gate_result.json: minimal valid structure
     p_gate = DECISIONS_DIR / "gate_result.json"
@@ -367,7 +367,7 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
                 "timestamp": now,
             },
         )
-        changed hooking.append(safe_rel(p_gate))
+        changed.append(safe_rel(p_gate))
 
     # system_status.json: minimal truth-locked status
     p_status = OPS_REPORTS_DIR / "system_status.json"
@@ -378,7 +378,7 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
                 "generated_at": now,
                 "environment": "production",
                 "system": {"state": "UNKNOWN", "mode": "SUPERVISED"},
-                "health": {"signal": "YELLOW", "overall_score": 0},
+                "health": {"signal": "YELLOW", " "overall_score": 0},
                 "agents": {},
                 "links": {
                     "decision_trace_jsonl": "ops/reports/decision_trace.jsonl",
@@ -387,7 +387,7 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
                 },
             },
         )
-        changed hooking.append(safe_rel(p_status))
+        changed.append(safe_rel(p_status))
 
     # latest.json: canonical pointer file
     p_latest = OPS_REPORTS_DIR / "latest.json"
@@ -405,15 +405,12 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
                 "note": "placeholder created by self-healing (R3).",
             },
         )
-        changed hooking.append(safe_rel(p_latest))
+        changed.append(safe_rel(p_latest))
 
-    return changed hooking
+    return changed
 
 
 def playbook_r2_restore_status_template(det: DetectorResult) -> List[str]:
-    """
-    Restores a minimal valid status file (without guessing).
-    """
     now = utc_now_iso()
     p_status = OPS_REPORTS_DIR / "system_status.json"
     write_json(
@@ -436,15 +433,10 @@ def playbook_r2_restore_status_template(det: DetectorResult) -> List[str]:
 
 
 def playbook_r1_restore_capability_graph(det: DetectorResult) -> List[str]:
-    """
-    Restores capability_graph.json from a deterministic minimal template.
-    (No creative reconstruction.)
-    """
     now = utc_now_iso()
     p_graph = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
     p_graph.parent.mkdir(parents=True, exist_ok=True)
 
-    # Minimal template with exactly one primary (determinism rule satisfied)
     template = {
         "version": 1,
         "generated_at": now,
@@ -497,10 +489,6 @@ def pick_regression() -> DetectorResult:
 
 
 def build_pr_metadata(det: DetectorResult) -> Tuple[str, str, str]:
-    """
-    Returns (branch, title, body)
-    Branch naming: self-heal/<timestamp>-<regression-id>
-    """
     ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     rid = det.regression_id or "RX"
     branch = f"self-heal/{ts}-{rid}"
@@ -529,7 +517,6 @@ def build_pr_metadata(det: DetectorResult) -> Tuple[str, str, str]:
 def main() -> int:
     det = pick_regression()
 
-    # No regression -> noop
     if not det.regression:
         print("No regression detected. noop.")
         gh_set_output("regression", "false")
@@ -540,7 +527,6 @@ def main() -> int:
         gh_set_output("changed_files", "")
         return 0
 
-    # Regression found -> apply playbook (deterministic)
     pr_branch, pr_title, pr_body = build_pr_metadata(det)
 
     changed: List[str] = []
@@ -556,7 +542,6 @@ def main() -> int:
         playbook_name = "restore_capability_graph"
         changed = playbook_r1_restore_capability_graph(det)
     else:
-        # Unknown regression id -> fail safe (no changes)
         print(f"Unknown regression_id={det.regression_id}. Refusing to act.")
         gh_set_output("regression", "true")
         gh_set_output("regression_id", det.regression_id or "")
@@ -566,13 +551,11 @@ def main() -> int:
         gh_set_output("changed_files", "")
         return 2
 
-    # Always write trace (even if changed empty -> still governance signal)
     write_self_healing_trace(det, playbook_name, pr_branch, changed)
 
-    # R5: cleanup non-governed noise deterministically (prevents egg-info etc.)
+    # R5: cleanup non-governed noise deterministically (prevents egg-info, pyc, caches)
     cleanup_non_governed_noise()
 
-    # Emit outputs for workflow PR creation
     gh_set_output("regression", "true")
     gh_set_output("regression_id", det.regression_id or "")
     gh_set_output("pr_branch", pr_branch)
