@@ -67,6 +67,11 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           base: main
+          add-paths: |
+            ops/reports/latest.json
+            ops/decisions/gate_result.json
+            ops/reports/system_status.json
+            governance/resilience/capability_graph.json
           commit-message: "self-healing: recover regression ${{ steps.heal.outputs.regression_id }}"
           title: "${{ steps.heal.outputs.pr_title }}"
           body: "${{ steps.heal.outputs.pr_body }}"
