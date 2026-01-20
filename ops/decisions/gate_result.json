@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-01-20T14:08:48Z",
+  "generated_at": "2026-01-20T14:22:34Z",
   "environment": "production",
   "gate_verdict": "ALLOW",
   "reason": "status_agent_ok",
-  "trace_id": "trc_20260120_140848_gate"
+  "trace_id": "trc_20260120_142234_gate"
 }
