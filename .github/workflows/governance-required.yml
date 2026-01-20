@@ -26,7 +26,6 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
-          # jsonschema wird oft gebraucht; ist ok, auch wenn es schon da ist
           python -m pip install jsonschema
 
       - name: Run contract validation
