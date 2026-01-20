@@ -1,23 +1,27 @@
 {
-  "decision_id": "dec_2026-01-20T12:37:48Z",
+  "decision_id": "dec_20260120_140500",
   "decision_class": "operational",
-  "authority_source": "governance/authority_matrix.yml",
+  "authority_source": "governance-required-checks",
+
   "health_context": {
-    "system_health": 90,
-    "guardian_status": "ok"
+    "system_health": 75,
+    "guardian_status": "degraded"
   },
+
   "decision_trace": {
     "complete": true,
-    "trace_id": "trc_20260120_123748_decision",
+    "trace_id": "trc_20260120_140500",
     "execution_path": ["george", "guardian"]
   },
+
   "trace": {
     "complete": true,
-    "id": "trace_dec_2026-01-20T12:37:48Z",
-    "trace_id": "trc_20260120_123748_decision",
-    "path": ["route", "guardian_precheck", "authority_enforcement", "blocked"],
+    "id": "trace_20260120_140500",
+    "trace_id": "trc_20260120_140500",
+    "path": ["route", "guardian_precheck", "blocked"],
     "execution_path": ["george", "guardian"]
   },
+
   "signals": {
     "system_health_score": 0.75,
     "system_health_percent": 75,
@@ -25,11 +29,17 @@
     "status_endpoint_ok": true,
     "decision_trace_present": true
   },
-  "timestamp": "2026-01-20T12:37:48Z",
+
+  "timestamp": "2026-01-20T14:05:00Z",
   "agent": "george",
   "action": "deploy_requested",
   "status": "blocked",
-  "intent": "Deployment requested but blocked by guardian",
-  "confidence": 0.7,
-  "result_summary": "Blocked due to governance/guardian gate."
+
+  "intent": null,
+  "confidence": 0.75,
+  "source_event_id": null,
+  "error_message": null,
+  "guardian_flag": null,
+  "follow_up": "bring guardian + authority gates to enforced mode",
+  "result_summary": "Decision blocked due to governance policy"
 }
