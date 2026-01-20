@@ -1,0 +1,61 @@
+name: Governance Required Checks
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate_contract_v1:
+    name: validate_contract_v1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install minimal deps (if needed)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          # jsonschema wird oft gebraucht; ist ok, auch wenn es schon da ist
+          python -m pip install jsonschema
+
+      - name: Run contract validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ops/validate_contract_v1.py
+
+  validate_status:
+    name: validate_status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install minimal deps (if needed)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install jsonschema
+
+      - name: Run status validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ops/validate_status.py
