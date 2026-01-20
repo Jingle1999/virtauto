@@ -1,22 +1,35 @@
 {
-  "schema_version": "2.0",
-  "decision_id": "uuid",
-  "timestamp": "ISO-8601",
-  "agent": "george",
+  "decision_id": "dec_2026-01-20T12:37:48Z",
   "decision_class": "operational",
-  "decision": "deploy_requested",
-  "status": "blocked",
-
+  "authority_source": "governance/authority_matrix.yml",
+  "health_context": {
+    "system_health": 90,
+    "guardian_status": "ok"
+  },
+  "decision_trace": {
+    "complete": true,
+    "trace_id": "trc_20260120_123748_decision",
+    "execution_path": ["george", "guardian"]
+  },
+  "trace": {
+    "complete": true,
+    "id": "trace_dec_2026-01-20T12:37:48Z",
+    "trace_id": "trc_20260120_123748_decision",
+    "path": ["route", "guardian_precheck", "authority_enforcement", "blocked"],
+    "execution_path": ["george", "guardian"]
+  },
   "signals": {
     "system_health_score": 0.75,
+    "system_health_percent": 75,
     "guardian_ok": false,
     "status_endpoint_ok": true,
     "decision_trace_present": true
   },
-
-  "decision_trace": {
-    "complete": true,
-    "trace_id": "uuid",
-    "execution_path": ["george", "guardian"]
-  }
+  "timestamp": "2026-01-20T12:37:48Z",
+  "agent": "george",
+  "action": "deploy_requested",
+  "status": "blocked",
+  "intent": "Deployment requested but blocked by guardian",
+  "confidence": 0.7,
+  "result_summary": "Blocked due to governance/guardian gate."
 }
