@@ -59,3 +59,21 @@ jobs:
         run: |
           set -euo pipefail
           python ops/validate_status.py
+
+  validate_decision_trace:
+    name: validate_decision_trace
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run decision trace validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ops/validate_decision_trace.py
