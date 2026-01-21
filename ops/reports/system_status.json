@@ -2,8 +2,18 @@
   "schema_version": "1.0",
   "generated_at": "2026-01-21T08:58:40Z",
   "environment": "production",
-  "system_state": "ACTIVE",
-  "autonomy": "SUPERVISED",
+  "system_state": {
+    "state": "ok",
+    "autonomy": {
+      "score": 0.5,
+      "mode": "supervised"
+    }
+  },
+  "meta": {
+    "version": "v1",
+    "generated_at": "2026-01-21T08:58:40Z",
+    "source": "ops/status_agent.py"
+  },
   "system": {
     "state": "ACTIVE",
     "autonomy_mode": "SUPERVISED",
@@ -29,44 +39,50 @@
       "mean_decision_latency_ms": 420
     }
   },
-  "agents": {
-    "george": {
-      "status": "ok",
-      "state": "ACTIVE",
-      "autonomy_mode": "SUPERVISED",
-      "role": "orchestrator"
+  "agents": [
+    {
+      "agent": "george",
+      "state": "ok",
+      "autonomy": 0.5,
+      "role": "orchestrator",
+      "last_update": "2026-01-21T08:58:40Z"
     },
-    "guardian": {
-      "status": "ok",
-      "state": "ACTIVE",
-      "autonomy_mode": "AUTONOMOUS",
-      "role": "guardian"
+    {
+      "agent": "guardian",
+      "state": "ok",
+      "autonomy": 0.9,
+      "role": "guardian",
+      "last_update": "2026-01-21T08:58:40Z"
     },
-    "monitoring": {
-      "status": "ok",
-      "state": "ACTIVE",
-      "autonomy_mode": "AUTONOMOUS",
-      "role": "observer"
+    {
+      "agent": "monitoring",
+      "state": "ok",
+      "autonomy": 0.9,
+      "role": "observer",
+      "last_update": "2026-01-21T08:58:40Z"
     },
-    "content": {
-      "status": "ok",
-      "state": "ACTIVE",
-      "autonomy_mode": "SUPERVISED",
-      "role": "executor"
+    {
+      "agent": "content",
+      "state": "ok",
+      "autonomy": 0.5,
+      "role": "executor",
+      "last_update": "2026-01-21T08:58:40Z"
     },
-    "deploy_agent": {
-      "status": "ok",
-      "state": "PLANNED",
-      "autonomy_mode": "MANUAL",
-      "role": "executor"
+    {
+      "agent": "deploy_agent",
+      "state": "unknown",
+      "autonomy": 0.0,
+      "role": "executor",
+      "last_update": "2026-01-21T08:58:40Z"
     },
-    "site_audit": {
-      "status": "ok",
-      "state": "PLANNED",
-      "autonomy_mode": "MANUAL",
-      "role": "observer"
+    {
+      "agent": "site_audit",
+      "state": "unknown",
+      "autonomy": 0.0,
+      "role": "observer",
+      "last_update": "2026-01-21T08:58:40Z"
     }
-  },
+  ],
   "links": {
     "latest_decision": "ops/decisions/latest.json",
     "gate_result": "ops/decisions/gate_result.json",
