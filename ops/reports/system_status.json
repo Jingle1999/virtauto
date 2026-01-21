@@ -1,128 +1,75 @@
 {
-  "meta": {
-    "version": "v1",
-    "generated_at": "2026-01-21T09:59:45Z",
-    "source": "status-agent"
+  "schema_version": "1.0",
+  "generated_at": "2026-01-21T10:30:30Z",
+  "environment": "production",
+  "system_state": "ACTIVE",
+  "autonomy": "SUPERVISED",
+  "system": {
+    "state": "ACTIVE",
+    "autonomy_mode": "SUPERVISED",
+    "note": "Phase 9: truth regeneration active (GitHub-native).",
+    "last_incident": null
   },
-  "system_state": {
-    "state": "ok",
-    "autonomy": {
-      "score": 0.5,
-      "mode": "supervised"
+  "autonomy_score": {
+    "value": 50.0,
+    "percent": 50.0,
+    "mode": "SUPERVISED",
+    "trace_coverage": null,
+    "gate_verdict": "ALLOW",
+    "human_override_rate": null,
+    "self_healing_factor": null
+  },
+  "health": {
+    "signal": "GREEN",
+    "overall_score": 0.9,
+    "metrics": {
+      "agent_response_success_rate": 0.96,
+      "system_stability_score": 0.82,
+      "self_detected_errors_24h": 0,
+      "mean_decision_latency_ms": 420
     }
   },
-  "agents": [
-    {
-      "agent": "george",
-      "state": "ok",
-      "autonomy": 0.5,
+  "agents": {
+    "george": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "SUPERVISED",
       "role": "orchestrator"
     },
-    {
-      "agent": "guardian",
-      "state": "ok",
-      "autonomy": 1.0,
+    "guardian": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "AUTONOMOUS",
       "role": "guardian"
     },
-    {
-      "agent": "monitoring",
-      "state": "ok",
-      "autonomy": 1.0,
+    "monitoring": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "AUTONOMOUS",
       "role": "observer"
     },
-    {
-      "agent": "content",
-      "state": "ok",
-      "autonomy": 0.5,
+    "content": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "SUPERVISED",
       "role": "executor"
     },
-    {
-      "agent": "deploy_agent",
-      "state": "unknown",
-      "autonomy": 0.0,
+    "deploy_agent": {
+      "status": "ok",
+      "state": "PLANNED",
+      "autonomy_mode": "MANUAL",
       "role": "executor"
     },
-    {
-      "agent": "site_audit",
-      "state": "unknown",
-      "autonomy": 0.0,
+    "site_audit": {
+      "status": "ok",
+      "state": "PLANNED",
+      "autonomy_mode": "MANUAL",
       "role": "observer"
     }
-  ],
-
-  "environment": "production",
+  },
   "links": {
     "latest_decision": "ops/decisions/latest.json",
     "gate_result": "ops/decisions/gate_result.json",
     "decision_trace": "ops/reports/decision_trace.jsonl"
-  },
-
-  "legacy": {
-    "schema_version": "1.0",
-    "system_state": "ACTIVE",
-    "autonomy": "SUPERVISED",
-    "system": {
-      "state": "ACTIVE",
-      "autonomy_mode": "SUPERVISED",
-      "note": "Phase 9: truth regeneration active (GitHub-native).",
-      "last_incident": null
-    },
-    "autonomy_score": {
-      "value": 50.0,
-      "percent": 50.0,
-      "mode": "SUPERVISED",
-      "trace_coverage": null,
-      "gate_verdict": "ALLOW",
-      "human_override_rate": null,
-      "self_healing_factor": null
-    },
-    "health": {
-      "signal": "GREEN",
-      "overall_score": 0.9,
-      "metrics": {
-        "agent_response_success_rate": 0.96,
-        "system_stability_score": 0.82,
-        "self_detected_errors_24h": 0,
-        "mean_decision_latency_ms": 420
-      }
-    },
-    "agents": {
-      "george": {
-        "status": "ok",
-        "state": "ACTIVE",
-        "autonomy_mode": "SUPERVISED",
-        "role": "orchestrator"
-      },
-      "guardian": {
-        "status": "ok",
-        "state": "ACTIVE",
-        "autonomy_mode": "AUTONOMOUS",
-        "role": "guardian"
-      },
-      "monitoring": {
-        "status": "ok",
-        "state": "ACTIVE",
-        "autonomy_mode": "AUTONOMOUS",
-        "role": "observer"
-      },
-      "content": {
-        "status": "ok",
-        "state": "ACTIVE",
-        "autonomy_mode": "SUPERVISED",
-        "role": "executor"
-      },
-      "deploy_agent": {
-        "status": "ok",
-        "state": "PLANNED",
-        "autonomy_mode": "MANUAL",
-        "role": "executor"
-      },
-      "site_audit": {
-        "status": "ok",
-        "state": "PLANNED",
-        "autonomy_mode": "MANUAL",
-        "role": "observer"
-      }
-    }
   }
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-01-21T10:12:47Z",
-  "trace_id": "trc_20260121_101247_decision",
+  "generated_at": "2026-01-21T10:30:30Z",
+  "trace_id": "trc_20260121_103030_decision",
   "because": [
     {
       "rule": "TRUTH_GENERATED",
@@ -24,12 +24,12 @@
   "evidence": {
     "ev_status_agent_run": {
       "type": "agent_run",
-      "ts": "2026-01-21T10:12:47Z",
+      "ts": "2026-01-21T10:30:30Z",
       "ref": "ops/agent_activity.jsonl"
     },
     "ev_emergency_lock": {
       "type": "config",
-      "ts": "2026-01-21T10:12:47Z",
+      "ts": "2026-01-21T10:30:30Z",
       "ref": "ops/emergency_lock.json"
     }
   }
