@@ -1,22 +1,45 @@
 {
-  "schema_version": "2.0",
-  "decision_id": "uuid",
-  "timestamp": "ISO-8601",
-  "agent": "george",
+  "decision_id": "dec_20260120_140500",
   "decision_class": "operational",
-  "decision": "deploy_requested",
-  "status": "blocked",
+  "authority_source": "governance-required-checks",
+
+  "health_context": {
+    "system_health": 75,
+    "guardian_status": "degraded"
+  },
+
+  "decision_trace": {
+    "complete": true,
+    "trace_id": "trc_20260120_140500",
+    "execution_path": ["george", "guardian"]
+  },
+
+  "trace": {
+    "complete": true,
+    "id": "trace_20260120_140500",
+    "trace_id": "trc_20260120_140500",
+    "path": ["route", "guardian_precheck", "blocked"],
+    "execution_path": ["george", "guardian"]
+  },
 
   "signals": {
     "system_health_score": 0.75,
+    "system_health_percent": 75,
     "guardian_ok": false,
     "status_endpoint_ok": true,
     "decision_trace_present": true
   },
 
-  "decision_trace": {
-    "complete": true,
-    "trace_id": "uuid",
-    "execution_path": ["george", "guardian"]
-  }
+  "timestamp": "2026-01-20T14:05:00Z",
+  "agent": "george",
+  "action": "deploy_requested",
+  "status": "blocked",
+
+  "intent": null,
+  "confidence": 0.75,
+  "source_event_id": null,
+  "error_message": null,
+  "guardian_flag": null,
+  "follow_up": "bring guardian + authority gates to enforced mode",
+  "result_summary": "Decision blocked due to governance policy"
 }

@@ -1,0 +1,21 @@
+{
+  "agents": [
+    {
+      "agent": "self_content",
+      "status": "ok",
+      "timestamp": "2026-01-19T06:09:31Z"
+    },
+    {
+      "agent": "self_guardian",
+      "status": "ok",
+      "timestamp": "2026-01-21T06:14:15Z"
+    }
+  ],
+  "pipelines": {
+    "monitoring": "unknown",
+    "audit": "unknown",
+    "guardian": "ok",
+    "deploy": "unknown",
+    "content": "ok"
+  }
+}

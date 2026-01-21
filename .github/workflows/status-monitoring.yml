@@ -1,66 +1,118 @@
-name: Status Monitoring (Truth Regeneration) — Phase 1 (Status Agent)
+name: Status Monitoring (Truth Regeneration) - Phase 1 (Status Agent)
 
 on:
   workflow_dispatch:
   schedule:
-    # Keep Status Agent evidence alive (heart-beat). Adjust later if needed.
-    - cron: '*/10 * * * *'
+    # Heartbeat every 10 minutes
+    - cron: "*/10 * * * *"
 
-# Creates/updates a PR with regenerated truth + agent evidence.
-# Does NOT push to main directly (works with protected branches).
+# IMPORTANT: do NOT cancel in-progress runs.
+concurrency:
+  group: status-monitoring-phase1
+  cancel-in-progress: false
+
+# Need write permission to commit/push truth artifacts.
 permissions:
   contents: write
-  pull-requests: write
-
-concurrency:
-  group: status-monitoring-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
-  regenerate-truth:
+  status-agent-heartbeat:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: true
+
+      - name: Sync branch (main) before generating artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      # Generates:
-      # - ops/reports/system_status.json
-      # - ops/reports/decision_trace.json
-      # - ops/reports/decision_trace.jsonl
-      # - ops/agent_activity.jsonl   (Status Agent evidence)
-      # - ops/decisions/gate_result.json
-      - name: Regenerate truth (system_status + traces + agent evidence)
+      - name: Install dependencies (if present)
+        shell: bash
         run: |
+          set -euo pipefail
+          if [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
+            python -m pip install -r requirements.txt
+          fi
+
+      - name: Run Status Agent (heartbeat + evidence)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Running Status Agent heartbeat..."
           python ops/status_agent.py --env production
 
-      - name: Create / Update PR (Truth Regeneration)
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'truth: status regeneration (phase 1)'
-          branch: truth/status-regeneration
-          delete-branch: true
-          title: 'Truth regeneration (Phase 1 — Status Agent)'
-          body: |
-            Automated truth regeneration.
+      - name: Mirror evidence into /status/ops (GitHub Pages-served)
+        shell: bash
+        run: |
+          set -euo pipefail
 
-            Phase 1 goal: visible agency via Status Agent evidence.
-            This PR updates operational artifacts only (no marketing simulation).
+          mkdir -p status/ops status/ops/reports status/ops/decisions
 
-          add-paths: |
-            ops/reports/system_status.json
-            ops/reports/decision_trace.json
-            ops/reports/decision_trace.jsonl
-            ops/agent_activity.jsonl
-            ops/decisions/gate_result.json
+          # Copy only if present (no failing on missing files)
+          [ -f ops/agent_activity.json ] && cp -f ops/agent_activity.json status/ops/agent_activity.json || true
+          [ -f ops/agent_activity.jsonl ] && cp -f ops/agent_activity.jsonl status/ops/agent_activity.jsonl || true
 
-      # NOTE:
-      # We intentionally DO NOT enable auto-merge here.
-      # Some repos/orgs disable auto-merge via API, which would make this workflow fail.
+          [ -f ops/reports/system_status.json ] && cp -f ops/reports/system_status.json status/ops/reports/system_status.json || true
+          [ -f ops/reports/decision_trace.json ] && cp -f ops/reports/decision_trace.json status/ops/reports/decision_trace.json || true
+          [ -f ops/reports/decision_trace.jsonl ] && cp -f ops/reports/decision_trace.jsonl status/ops/reports/decision_trace.jsonl || true
+
+          [ -f ops/decisions/gate_result.json ] && cp -f ops/decisions/gate_result.json status/ops/decisions/gate_result.json || true
+
+      - name: Commit & push updated truth artifacts (if changed)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "status-agent"
+          git config user.email "status-agent@virtauto.local"
+
+          CANDIDATES=(
+            "ops/agent_activity.json"
+            "ops/agent_activity.jsonl"
+            "ops/reports/system_status.json"
+            "ops/reports/decision_trace.json"
+            "ops/reports/decision_trace.jsonl"
+            "ops/decisions/gate_result.json"
+            "status/ops/agent_activity.json"
+            "status/ops/agent_activity.jsonl"
+            "status/ops/reports/system_status.json"
+            "status/ops/reports/decision_trace.json"
+            "status/ops/reports/decision_trace.jsonl"
+            "status/ops/decisions/gate_result.json"
+          )
+
+          EXISTING=()
+          for f in "${CANDIDATES[@]}"; do
+            if [ -f "$f" ]; then
+              EXISTING+=("$f")
+            fi
+          done
+
+          if [ "${#EXISTING[@]}" -eq 0 ]; then
+            echo "No expected artifacts were generated. Nothing to commit."
+            exit 0
+          fi
+
+          git add "${EXISTING[@]}"
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore(status-agent): heartbeat truth update"
+          git push origin HEAD:main
