@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import shutil
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -35,6 +36,9 @@ OPS_REPORTS_DIR = OPS_DIR / "reports"
 DECISIONS_DIR = OPS_DIR / "decisions"
 
 DECISION_TRACE_JSONL = OPS_REPORTS_DIR / "decision_trace.jsonl"
+
+# R4: conflict-free append-only trace for self-healing (separate file)
+SELF_HEALING_TRACE_JSONL = OPS_REPORTS_DIR / "self_healing_trace.jsonl"
 
 # Phase-9 mandatory artifacts (R3)
 DEFAULT_MANDATORY_ARTIFACTS = [
@@ -76,29 +80,17 @@ def append_jsonl(path: Path, obj: Dict[str, Any]) -> None:
 
 def gh_set_output(key: str, value: str) -> None:
     """
-    Writes outputs for GitHub Actions via $GITHUB_OUTPUT.
+    Writes outputs for GitHub Actions.
 
-    IMPORTANT: Values may be multiline (e.g. PR body). For multiline values we must use
-    the heredoc form:
-
-      key<<DELIM
-      ...value...
-      DELIM
+    IMPORTANT: Multi-line values MUST use the heredoc format, otherwise
+    GitHub will throw 'Unable to process file command output' / 'Invalid format'.
     """
     out = os.environ.get("GITHUB_OUTPUT")
     if not out:
         return
 
-    # Normalize to string
-    if value is None:
-        value = ""
-
-    # Always use heredoc to be safe (works for single-line too)
+    # Use heredoc always (safe & simple)
     delim = "EOF_SELF_HEALING_OUTPUT"
-    # Ensure delimiter does not appear in value (extremely unlikely, but deterministic)
-    if delim in value:
-        delim = "EOF_SELF_HEALING_OUTPUT_2"
-
     with open(out, "a", encoding="utf-8") as f:
         f.write(f"{key}<<{delim}\n")
         f.write(value)
@@ -136,6 +128,46 @@ def load_mandatory_artifacts() -> List[str]:
             # fall back to defaults deterministically
             pass
     return DEFAULT_MANDATORY_ARTIFACTS
+
+
+# R5: deterministic cleanup to avoid PR noise (egg-info, caches, pyc)
+def cleanup_non_governed_noise() -> None:
+    """
+    Removes known, deterministic build/cache artifacts that must never end up in governed PRs.
+    Safe to call in CI; ignores errors.
+    """
+    # 1) Remove any *.egg-info directories anywhere
+    try:
+        for p in REPO_ROOT.rglob("*.egg-info"):
+            if p.is_dir():
+                shutil.rmtree(p, ignore_errors=True)
+            elif p.is_file():
+                try:
+                    p.unlink(missing_ok=True)
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    # 2) Remove cache dirs anywhere
+    for name in ("__pycache__", ".pytest_cache", ".mypy_cache"):
+        try:
+            for d in REPO_ROOT.rglob(name):
+                if d.is_dir():
+                    shutil.rmtree(d, ignore_errors=True)
+        except Exception:
+            pass
+
+    # 3) Remove *.pyc anywhere
+    try:
+        for f in REPO_ROOT.rglob("*.pyc"):
+            if f.is_file():
+                try:
+                    f.unlink(missing_ok=True)
+                except Exception:
+                    pass
+    except Exception:
+        pass
 
 
 # -----------------------------
@@ -180,6 +212,8 @@ def detect_r3_missing_artifacts() -> DetectorResult:
 
 # -----------------------------
 # R2 — Status validation fails
+# (Deterministic check: file exists + JSON + minimal required keys)
+# You can later harden this by calling ops/validate_status.py in the workflow.
 # -----------------------------
 def detect_r2_status_invalid() -> DetectorResult:
     path = OPS_REPORTS_DIR / "system_status.json"
@@ -233,6 +267,7 @@ def detect_r2_status_invalid() -> DetectorResult:
 
 # -----------------------------
 # R1 — Capability graph invalid
+# Minimal deterministic checks (JSON parse + exactly one primary)
 # -----------------------------
 def detect_r1_capability_graph_invalid() -> DetectorResult:
     path = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
@@ -419,7 +454,8 @@ def write_self_healing_trace(det: DetectorResult, playbook: str, pr_branch: str,
             "changed_files": changed_files,
         },
     }
-    append_jsonl(DECISION_TRACE_JSONL, entry)
+    # R4: write into self_healing_trace.jsonl (conflict-free append-only)
+    append_jsonl(SELF_HEALING_TRACE_JSONL, entry)
 
 
 # -----------------------------
@@ -446,15 +482,15 @@ def build_pr_metadata(det: DetectorResult) -> Tuple[str, str, str]:
     title = title_map.get(rid, f"Self-Healing PR ({rid}): Regression detected")
 
     body = (
-        f"## Self-Healing (Phase 9)\n\n"
+        "## Self-Healing (Phase 9)\n\n"
         f"**Regression:** {rid} · {det.type}\n"
         f"**Severity:** {det.severity}\n\n"
-        f"### Detector Output (machine-readable)\n"
+        "### Detector Output (machine-readable)\n"
         f"```json\n{json.dumps(det.details, indent=2, sort_keys=True)}\n```\n\n"
-        f"### Governance\n"
-        f"- PR-only: ✅ (no direct write to `main`)\n"
-        f"- Deterministic: ✅ (known playbooks only)\n"
-        f"- Decision-traced: ✅ (`ops/reports/decision_trace.jsonl`)\n"
+        "### Governance\n"
+        "- PR-only: ✅ (no direct write to `main`)\n"
+        "- Deterministic: ✅ (known playbooks only)\n"
+        "- Decision-traced: ✅ (`ops/reports/self_healing_trace.jsonl`)\n"
     )
     return branch, title, body
 
@@ -497,6 +533,9 @@ def main() -> int:
         return 2
 
     write_self_healing_trace(det, playbook_name, pr_branch, changed)
+
+    # R5: cleanup non-governed noise deterministically (prevents egg-info, pyc, caches)
+    cleanup_non_governed_noise()
 
     gh_set_output("regression", "true")
     gh_set_output("regression_id", det.regression_id or "")
