@@ -1,75 +1,77 @@
 {
-  "schema_version": "1.0",
-  "generated_at": "2026-01-21T14:18:44Z",
-  "environment": "production",
-  "system_state": "ACTIVE",
-  "autonomy": "SUPERVISED",
-  "system": {
-    "state": "ACTIVE",
-    "autonomy_mode": "SUPERVISED",
-    "note": "Phase 9: truth regeneration active (GitHub-native).",
-    "last_incident": null
+  "meta": {
+    "version": "v1",
+    "generated_at": "2026-01-21T10:50:38Z",
+    "source": "status-agent"
   },
-  "autonomy_score": {
-    "value": 50.0,
-    "percent": 50.0,
-    "mode": "SUPERVISED",
-    "trace_coverage": null,
-    "gate_verdict": "ALLOW",
-    "human_override_rate": null,
-    "self_healing_factor": null
-  },
-  "health": {
-    "signal": "GREEN",
-    "overall_score": 0.9,
-    "metrics": {
-      "agent_response_success_rate": 0.96,
-      "system_stability_score": 0.82,
-      "self_detected_errors_24h": 0,
-      "mean_decision_latency_ms": 420
+  "system_state": {
+    "state": "ok",
+    "autonomy": {
+      "score": 0.5,
+      "mode": "supervised"
     }
   },
-  "agents": {
-    "george": {
-      "status": "ok",
-      "state": "ACTIVE",
-      "autonomy_mode": "SUPERVISED",
-      "role": "orchestrator"
+  "agents": [
+    {
+      "agent": "george",
+      "state": "ok",
+      "autonomy": 0.5,
+      "role": "orchestrator",
+      "last_update": "2026-01-21T10:50:38Z"
     },
-    "guardian": {
-      "status": "ok",
-      "state": "ACTIVE",
-      "autonomy_mode": "AUTONOMOUS",
-      "role": "guardian"
+    {
+      "agent": "guardian",
+      "state": "ok",
+      "autonomy": 0.9,
+      "role": "guardian",
+      "last_update": "2026-01-21T10:50:38Z"
     },
-    "monitoring": {
-      "status": "ok",
-      "state": "ACTIVE",
-      "autonomy_mode": "AUTONOMOUS",
-      "role": "observer"
+    {
+      "agent": "monitoring",
+      "state": "ok",
+      "autonomy": 0.9,
+      "role": "observer",
+      "last_update": "2026-01-21T10:50:38Z"
     },
-    "content": {
-      "status": "ok",
-      "state": "ACTIVE",
-      "autonomy_mode": "SUPERVISED",
-      "role": "executor"
+    {
+      "agent": "content",
+      "state": "ok",
+      "autonomy": 0.5,
+      "role": "executor",
+      "last_update": "2026-01-21T10:50:38Z"
     },
-    "deploy_agent": {
-      "status": "ok",
-      "state": "PLANNED",
-      "autonomy_mode": "MANUAL",
-      "role": "executor"
+    {
+      "agent": "deploy_agent",
+      "state": "unknown",
+      "autonomy": 0.0,
+      "role": "executor",
+      "last_update": "2026-01-21T10:50:38Z"
     },
-    "site_audit": {
-      "status": "ok",
-      "state": "PLANNED",
-      "autonomy_mode": "MANUAL",
-      "role": "observer"
+    {
+      "agent": "site_audit",
+      "state": "unknown",
+      "autonomy": 0.0,
+      "role": "observer",
+      "last_update": "2026-01-21T10:50:38Z"
     }
-  },
+  ],
   "links": {
     "latest_decision": "ops/decisions/latest.json",
     "gate_result": "ops/decisions/gate_result.json",
     "decision_trace": "ops/reports/decision_trace.jsonl"
+  },
+  "notes": {
+    "environment": "production",
+    "phase_note": "Phase 9: truth regeneration active (GitHub-native).",
+    "health": {
+      "signal": "GREEN",
+      "overall_score": 0.9,
+      "metrics": {
+        "agent_response_success_rate": 0.96,
+        "system_stability_score": 0.82,
+        "self_detected_errors_24h": 0,
+        "mean_decision_latency_ms": 420
+      }
+    }
   }
 }
