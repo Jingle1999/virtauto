@@ -32,6 +32,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml as PYYAML  # PyYAML
 
+try:
+    from contract_enforcer import load_contract, resolve_mode, evaluate_action  # type: ignore
+except Exception:
+    # When executed from repo root (python -m ops.george_orchestrator_v2), fall back.
+    from ops.contract_enforcer import load_contract, resolve_mode, evaluate_action  # type: ignore
+
 # ---------------------------------------------------------------------------
 # Paths (relative to repo)
 # ---------------------------------------------------------------------------
@@ -847,6 +853,7 @@ def orchestrate() -> Optional[Decision]:
     append_trace({
         "actor": "george_v2",
         "phase": "route",
+        "decision_id": decision.id,
         "event": {
             "id": event.id,
             "agent": event.agent,
@@ -932,7 +939,42 @@ def orchestrate() -> Optional[Decision]:
         "decision": {"agent": decision.agent, "action": decision.action, "intent": decision.intent},
     })
 
-    # Execute (simulated)
+        # Contract enforcement (proto-governing)
+    contract = load_contract()
+    mode = resolve_mode(contract)
+    contract_decision = evaluate_action(decision.action, scope="ops", contract=contract, mode=mode)
+
+    append_trace({
+        "actor": "contract",
+        "phase": "contract_check",
+        "decision_id": decision.id,
+        "result": "allowed" if contract_decision.apply_ok else "blocked",
+        "mode": contract_decision.mode,
+        "action_id": decision.action,
+        "reasons": contract_decision.reasons,
+    })
+
+    if not contract_decision.apply_ok:
+        # In v1 we still materialize the decision + trace, but we do not execute side effects.
+        decision.status = "blocked"
+        decision.guardian_flag = "blocked_by_contract"
+        decision.follow_up = "Proposal recorded. Apply requires governance approval." if contract_decision.propose_ok else "Blocked by contract."
+        decision.authority_source = "human" if "requires_human_approval" in contract_decision.reasons else "guardian"
+        _attach_gate_contexts(decision)
+        save_decision(decision)
+
+        append_trace({
+            "actor": "george_v2",
+            "phase": "finalize",
+            "decision_id": decision.id,
+            "result": decision.status,
+            "guardian_flag": decision.guardian_flag,
+        })
+
+        print(f"[GEORGE V2] Decision {decision.id} BLOCKED by Contract: {contract_decision.reasons}")
+        return decision
+
+# Execute (simulated)
     success, result_summary = execute_agent_action(
         agent=target_agent,
         action=action,

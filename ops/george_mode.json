@@ -1,0 +1,4 @@
+{
+  "mode": "HUMAN_GUARDED",
+  "note": "Set by governance (PR). Override via GEORGE_MODE env var for local tests."
+}
