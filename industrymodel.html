@@ -7,19 +7,19 @@
 
   <!-- SEO -->
   <link rel="canonical" href="https://www.virtauto.de/industrymodel.html">
-  <meta name="description" content="Industry Model: how virtauto’s factory world model is formed, governed, simulated, audited, and executed — grounded in a real Bodyshop Doorline (BIW Door Front Left / TVL).">
+  <meta name="description" content="Industry Model: how virtauto’s factory world model is formed, governed, simulated, audited, and executed — grounded in a real Bodyshop Doorline (BIW Door Front Left / TVL) plus two industrial examples (Production Planning, Energy Management).">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="virtauto Industry Model — So thinks our factory, before it acts.">
-  <meta property="og:description" content="A condensed factory world model: entities, state, constraints, policies, memory, simulation, tools, process flow, intent, governance — grounded in a real Bodyshop Doorline and an audit-first quality system.">
+  <meta property="og:description" content="A condensed factory world model: entities, state, constraints, policies, memory, simulation, tools, process flow, intent, governance — grounded in a real Bodyshop Doorline and extended with industrial examples (Production Planning, Energy Management) using GEORGE as the governing layer.">
   <meta property="og:url" content="https://www.virtauto.de/industrymodel.html">
   <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="virtauto Industry Model — So thinks our factory, before it acts.">
-  <meta name="twitter:description" content="A condensed factory world model with Doorline as the first real instance inside Bodyshop — audit-first, evidence-driven.">
+  <meta name="twitter:description" content="A condensed factory world model with Doorline as the first real instance inside Bodyshop — audit-first, evidence-driven. Extended with industrial examples governed by GEORGE.">
   <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <link rel="stylesheet" href="assets/styles.css"/>
@@ -110,6 +110,8 @@
           This page is written like a system spec: each process stage defines <strong>entities</strong>, explicit <strong>sensors/scanners</strong>,
           deterministic <strong>state updates</strong>, bounded <strong>decisions</strong>, and an <strong>audit trace</strong>.
           The goal is credibility for industry stakeholders: no “magic”, no post-hoc stories — only state, evidence, and governance.
+          The same modeling style is extended below to two industry entry points (Production Planning, Energy Management),
+          governed via <strong>GEORGE</strong>.
         </p>
 
         <div class="kpi">
@@ -133,6 +135,9 @@
           <a href="#sensors">Sensors</a>
           <a href="#audit-trace">Audit Trace</a>
           <a href="#flow">Think → Act</a>
+          <a href="#industrial-applications">Industrial Applications</a>
+          <a href="#production-planning">Production Planning</a>
+          <a href="#energy-management">Energy Management</a>
         </div>
       </div>
     </div>
@@ -664,7 +669,7 @@
           <li><strong>Perception</strong> — status and signals are captured.</li>
           <li><strong>World Model Update</strong> — states are updated consistently.</li>
           <li><strong>Reasoning &amp; Simulation</strong> — possible decisions are evaluated.</li>
-          <li><strong>Governance Check</strong> — rules and approvals are enforced.</li>
+          <li><strong>Governance Check</strong> — rules and approvals are enforced (GEORGE as governing layer).</li>
           <li><strong>Execution</strong> — only then actions are performed.</li>
           <li><strong>Resilience</strong> — detect deviations, stabilize, and recover safely (with traceable outcomes).</li>
         </ol>
@@ -673,6 +678,213 @@
       <div class="actions" style="margin-top:16px">
         <a class="btn" href="solutions.html">Explore Solutions</a>
         <a class="btn ghost" href="contact.html">Request a demo</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- INDUSTRIAL APPLICATIONS -->
+  <section class="section" id="industrial-applications">
+    <div class="container">
+      <h2>Industrial Applications — Decision Graphs in Action</h2>
+      <p class="muted">
+        The Industry Model is not limited to Bodyshop quality flows.
+        Below are two representative industrial entry points where virtauto acts as a
+        <strong>governing decision layer</strong> — not replacing existing systems, but constraining
+        and auditing their decisions before execution.
+      </p>
+
+      <div class="card callout" style="margin-top:16px;padding:16px">
+        <strong>How GEORGE fits in</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          In both examples, <strong>GEORGE</strong> acts as the governing backbone:
+          it materializes decisions, enforces contracts, requires trace evidence, and blocks execution paths that violate policy.
+          In practice, this means: <em>no “silent autonomy”</em> — every meaningful action becomes a governed, attributable decision.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPLICATION A: PRODUCTION PLANNING -->
+  <section class="section" id="production-planning">
+    <div class="container">
+      <h2>Application A — Production Planning</h2>
+      <p class="muted">
+        Modern production planning systems already generate autonomous decisions:
+        sequencing, capacity allocation, shift plans, and material release.
+        virtauto does not optimize these plans — it governs whether a plan may be executed.
+      </p>
+
+      <div class="stage-grid" style="margin-top:16px">
+        <div class="card stage-card">
+          <div class="stage-meta">
+            <span class="stage-tag">Industrial Entry</span>
+            <span class="stage-tag">Planning</span>
+            <span class="stage-tag">Governed Execution</span>
+          </div>
+
+          <h3>Entities</h3>
+          <ul class="list-tight muted">
+            <li>Production orders, variants, due dates, priorities</li>
+            <li>Resources (lines, stations, tools, shifts)</li>
+            <li>Constraints (capacity, maintenance windows, labor rules, material availability)</li>
+            <li>Interfaces: ERP/MES/APS (existing planning stack)</li>
+          </ul>
+
+          <h3>Signals (explicit inputs)</h3>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>ERP/MES order feed</span>
+            <span class="pill"><span class="dot"></span>Line availability status</span>
+            <span class="pill"><span class="dot"></span>Maintenance & downtime signals</span>
+            <span class="pill"><span class="dot"></span>WIP / buffer levels</span>
+          </div>
+
+          <h3>State update</h3>
+          <ul class="list-tight muted">
+            <li><code>plan.proposal.version</code> = created</li>
+            <li><code>plan.proposal.horizon</code> = defined</li>
+            <li><code>capacity.utilization</code> = computed per line</li>
+            <li><code>risk.flags</code> = detected (overload, lateness, bottleneck)</li>
+          </ul>
+
+          <h3>Governed artifacts (Decision Graph)</h3>
+          <ul class="list-tight muted">
+            <li><code>latest.json</code> declares the plan as a decision proposal</li>
+            <li><code>decision_trace.jsonl</code> records the checks (who/phase/result)</li>
+            <li><code>system_status.json</code> reflects the admissible planning state</li>
+          </ul>
+        </div>
+
+        <div class="card stage-card">
+          <div class="stage-meta">
+            <span class="stage-tag">Decision</span>
+            <span class="stage-tag">Authority</span>
+            <span class="stage-tag">GEORGE</span>
+          </div>
+
+          <h3>Decision & governance</h3>
+          <ul class="list-tight muted">
+            <li><strong>Decision</strong>: Is this production plan admissible for execution?</li>
+            <li><strong>Orchestrator</strong>: registers the plan proposal and prepares execution intent</li>
+            <li><strong>GEORGE</strong>: enforces the planning contract (hard constraints + policies)</li>
+            <li><strong>Guardian</strong>: blocks execution paths if evidence or constraints are missing</li>
+          </ul>
+
+          <h3>Typical governing checks (examples)</h3>
+          <ul class="list-tight muted">
+            <li>Capacity limits (per line/shift) not exceeded</li>
+            <li>Maintenance windows respected</li>
+            <li>Material feasibility proven (no “assumed availability”)</li>
+            <li>Change impact bounded (diff-based governance)</li>
+          </ul>
+
+          <h3>Evidence</h3>
+          <ul class="list-tight muted">
+            <li>Plan diff (previous vs. proposed), rule references, and constraint summary</li>
+            <li>Decision trace record including <code>decision_id</code>, actor, phase, result</li>
+            <li>Governance verdict: <strong>ALLOW</strong> / <strong>HOLD</strong> / <strong>REWORK</strong></li>
+          </ul>
+
+          <div class="card callout" style="margin-top:12px;padding:12px">
+            <strong>Key point</strong>
+            <p class="muted" style="margin:.4rem 0 0">
+              Planning systems remain autonomous — but <strong>GEORGE makes autonomy governable</strong>:
+              no plan becomes executable without explicit authority, trace evidence, and contract compliance.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPLICATION B: ENERGY MANAGEMENT -->
+  <section class="section" id="energy-management">
+    <div class="container">
+      <h2>Application B — Energy Management</h2>
+      <p class="muted">
+        Energy management systems increasingly act autonomously:
+        load shifting, peak shaving, demand response, dynamic pricing reactions.
+        In industrial environments, the core risk is not optimization failure —
+        but unsafe or non-compliant actions that impact production and safety.
+      </p>
+
+      <div class="stage-grid" style="margin-top:16px">
+        <div class="card stage-card">
+          <div class="stage-meta">
+            <span class="stage-tag">Industrial Entry</span>
+            <span class="stage-tag">Energy</span>
+            <span class="stage-tag">Safety & Compliance</span>
+          </div>
+
+          <h3>Entities</h3>
+          <ul class="list-tight muted">
+            <li>Energy consumers (lines, robots, ovens, compressors)</li>
+            <li>Energy sources (grid, PV, CHP, storage)</li>
+            <li>Contracts, limits, tariffs, demand response rules</li>
+            <li>Operational constraints (production priority, safety-critical loads)</li>
+          </ul>
+
+          <h3>Signals (explicit inputs)</h3>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Real-time power consumption</span>
+            <span class="pill"><span class="dot"></span>Energy price signals</span>
+            <span class="pill"><span class="dot"></span>Grid warnings / load events</span>
+            <span class="pill"><span class="dot"></span>Production criticality state</span>
+          </div>
+
+          <h3>State update</h3>
+          <ul class="list-tight muted">
+            <li><code>energy.load.current</code> updated</li>
+            <li><code>energy.cost.forecast</code> computed</li>
+            <li><code>risk.grid_stability</code> evaluated</li>
+            <li><code>constraints.production_priority</code> resolved</li>
+          </ul>
+
+          <h3>Governed artifacts (Decision Graph)</h3>
+          <ul class="list-tight muted">
+            <li><code>latest.json</code> declares the proposed energy action as a decision</li>
+            <li><code>decision_trace.jsonl</code> captures authority + phase + result</li>
+            <li><code>system_status.json</code> reflects the admissible energy operating state</li>
+          </ul>
+        </div>
+
+        <div class="card stage-card">
+          <div class="stage-meta">
+            <span class="stage-tag">Decision</span>
+            <span class="stage-tag">Authority</span>
+            <span class="stage-tag">GEORGE</span>
+          </div>
+
+          <h3>Decision & governance</h3>
+          <ul class="list-tight muted">
+            <li><strong>Decision</strong>: May energy consumption be altered now?</li>
+            <li><strong>Orchestrator</strong>: proposes a load action (shift / cap / reduce)</li>
+            <li><strong>GEORGE</strong>: enforces energy and safety contracts (non-negotiable bounds)</li>
+            <li><strong>Guardian</strong>: blocks actions lacking evidence or violating production/safety constraints</li>
+          </ul>
+
+          <h3>Typical governing checks (examples)</h3>
+          <ul class="list-tight muted">
+            <li>No load shedding on safety-critical equipment</li>
+            <li>Contractual demand limits respected (grid + tariff constraints)</li>
+            <li>Production priority overrides energy optimization when required</li>
+            <li>Fail-safe behavior on missing signals (HOLD instead of “guess”)</li>
+          </ul>
+
+          <h3>Evidence</h3>
+          <ul class="list-tight muted">
+            <li>Energy snapshot (load, price, grid event) + policy references</li>
+            <li>Decision trace record with actor attribution and phase outcome</li>
+            <li>Governance verdict: <strong>ALLOW</strong> / <strong>HOLD</strong> / <strong>REWORK</strong></li>
+          </ul>
+
+          <div class="card callout" style="margin-top:12px;padding:12px">
+            <strong>Key point</strong>
+            <p class="muted" style="margin:.4rem 0 0">
+              Energy autonomy is useful — but only if it is <strong>governed</strong>.
+              <strong>GEORGE turns “energy actions” into accountable, blockable decisions</strong> with explicit authority and audit-grade evidence.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
