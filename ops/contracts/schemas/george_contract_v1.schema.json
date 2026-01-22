@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "george_contract_v1.schema.json",
+  "title": "GEORGE Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_id",
+    "version",
+    "effective_from",
+    "default_mode",
+    "modes",
+    "action_policy",
+    "stop_rules",
+    "escalation",
+    "truth_sources",
+    "gate_compatibility"
+  ],
+  "properties": {
+    "contract_id": {
+      "type": "string",
+      "const": "george_contract_v1"
+    },
+    "version": {
+      "type": "string"
+    },
+    "effective_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "default_mode": {
+      "type": "string",
+      "enum": [
+        "HUMAN_GUARDED",
+        "NIGHT_SHIFT"
+      ]
+    },
+    "truth_sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system_status",
+        "decision_latest",
+        "decision_trace_stream"
+      ],
+      "properties": {
+        "system_status": {
+          "type": "string"
+        },
+        "decision_latest": {
+          "type": "string"
+        },
+        "decision_trace_stream": {
+          "type": "string"
+        }
+      }
+    },
+    "modes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "HUMAN_GUARDED",
+        "NIGHT_SHIFT"
+      ],
+      "properties": {
+        "HUMAN_GUARDED": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "can_apply",
+            "can_propose",
+            "requires_human_approval"
+          ],
+          "properties": {
+            "can_apply": {
+              "type": "boolean"
+            },
+            "can_propose": {
+              "type": "boolean"
+            },
+            "requires_human_approval": {
+              "type": "boolean"
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "NIGHT_SHIFT": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "can_apply",
+            "can_propose",
+            "requires_human_approval"
+          ],
+          "properties": {
+            "can_apply": {
+              "type": "boolean"
+            },
+            "can_propose": {
+              "type": "boolean"
+            },
+            "requires_human_approval": {
+              "type": "boolean"
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "action_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowlist",
+        "denylist"
+      ],
+      "properties": {
+        "allowlist": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action_id",
+              "scope",
+              "requires",
+              "rate_limit",
+              "reversible"
+            ],
+            "properties": {
+              "action_id": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "requires": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "rate_limit": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "max",
+                  "per_minutes"
+                ],
+                "properties": {
+                  "max": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "per_minutes": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              },
+              "reversible": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "denylist": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pattern",
+              "reason"
+            ],
+            "properties": {
+              "pattern": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "stop_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "if",
+          "then"
+        ],
+        "properties": {
+          "if": {
+            "type": "string"
+          },
+          "then": {
+            "type": "string",
+            "enum": [
+              "circuit_break",
+              "no_apply_only_propose"
+            ]
+          }
+        }
+      }
+    },
+    "escalation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity_threshold",
+        "channels"
+      ],
+      "properties": {
+        "severity_threshold": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ]
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "gate_compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_latest_required",
+        "trace_phases_required",
+        "status_vocabulary"
+      ],
+      "properties": {
+        "decision_latest_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "trace_phases_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status_vocabulary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "decision_status",
+            "system_agent_state",
+            "autonomy_mode"
+          ],
+          "properties": {
+            "decision_status": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "system_agent_state": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "autonomy_mode": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

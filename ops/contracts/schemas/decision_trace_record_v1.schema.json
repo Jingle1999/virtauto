@@ -1,18 +1,115 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "decision_trace_record_v1.schema.json",
+  "title": "Decision Trace Record v1 (compat)",
   "type": "object",
-  "required": ["ts", "trace_version", "decision_id", "actor", "phase", "result"],
-  "properties": {
-    "ts": { "type": "string" },
-    "trace_version": { "type": "string", "const": "v1" },
-    "decision_id": { "type": "string", "minLength": 1 },
-    "actor": { "type": "string" },
-    "phase": {
-      "type": "string",
-      "enum": ["route", "guardian_precheck", "authority_enforcement", "execute", "guardian_postcheck", "finalize", "blocked"]
+  "additionalProperties": true,
+  "anyOf": [
+    {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ts",
+        "trace_version",
+        "decision_id",
+        "actor",
+        "phase",
+        "result"
+      ],
+      "properties": {
+        "ts": {
+          "type": "string"
+        },
+        "trace_version": {
+          "type": "string"
+        },
+        "decision_id": {
+          "type": "string"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "phase": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        }
+      }
     },
-    "result": { "type": "string" }
-  },
-  "additionalProperties": true
+    {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "type",
+        "decision_id",
+        "timestamp",
+        "agent",
+        "final_status"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "decision_trace"
+          ]
+        },
+        "decision_id": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "agent": {
+          "type": "string"
+        },
+        "final_status": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "type",
+        "schema_version",
+        "trace_version"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "meta"
+          ]
+        },
+        "schema_version": {
+          "type": "string"
+        },
+        "trace_version": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "generated_at",
+        "trace_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "generated_at": {
+          "type": "string"
+        },
+        "trace_id": {
+          "type": "string"
+        }
+      }
+    }
+  ]
 }

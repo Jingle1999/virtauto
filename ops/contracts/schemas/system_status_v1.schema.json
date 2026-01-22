@@ -1,51 +1,78 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "system_status_v1.schema.json",
+  "title": "System Status v1",
   "type": "object",
-  "required": ["meta", "system_state", "agents"],
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "system_state",
+    "agents"
+  ],
   "properties": {
-    "meta": {
-      "type": "object",
-      "required": ["version", "generated_at", "source"],
-      "properties": {
-        "version": { "type": "string", "const": "v1" },
-        "generated_at": { "type": "string" },
-        "source": { "type": "string" }
-      },
-      "additionalProperties": true
+    "schema_version": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
     },
     "system_state": {
-      "type": "object",
-      "required": ["state", "autonomy"],
-      "properties": {
-        "state": { "type": "string", "enum": ["ok", "degraded", "blocked", "unknown"] },
-        "autonomy": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
           "type": "object",
-          "required": ["score", "mode"],
+          "additionalProperties": true,
+          "required": [
+            "status"
+          ],
           "properties": {
-            "score": { "type": "number", "minimum": 0, "maximum": 1 },
-            "mode": { "type": "string", "enum": ["supervised", "advisory", "enforced"] }
-          },
-          "additionalProperties": true
+            "status": {
+              "type": "string"
+            }
+          }
         }
-      },
-      "additionalProperties": true
+      ]
     },
     "agents": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["agent", "state"],
-        "properties": {
-          "agent": { "type": "string" },
-          "state": { "type": "string", "enum": ["ok", "degraded", "blocked", "unknown"] },
-          "autonomy": { "type": "number", "minimum": 0, "maximum": 1 },
-          "role": { "type": "string" },
-          "last_update": { "type": "string" }
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "state"
+            ],
+            "properties": {
+              "state": {
+                "type": "string"
+              }
+            }
+          }
         },
-        "additionalProperties": true
-      }
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "agent",
+              "state"
+            ],
+            "properties": {
+              "agent": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
     }
-  },
-  "additionalProperties": true
+  }
 }
