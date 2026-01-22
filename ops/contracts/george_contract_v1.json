@@ -1,82 +1,151 @@
 {
   "contract_id": "george_contract_v1",
-  "version": "1.1.0",
-  "effective_from": "2026-01-22T00:00:00Z",
-
+  "version": "1.0.1",
+  "effective_from": "2026-01-15T00:00:00Z",
   "default_mode": "HUMAN_GUARDED",
+  "truth_sources": {
+    "system_status": "ops/reports/system_status.json",
+    "decision_latest": "ops/decisions/latest.json",
+    "decision_trace_stream": "ops/reports/decision_trace.jsonl"
+  },
   "modes": {
     "HUMAN_GUARDED": {
       "can_apply": false,
       "can_propose": true,
-      "requires_human_approval": true
+      "requires_human_approval": true,
+      "notes": "GEORGE may generate proposals and traces, but must not produce an applied (success) decision without human approval via PR merge."
     },
     "NIGHT_SHIFT": {
       "can_apply": true,
       "can_propose": true,
       "requires_human_approval": false,
-      "mode_requires": ["system_ok", "fresh_truth", "guardian_ok"]
+      "notes": "GEORGE may apply actions that are explicitly allowlisted and reversible, subject to rate limits and stop rules."
     }
   },
-
-  "truth": {
-    "authoritative_sources": [
-      "ops/reports/system_status.json",
-      "ops/decisions/latest.json",
-      "ops/reports/decision_trace.jsonl"
-    ],
-    "non_authoritative_sources": [
-      "ops/system_status.json",
-      "status/status.json"
-    ]
-  },
-
-  "write_surface": {
-    "allowed_paths": [
-      "ops/reports/system_status.json",
-      "ops/decisions/latest.json",
-      "ops/reports/decision_trace.jsonl"
-    ],
-    "forbidden_globs": [
-      "**/*.html",
-      "assets/**",
-      "content/**",
-      "docs/**"
-    ]
-  },
-
   "action_policy": {
     "allowlist": [
       {
-        "action_id": "ROLLBACK_TO_LAST_KNOWN_GOOD",
-        "scope": ["status_site"],
-        "requires": ["dry_run_ok", "lkg_available", "guardian_ok"],
-        "requires_trace_phases": ["route", "guardian_precheck", "authority_enforcement", "execute", "guardian_postcheck", "finalize"],
-        "rate_limit": { "max": 1, "per_minutes": 60 },
+        "action_id": "switch_degraded_mode",
+        "scope": [
+          "website"
+        ],
+        "requires": [
+          "dry_run_ok"
+        ],
+        "rate_limit": {
+          "max": 1,
+          "per_minutes": 10
+        },
+        "reversible": true
+      },
+      {
+        "action_id": "rollback_to_last_known_good",
+        "scope": [
+          "status_site"
+        ],
+        "requires": [
+          "dry_run_ok",
+          "lkg_available"
+        ],
+        "rate_limit": {
+          "max": 1,
+          "per_minutes": 60
+        },
+        "reversible": true
+      },
+      {
+        "action_id": "restart_probe_worker",
+        "scope": [
+          "ops"
+        ],
+        "requires": [
+          "dry_run_ok"
+        ],
+        "rate_limit": {
+          "max": 2,
+          "per_minutes": 30
+        },
         "reversible": true
       }
     ],
     "denylist": [
-      { "pattern": "DEPLOY_*", "reason": "No autonomous deploys in v1" },
-      { "pattern": "DELETE_*", "reason": "Destructive actions not allowed" },
-      { "pattern": "EXFILTRATE_*", "reason": "Data exfiltration forbidden" }
+      {
+        "pattern": "deploy_*",
+        "reason": "No autonomous deploys in v1"
+      },
+      {
+        "pattern": "delete_*",
+        "reason": "Destructive actions not allowed"
+      },
+      {
+        "pattern": "exfiltrate_*",
+        "reason": "Data exfiltration forbidden"
+      },
+      {
+        "pattern": "*credential*",
+        "reason": "Credential access/modification forbidden"
+      },
+      {
+        "pattern": "*token*",
+        "reason": "Token access/modification forbidden"
+      }
     ]
   },
-
-  "requirements_catalog": {
-    "dry_run_ok": { "evidence": "trace_ref", "freshness_s_max": 600 },
-    "lkg_available": { "evidence": "file_ref" },
-    "guardian_ok": { "evidence": "check_run_ref" },
-    "fresh_truth": { "evidence": "system_status.generated_at", "freshness_s_max": 300 },
-    "system_ok": { "evidence": "system_status.system_state", "allowed": ["ok", "degraded"] }
-  },
-
   "stop_rules": [
-    { "id": "circuit_breaker", "if": "2_consecutive_failures_same_action", "then": "CIRCUIT_BREAK" },
-    { "id": "stale_truth", "if": "freshness_s > 300", "then": "NO_APPLY_ONLY_PROPOSE" }
+    {
+      "if": "2_consecutive_failures_same_action",
+      "then": "circuit_break"
+    },
+    {
+      "if": "freshness_s > 300",
+      "then": "no_apply_only_propose"
+    }
   ],
-
   "escalation": {
     "severity_threshold": "HIGH",
-    "channels": ["github_issue", "status_banner"]
+    "channels": [
+      "github_issue",
+      "status_banner"
+    ]
+  },
+  "gate_compatibility": {
+    "decision_latest_required": [
+      "decision_id",
+      "decision_class",
+      "authority_source",
+      "agent",
+      "action",
+      "status",
+      "timestamp",
+      "signals",
+      "trace"
+    ],
+    "trace_phases_required": [
+      "route",
+      "guardian_precheck",
+      "authority_enforcement",
+      "execute_or_blocked",
+      "guardian_postcheck",
+      "finalize"
+    ],
+    "status_vocabulary": {
+      "decision_status": [
+        "pending",
+        "success",
+        "error",
+        "blocked"
+      ],
+      "system_agent_state": [
+        "ok",
+        "degraded",
+        "blocked",
+        "unknown"
+      ],
+      "autonomy_mode": [
+        "supervised",
+        "advisory",
+        "enforced"
+      ]
+    }
   }
 }
