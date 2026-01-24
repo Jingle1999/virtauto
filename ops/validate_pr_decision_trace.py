@@ -9,7 +9,7 @@ This check is intentionally mechanical (not "AI"):
       * decision_trace.md
       * decision_trace.json
 
-The file can live anywhere in the repository. (Teams can later standardize the location.)
+The file can live anywhere in the repository.
 """
 
 from __future__ import annotations
@@ -22,15 +22,7 @@ from typing import List, Tuple
 
 
 REQUIRED_BASENAMES = ("decision_trace.md", "decision_trace.json")
-REQUIRED_FILES = [
-    "decision_trace.md",
-    "decision_trace.json"
-]
 
-if not any(os.path.exists(f) for f in REQUIRED_FILES):
-    raise SystemExit(
-        "Governance violation: No decision_trace.md or decision_trace.json found."
-    )
 
 def run(cmd: List[str]) -> Tuple[int, str]:
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -48,7 +40,6 @@ def load_event() -> dict:
 def main() -> int:
     event_name = os.environ.get("GITHUB_EVENT_NAME", "")
     if event_name != "pull_request":
-        # Only enforce per-PR trace on PR events.
         print(f"[OK] validate_pr_decision_trace: not a pull_request event ({event_name}).")
         return 0
 
@@ -62,8 +53,8 @@ def main() -> int:
         print(f"Event keys present: {list(event.keys())}")
         return 1
 
-    # Determine changed files for this PR.
-    rc, out = run(["git", "diff", "--name-only", base_sha, head_sha])
+    # Determine changed files for this PR (merge-base diff).
+    rc, out = run(["git", "diff", "--name-only", f"{base_sha}...{head_sha}"])
     if rc != 0:
         print("[FAIL] git diff failed. Output:")
         print(out)
