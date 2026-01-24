@@ -22,7 +22,15 @@ from typing import List, Tuple
 
 
 REQUIRED_BASENAMES = ("decision_trace.md", "decision_trace.json")
+REQUIRED_FILES = [
+    "decision_trace.md",
+    "decision_trace.json"
+]
 
+if not any(os.path.exists(f) for f in REQUIRED_FILES):
+    raise SystemExit(
+        "Governance violation: No decision_trace.md or decision_trace.json found."
+    )
 
 def run(cmd: List[str]) -> Tuple[int, str]:
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
