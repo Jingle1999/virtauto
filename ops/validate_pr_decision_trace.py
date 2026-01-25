@@ -4,12 +4,13 @@ Validate that every Pull Request carries an explicit decision trace artifact.
 
 Phase 2 goal: "No decision without trace" (Explainability v1).
 
-This check is intentionally mechanical (not "AI"):
-  - For PRs, require that the PR adds/modifies at least one of:
-      * decision_trace.md
-      * decision_trace.json
+Hard rule:
+- For Pull Requests, the PR MUST add or modify exactly one of:
+    * decision_trace.md
+    * decision_trace.json
+- The file MUST live at repository root.
 
-The file can live anywhere in the repository.
+This check is intentionally mechanical (not "AI").
 """
 
 from __future__ import annotations
@@ -21,11 +22,16 @@ import sys
 from typing import List, Tuple
 
 
-REQUIRED_BASENAMES = ("decision_trace.md", "decision_trace.json")
+REQUIRED_ROOT_FILES = ("decision_trace.md", "decision_trace.json")
 
 
 def run(cmd: List[str]) -> Tuple[int, str]:
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    p = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
     return p.returncode, p.stdout.strip()
 
 
@@ -40,44 +46,48 @@ def load_event() -> dict:
 def main() -> int:
     event_name = os.environ.get("GITHUB_EVENT_NAME", "")
     if event_name != "pull_request":
+        # Enforce decision traces ONLY on PR events
         print(f"[OK] validate_pr_decision_trace: not a pull_request event ({event_name}).")
         return 0
 
     event = load_event()
-    pr = (event.get("pull_request") or {})
+    pr = event.get("pull_request") or {}
+
     base_sha = (pr.get("base") or {}).get("sha")
     head_sha = (pr.get("head") or {}).get("sha")
 
     if not base_sha or not head_sha:
         print("[FAIL] Could not read base/head SHA from GitHub event payload.")
-        print(f"Event keys present: {list(event.keys())}")
         return 1
 
-    # Determine changed files for this PR (merge-base diff).
+    # Use merge-base diff to correctly capture PR changes
     rc, out = run(["git", "diff", "--name-only", f"{base_sha}...{head_sha}"])
     if rc != 0:
-        print("[FAIL] git diff failed. Output:")
+        print("[FAIL] git diff failed:")
         print(out)
         return 1
 
     changed = [line.strip() for line in out.splitlines() if line.strip()]
-    hits = [p for p in changed if os.path.basename(p) in REQUIRED_BASENAMES]
+
+    hits = [p for p in changed if p in REQUIRED_ROOT_FILES]
 
     if hits:
-        print("[OK] Decision trace artifact present in PR diff:")
+        print("[OK] Root-level decision trace present in PR diff:")
         for h in hits:
             print(f" - {h}")
         return 0
 
     print("[FAIL] Missing mandatory decision trace artifact for this Pull Request.")
-    print("Add or modify at least one of the following in this PR:")
-    for b in REQUIRED_BASENAMES:
-        print(f" - {b}")
-    print("\nTip (minimal): add a file named 'decision_trace.md' with:")
+    print("You must add or modify exactly one of the following at repository root:")
+    for f in REQUIRED_ROOT_FILES:
+        print(f" - {f}")
+
+    print("\nMinimal required content:")
     print(" - Decision / Intent")
     print(" - Authority")
-    print(" - Scope (files/modules touched)")
+    print(" - Scope")
     print(" - Expected outcome")
+
     return 1
 
 
