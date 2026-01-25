@@ -76,3 +76,30 @@ jobs:
         run: |
           set -euo pipefail
           python ops/validate_decision_trace.py
+
+  validate_pr_decision_trace:
+    name: validate_pr_decision_trace
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Fetch base/head SHAs (PR)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+
+      - name: Require decision_trace for PR
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ops/validate_pr_decision_trace.py
