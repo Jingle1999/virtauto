@@ -39,8 +39,9 @@ def load_event() -> dict:
 
 def main() -> int:
     event_name = os.environ.get("GITHUB_EVENT_NAME", "")
-    if event_name != "pull_request":
-        print(f"[OK] validate_pr_decision_trace: not a pull_request event ({event_name}).")
+    # Some setups use pull_request_target; treat it as a PR event too.
+    if event_name not in ("pull_request", "pull_request_target"):
+        print(f"[OK] validate_pr_decision_trace: not a PR event ({event_name}).")
         return 0
 
     event = load_event()
@@ -58,6 +59,7 @@ def main() -> int:
     if rc != 0:
         print("[FAIL] git diff failed. Output:")
         print(out)
+        print("\nHint: ensure base/head SHAs are fetched (e.g., 'git fetch --depth=1 origin <sha>').")
         return 1
 
     changed = [line.strip() for line in out.splitlines() if line.strip()]
