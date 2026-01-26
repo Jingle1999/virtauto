@@ -1,118 +1,87 @@
-name: Status Monitoring (Truth Regeneration) - Phase 1 (Status Agent)
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-01-22T11:54:55Z",
+  "environment": "production",
+  "system_state": "ACTIVE",
+  "autonomy": "SUPERVISED",
 
-on:
-  workflow_dispatch:
-  schedule:
-    # Heartbeat every 10 minutes
-    - cron: "*/10 * * * *"
+  "system": {
+    "state": "ACTIVE",
+    "autonomy_mode": "SUPERVISED",
+    "note": "Phase 9: PR-governed truth regeneration active (GitHub-native).",
+    "last_incident": null
+  },
 
-# IMPORTANT: do NOT cancel in-progress runs.
-concurrency:
-  group: status-monitoring-phase1
-  cancel-in-progress: false
+  "autonomy_score": {
+    "value": 50.0,
+    "percent": 50.0,
+    "mode": "SUPERVISED",
+    "trace_coverage": null,
+    "gate_verdict": "ALLOW",
+    "human_override_rate": null,
+    "self_healing_factor": null
+  },
 
-# Need write permission to commit/push truth artifacts.
-permissions:
-  contents: write
+  "health": {
+    "signal": "GREEN",
+    "overall_score": 0.9,
+    "metrics": {
+      "agent_response_success_rate": 0.96,
+      "system_stability_score": 0.82,
+      "self_detected_errors_24h": 0,
+      "mean_decision_latency_ms": 420
+    }
+  },
 
-jobs:
-  status-agent-heartbeat:
-    runs-on: ubuntu-latest
+  "agents": {
+    "george": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "SUPERVISED",
+      "role": "orchestrator"
+    },
+    "guardian": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "SUPERVISED",
+      "role": "guardian"
+    },
+    "monitoring": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "SUPERVISED",
+      "role": "observer"
+    },
+    "content": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "SUPERVISED",
+      "role": "executor"
+    },
+    "deploy_agent": {
+      "status": "ok",
+      "state": "PLANNED",
+      "autonomy_mode": "MANUAL",
+      "role": "executor"
+    },
+    "site_audit": {
+      "status": "ok",
+      "state": "PLANNED",
+      "autonomy_mode": "MANUAL",
+      "role": "observer"
+    }
+  },
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: true
+  "freshness": {
+    "freshness_seconds": null,
+    "freshness_status": "UNKNOWN"
+  },
 
-      - name: Sync branch (main) before generating artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin main
-          git checkout main
-          git reset --hard origin/main
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies (if present)
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -f requirements.txt ]; then
-            python -m pip install --upgrade pip
-            python -m pip install -r requirements.txt
-          fi
-
-      - name: Run Status Agent (heartbeat + evidence)
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "Running Status Agent heartbeat..."
-          python ops/status_agent.py --env production
-
-      - name: Mirror evidence into /status/ops (GitHub Pages-served)
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          mkdir -p status/ops status/ops/reports status/ops/decisions
-
-          # Copy only if present (no failing on missing files)
-          [ -f ops/agent_activity.json ] && cp -f ops/agent_activity.json status/ops/agent_activity.json || true
-          [ -f ops/agent_activity.jsonl ] && cp -f ops/agent_activity.jsonl status/ops/agent_activity.jsonl || true
-
-          [ -f ops/reports/system_status.json ] && cp -f ops/reports/system_status.json status/ops/reports/system_status.json || true
-          [ -f ops/reports/decision_trace.json ] && cp -f ops/reports/decision_trace.json status/ops/reports/decision_trace.json || true
-          [ -f ops/reports/decision_trace.jsonl ] && cp -f ops/reports/decision_trace.jsonl status/ops/reports/decision_trace.jsonl || true
-
-          [ -f ops/decisions/gate_result.json ] && cp -f ops/decisions/gate_result.json status/ops/decisions/gate_result.json || true
-
-      - name: Commit & push updated truth artifacts (if changed)
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          git config user.name "status-agent"
-          git config user.email "status-agent@virtauto.local"
-
-          CANDIDATES=(
-            "ops/agent_activity.json"
-            "ops/agent_activity.jsonl"
-            "ops/reports/system_status.json"
-            "ops/reports/decision_trace.json"
-            "ops/reports/decision_trace.jsonl"
-            "ops/decisions/gate_result.json"
-            "status/ops/agent_activity.json"
-            "status/ops/agent_activity.jsonl"
-            "status/ops/reports/system_status.json"
-            "status/ops/reports/decision_trace.json"
-            "status/ops/reports/decision_trace.jsonl"
-            "status/ops/decisions/gate_result.json"
-          )
-
-          EXISTING=()
-          for f in "${CANDIDATES[@]}"; do
-            if [ -f "$f" ]; then
-              EXISTING+=("$f")
-            fi
-          done
-
-          if [ "${#EXISTING[@]}" -eq 0 ]; then
-            echo "No expected artifacts were generated. Nothing to commit."
-            exit 0
-          fi
-
-          git add "${EXISTING[@]}"
-
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-            exit 0
-          fi
-
-          git commit -m "chore(status-agent): heartbeat truth update"
-          git push origin HEAD:main
+  "links": {
+    "latest_decision": "ops/decisions/latest.json",
+    "gate_result": "ops/decisions/gate_result.json",
+    "decision_trace": "ops/reports/decision_trace.json",
+    "decision_trace_log": "ops/reports/decision_trace.jsonl",
+    "agent_activity": "ops/agent_activity.jsonl"
+  }
+}
