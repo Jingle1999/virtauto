@@ -6,14 +6,13 @@ on:
     # Heartbeat every 10 minutes
     - cron: "*/10 * * * *"
 
-# IMPORTANT: do NOT cancel in-progress runs.
 concurrency:
   group: status-monitoring-phase1
   cancel-in-progress: false
 
-# Need write permission to commit/push truth artifacts.
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   status-agent-heartbeat:
@@ -25,14 +24,6 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
-
-      - name: Sync branch (main) before generating artifacts
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin main
-          git checkout main
-          git reset --hard origin/main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -72,47 +63,30 @@ jobs:
 
           [ -f ops/decisions/gate_result.json ] && cp -f ops/decisions/gate_result.json status/ops/decisions/gate_result.json || true
 
-      - name: Commit & push updated truth artifacts (if changed)
-        shell: bash
-        run: |
-          set -euo pipefail
+      - name: Create or update PR with truth artifacts (no direct push to main)
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(status-agent): heartbeat truth update"
+          title: "chore(status-agent): heartbeat truth update"
+          body: |
+            Automated truth regeneration (Phase 9).
+            - Updates system_status.json, decision_trace, gate_result, and agent activity evidence.
+            - Mirrors artifacts into /status/ops for GitHub Pages.
 
-          git config user.name "status-agent"
-          git config user.email "status-agent@virtauto.local"
-
-          CANDIDATES=(
-            "ops/agent_activity.json"
-            "ops/agent_activity.jsonl"
-            "ops/reports/system_status.json"
-            "ops/reports/decision_trace.json"
-            "ops/reports/decision_trace.jsonl"
-            "ops/decisions/gate_result.json"
-            "status/ops/agent_activity.json"
-            "status/ops/agent_activity.jsonl"
-            "status/ops/reports/system_status.json"
-            "status/ops/reports/decision_trace.json"
-            "status/ops/reports/decision_trace.jsonl"
-            "status/ops/decisions/gate_result.json"
-          )
-
-          EXISTING=()
-          for f in "${CANDIDATES[@]}"; do
-            if [ -f "$f" ]; then
-              EXISTING+=("$f")
-            fi
-          done
-
-          if [ "${#EXISTING[@]}" -eq 0 ]; then
-            echo "No expected artifacts were generated. Nothing to commit."
-            exit 0
-          fi
-
-          git add "${EXISTING[@]}"
-
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-            exit 0
-          fi
-
-          git commit -m "chore(status-agent): heartbeat truth update"
-          git push origin HEAD:main
+            This PR is governance-bound: merge = explicit decision.
+          branch: "status-agent/heartbeat"
+          delete-branch: false
+          add-paths: |
+            ops/agent_activity.json
+            ops/agent_activity.jsonl
+            ops/reports/system_status.json
+            ops/reports/decision_trace.json
+            ops/reports/decision_trace.jsonl
+            ops/decisions/gate_result.json
+            status/ops/agent_activity.json
+            status/ops/agent_activity.jsonl
+            status/ops/reports/system_status.json
+            status/ops/reports/decision_trace.json
+            status/ops/reports/decision_trace.jsonl
+            status/ops/decisions/gate_result.json
