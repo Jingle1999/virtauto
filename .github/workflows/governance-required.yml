@@ -91,12 +91,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Fetch base/head SHAs (PR)
+      - name: Fetch base (PR)
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
-          set -euo pipefail
-          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+         set -euo pipefail
+         git fetch --no-tags --prune origin ${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}
 
       - name: Require decision_trace for PR
         shell: bash
