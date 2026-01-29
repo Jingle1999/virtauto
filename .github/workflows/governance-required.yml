@@ -85,18 +85,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Fetch base/head SHAs (PR)
+      - name: Fetch base branch (PR)
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+          git fetch --no-tags origin "${{ github.event.pull_request.base.ref }}":"refs/remotes/origin/${{ github.event.pull_request.base.ref }}"
 
       - name: Require decision_trace for PR
         shell: bash
