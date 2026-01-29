@@ -81,10 +81,11 @@ jobs:
     name: validate_pr_decision_trace
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout (PR head)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+         fetch-depth: 0
+         ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
