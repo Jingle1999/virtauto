@@ -174,19 +174,29 @@ def main() -> int:
     write_json(TRUTH_PATH, system_status)
 
     # Activity evidence (append-only)
-    append_jsonl(
+        append_jsonl(
         ACTIVITY_PATH,
         {
             "ts": ts,
             "agent": "status_agent",
             "event": "truth_regenerated",
+            "result": "OK" if gate_verdict != "DENY" else "DENY",
+            "gate_verdict": gate_verdict,
+            "environment": args.env,
+            "run": {
+                "repo": os.environ.get("GITHUB_REPOSITORY"),
+                "workflow": os.environ.get("GITHUB_WORKFLOW"),
+                "run_id": os.environ.get("GITHUB_RUN_ID"),
+                "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+                "sha": os.environ.get("GITHUB_SHA"),
+            },
             "outputs": [
                 str(TRUTH_PATH),
                 str(DECISION_TRACE_JSON),
                 str(DECISION_TRACE_JSONL),
                 str(GATE_RESULT_PATH),
             ],
-            "gate_verdict": gate_verdict,
+            "note": "Phase 9.2: automated truth regeneration via PR (governed).",
         },
     )
 
