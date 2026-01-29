@@ -55,10 +55,27 @@ def main() -> int:
 
     # Determine changed files for this PR (merge-base diff).
     rc, out = run(["git", "diff", "--name-only", f"{base_sha}...{head_sha}"])
-    if rc != 0:
-        print("[FAIL] git diff failed. Output:")
-        print(out)
-        return 1
+    if rc != 0
+        # Fallback: GitHub erlaubt nicht immer das Fetchen beliebiger SHAs.
+        pr_number = pr.get("number")
+        base_ref = (pr.get("base") or {}).get("ref")
+
+        if pr_number and base_ref:
+            print("[WARN] git diff by SHA failed; falling back to PR refs fetch.")
+            rc2, out2 = run([
+                "git", "fetch", "--no-tags", "--prune", "origin",
+                f"+refs/heads/{base_ref}:refs/remotes/origin/{base_ref}",
+                f"+refs/pull/{pr_number}/head:refs/remotes/pull/{pr_number}/head",
+            ])
+            if rc2 == 0:
+                base_refspec = f"refs/remotes/origin/{base_ref}"
+                head_refspec = f"refs/remotes/pull/{pr_number}/head"
+                rc, out = run(["git", "diff", "--name-only", f"{base_refspec}...{head_refspec}"])
+
+        if rc != 0:
+            print("[FAIL] git diff failed. Output:")
+            print(out)
+            return 1
 
     changed = [line.strip() for line in out.splitlines() if line.strip()]
     hits = [p for p in changed if os.path.basename(p) in REQUIRED_BASENAMES]
