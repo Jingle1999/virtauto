@@ -94,9 +94,15 @@ jobs:
       - name: Fetch base/head SHAs (PR)
         if: github.event_name == 'pull_request'
         shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+          # fetch the exact commits and store them under local refs
+          git fetch --no-tags --prune --depth=1 origin \
+            "${BASE_SHA}:refs/remotes/origin/_base" \
+            "${HEAD_SHA}:refs/remotes/origin/_head"
 
       - name: Require decision_trace for PR
         shell: bash
