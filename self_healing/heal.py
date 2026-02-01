@@ -4,8 +4,8 @@ Phase 9 — Self-Healing (Adaptive Systems v1)
 Scope: Regression-Recovery only · PR-only · deterministic · governed
 
 This script:
-- Runs deterministic detectors (R3 -> R2 -> R1)
-- If regression found: applies a known playbook (creates minimal valid placeholders/templates)
+- Runs deterministic detectors (R3 -> R2 -> R0 -> R1)
+- If regression found: applies a known playbook (creates minimal valid placeholders/templates OR proposal-only)
 - Writes a SELF_HEALING decision trace entry (JSONL)
 - Emits GitHub Actions outputs for PR creation (no auto-merge, no direct main writes)
 
@@ -55,6 +55,9 @@ DEFAULT_MANDATORY_ARTIFACTS = [
 # Optional manifest override (if you create it later)
 MANIFEST_PATH = REPO_ROOT / "self_healing" / "templates" / "artifact_manifest.json"
 
+# Phase 9.2: recovery proposal artifact (must land in PR)
+RECOVERY_PROPOSAL_MD = OPS_REPORTS_DIR / "recovery_proposal.md"
+
 
 # -----------------------------
 # Utilities
@@ -70,6 +73,11 @@ def read_json(path: Path) -> Any:
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def write_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
 
 
 def append_jsonl(path: Path, obj: Dict[str, Any]) -> None:
@@ -170,6 +178,18 @@ def cleanup_non_governed_noise() -> None:
         pass
 
 
+def _get(d: Any, path: List[str], default: Any = None) -> Any:
+    """
+    Safe nested getter for dicts.
+    """
+    cur = d
+    for k in path:
+        if not isinstance(cur, dict) or k not in cur:
+            return default
+        cur = cur[k]
+    return cur
+
+
 # -----------------------------
 # Detector outputs
 # -----------------------------
@@ -266,6 +286,84 @@ def detect_r2_status_invalid() -> DetectorResult:
 
 
 # -----------------------------
+# R0 — Health/Gate anomaly (Phase 9.2)
+# Trigger conditions:
+# - system_status.health.signal != GREEN
+# - system_status.autonomy_score.gate_verdict == DENY
+# - OR ops/decisions/gate_result.json verdict == DENY
+# -----------------------------
+def detect_r0_health_or_gate_anomaly() -> DetectorResult:
+    status_path = OPS_REPORTS_DIR / "system_status.json"
+    if not status_path.exists() or not is_valid_json_file(status_path):
+        # Let R2 handle invalid status
+        return DetectorResult(False, None, None, None, {"note": "status missing/invalid (handled by R2)"})
+
+    status = read_json(status_path)
+
+    health_signal = _get(status, ["health", "signal"], default=None)
+    gate_verdict = _get(status, ["autonomy_score", "gate_verdict"], default=None)
+
+    gate_path = DECISIONS_DIR / "gate_result.json"
+    gate_result_verdict = None
+    if gate_path.exists() and is_valid_json_file(gate_path):
+        gate_obj = read_json(gate_path)
+        if isinstance(gate_obj, dict):
+            gate_result_verdict = gate_obj.get("verdict")
+
+    anomalies: List[Dict[str, Any]] = []
+
+    if isinstance(health_signal, str) and health_signal.upper() != "GREEN":
+        anomalies.append(
+            {
+                "kind": "HEALTH_NOT_GREEN",
+                "path": "health.signal",
+                "value": health_signal,
+                "expected": "GREEN",
+            }
+        )
+
+    if isinstance(gate_verdict, str) and gate_verdict.upper() == "DENY":
+        anomalies.append(
+            {
+                "kind": "GATE_DENY",
+                "path": "autonomy_score.gate_verdict",
+                "value": gate_verdict,
+                "expected": "ALLOW",
+            }
+        )
+
+    if isinstance(gate_result_verdict, str) and gate_result_verdict.upper() == "DENY":
+        anomalies.append(
+            {
+                "kind": "GATE_DENY",
+                "path": "ops/decisions/gate_result.json:verdict",
+                "value": gate_result_verdict,
+                "expected": "ALLOW",
+            }
+        )
+
+    if not anomalies:
+        return DetectorResult(False, None, None, None, {"note": "no health/gate anomaly"})
+
+    return DetectorResult(
+        regression=True,
+        regression_id="R0",
+        type="HEALTH_OR_GATE_ANOMALY",
+        severity="blocking",
+        details={
+            "status_path": safe_rel(status_path),
+            "gate_result_path": safe_rel(gate_path),
+            "anomalies": anomalies,
+            "observed": {
+                "health_signal": health_signal,
+                "autonomy_gate_verdict": gate_verdict,
+                "gate_result_verdict": gate_result_verdict,
+            },
+        },
+    )
+
+
+# -----------------------------
 # R1 — Capability graph invalid
 # Minimal deterministic checks (JSON parse + exactly one primary)
 # -----------------------------
@@ -329,8 +427,72 @@ def detect_r1_capability_graph_invalid() -> DetectorResult:
 
 
 # -----------------------------
+# Recovery Proposal (Phase 9.2 artifact)
+# -----------------------------
+def render_recovery_proposal_md(det: DetectorResult, changed_files: List[str]) -> str:
+    now = utc_now_iso()
+
+    status_path = "ops/reports/system_status.json"
+    gate_path = "ops/decisions/gate_result.json"
+    trace_path = "ops/reports/self_healing_trace.jsonl"
+
+    anomalies = det.details.get("anomalies", [])
+    anomalies_md = ""
+    if isinstance(anomalies, list) and anomalies:
+        lines = []
+        for a in anomalies:
+            if isinstance(a, dict):
+                kind = a.get("kind", "UNKNOWN")
+                path = a.get("path", "?")
+                val = a.get("value", None)
+                exp = a.get("expected", None)
+                lines.append(f"- **{kind}** at `{path}`: observed `{val}` (expected `{exp}`)")
+        anomalies_md = "\n".join(lines)
+    else:
+        anomalies_md = "- (no anomaly details provided)"
+
+    changed_md = "\n".join([f"- `{p}`" for p in changed_files]) if changed_files else "- (no files changed)"
+
+    # Proposal is intentionally conservative: proposal-only, PR-based, human-decided.
+    return (
+        "# Recovery Proposal (Self-Healing v1)\n\n"
+        f"**Timestamp (UTC):** `{now}`\n\n"
+        "## Detected Condition\n\n"
+        f"- **Regression ID:** `{det.regression_id}`\n"
+        f"- **Type:** `{det.type}`\n"
+        f"- **Severity:** `{det.severity}`\n\n"
+        "### Anomalies\n\n"
+        f"{anomalies_md}\n\n"
+        "## Evidence\n\n"
+        f"- System status: `{status_path}`\n"
+        f"- Gate result: `{gate_path}`\n"
+        f"- Self-healing trace: `{trace_path}`\n\n"
+        "## Proposed Recovery (PR-only)\n\n"
+        "This proposal does **not** execute changes autonomously.\n"
+        "It creates a draft PR for **human governance** to review and decide.\n\n"
+        "Recommended review checklist:\n"
+        "1. Confirm the anomaly in `system_status.json` / `gate_result.json`.\n"
+        "2. Inspect recent decision traces for root-cause signals.\n"
+        "3. If `gate_verdict` is `DENY`, identify which rule/gate blocked and why.\n"
+        "4. Approve the minimal fix PR only if it is deterministic and governed.\n\n"
+        "## Files Included in This Proposal\n\n"
+        f"{changed_md}\n"
+    )
+
+
+# -----------------------------
 # Playbooks (known repair paths)
 # -----------------------------
+def playbook_r0_proposal_only(det: DetectorResult) -> List[str]:
+    """
+    Phase 9.2 minimal playbook: generate recovery_proposal.md as PR content.
+    No direct operational changes beyond proposal artifact.
+    """
+    text = render_recovery_proposal_md(det, changed_files=[safe_rel(RECOVERY_PROPOSAL_MD)])
+    write_text(RECOVERY_PROPOSAL_MD, text)
+    return [safe_rel(RECOVERY_PROPOSAL_MD)]
+
+
 def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
     changed: List[str] = []
     now = utc_now_iso()
@@ -392,6 +554,11 @@ def playbook_r3_restore_missing_artifacts(det: DetectorResult) -> List[str]:
         )
         changed.append(safe_rel(p_latest))
 
+    # Ensure proposal exists for governed review
+    proposal = render_recovery_proposal_md(det, changed_files=changed + [safe_rel(RECOVERY_PROPOSAL_MD)])
+    write_text(RECOVERY_PROPOSAL_MD, proposal)
+    changed.append(safe_rel(RECOVERY_PROPOSAL_MD))
+
     return changed
 
 
@@ -414,7 +581,15 @@ def playbook_r2_restore_status_template(det: DetectorResult) -> List[str]:
             "self_healing": {"regression": "R2", "reason": det.details.get("reason", "status invalid")},
         },
     )
-    return [safe_rel(p_status)]
+
+    changed = [safe_rel(p_status)]
+
+    # Ensure proposal exists for governed review
+    proposal = render_recovery_proposal_md(det, changed_files=changed + [safe_rel(RECOVERY_PROPOSAL_MD)])
+    write_text(RECOVERY_PROPOSAL_MD, proposal)
+    changed.append(safe_rel(RECOVERY_PROPOSAL_MD))
+
+    return changed
 
 
 def playbook_r1_restore_capability_graph(det: DetectorResult) -> List[str]:
@@ -431,7 +606,15 @@ def playbook_r1_restore_capability_graph(det: DetectorResult) -> List[str]:
         "note": "template restored by self-healing (R1).",
     }
     write_json(p_graph, template)
-    return [safe_rel(p_graph)]
+
+    changed = [safe_rel(p_graph)]
+
+    # Ensure proposal exists for governed review
+    proposal = render_recovery_proposal_md(det, changed_files=changed + [safe_rel(RECOVERY_PROPOSAL_MD)])
+    write_text(RECOVERY_PROPOSAL_MD, proposal)
+    changed.append(safe_rel(RECOVERY_PROPOSAL_MD))
+
+    return changed
 
 
 # -----------------------------
@@ -462,7 +645,17 @@ def write_self_healing_trace(det: DetectorResult, playbook: str, pr_branch: str,
 # Orchestration
 # -----------------------------
 def pick_regression() -> DetectorResult:
-    for fn in (detect_r3_missing_artifacts, detect_r2_status_invalid, detect_r1_capability_graph_invalid):
+    # Keep ordering deterministic and aligned with Phase 9 triggers:
+    # - R3: mandatory artifact missing (hard failure)
+    # - R2: status invalid (hard failure)
+    # - R0: health/gate anomaly (Phase 9.2)
+    # - R1: capability graph invalid
+    for fn in (
+        detect_r3_missing_artifacts,
+        detect_r2_status_invalid,
+        detect_r0_health_or_gate_anomaly,
+        detect_r1_capability_graph_invalid,
+    ):
         res = fn()
         if res.regression:
             return res
@@ -475,6 +668,7 @@ def build_pr_metadata(det: DetectorResult) -> Tuple[str, str, str]:
     branch = f"self-heal/{ts}-{rid}"
 
     title_map = {
+        "R0": "Self-Healing PR (R0): Health/Gate anomaly detected",
         "R3": "Self-Healing PR (R3): Missing mandatory artifact(s)",
         "R2": "Self-Healing PR (R2): Status validation failed",
         "R1": "Self-Healing PR (R1): Capability graph invalid",
@@ -487,6 +681,8 @@ def build_pr_metadata(det: DetectorResult) -> Tuple[str, str, str]:
         f"**Severity:** {det.severity}\n\n"
         "### Detector Output (machine-readable)\n"
         f"```json\n{json.dumps(det.details, indent=2, sort_keys=True)}\n```\n\n"
+        "### Included Proposal\n"
+        "- `ops/reports/recovery_proposal.md`\n\n"
         "### Governance\n"
         "- PR-only: ✅ (no direct write to `main`)\n"
         "- Deterministic: ✅ (known playbooks only)\n"
@@ -513,7 +709,10 @@ def main() -> int:
     changed: List[str] = []
     playbook_name = ""
 
-    if det.regression_id == "R3":
+    if det.regression_id == "R0":
+        playbook_name = "proposal_only"
+        changed = playbook_r0_proposal_only(det)
+    elif det.regression_id == "R3":
         playbook_name = "restore_missing_artifacts"
         changed = playbook_r3_restore_missing_artifacts(det)
     elif det.regression_id == "R2":
