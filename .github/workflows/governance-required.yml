@@ -7,105 +7,69 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
 
 jobs:
   validate_contract_v1:
-    name: validate_contract_v1
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install minimal deps (if needed)
-        shell: bash
-        run: |
+      - run: |
           set -euo pipefail
           python -m pip install --upgrade pip
           python -m pip install jsonschema
-
-      - name: Run contract validation
-        shell: bash
-        run: |
-          set -euo pipefail
           python ops/validate_contract_v1.py
 
   validate_status:
-    name: validate_status
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install minimal deps (if needed)
-        shell: bash
-        run: |
+      - run: |
           set -euo pipefail
           python -m pip install --upgrade pip
           python -m pip install jsonschema
-
-      - name: Run status validation
-        shell: bash
-        run: |
-          set -euo pipefail
           python ops/validate_status.py
 
   validate_decision_trace:
-    name: validate_decision_trace
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Run decision trace validation
-        shell: bash
-        run: |
+      - run: |
           set -euo pipefail
           python ops/validate_decision_trace.py
 
   validate_pr_decision_trace:
-    name: validate_pr_decision_trace
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR head (full history)
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Fetch PR base (full history)
         if: github.event_name == 'pull_request'
-        shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags origin ${{ github.event.pull_request.base.sha }} --depth=0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+          git fetch --no-tags origin ${{ github.event.pull_request.base.sha }}
 
       - name: Detect merge-base
         id: mb
-        if: github.event_name == 'pull_request'
-        shell: bash
         run: |
-          set -euo pipefail
           base="${{ github.event.pull_request.base.sha }}"
           head="${{ github.event.pull_request.head.sha }}"
           if git merge-base "$base" "$head" >/dev/null 2>&1; then
@@ -114,16 +78,16 @@ jobs:
             echo "has_merge_base=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Require decision_trace for PR
         if: steps.mb.outputs.has_merge_base == 'true'
-        shell: bash
         run: |
           set -euo pipefail
           python ops/validate_pr_decision_trace.py
 
-      - name: Skip PR decision trace validation (no merge-base)
+      - name: Skip PR decision trace (no merge-base)
         if: steps.mb.outputs.has_merge_base != 'true'
-        shell: bash
-        run: |
-          echo "No merge-base between base/head; skipping validate_pr_decision_trace to avoid blocking merge."
-          exit 0
+        run: echo "No merge-base → skipping validate_pr_decision_trace"
