@@ -2,7 +2,7 @@ name: Governance Required Checks
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -71,6 +71,13 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install minimal deps (if needed)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install jsonschema
+
       - name: Run decision trace validation
         shell: bash
         run: |
@@ -81,22 +88,29 @@ jobs:
     name: validate_pr_decision_trace
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout (full history)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Fetch base/head SHAs (PR, full history)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" --depth=0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Fetch base/head SHAs (PR)
-        if: github.event_name == 'pull_request'
+      - name: Install minimal deps (if needed)
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+          python -m pip install --upgrade pip
+          python -m pip install jsonschema
 
       - name: Require decision_trace for PR
         shell: bash
