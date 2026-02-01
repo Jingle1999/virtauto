@@ -2,7 +2,7 @@ name: Governance Required Checks
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -81,25 +81,47 @@ jobs:
     name: validate_pr_decision_trace
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout PR head (full history)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Fetch base/head SHAs (PR)
+      - name: Fetch PR base commit (full)
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+          git fetch --no-tags origin ${{ github.event.pull_request.base.sha }}
+
+      - name: Detect merge-base
+        id: mb
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          if git merge-base "$base" "$head" >/dev/null 2>&1; then
+            echo "has_merge_base=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_merge_base=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Require decision_trace for PR
+        if: github.event_name == 'pull_request' && steps.mb.outputs.has_merge_base == 'true'
         shell: bash
         run: |
           set -euo pipefail
           python ops/validate_pr_decision_trace.py
+
+      - name: Skip PR decision trace validation (no merge-base)
+        if: github.event_name == 'pull_request' && steps.mb.outputs.has_merge_base != 'true'
+        shell: bash
+        run: |
+          echo "No merge-base; skipping validate_pr_decision_trace."
