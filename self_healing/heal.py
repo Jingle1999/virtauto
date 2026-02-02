@@ -20,10 +20,11 @@ import json
 import os
 import sys
 import shutil
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Set
 
 
 # -----------------------------
@@ -54,6 +55,14 @@ DEFAULT_MANDATORY_ARTIFACTS = [
 
 # Optional manifest override (if you create it later)
 MANIFEST_PATH = REPO_ROOT / "self_healing" / "templates" / "artifact_manifest.json"
+
+# R1 concrete paths
+CAPABILITY_GRAPH_PATH = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
+CAPABILITY_PROFILES_PATH = OPS_DIR / "capability_profiles.json"
+
+# R2 concrete path(s)
+SYSTEM_STATUS_PATH = OPS_REPORTS_DIR / "system_status.json"
+VALIDATE_STATUS_SCRIPT = OPS_DIR / "validate_status.py"
 
 
 # -----------------------------
@@ -170,6 +179,13 @@ def cleanup_non_governed_noise() -> None:
         pass
 
 
+def _truncate(s: str, n: int = 4000) -> str:
+    s = s or ""
+    if len(s) <= n:
+        return s
+    return s[:n] + "\n...<truncated>...\n"
+
+
 # -----------------------------
 # Detector outputs
 # -----------------------------
@@ -212,11 +228,59 @@ def detect_r3_missing_artifacts() -> DetectorResult:
 
 # -----------------------------
 # R2 — Status validation fails
-# (Deterministic check: file exists + JSON + minimal required keys)
-# You can later harden this by calling ops/validate_status.py in the workflow.
+# Deterministic check: call ops/validate_status.py if present (exitcode != 0 => regression)
+# Fallback: file exists + JSON + minimal required keys
 # -----------------------------
 def detect_r2_status_invalid() -> DetectorResult:
-    path = OPS_REPORTS_DIR / "system_status.json"
+    # 1) If we have a deterministic validator script, use it as source of truth.
+    if VALIDATE_STATUS_SCRIPT.exists() and VALIDATE_STATUS_SCRIPT.is_file():
+        try:
+            proc = subprocess.run(
+                [sys.executable, str(VALIDATE_STATUS_SCRIPT)],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+            )
+            if proc.returncode != 0:
+                return DetectorResult(
+                    regression=True,
+                    regression_id="R2",
+                    type="STATUS_INVALID",
+                    severity="blocking",
+                    details={
+                        "reason": "ops/validate_status.py failed",
+                        "exit_code": proc.returncode,
+                        "stdout": _truncate(proc.stdout),
+                        "stderr": _truncate(proc.stderr),
+                        "validator": safe_rel(VALIDATE_STATUS_SCRIPT),
+                    },
+                )
+            return DetectorResult(
+                regression=False,
+                regression_id=None,
+                type=None,
+                severity=None,
+                details={
+                    "validator": safe_rel(VALIDATE_STATUS_SCRIPT),
+                    "exit_code": proc.returncode,
+                },
+            )
+        except Exception as e:
+            # Deterministic fallback: do NOT crash; report as regression with reason.
+            return DetectorResult(
+                regression=True,
+                regression_id="R2",
+                type="STATUS_INVALID",
+                severity="blocking",
+                details={
+                    "reason": "validator execution error",
+                    "validator": safe_rel(VALIDATE_STATUS_SCRIPT),
+                    "error": str(e),
+                },
+            )
+
+    # 2) Fallback (deterministic, minimal)
+    path = SYSTEM_STATUS_PATH
     if not path.exists():
         return DetectorResult(
             regression=True,
@@ -261,16 +325,93 @@ def detect_r2_status_invalid() -> DetectorResult:
         regression_id=None,
         type=None,
         severity=None,
-        details={"path": safe_rel(path)},
+        details={"path": safe_rel(path), "validator": "fallback_minimal"},
     )
 
 
 # -----------------------------
 # R1 — Capability graph invalid
-# Minimal deterministic checks (JSON parse + exactly one primary)
+# Deterministic checks:
+# - file exists + JSON parses
+# - nodes schema (minimal): dict with "nodes": [ {id, primary?, depends_on?} ]
+# - exactly one primary (determinism)
+# - references: depends_on must point to known node ids
+# - cycle detection (no cycles)
+# - reference validation against ops/capability_profiles.json (known capability IDs)
 # -----------------------------
+def _extract_profile_ids(profiles: Any) -> Set[str]:
+    """
+    Deterministically extracts known capability IDs from ops/capability_profiles.json.
+    Supports multiple stable shapes without guessing:
+    - { "capabilities": [ {"id": "x"}, ... ] }
+    - { "profiles": [ {"id": "x"}, ... ] }
+    - [ {"id": "x"}, ... ]
+    - { "x": {...}, "y": {...} }  (keys as ids)
+    """
+    ids: Set[str] = set()
+
+    if isinstance(profiles, dict):
+        if "capabilities" in profiles and isinstance(profiles["capabilities"], list):
+            for item in profiles["capabilities"]:
+                if isinstance(item, dict) and isinstance(item.get("id"), str) and item["id"].strip():
+                    ids.add(item["id"].strip())
+        if "profiles" in profiles and isinstance(profiles["profiles"], list):
+            for item in profiles["profiles"]:
+                if isinstance(item, dict) and isinstance(item.get("id"), str) and item["id"].strip():
+                    ids.add(item["id"].strip())
+        # keys-as-ids fallback (only if it looks like an id-map)
+        for k, v in profiles.items():
+            if isinstance(k, str) and k.strip() and isinstance(v, (dict, list)):
+                ids.add(k.strip())
+
+    elif isinstance(profiles, list):
+        for item in profiles:
+            if isinstance(item, dict) and isinstance(item.get("id"), str) and item["id"].strip():
+                ids.add(item["id"].strip())
+
+    return ids
+
+
+def _detect_cycles(edges: Dict[str, List[str]]) -> List[List[str]]:
+    """
+    Returns list of cycles (each as path) deterministically.
+    """
+    visited: Set[str] = set()
+    stack: Set[str] = set()
+    parent: Dict[str, str] = {}
+    cycles: List[List[str]] = []
+
+    def dfs(u: str) -> None:
+        visited.add(u)
+        stack.add(u)
+        for v in edges.get(u, []):
+            if v not in visited:
+                parent[v] = u
+                dfs(v)
+            elif v in stack:
+                # found cycle u -> ... -> v
+                cycle = [v]
+                cur = u
+                while cur != v and cur in parent:
+                    cycle.append(cur)
+                    cur = parent[cur]
+                cycle.append(v)
+                cycle.reverse()
+                cycles.append(cycle)
+        stack.remove(u)
+
+    for node in sorted(edges.keys()):
+        if node not in visited:
+            dfs(node)
+
+    # deterministic normalization: sort cycles by their string repr
+    cycles_sorted = sorted(cycles, key=lambda c: "->".join(c))
+    return cycles_sorted
+
+
 def detect_r1_capability_graph_invalid() -> DetectorResult:
-    path = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
+    path = CAPABILITY_GRAPH_PATH
+
     if not path.exists():
         return DetectorResult(
             regression=True,
@@ -289,22 +430,67 @@ def detect_r1_capability_graph_invalid() -> DetectorResult:
             details={"reason": "capability_graph.json is not valid JSON", "path": safe_rel(path)},
         )
 
-    data = read_json(path)
+    graph = read_json(path)
+
+    # minimal supported schema: {"nodes": [ ... ]}
+    if not isinstance(graph, dict) or "nodes" not in graph or not isinstance(graph["nodes"], list):
+        return DetectorResult(
+            regression=True,
+            regression_id="R1",
+            type="CAPABILITY_GRAPH_INVALID",
+            severity="blocking",
+            details={
+                "reason": "unsupported schema: expected object with 'nodes' list",
+                "path": safe_rel(path),
+            },
+        )
+
+    nodes_raw = graph["nodes"]
+    nodes: List[Dict[str, Any]] = []
+    for idx, n in enumerate(nodes_raw):
+        if not isinstance(n, dict):
+            return DetectorResult(
+                regression=True,
+                regression_id="R1",
+                type="CAPABILITY_GRAPH_INVALID",
+                severity="blocking",
+                details={"reason": "node not an object", "index": idx, "path": safe_rel(path)},
+            )
+        nodes.append(n)
+
+    # Collect IDs and validate uniqueness
+    ids: List[str] = []
+    for idx, n in enumerate(nodes):
+        nid = n.get("id")
+        if not isinstance(nid, str) or not nid.strip():
+            return DetectorResult(
+                regression=True,
+                regression_id="R1",
+                type="CAPABILITY_GRAPH_INVALID",
+                severity="blocking",
+                details={"reason": "node.id missing/invalid", "index": idx, "path": safe_rel(path)},
+            )
+        ids.append(nid.strip())
+
+    dupes = sorted({x for x in ids if ids.count(x) > 1})
+    if dupes:
+        return DetectorResult(
+            regression=True,
+            regression_id="R1",
+            type="CAPABILITY_GRAPH_INVALID",
+            severity="blocking",
+            details={"reason": "duplicate node ids", "duplicates": dupes, "path": safe_rel(path)},
+        )
+
+    id_set = set(ids)
+
+    # Exactly one primary
     primaries = 0
-    if isinstance(data, dict):
-        nodes = data.get("nodes")
-        if isinstance(nodes, list):
-            for n in nodes:
-                if isinstance(n, dict) and n.get("primary") is True:
-                    primaries += 1
-        else:
-            for _, v in data.items():
-                if isinstance(v, dict) and v.get("primary") is True:
-                    primaries += 1
-    elif isinstance(data, list):
-        for n in data:
-            if isinstance(n, dict) and n.get("primary") is True:
-                primaries += 1
+    primary_ids: List[str] = []
+    for nid, n in zip(ids, nodes):
+        if n.get("primary") is True:
+            primaries += 1
+            primary_ids.append(nid)
 
     if primaries != 1:
         return DetectorResult(
@@ -315,6 +501,124 @@ def detect_r1_capability_graph_invalid() -> DetectorResult:
             details={
                 "reason": "determinism rule violated (exactly 1 primary)",
                 "primary_count": primaries,
+                "primary_ids": primary_ids,
+                "path": safe_rel(path),
+            },
+        )
+
+    # Build edges from depends_on
+    edges: Dict[str, List[str]] = {}
+    bad_refs: Dict[str, List[str]] = {}
+    bad_depends_type: List[str] = []
+
+    for nid, n in zip(ids, nodes):
+        deps = n.get("depends_on", [])
+        if deps is None:
+            deps = []
+        if not isinstance(deps, list) or not all(isinstance(x, str) for x in deps):
+            bad_depends_type.append(nid)
+            deps = []
+        deps_clean = [d.strip() for d in deps if isinstance(d, str) and d.strip()]
+        edges[nid] = deps_clean
+
+        unknown = [d for d in deps_clean if d not in id_set]
+        if unknown:
+            bad_refs[nid] = unknown
+
+    if bad_depends_type:
+        return DetectorResult(
+            regression=True,
+            regression_id="R1",
+            type="CAPABILITY_GRAPH_INVALID",
+            severity="blocking",
+            details={
+                "reason": "depends_on must be a list of strings",
+                "nodes": sorted(bad_depends_type),
+                "path": safe_rel(path),
+            },
+        )
+
+    if bad_refs:
+        return DetectorResult(
+            regression=True,
+            regression_id="R1",
+            type="CAPABILITY_GRAPH_INVALID",
+            severity="blocking",
+            details={
+                "reason": "invalid references in depends_on (unknown node ids)",
+                "bad_refs": bad_refs,
+                "path": safe_rel(path),
+            },
+        )
+
+    # Cycle detection
+    cycles = _detect_cycles(edges)
+    if cycles:
+        return DetectorResult(
+            regression=True,
+            regression_id="R1",
+            type="CAPABILITY_GRAPH_INVALID",
+            severity="blocking",
+            details={
+                "reason": "cycle detected in capability graph",
+                "cycles": cycles,
+                "path": safe_rel(path),
+            },
+        )
+
+    # Reference validation against capability_profiles.json
+    if not CAPABILITY_PROFILES_PATH.exists():
+        return DetectorResult(
+            regression=True,
+            regression_id="R1",
+            type="CAPABILITY_GRAPH_INVALID",
+            severity="blocking",
+            details={
+                "reason": "capability_profiles.json missing (reference validation required)",
+                "profiles_path": safe_rel(CAPABILITY_PROFILES_PATH),
+                "path": safe_rel(path),
+            },
+        )
+
+    if not is_valid_json_file(CAPABILITY_PROFILES_PATH):
+        return DetectorResult(
+            regression=True,
+            regression_id="R1",
+            type="CAPABILITY_GRAPH_INVALID",
+            severity="blocking",
+            details={
+                "reason": "capability_profiles.json is not valid JSON",
+                "profiles_path": safe_rel(CAPABILITY_PROFILES_PATH),
+                "path": safe_rel(path),
+            },
+        )
+
+    profiles = read_json(CAPABILITY_PROFILES_PATH)
+    known_ids = _extract_profile_ids(profiles)
+    if not known_ids:
+        return DetectorResult(
+            regression=True,
+            regression_id="R1",
+            type="CAPABILITY_GRAPH_INVALID",
+            severity="blocking",
+            details={
+                "reason": "capability_profiles.json contains no extractable ids",
+                "profiles_path": safe_rel(CAPABILITY_PROFILES_PATH),
+                "path": safe_rel(path),
+            },
+        )
+
+    unknown_in_graph = sorted([nid for nid in ids if nid not in known_ids])
+    if unknown_in_graph:
+        return DetectorResult(
+            regression=True,
+            regression_id="R1",
+            type="CAPABILITY_GRAPH_INVALID",
+            severity="blocking",
+            details={
+                "reason": "graph contains unknown capability ids (not in capability_profiles.json)",
+                "unknown_ids": unknown_in_graph,
+                "profiles_path": safe_rel(CAPABILITY_PROFILES_PATH),
                 "path": safe_rel(path),
             },
         )
@@ -324,7 +628,12 @@ def detect_r1_capability_graph_invalid() -> DetectorResult:
         regression_id=None,
         type=None,
         severity=None,
-        details={"path": safe_rel(path), "primary_count": primaries},
+        details={
+            "path": safe_rel(path),
+            "primary_id": primary_ids[0] if primary_ids else None,
+            "node_count": len(ids),
+            "profiles_path": safe_rel(CAPABILITY_PROFILES_PATH),
+        },
     )
 
 
@@ -419,7 +728,7 @@ def playbook_r2_restore_status_template(det: DetectorResult) -> List[str]:
 
 def playbook_r1_restore_capability_graph(det: DetectorResult) -> List[str]:
     now = utc_now_iso()
-    p_graph = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
+    p_graph = CAPABILITY_GRAPH_PATH
     p_graph.parent.mkdir(parents=True, exist_ok=True)
 
     template = {
@@ -435,8 +744,36 @@ def playbook_r1_restore_capability_graph(det: DetectorResult) -> List[str]:
 
 
 # -----------------------------
-# Decision Trace
+# Decision Trace (enforced)
 # -----------------------------
+_REQUIRED_TRACE_KEYS = {
+    "decision_type": str,
+    "regression_id": (str, type(None)),
+    "detector": (str, type(None)),
+    "playbook": str,
+    "action": str,
+    "authority": str,
+    "result": str,
+    "timestamp": str,
+    "details": dict,
+}
+
+
+def _validate_trace_entry(entry: Dict[str, Any]) -> Tuple[bool, str]:
+    for k, t in _REQUIRED_TRACE_KEYS.items():
+        if k not in entry:
+            return False, f"missing key: {k}"
+        if not isinstance(entry[k], t):
+            return False, f"type mismatch for {k}: expected {t}, got {type(entry[k])}"
+    if entry.get("decision_type") != "SELF_HEALING":
+        return False, "decision_type must be SELF_HEALING"
+    if entry.get("action") != "OPEN_PR":
+        return False, "action must be OPEN_PR"
+    if entry.get("result") != "ESCALATED_TO_HUMAN":
+        return False, "result must be ESCALATED_TO_HUMAN"
+    return True, "ok"
+
+
 def write_self_healing_trace(det: DetectorResult, playbook: str, pr_branch: str, changed_files: List[str]) -> None:
     entry = {
         "decision_type": "SELF_HEALING",
@@ -454,6 +791,12 @@ def write_self_healing_trace(det: DetectorResult, playbook: str, pr_branch: str,
             "changed_files": changed_files,
         },
     }
+
+    ok, reason = _validate_trace_entry(entry)
+    if not ok:
+        # deterministic refusal to write invalid trace
+        raise RuntimeError(f"invalid self-healing trace entry: {reason}")
+
     # R4: write into self_healing_trace.jsonl (conflict-free append-only)
     append_jsonl(SELF_HEALING_TRACE_JSONL, entry)
 
@@ -532,6 +875,7 @@ def main() -> int:
         gh_set_output("changed_files", "")
         return 2
 
+    # Trace must be valid & append-only
     write_self_healing_trace(det, playbook_name, pr_branch, changed)
 
     # R5: cleanup non-governed noise deterministically (prevents egg-info, pyc, caches)
