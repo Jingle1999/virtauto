@@ -20,6 +20,7 @@ import json
 import os
 import sys
 import shutil
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -37,7 +38,7 @@ DECISIONS_DIR = OPS_DIR / "decisions"
 
 DECISION_TRACE_JSONL = OPS_REPORTS_DIR / "decision_trace.jsonl"
 
-# R4: conflict-free append-only trace for self-healing (separate file)
+# conflict-free append-only trace for self-healing (separate file)
 SELF_HEALING_TRACE_JSONL = OPS_REPORTS_DIR / "self_healing_trace.jsonl"
 
 # Phase-9 mandatory artifacts (R3)
@@ -89,7 +90,6 @@ def gh_set_output(key: str, value: str) -> None:
     if not out:
         return
 
-    # Use heredoc always (safe & simple)
     delim = "EOF_SELF_HEALING_OUTPUT"
     with open(out, "a", encoding="utf-8") as f:
         f.write(f"{key}<<{delim}\n")
@@ -125,18 +125,15 @@ def load_mandatory_artifacts() -> List[str]:
             if isinstance(items, list) and all(isinstance(x, str) for x in items) and items:
                 return items
         except Exception:
-            # fall back to defaults deterministically
             pass
     return DEFAULT_MANDATORY_ARTIFACTS
 
 
-# R5: deterministic cleanup to avoid PR noise (egg-info, caches, pyc)
 def cleanup_non_governed_noise() -> None:
     """
     Removes known, deterministic build/cache artifacts that must never end up in governed PRs.
     Safe to call in CI; ignores errors.
     """
-    # 1) Remove any *.egg-info directories anywhere
     try:
         for p in REPO_ROOT.rglob("*.egg-info"):
             if p.is_dir():
@@ -149,7 +146,6 @@ def cleanup_non_governed_noise() -> None:
     except Exception:
         pass
 
-    # 2) Remove cache dirs anywhere
     for name in ("__pycache__", ".pytest_cache", ".mypy_cache"):
         try:
             for d in REPO_ROOT.rglob(name):
@@ -158,7 +154,6 @@ def cleanup_non_governed_noise() -> None:
         except Exception:
             pass
 
-    # 3) Remove *.pyc anywhere
     try:
         for f in REPO_ROOT.rglob("*.pyc"):
             if f.is_file():
@@ -182,10 +177,64 @@ class DetectorResult:
     details: Dict[str, Any]
 
 
+def _coerce_detector_result(x: Any) -> DetectorResult:
+    """
+    Allows detector modules to return either:
+    - DetectorResult
+    - dict with keys: regression, regression_id, type, severity, details
+    """
+    if isinstance(x, DetectorResult):
+        return x
+    if isinstance(x, dict):
+        return DetectorResult(
+            regression=bool(x.get("regression")),
+            regression_id=x.get("regression_id"),
+            type=x.get("type"),
+            severity=x.get("severity"),
+            details=x.get("details") if isinstance(x.get("details"), dict) else {},
+        )
+    return DetectorResult(
+        regression=False,
+        regression_id=None,
+        type=None,
+        severity=None,
+        details={"note": "invalid detector return type"},
+    )
+
+
 # -----------------------------
-# R3 — Mandatory artifact missing
+# External detector modules (audit-visible)
 # -----------------------------
-def detect_r3_missing_artifacts() -> DetectorResult:
+def _try_external_detectors() -> Tuple[Optional[callable], Optional[callable], Optional[callable]]:
+    """
+    Preferred: self_healing/detectors/*.py
+    Must be deterministic and return DetectorResult or a compatible dict.
+
+    Names expected (Phase-9 plan):
+    - detect_artifact_regression.detect_artifact_regression
+    - detect_status_regression.detect_status_regression
+    - detect_capability_regression.detect_capability_regression
+    """
+    d3 = d2 = d1 = None
+    try:
+        from self_healing.detectors.detect_artifact_regression import detect_artifact_regression as d3  # type: ignore
+    except Exception:
+        d3 = None
+    try:
+        from self_healing.detectors.detect_status_regression import detect_status_regression as d2  # type: ignore
+    except Exception:
+        d2 = None
+    try:
+        from self_healing.detectors.detect_capability_regression import detect_capability_regression as d1  # type: ignore
+    except Exception:
+        d1 = None
+    return d3, d2, d1
+
+
+# -----------------------------
+# Fallback detectors (deterministic)
+# -----------------------------
+def _fallback_detect_r3_missing_artifacts() -> DetectorResult:
     required = [Path(p) for p in load_mandatory_artifacts()]
     missing: List[str] = []
     for p in required:
@@ -210,12 +259,43 @@ def detect_r3_missing_artifacts() -> DetectorResult:
     )
 
 
-# -----------------------------
-# R2 — Status validation fails
-# (Deterministic check: file exists + JSON + minimal required keys)
-# You can later harden this by calling ops/validate_status.py in the workflow.
-# -----------------------------
-def detect_r2_status_invalid() -> DetectorResult:
+def _fallback_detect_r2_status_invalid() -> DetectorResult:
+    """
+    Deterministic: try the real validator first (preferred), else minimal JSON sanity.
+    """
+    validator = REPO_ROOT / "ops" / "validate_status.py"
+    if validator.exists():
+        try:
+            proc = subprocess.run(
+                [sys.executable, str(validator)],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+            )
+            if proc.returncode != 0:
+                return DetectorResult(
+                    regression=True,
+                    regression_id="R2",
+                    type="STATUS_INVALID",
+                    severity="blocking",
+                    details={
+                        "reason": "ops/validate_status.py failed",
+                        "exit_code": proc.returncode,
+                        "stdout": proc.stdout[-4000:],
+                        "stderr": proc.stderr[-4000:],
+                    },
+                )
+            return DetectorResult(
+                regression=False,
+                regression_id=None,
+                type=None,
+                severity=None,
+                details={"validator": "ops/validate_status.py", "exit_code": 0},
+            )
+        except Exception as e:
+            # deterministic fallback below
+            _ = e
+
     path = OPS_REPORTS_DIR / "system_status.json"
     if not path.exists():
         return DetectorResult(
@@ -265,11 +345,7 @@ def detect_r2_status_invalid() -> DetectorResult:
     )
 
 
-# -----------------------------
-# R1 — Capability graph invalid
-# Minimal deterministic checks (JSON parse + exactly one primary)
-# -----------------------------
-def detect_r1_capability_graph_invalid() -> DetectorResult:
+def _fallback_detect_r1_capability_graph_invalid() -> DetectorResult:
     path = REPO_ROOT / "governance" / "resilience" / "capability_graph.json"
     if not path.exists():
         return DetectorResult(
@@ -454,7 +530,6 @@ def write_self_healing_trace(det: DetectorResult, playbook: str, pr_branch: str,
             "changed_files": changed_files,
         },
     }
-    # R4: write into self_healing_trace.jsonl (conflict-free append-only)
     append_jsonl(SELF_HEALING_TRACE_JSONL, entry)
 
 
@@ -462,10 +537,31 @@ def write_self_healing_trace(det: DetectorResult, playbook: str, pr_branch: str,
 # Orchestration
 # -----------------------------
 def pick_regression() -> DetectorResult:
-    for fn in (detect_r3_missing_artifacts, detect_r2_status_invalid, detect_r1_capability_graph_invalid):
-        res = fn()
+    ext_r3, ext_r2, ext_r1 = _try_external_detectors()
+
+    # R3 -> R2 -> R1 (fixed order)
+    detector_chain: List[Tuple[str, callable]] = []
+
+    if ext_r3 is not None:
+        detector_chain.append(("external_r3", ext_r3))
+    else:
+        detector_chain.append(("fallback_r3", _fallback_detect_r3_missing_artifacts))
+
+    if ext_r2 is not None:
+        detector_chain.append(("external_r2", ext_r2))
+    else:
+        detector_chain.append(("fallback_r2", _fallback_detect_r2_status_invalid))
+
+    if ext_r1 is not None:
+        detector_chain.append(("external_r1", ext_r1))
+    else:
+        detector_chain.append(("fallback_r1", _fallback_detect_r1_capability_graph_invalid))
+
+    for _, fn in detector_chain:
+        res = _coerce_detector_result(fn())
         if res.regression:
             return res
+
     return DetectorResult(False, None, None, None, {"note": "no regression"})
 
 
@@ -534,7 +630,6 @@ def main() -> int:
 
     write_self_healing_trace(det, playbook_name, pr_branch, changed)
 
-    # R5: cleanup non-governed noise deterministically (prevents egg-info, pyc, caches)
     cleanup_non_governed_noise()
 
     gh_set_output("regression", "true")
