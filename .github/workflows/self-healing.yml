@@ -2,6 +2,17 @@ name: Self-Healing (Phase 9) — PR-only Regression Recovery
 
 on:
   workflow_dispatch:
+    inputs:
+      simulate:
+        description: "Deterministically simulate a regression in the workspace (for DoD proof)."
+        required: false
+        default: "none"
+        type: choice
+        options:
+          - none
+          - R1
+          - R2
+          - R3
 
 permissions:
   contents: write
@@ -30,6 +41,61 @@ jobs:
           if [ -f requirements.txt ]; then
             python -m pip install -r requirements.txt
           fi
+
+      # --- OPTIONAL: Deterministic simulation for end-to-end DoD proof (R1/R2/R3) ---
+      - name: Simulate regression in workspace (optional)
+        id: simulate
+        shell: bash
+        env:
+          SIMULATE: ${{ inputs.simulate }}
+        run: |
+          set -euo pipefail
+          echo "simulate=${SIMULATE}" >> "$GITHUB_OUTPUT"
+
+          if [ "${SIMULATE}" = "none" ]; then
+            echo "No simulation requested."
+            exit 0
+          fi
+
+          # Ensure governed directories exist (safe no-op if already present)
+          mkdir -p ops/reports ops/decisions governance/resilience
+
+          case "${SIMULATE}" in
+            R3)
+              echo "Simulating R3: missing mandatory artifacts."
+              rm -f ops/reports/decision_trace.jsonl
+              rm -f ops/decisions/gate_result.json
+              rm -f ops/reports/system_status.json
+              rm -f ops/reports/latest.json
+              ;;
+            R2)
+              echo "Simulating R2: system_status.json invalid (valid JSON, missing required fields)."
+              # Valid JSON but violates your minimal required keys (generated_at/environment)
+              cat > ops/reports/system_status.json <<'JSON'
+              {
+                "note": "simulated invalid status for Phase 9 proof (R2)"
+              }
+              JSON
+              ;;
+            R1)
+              echo "Simulating R1: capability_graph.json determinism violation (primary_count != 1)."
+              # Valid JSON, but 0 primaries => determinism rule violated
+              cat > governance/resilience/capability_graph.json <<'JSON'
+              {
+                "version": 1,
+                "nodes": [
+                  { "id": "a", "label": "A", "primary": false, "depends_on": [] },
+                  { "id": "b", "label": "B", "primary": false, "depends_on": [] }
+                ],
+                "note": "simulated invalid capability graph for Phase 9 proof (R1)"
+              }
+              JSON
+              ;;
+            *)
+              echo "ERROR: Unknown simulate value: ${SIMULATE}"
+              exit 2
+              ;;
+          esac
 
       # --- Run self-healing ---
       - name: Run Self-Healing (R3 -> R2 -> R1)
