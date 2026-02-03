@@ -1,12 +1,14 @@
-## Decision / Intent
-Formally declare Phase 9 completed and freeze its scope.
+# Decision / Intent
+Declare Phase 9 (“Self-Healing”) as completed in the public status signal by updating the canonical status artifact so the website reflects the governed completion state.
 
-## Authority
-System governance — Phase 9 exit criteria satisfied.
+# Authority
+virtauto governance — Phase 9 exit / status declaration.
+Authorized under governance-required checks (decision trace required for PRs).
 
-## Scope (files/modules touched)
-- governance/PHASE_9_EXIT.md
+# Scope (files/modules touched)
+- status/system_status.json
 
-## Expected outcome
-- Phase 9 is formally closed
-- Phase 10 can start without governance ambiguity
+# Expected outcome
+- Status page can deterministically display Phase 9 as COMPLETED (name: “Self-Healing”) and Phase 10 as current (name: “Memory Fabric”).
+- No behavioral change to agents or runtime execution; this is a reporting/visibility update only.
+- Governance gates remain enforced (decision trace required, status validation required).
