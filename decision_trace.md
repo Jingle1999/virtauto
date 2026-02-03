@@ -14,7 +14,7 @@ System governance — Phase 9 implementation.
 
 ## Decision / Intent
 Introduce an explicit, deterministic detector for regression type R1
-(Capability Graph Invalid) as part of Phase 9 Self-Healing.
+(Capability Graph Invalid) as part of Phase 9: Self-Healing.
 
 ## Authority
 System governance – Phase 9 implementation.
