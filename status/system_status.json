@@ -13,8 +13,32 @@
     "last_incident": null
   },
 
+  "governance": {
+    "phase": {
+      "current": "10",
+      "current_name": "Memory Fabric",
+      "phase_9": {
+        "name": "Self-Healing",
+        "status": "COMPLETED",
+        "exit_artifact": "governance/PHASE_9_EXIT.md",
+        "exit_commit": null,
+        "exit_pr": 505
+      }
+    },
+    "required_checks": {
+      "decision_trace_required": true,
+      "status_validation_required": true
+    }
+  },
+
+  "autonomy_model": {
+    "system_level": "SUPERVISED",
+    "agent_level": "MIXED",
+    "explanation": "Autonomous agents may run, but system-level changes remain governed and supervised."
+  },
+
   "autonomy_score": {
-    "value": 0.70,
+    "value": 0.7,
     "percent": 70,
     "mode": "SUPERVISED",
     "inputs": {
