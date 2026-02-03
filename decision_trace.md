@@ -24,5 +24,5 @@ Files affected:
 - self_healing/detectors/detect_capability_regression.py
 
 ## Expected Outcome
-R1 regressions become explicitly detectable, audit-visible, and
+Self-Healing-Workflow automation: R1 regressions become explicitly detectable, audit-visible, and
 machine-verifiable without changing system autonomy.
