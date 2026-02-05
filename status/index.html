@@ -848,7 +848,7 @@
 
   // Status Agent evidence source (server-produced JSONL)
   // NOTE: This panel renders evidence; it does not generate operations.
-  const STATUS_AGENT_LOG_PATH = "./ops/agent_activity.jsonl";
+  const STATUS_AGENT_LOG_PATH = "./ops/reports/agent_activity.jsonl";
   // =========================
   // Helpers
   // =========================
@@ -906,7 +906,7 @@
   }
 
   async function fetchTruth() {
-    const res = await fetch(TRUTH_PATH, { cache: "no-store" });
+    const res = await fetch(`${TRUTH_PATH}?t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`Failed to load truth source (${res.status}) at ${TRUTH_PATH}`);
     const json = await res.json();
     if (!json || typeof json !== "object") throw new Error("Truth source returned invalid JSON.");
@@ -914,7 +914,7 @@
   }
 
   async function fetchText(path) {
-    const res = await fetch(path, { cache: "no-store" });
+    const res = await fetch(`${path}?t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`Failed to load evidence source (${res.status}) at ${path}`);
     return await res.text();
   }
