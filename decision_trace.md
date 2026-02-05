@@ -1,15 +1,15 @@
-# Decision Trace for PR #512
+# Decision Trace for PR #515
 
 ## Decision / Intent
-Fix Status Monitoring workflow so it can update truth artifacts on a protected main branch by creating/updating a PR instead of pushing directly.
+Ensure PR #515 is governance-compliant by providing the mandatory decision trace artifact required by `validate_pr_decision_trace`.
 
 ## Authority
-Repository maintainer.
+Repository maintainer (human-in-the-loop approval).
 
-## Scope
+## Scope (files/modules touched)
 - .github/workflows/status-monitoring.yml
+- decision_trace.md (this file)
 
 ## Expected Outcome
-- Workflow no longer fails due to protected branch push.
-- Truth artifacts are proposed via PR (automation branch) and can be merged normally.
-
+- Required check `validate_pr_decision_trace` passes for PR #515.
+- PR #515 can be merged under existing branch protection and required checks.
