@@ -1,4 +1,4 @@
-# Decision Trace for PR #514
+# Decision Trace for PR #515
 
 ## Decision / Intent
 Fix the Status Monitoring workflow so it can update “truth artifacts” even when `main` is protected:
