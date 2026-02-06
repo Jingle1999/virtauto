@@ -7,6 +7,10 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: self-healing-phase9
+  cancel-in-progress: false
+
 jobs:
   self-heal:
     runs-on: ubuntu-latest
@@ -65,23 +69,50 @@ jobs:
 
       # --- Guard: only governed artifacts allowed to be modified/untracked ---
       - name: Guard working tree (governed-only)
+        id: guard
         shell: bash
         run: |
           set -euo pipefail
 
           # Allow ONLY these files to change (modified OR untracked)
-          allowed_regex='^(ops/reports/latest\.json|ops/reports/decision_trace\.jsonl|ops/reports/system_status\.json|ops/decisions/gate_result\.json|ops/reports/self_healing_trace\.jsonl|governance/resilience/capability_graph\.json)$'
+          # NOTE: Intentionally excludes decision_trace.md (narrative file) to avoid governance/check failures.
+          allowed_regex='^(ops/reports/latest\.json|ops/decisions/latest\.json|ops/reports/decision_trace\.json|ops/reports/decision_trace\.jsonl|ops/reports/system_status\.json|ops/decisions/gate_result\.json|ops/reports/self_healing_trace\.jsonl|governance/resilience/capability_graph\.json)$'
 
-          # git status porcelain: col2+ is path; includes untracked as "?? path"
-          bad="$(git status --porcelain=v1 -uall | awk '{print $2}' | grep -Ev "$allowed_regex" || true)"
+          # Collect changed/untracked files (robust against leading status chars)
+          changed="$(git status --porcelain=v1 -uall | sed -E 's/^[ MARCUD\?!]{1,2} +//' || true)"
+          bad="$(printf "%s\n" "${changed}" | grep -Ev "${allowed_regex}" || true)"
 
-          if [ -n "$bad" ]; then
+          if [ -n "${bad}" ]; then
             echo "ERROR: Non-governed changes detected:"
-            echo "$bad"
+            echo "${bad}"
             exit 1
           fi
 
           echo "OK: only governed artifacts changed."
+
+      # --- Compute governed files to include (only existing + changed) ---
+      - name: Compute governed add-paths
+        id: paths
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # List changed/untracked files (paths only)
+          changed="$(git status --porcelain=v1 -uall | sed -E 's/^[ MARCUD\?!]{1,2} +//' || true)"
+
+          # Keep only governed paths we actually want to commit (and that exist in the working tree)
+          governed_list=""
+          while IFS= read -r p; do
+            [ -z "$p" ] && continue
+            if [ -f "$p" ]; then
+              governed_list="${governed_list}${p}"$'\n'
+            fi
+          done <<< "${changed}"
+
+          # Expose multiline output for create-pull-request
+          echo "paths<<EOF" >> "$GITHUB_OUTPUT"
+          printf "%s" "${governed_list}" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       # --- Create PR only when regression=true ---
       - name: Open PR (only if regression)
@@ -96,11 +127,5 @@ jobs:
           delete-branch: false
           labels: self-healing,phase-9,governed
 
-          # IMPORTANT: commit ONLY governed artifacts
-          add-paths: |
-            ops/reports/latest.json
-            ops/reports/decision_trace.jsonl
-            ops/reports/system_status.json
-            ops/decisions/gate_result.json
-            ops/reports/self_healing_trace.jsonl
-            governance/resilience/capability_graph.json
+          # Commit ONLY governed artifacts that exist and changed
+          add-paths: ${{ steps.paths.outputs.paths }}
