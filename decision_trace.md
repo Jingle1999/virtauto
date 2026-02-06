@@ -1,7 +1,7 @@
-# Decision Trace for PR #515
+# Decision Trace for PR #519
 
 ## Decision / Intent
-Ensure PR #515 is governance-compliant by providing the mandatory decision trace artifact required by `validate_pr_decision_trace`.
+Ensure PR #519 is governance-compliant by providing the mandatory decision trace artifact required by `validate_pr_decision_trace`.
 
 ## Authority
 Repository maintainer (human-in-the-loop approval).
@@ -11,5 +11,6 @@ Repository maintainer (human-in-the-loop approval).
 - decision_trace.md (this file)
 
 ## Expected Outcome
-- Required check `validate_pr_decision_trace` passes for PR #515.
-- PR #515 can be merged under existing branch protection and required checks.
+- Required check `validate_pr_decision_trace` passes for PR #519.
+- PR #519 can be merged under existing branch protection and required checks.
+- PR #519 makes the governance action from the backend (true status) visible in the frontend
