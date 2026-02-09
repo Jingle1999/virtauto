@@ -1,4 +1,4 @@
-# Decision Trace — PR #522
+# Decision Trace — PR #525
 
 ## Decision / Intent
 Fix decision trace workflow.
