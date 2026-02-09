@@ -1,64 +1,133 @@
-# Decision Trace for PR #521
+# decision_trace.md — industrymodel.html (AEO Stage 1) PR #523
 
-## Decision / Intent
-Make the Production Planning demo UI resilient and governance-aligned by:
-- Loading data **API-first** (local dev), and
-- Falling back to **static, versioned demo artifacts** when the API is unavailable.
+## Summary
+This change replaces `industrymodel.html` with **Patch 1** to align the page with **AEO Layer — Stage 1 (Bounded Domain)**:
+- One domain: **Bodyshop Doorline (TVL)**
+- One decision class: **Door Release Gate**
+- One authority path: **Edge → Orchestrator → GEORGE → Guardian**
+- Explicit, explainable **BLOCK** case
+- **Decision-first, Audit-first, PR-driven** (no “OS/platform” claims)
 
-The UI remains **read-only** and does not simulate operations client-side.
+---
 
-## Authority
-Repository maintainer.
+## Change intent
+**Why now**
+- We need a visible, credible showcase that demonstrates *governed decision-making* (ALLOW/HOLD/BLOCK) before adding “value agents” (Content Agent, Knowledge Curator).
+- `industrymodel.html` is positioned as the **first visible AEO node**, not the full virtauto OS.
 
-## Scope (files/modules touched)
-- assets/js/demo-production-planning.js
+**What this page is**
+A machine-readable, decision-first “world model” slice for a BIW doorline, designed to:
+- declare an industrial decision class
+- show authority & governance constraints
+- make BLOCK legitimate and explainable
+- produce audit-grade trace objects
 
-## Context
-The production-planning showcase must reliably render a governed decision space in the browser.
-In practice, the local API endpoint may not be available (e.g., GitHub Pages, offline demos, shared links).
-Without a deterministic fallback, the UI would fail or degrade unpredictably, harming the credibility of the governed demo.
+**What this page is not**
+- Not a digital twin marketing demo
+- Not an optimizer/simulator showcase
+- Not a platform/OS claim
+- Not a multi-domain roadmap
 
-Key constraints:
-- No privileged writes from the browser.
-- No hidden “simulation” or client-side timers that fabricate state.
-- Deterministic behavior across environments (dev vs. static hosting).
+---
 
-## Considered Options
-1) **API-only (hard dependency)**
-   - Rejected: breaks on static hosting and reduces demo reliability.
+## Files changed
+- `industrymodel.html` (full replacement)
 
-2) **Static-only (no API integration)**
-   - Rejected: blocks local iteration and removes the intended “API-first” integration path.
+No other files are intended to be modified.
 
-3) **API-first with deterministic static fallback**
-   - Chosen: keeps the dev workflow, ensures the hosted demo always renders, and preserves truthfulness (read-only rendering).
+---
 
-## Decision
-Adopt **API-first + static fallback** loading strategy in `assets/js/demo-production-planning.js`:
-- Try fetch from `http://localhost:8000` first (dev convenience).
-- On failure, load from static demo files under `assets/demo/production-planning`.
-- Use cache-busting (`?t=`) to avoid stale reads during iteration.
-- Keep rendering logic read-only; no generated operations or fabricated state in the browser.
+## Decision graph (Stage 1)
+**Decision Class:** `door_release_gate`  
+**Domain:** `biw_doorline_tvl`  
+**Outcomes:** `ALLOW | HOLD | BLOCK`
 
-## Expected Outcome
-- The demo renders reliably on GitHub Pages and other static hosts.
-- Local development continues to use the API when available.
-- The showcased decision state remains auditable and consistent with governed artifacts.
-- Failures are handled deterministically (fallback), not silently “smoothed over.”
+**Nodes**
+1. **PROPOSE** — release proposal created with Door ID + ruleset version
+2. **CHECK** — deterministic checks over evidence + constraints
+3. **GOVERN** — authority/policy enforcement via GEORGE + Guardian
+4. **VERDICT** — ALLOW/HOLD/BLOCK published (audit object)
 
-## Validation / How to Verify
-1) **Static hosting test**
-   - Open the page on GitHub Pages (no local API running).
-   - Verify the UI loads data from the fallback demo files and renders without errors.
+---
 
-2) **Local dev test**
-   - Start local API at `http://localhost:8000`.
-   - Reload and confirm the UI uses API responses (and still renders correctly).
+## Governance & authority
+**Authority path**
+- **Edge:** generates signals / measurements (no policy authority)
+- **Orchestrator:** assembles proposal and sequences checks
+- **GEORGE:** enforces contracts/policies (governing layer)
+- **Guardian:** blocks on violated invariants (no bypass)
 
-3) **Failure-path test**
-   - Stop the API while the page is open and reload.
-   - Confirm it falls back to static artifacts and still displays a coherent snapshot.
+**Non-negotiables enforced by narrative**
+- No decision without trace
+- No silent autonomy
+- Fail-safe behavior on missing evidence (HOLD/BLOCK)
 
-4) **Governance integrity**
-   - Confirm no write endpoints are invoked from the browser.
-   - Confirm the UI does not introduce simulated operations/timers to “fake” freshness or state.
+---
+
+## Evidence model (minimal)
+**Required evidence refs for release gate (Stage 5 example)**
+- geometry scan ref (structured light / 3D)
+- surface scan ref (line scan / surface vision)
+- gap/flush measurement ref
+- ruleset version
+
+---
+
+## BLOCK case (explicit)
+**Trigger**
+- Any required evidence missing/unverifiable (e.g., surface evidence ref unresolved)
+
+**Expected outcome**
+- `guardian_check = FAIL`
+- `verdict = BLOCK`
+- `door.state = HOLD`
+
+**Reason**
+- `missing_required_evidence:<type>`
+
+---
+
+## Acceptance criteria
+✅ The page states clearly:
+- “AEO Stage 1 / bounded decision space”
+- “not the OS / not the platform / not a full world model core”
+- decision-first + audit-first framing
+- explicit authority path and BLOCK semantics
+
+✅ The BLOCK case is:
+- explicit
+- explainable
+- represented as a deterministic audit record (example JSON)
+
+✅ No scope creep:
+- no agent catalog promises
+- no multi-domain expansion
+- no “AI runs production” claims
+
+---
+
+## Risks & mitigations
+**Risk:** Overpromising beyond Stage 1  
+**Mitigation:** Tightened copy: single domain + single decision class + explicit non-claims
+
+**Risk:** Page becomes “documentation only”  
+**Mitigation:** Structured as executable/auditable decision artifact (decision graph + audit records)
+
+---
+
+## Rollback plan
+Revert PR to restore previous `industrymodel.html` if:
+- wording is too aggressive/weak for positioning,
+- layout breaks on production,
+- governance claims conflict with current repo contracts.
+
+---
+
+## PR metadata (suggested)
+**Title:** `industrymodel: AEO Stage 1 bounded decision space + explicit BLOCK case`  
+**Labels:** `governed, aeo-stage-1, showcase, industrymodel`  
+**Review focus:**
+1) scope discipline (Stage 1 only)  
+2) clarity of decision class + authority path  
+3) BLOCK semantics and audit object examples
+
