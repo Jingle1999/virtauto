@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -328,6 +328,14 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       font-size: 0.75rem;
       overflow-wrap: anywhere;
+    }
+
+    .truth-box ul {
+      margin-top: 0.55rem;
+      padding-left: 1.2rem;
+    }
+    .truth-box li {
+      margin: 0.25rem 0;
     }
 
     .guards {
@@ -666,6 +674,9 @@
         <strong>www.virtauto.de</strong>.
         Every value on this page is rendered from the Single Source of Truth and refuses to show if the truth source is missing.
       </p>
+      <p style="margin-top: 0.5rem; color: var(--muted); font-size: 0.85rem;">
+        Agents operate as governed system actors with auditable behavior and bounded authority.
+      </p>
       <div class="meta-row">
         <div class="meta-pill">
           <span class="meta-dot"></span>
@@ -735,7 +746,7 @@
         </div>
       </section>
 
-      <!-- RIGHT: KPIs + PIPELINES & GUARDS -->
+      <!-- RIGHT: KPIs + GOVERNANCE + SELF-HEALING + GUARDS -->
       <aside class="card">
         <div class="card-header">
           <h2>System KPIs</h2>
@@ -775,6 +786,44 @@
           <div><strong>Truth lock:</strong> This page reads from <code id="truth-path">—</code></div>
           <div><strong>Generated at:</strong> <span id="generated-at">—</span></div>
           <div><strong>Environment:</strong> <span id="environment">—</span></div>
+        </div>
+
+        <!-- Governance Explanation (visible, not invented) -->
+        <div class="card-header" style="margin-top: 1.2rem; margin-bottom: 0.7rem;">
+          <h2>Governance Explanation</h2>
+          <span class="status-pill" id="gov-pill">
+            <span class="dot"></span>
+            Evaluated
+          </span>
+        </div>
+        <div class="truth-box">
+          <div><strong>Why is the current state allowed?</strong></div>
+          <ul id="gov-reasons">
+            <li>—</li>
+          </ul>
+          <div class="kpi-footnote" style="margin-top: 0.5rem;">
+            Governance is active even when nothing breaks.
+          </div>
+        </div>
+
+        <!-- Self-Healing (capability, not magic) -->
+        <div class="card-header" style="margin-top: 1.2rem; margin-bottom: 0.7rem;">
+          <h2>Self-Healing Capability</h2>
+          <span class="status-pill warn">
+            <span class="dot"></span>
+            Governed
+          </span>
+        </div>
+        <div class="truth-box">
+          <ul>
+            <li>Health degradation can be detected deterministically</li>
+            <li>Corrective actions are proposed via pull request (never executed silently)</li>
+            <li>All actions require governance approval and a decision trace</li>
+            <li>Production changes without review are explicitly disallowed</li>
+          </ul>
+          <div class="kpi-footnote" style="margin-top: 0.5rem;">
+            Controlled autonomy — no autopilot.
+          </div>
         </div>
 
         <hr style="border: none; border-top: 1px solid var(--border); margin: 1.2rem 0;" />
@@ -820,7 +869,6 @@
             <span class="guard-pill" id="guard-trace-pill">—</span>
           </div>
 
-          <!-- NEW: Status Agent guard -->
           <div class="guard-row">
             <div class="guard-left">
               <div class="guard-name">Status Agent</div>
@@ -838,7 +886,6 @@
   </div>
 
 <script>
-  
   // =========================
   // TRUTH SOURCE (Single Source of Truth)
   // =========================
@@ -848,7 +895,9 @@
 
   // Status Agent evidence source (server-produced JSONL)
   // NOTE: This panel renders evidence; it does not generate operations.
+  // You confirmed: status/ops/agent_activity.jsonl exists.
   const STATUS_AGENT_LOG_PATH = "./ops/agent_activity.jsonl";
+
   // =========================
   // Helpers
   // =========================
@@ -957,6 +1006,20 @@
     return { text: s || "UNKNOWN", kind: "warn" };
   }
 
+  function getGateVerdict(status) {
+    // Supports:
+    // - autonomy_score.gate_verdict (legacy)
+    // - autonomy_score.inputs.gate_verdict (your current schema)
+    // - status.gate.verdict (optional future)
+    const a = status.autonomy_score || status.autonomy || {};
+    return (
+      a.gate_verdict ||
+      (a.inputs && a.inputs.gate_verdict) ||
+      (status.gate && status.gate.verdict) ||
+      "—"
+    );
+  }
+
   // =========================
   // Rendering
   // =========================
@@ -965,10 +1028,12 @@
     $("truth-path").textContent = TRUTH_PATH;
 
     const generatedAt = status.generated_at || status.generatedAt || status.timestamp || null;
-    $("freshness").textContent = generatedAt ? fmtDate(generatedAt) : "—";
-
     $("generated-at").textContent = generatedAt ? fmtDate(generatedAt) : "—";
     $("environment").textContent = status.environment || "—";
+
+    // Show actual freshness as age, not timestamp (timestamp is already visible below)
+    const ageMin = minutesAgo(generatedAt);
+    $("freshness").textContent = (ageMin === null) ? "—" : `${ageMin} min ago`;
 
     const sysState =
       (status.system && status.system.state) ||
@@ -1027,11 +1092,7 @@
     $("kpi-health").textContent = fmtPctFrom(healthOverall);
     $("kpi-health-note").textContent = `Signal: ${safeUpper(healthSignal)}`;
 
-    const gateVerdict =
-      (autonomyObj && autonomyObj.gate_verdict) ||
-      (status.autonomy && status.autonomy.gate_verdict) ||
-      (status.gate && status.gate.verdict) ||
-      "—";
+    const gateVerdict = getGateVerdict(status);
 
     const links = status.links || {};
     const auditTrailAvailable = Boolean(links.decision_trace || links.decision_trace_jsonl || links.latest_decision);
@@ -1148,8 +1209,7 @@
       else { $("guard-freshness-pill").textContent = "EXPIRED"; setGuardPill($("guard-freshness-pill"), "crit"); }
     }
 
-    const autonomyObj = status.autonomy_score || status.autonomy || {};
-    const gate = (autonomyObj && autonomyObj.gate_verdict) || (status.gate && status.gate.verdict) || "—";
+    const gate = getGateVerdict(status);
     $("guard-gate").textContent = safeUpper(gate);
     if (String(gate).toUpperCase().includes("ALLOW") || String(gate).toUpperCase().includes("PASS")) {
       $("guard-gate-pill").textContent = "PASS";
@@ -1172,6 +1232,45 @@
     $("guard-trace").textContent = trace ? String(trace) : "—";
     if (trace) { $("guard-trace-pill").textContent = "LINKED"; setGuardPill($("guard-trace-pill"), "ok"); }
     else { $("guard-trace-pill").textContent = "UNLINKED"; setGuardPill($("guard-trace-pill"), "warn"); }
+  }
+
+  function renderGovernanceExplanation(status) {
+    const reasons = [];
+    const health = status.health || {};
+    const links = status.links || {};
+    const gate = getGateVerdict(status);
+
+    // Only claim what we can derive from truth artifacts
+    if (health.signal) reasons.push(`Health signal is ${String(health.signal).toUpperCase()}`);
+    if (health.overall_score !== undefined && health.overall_score !== null) reasons.push(`Health score is ${health.overall_score}`);
+
+    if (gate && gate !== "—") reasons.push(`Governance gate verdict is ${String(gate).toUpperCase()}`);
+    else reasons.push("Governance gate verdict is not present in the truth source");
+
+    if (links.decision_trace || links.decision_trace_jsonl) reasons.push("Decision trace is linked (audit trail available)");
+    else reasons.push("Decision trace link is missing (audit trail limited)");
+
+    if (links.gate_result) reasons.push("Gate result artifact is linked");
+    else reasons.push("Gate result artifact link is missing");
+
+    const ul = $("gov-reasons");
+    ul.innerHTML = "";
+    for (const r of reasons) {
+      const li = document.createElement("li");
+      li.textContent = r;
+      ul.appendChild(li);
+    }
+
+    // pill styling (truth-based)
+    const pill = $("gov-pill");
+    pill.classList.remove("warn", "crit");
+    if (String(gate).toUpperCase().includes("ALLOW") || String(gate).toUpperCase().includes("PASS")) {
+      pill.classList.add("ok");
+    } else if (gate === "—") {
+      pill.classList.add("warn");
+    } else {
+      pill.classList.add("crit");
+    }
   }
 
   function renderStatusAgentEvidence(events, loadError) {
@@ -1288,8 +1387,9 @@
       const status = await fetchTruth();
       renderHeader(status);
       renderKPIs(status);
-      renderAgents(status);
       renderGuards(status);
+      renderGovernanceExplanation(status);
+      renderAgents(status);
 
       // Status Agent evidence is optional to the page’s existence,
       // but it never simulates: missing evidence is shown as missing.

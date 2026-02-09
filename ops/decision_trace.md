@@ -1,21 +1,15 @@
-# Decision Trace — PR #511
+# Decision Trace — PR #522
 
 ## Decision / Intent
-Fix status monitoring workflow so the Status Agent can update truth artifacts without direct pushes to protected main.
+Fix decision trace workflow.
 
 ## Authority
 Repository maintainer.
 
 ## Scope
-- .github/workflows/status-monitoring.yml
-
+- ops/reports/decision_trace.jsonl
 ## Change Summary
 - Replace direct push-to-main with PR-based update flow for generated artifacts.
 
 ## Expected Outcome
-- Scheduled runs open/update a PR when truth artifacts change.
-- No direct pushes to protected branch.
-- Status page receives fresh evidence via the PR merge path.
-
-## Risks / Rollback
-- If PR automation fails, revert workflow commit and run manually.
+- ammend decision trace for practicability
