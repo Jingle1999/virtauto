@@ -138,3 +138,11 @@ Exit codes:
 ## Appendix: Example (record format, JSONL)
 
 See: `ops/reports/decision_trace.jsonl` for the current canonical examples.
+
+## Contract Compatibility Note
+
+Decision Contracts (v1) require all decision identifiers
+(e.g. `proposal`, `decision_class`) to be declared as strings.
+
+Structured or contextual decision details MUST be placed
+in the Decision Trace (phase records), not in the Contract layer.
