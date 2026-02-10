@@ -1,84 +1,53 @@
-# Decision Trace (Spec v1)
+# Decision Trace – Content Publish BLOCK Example
 
-This repository is governed by an **audit-first Decision Trace**.
-Every meaningful change (especially agent-triggered actions) must be explainable as a deterministic trace:
-
-**route → execute → guardian → finalize**
-
-The trace is not “documentation”. It is the **operational evidence** that a decision happened (or was blocked),
-under explicit rules, and with a reproducible rationale.
+**Trace ID:** `trace_content_publish_0001`  
+**Decision Class:** CONTENT_PUBLISH  
+**Spec Reference:** industrymodel.html#spec-v1  
+**Status:** BLOCKED  
 
 ---
 
-## Canonical artifacts
-
-### Runtime trace (authoritative)
-- **Path:** `ops/reports/decision_trace.jsonl`
-- **Format:** JSON Lines (one event per line)
-- **Purpose:** Immutable-style append log of decisions across phases.
-
-> If the UI or any implementation contradicts this log, the log wins.
-
-### Optional legacy / snapshots
-- `ops/reports/decision_trace.json` (snapshot/export, if used)
-- `ops/reports/decision_trace.jsonl` is the canonical source.
+## Decision Intent
+Publish updated website content to the public channel.
 
 ---
 
-## Trace contract (minimal)
-
-Each trace entry SHOULD contain:
-
-- `ts` (UTC ISO timestamp)
-- `trace_id` (stable across phases)
-- `phase` ∈ {`route`, `execute`, `guardian`, `finalize`}
-- `actor` (e.g., `GEORGE`, `content_agent`, `GUARDIAN`)
-- `decision_class`
-- `intent`
-- `status` (phase status)
-- For `guardian`: `policy`, `checks[]`, `decision`, and `reason`
+## Actors Involved
+- Content Agent (request)
+- GEORGE (orchestration & final decision)
+- Guardian (policy enforcement)
 
 ---
 
-## Example: Website Agent BLOCK (Content publish)
+## Decision Flow
 
-This repository includes a real **BLOCK** example showing that agents can be stopped by design:
+1. **Route**  
+   Publish request routed by GEORGE.
 
-**Scenario**
-- Content Agent requests publish (website update)
-- Guardian evaluates policy
-- Guardian blocks due to incomplete provenance (missing/placeholder commit reference)
-- No publish is executed
+2. **Execute**  
+   Content Agent prepared static publish plan.
 
-**Where to find it**
-- **Path:** `ops/reports/decision_trace.jsonl`
-- **Trace ID:** `trace_content_publish_0001`
-- **Decision class:** `CONTENT_PUBLISH`
-- **Final:** `BLOCKED` (blocker: `GUARDIAN`)
+3. **Guardian Check**  
+   Policy `CONTENT_PUBLISH_GUARDIAN` applied.  
+   All structural checks passed, but required decision trace documentation was missing.
 
-**Swimlane**
-1. `route` – GEORGE routes the publish intent
-2. `execute` – content_agent prepares payload (no deploy yet)
-3. `guardian` – policy checks; decision = BLOCK
-4. `finalize` – GEORGE finalizes as BLOCKED; next_actions emitted
-
-This is the proof that virtauto is **architecture-first**:
-trust is created through bounded decision space + explicit stop mechanisms + audit evidence.
+4. **Finalize**  
+   Decision blocked.  
+   No content published.
 
 ---
 
-## Governance rule: PRs require decision trace
-
-If a Pull Request changes behavior, user-facing output, policies, or core assets,
-it must include a decision trace artifact update.
-
-Minimum accepted: this file (`ops/reports/decision_trace.md`) and/or the runtime log
-(`ops/reports/decision_trace.jsonl`) reflecting the intent and expected outcome.
+## Block Reason
+Required `decision_trace.md` update missing at time of submission.
 
 ---
 
-## Notes
+## Outcome
+BLOCKED  
+No execution performed.
 
-- Traces are append-only in spirit: do not rewrite history without an explicit governance decision.
-- Use deterministic, minimal fields.
-- If uncertain: log more evidence, not more narrative.
+---
+
+## Governance Principle Demonstrated
+> No decision without trace.  
+> No execution without explainability.
