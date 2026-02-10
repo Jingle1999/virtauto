@@ -7,19 +7,19 @@
 
   <!-- SEO -->
   <link rel="canonical" href="https://www.virtauto.de/industrymodel.html">
-  <meta name="description" content="Industry Model (AEO Stage 1): a bounded, governed decision space for a BIW Doorline (Front Left / TVL) — decision-first, audit-first, block-capable, PR-driven.">
+  <meta name="description" content="Industry Model (AEO Stage 1): the normative reference point (Proof Object) for how an industrial system thinks, decides, and blocks — bounded decision space, audit-first, block-capable, PR-driven.">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="virtauto Industry Model — AEO Stage 1 (Bounded Decision Space)">
-  <meta property="og:description" content="A decision-first, audit-first Industry Model for a BIW Doorline (Front Left / TVL). One bounded decision class with explicit authority, governance and an explainable BLOCK path.">
+  <meta property="og:title" content="virtauto Industry Model — AEO Stage 1 (Normative Proof Object)">
+  <meta property="og:description" content="Not a showcase: a normative world-model spec and proof object. One bounded decision class with explicit authority, governance, and an explainable BLOCK path — PR-driven, audit-first.">
   <meta property="og:url" content="https://www.virtauto.de/industrymodel.html">
   <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="virtauto Industry Model — AEO Stage 1 (Bounded Decision Space)">
-  <meta name="twitter:description" content="A decision-first, audit-first Industry Model for a BIW Doorline (Front Left / TVL) with explicit authority, governance, and a blockable decision path.">
+  <meta name="twitter:title" content="virtauto Industry Model — AEO Stage 1 (Normative Proof Object)">
+  <meta name="twitter:description" content="A normative world-model spec: how a doorline thinks, decides, and blocks — decision-first, audit-first, PR-driven, explainable BLOCK.">
   <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <link rel="stylesheet" href="assets/styles.css"/>
@@ -41,6 +41,8 @@
     .pill.red .dot{ background: rgba(248,113,113,.95); }
     .pill.amb  { border-color: rgba(251,191,36,.35); background: rgba(120,53,15,.12); }
     .pill.amb .dot{ background: rgba(251,191,36,.95); }
+    .pill.ok   { border-color: rgba(34,197,94,.25); background: rgba(20,83,45,.10); }
+    .pill.ok .dot{ background: rgba(34,197,94,.95); }
 
     .anchors{ display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.8rem; }
     .anchors a{ border:1px solid #243255; border-radius:999px; padding:.28rem .6rem; background:#0f1629; color:#dbe7ff; }
@@ -51,6 +53,7 @@
 
     .two-col{ display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-top:1rem; }
     .three-col{ display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-top:1rem; }
+
     .mono{
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size:.88rem; line-height:1.5;
@@ -59,6 +62,7 @@
       background:#0a0f1b; border:1px solid #243255; border-radius:.8rem;
       padding:.85rem; overflow:auto; color:#dbe7ff;
     }
+
     .callout{
       background: linear-gradient(135deg, rgba(125,211,252,.12), rgba(34,211,238,.06));
       border: 1px solid rgba(125,211,252,.25);
@@ -66,6 +70,10 @@
     .callout.warn{
       background: linear-gradient(135deg, rgba(251,191,36,.10), rgba(248,113,113,.06));
       border: 1px solid rgba(251,191,36,.30);
+    }
+    .callout.ok{
+      background: linear-gradient(135deg, rgba(34,197,94,.10), rgba(125,211,252,.05));
+      border: 1px solid rgba(34,197,94,.24);
     }
 
     .badge2{
@@ -88,6 +96,26 @@
     .kpi .muted{ display:block; margin-top:.15rem; }
 
     .mini-hr{ border:0; height:1px; background: #162034; margin: 16px 0; }
+
+    .path{
+      display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.6rem;
+      align-items:center;
+    }
+    .node{
+      border:1px solid #243255; border-radius:999px; padding:.28rem .6rem;
+      background:#0f1629; color:#dbe7ff; font-size:.82rem;
+      display:inline-flex; gap:.4rem; align-items:center;
+    }
+    .node .n{ width:18px; height:18px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; font-size:.72rem; border:1px solid #2a3a5e; }
+    .arrow{ opacity:.7; }
+
+    .repo{
+      display:grid; grid-template-columns: 1fr; gap:.7rem; margin-top:.8rem;
+    }
+    .repo .row{
+      border:1px solid #243255; border-radius:.8rem; padding:.75rem; background:#0f1526;
+    }
+    .repo .row code{ font-size:.9rem; }
 
     @media (max-width: 900px) {
       .two-col, .three-col { grid-template-columns: 1fr; }
@@ -128,17 +156,19 @@
       <h1>So thinks our factory — before it acts.</h1>
 
       <p class="lead">
-        <strong>industrymodel.html</strong> is the first visible <strong>AEO node</strong>: a vertically sliced, governed decision space
-        for a single industrial domain. It is <strong>not</strong> the OS, not the platform, and not a complete world model core.
-        It is the first place where autonomy can <strong>fail correctly</strong>.
+        <strong>industrymodel.html</strong> is not a marketing showcase.
+        It is a <strong>normative reference point</strong> — a <strong>Proof Object</strong> that demonstrates:
+        <em>how a real industrial system thinks, decides, and blocks</em>.
+        Everything we build later can point back here:
+        <strong>“So decides a doorline. So decides virtauto.”</strong>
       </p>
 
       <div class="card callout" style="margin-top:16px">
-        <strong>Stage 1 definition</strong>
+        <strong>Stage 1 definition (bounded decision space)</strong>
         <p class="muted" style="margin:.5rem 0 0">
           AEO Stage 1 means: <strong>one domain</strong>, <strong>one decision class</strong>, <strong>one authority path</strong>,
-          and a real <strong>BLOCK case</strong> that is explainable and auditable.
-          This page is decision-first and audit-first — PR-driven, not UI-driven.
+          and an explicit, explainable <strong>BLOCK</strong> case.
+          This page is decision-first and audit-first — <strong>PR-driven</strong>, not UI-driven.
         </p>
 
         <div class="kpi-row">
@@ -156,14 +186,73 @@
           </div>
         </div>
 
+        <div class="pill-row" aria-label="Normative tags">
+          <span class="pill ok"><span class="dot"></span>Normative reference</span>
+          <span class="pill"><span class="dot"></span>Decision-first</span>
+          <span class="pill"><span class="dot"></span>Audit-first</span>
+          <span class="pill red"><span class="dot"></span>Block-capable</span>
+          <span class="pill"><span class="dot"></span>PR-driven</span>
+        </div>
+
         <div class="anchors" aria-label="Jump links">
+          <a href="#proof">Proof Object</a>
           <a href="#intent">Intent</a>
           <a href="#world-model">World Model</a>
           <a href="#decision-graph">Decision Graph</a>
           <a href="#governance">Governance</a>
+          <a href="#execution-control">Execution Control Layer</a>
+          <a href="#artifacts">Artifacts</a>
           <a href="#audit">Audit</a>
-          <a href="#block">The BLOCK case</a>
+          <a href="#block">BLOCK (explicit trace)</a>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROOF OBJECT -->
+  <section class="section" id="proof">
+    <div class="container">
+      <h2>0) Why this page exists (Proof Object)</h2>
+      <p class="muted">
+        This is the first <strong>World-Model Spec</strong> you can point to.
+        Its purpose is to prove one thing under real constraints:
+        <strong>autonomy can fail correctly</strong>.
+      </p>
+
+      <div class="two-col">
+        <div class="card">
+          <h3>What this proves</h3>
+          <ul class="list-tight muted">
+            <li>An industrial decision can be <strong>bounded</strong> (domain + decision class)</li>
+            <li>Decisions have <strong>explicit authority</strong> and <strong>enforced constraints</strong></li>
+            <li>Every decision is <strong>auditable</strong> (append-only trace, evidence refs, ruleset)</li>
+            <li>BLOCK is legitimate: <strong>explainable</strong> and <strong>stable</strong>, not “AI error”</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>What this prevents</h3>
+          <ul class="list-tight muted">
+            <li>“Smart agent did something” without accountability</li>
+            <li>Silent execution (state changes without trace)</li>
+            <li>UI storytelling without governed artifacts</li>
+            <li>“Autonomy first” without governance proof</li>
+          </ul>
+          <div class="pill-row" aria-label="Non-negotiables">
+            <span class="pill red"><span class="dot"></span>No decision without trace</span>
+            <span class="pill red"><span class="dot"></span>No bypassing Guardian</span>
+            <span class="pill"><span class="dot"></span>PR-only governed change</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card callout" style="margin-top:16px">
+        <strong>Operational reality</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          We run our own website like we want industrial agents to run:
+          <strong>PR-only</strong>, no direct writes, no silent actions, governed artifacts, required checks.
+          The website is not a demo playground — it is our controlled test field for governance.
+        </p>
       </div>
     </div>
   </section>
@@ -183,12 +272,12 @@
           <ul class="list-tight muted">
             <li>Produce Door <code>TVL</code> for variant <code>FrontLeft_BIW</code></li>
             <li>Only release if audit-grade evidence is complete</li>
-            <li>Enforce policy: “No silent autonomy” (no execution without trace)</li>
+            <li>Enforce policy: <strong>No silent autonomy</strong> (no execution without trace)</li>
           </ul>
           <div class="pill-row" aria-label="Intent tags">
             <span class="pill"><span class="dot"></span>Decision-first</span>
             <span class="pill"><span class="dot"></span>Audit-first</span>
-            <span class="pill"><span class="dot"></span>Block-capable</span>
+            <span class="pill red"><span class="dot"></span>Block-capable</span>
             <span class="pill"><span class="dot"></span>PR-driven</span>
           </div>
         </div>
@@ -281,17 +370,19 @@
         <div class="card">
           <h3>Nodes & outcomes</h3>
           <ul class="list-tight muted">
-            <li><strong>PROPOSE</strong> — a release proposal is created (with Door ID + ruleset version)</li>
+            <li><strong>PROPOSE</strong> — a release proposal is created (Door ID + ruleset version)</li>
             <li><strong>CHECK</strong> — deterministic checks over evidence + constraints</li>
             <li><strong>GOVERN</strong> — authority + policy enforcement (GEORGE / Guardian)</li>
-            <li><strong>VERDICT</strong> — <span class="badge2 ok"><span class="dot"></span>ALLOW</span>
+            <li><strong>VERDICT</strong> —
+              <span class="badge2 ok"><span class="dot"></span>ALLOW</span>
               <span class="badge2 hold"><span class="dot"></span>HOLD</span>
               <span class="badge2 block"><span class="dot"></span>BLOCK</span>
             </li>
           </ul>
           <hr class="mini-hr">
           <p class="muted">
-            The goal is not “best decision”. The goal is: <strong>no wrong decision can execute silently</strong>.
+            The goal is not “best decision”.
+            The goal is: <strong>no wrong decision can execute silently</strong>.
           </p>
         </div>
 
@@ -347,13 +438,160 @@
           </ul>
         </div>
       </div>
+
+      <div class="card callout" style="margin-top:16px">
+        <strong>Website as Real-Conditions Test Field</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          We treat our own platform like a governed industrial system:
+          <strong>PR-only</strong>, <strong>no direct writes</strong>, <strong>no silent actions</strong>.
+          Required checks enforce the same discipline we later demand from industrial agents.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXECUTION CONTROL LAYER -->
+  <section class="section" id="execution-control">
+    <div class="container">
+      <h2>5) Execution Control Layer (why the GitHub analogy holds)</h2>
+      <p class="muted">
+        virtauto is not “the AI that acts”.
+        virtauto is the system that states: <strong>this decision is allowed</strong>, <strong>this is not</strong>,
+        <strong>this only with approval</strong>, <strong>this never</strong>.
+        Autonomy is built <strong>from inside to outside</strong>: first thinking, then deciding, then acting.
+      </p>
+
+      <div class="card">
+        <h3>Three phases — from inside to outside</h3>
+
+        <div class="path" aria-label="Execution phases">
+          <span class="node"><span class="n">A</span> Decision logic (no operational risk)</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">B</span> Effect without actuator (org as actuator)</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">C</span> Physical effect (hard gates + rollback)</span>
+        </div>
+
+        <hr class="mini-hr">
+
+        <div class="three-col">
+          <div class="card callout" style="margin:0">
+            <h3 style="margin-top:0">Phase A</h3>
+            <p class="muted" style="margin:.35rem 0 0">
+              Deterministic decision logic: simulation, blocking, escalation, audit.
+              This page lives here — it must prove <strong>BLOCK</strong> works and is explainable.
+            </p>
+            <div class="pill-row">
+              <span class="pill"><span class="dot"></span>Simulate</span>
+              <span class="pill red"><span class="dot"></span>Block</span>
+              <span class="pill"><span class="dot"></span>Eskalate</span>
+              <span class="pill"><span class="dot"></span>Audit</span>
+            </div>
+          </div>
+
+          <div class="card callout" style="margin:0">
+            <h3 style="margin-top:0">Phase B</h3>
+            <p class="muted" style="margin:.35rem 0 0">
+              Create <strong>tickets</strong>, <strong>work orders</strong>, <strong>change requests</strong>.
+              The organization becomes the actuator — controlled, reversible, governed.
+            </p>
+            <div class="pill-row">
+              <span class="pill"><span class="dot"></span>Ticket</span>
+              <span class="pill"><span class="dot"></span>Work Order</span>
+              <span class="pill"><span class="dot"></span>CR</span>
+              <span class="pill"><span class="dot"></span>Approval</span>
+            </div>
+          </div>
+
+          <div class="card callout warn" style="margin:0">
+            <h3 style="margin-top:0">Phase C</h3>
+            <p class="muted" style="margin:.35rem 0 0">
+              Physical actions only after proof:
+              <strong>hard safety gates</strong>, <strong>release conditions</strong>, <strong>rollback</strong>.
+              “Autonomy” without safety and rollback is not autonomy — it’s liability.
+            </p>
+            <div class="pill-row">
+              <span class="pill red"><span class="dot"></span>Hard Gate</span>
+              <span class="pill red"><span class="dot"></span>Safety</span>
+              <span class="pill"><span class="dot"></span>Release Conditions</span>
+              <span class="pill"><span class="dot"></span>Rollback</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="muted" style="margin-top:.9rem">
+          Key point: we don’t build autonomy “from bottom to top”.
+          We build it <strong>from inside to outside</strong>: first bounded thinking and governed decision-making, then controlled effects, then physical action.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARTIFACTS -->
+  <section class="section" id="artifacts">
+    <div class="container">
+      <h2>6) Artifacts (repo pointers)</h2>
+      <p class="muted">
+        This model is only credible if its governed artifacts are explicit and machine-checkable.
+        These files are the “Git commits” of industrial decision-making.
+      </p>
+
+      <div class="repo" aria-label="Artifact pointers">
+        <div class="row">
+          <strong>Decision Contract (normative)</strong>
+          <div class="muted" style="margin-top:.25rem">
+            Defines inputs/outputs, allowed outcomes, authority requirements, and what must be traced.
+          </div>
+          <div class="mono" style="margin-top:.4rem">
+            <code>governance/contracts/pp-door-release-v1.md</code>
+          </div>
+        </div>
+
+        <div class="row">
+          <strong>Decision Trace (append-only, machine-validated)</strong>
+          <div class="muted" style="margin-top:.25rem">
+            The audit spine: each decision (and each BLOCK) becomes an immutable record. This is what your checks enforce.
+          </div>
+          <div class="mono" style="margin-top:.4rem">
+            <code>ops/reports/decision_trace.jsonl</code>
+          </div>
+        </div>
+
+        <div class="row">
+          <strong>Gate Result (what governance decided)</strong>
+          <div class="muted" style="margin-top:.25rem">
+            The merge-blocking governance decision: PASS / FAIL, and why.
+          </div>
+          <div class="mono" style="margin-top:.4rem">
+            <code>ops/decisions/gate_result.json</code>
+          </div>
+        </div>
+
+        <div class="row">
+          <strong>System Status (single source of truth)</strong>
+          <div class="muted" style="margin-top:.25rem">
+            The website must display reality from governed status artifacts — not “marketing fallback”.
+          </div>
+          <div class="mono" style="margin-top:.4rem">
+            <code>ops/reports/system_status.json</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="card callout ok" style="margin-top:16px">
+        <strong>Normative rule</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          If it is not expressed in governed artifacts (<code>contract</code>, <code>trace</code>, <code>gate_result</code>, <code>status</code>),
+          it is not part of the system.
+        </p>
+      </div>
     </div>
   </section>
 
   <!-- AUDIT -->
   <section class="section" id="audit">
     <div class="container">
-      <h2>5) Audit (append-only)</h2>
+      <h2>7) Audit (append-only)</h2>
       <p class="muted">
         Every verdict is backed by a machine-readable audit record: evidence references, ruleset version, and governance outcome.
       </p>
@@ -410,10 +648,11 @@
   <!-- THE BLOCK CASE -->
   <section class="section" id="block">
     <div class="container">
-      <h2>The BLOCK case (what “success” looks like)</h2>
+      <h2>8) BLOCK (explicit trace) — what “success” looks like</h2>
       <p class="muted">
         Success is achieved when the model blocks a real production decision — and the responsible human is grateful.
         BLOCK is not an error; it is the system doing its job.
+        The important part: <strong>BLOCK must be explicitly traceable</strong>.
       </p>
 
       <div class="two-col">
@@ -421,6 +660,7 @@
           <h3>Scenario: missing evidence</h3>
           <p class="muted" style="margin:.35rem 0 0">
             The release proposal exists, but one required evidence artifact is missing or unverifiable (e.g., surface scan ref can’t be resolved).
+            Under a fail-safe policy, this must not degrade into “best effort”.
           </p>
           <div class="pill-row" aria-label="Block signals">
             <span class="pill red"><span class="dot"></span>evidence.chain_complete = false</span>
@@ -437,7 +677,7 @@
         </div>
 
         <div class="card">
-          <h3>Example BLOCK record</h3>
+          <h3>Example BLOCK record (normative)</h3>
           <pre class="codeblock mono" aria-label="Example BLOCK trace JSON">{
   "decision_id": "qg:TVL-2026-02-09-0001284",
   "timestamp_utc": "2026-02-09T09:02:41.120Z",
@@ -463,6 +703,17 @@
             This is the differentiator: a BLOCK is explicit, explainable, and produces a stable audit object.
           </p>
         </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <strong>Minimum requirement</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          A BLOCK must create:
+          (1) a trace entry in <code>ops/reports/decision_trace.jsonl</code>,
+          (2) a gate outcome (<code>ops/decisions/gate_result.json</code>),
+          and (3) a reflected system status (<code>ops/reports/system_status.json</code>).
+          Otherwise, the system has no right to claim it blocked.
+        </p>
       </div>
 
       <div class="actions" style="margin-top:16px">
