@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Decision Trace · virtauto®</title>
+
+  <!-- Reuse your site styling -->
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/styles_unify.css" />
+
+  <style>
+    /* Page-local styles (kept minimal, no global collisions) */
+    :root{
+      --dt-bg: rgba(2,6,23,.55);
+      --dt-panel: rgba(15,23,42,.85);
+      --dt-border: rgba(148,163,184,.25);
+      --dt-text: rgba(226,232,240,.95);
+      --dt-muted: rgba(148,163,184,.85);
+
+      --ph-route: rgba(56,189,248,.25);
+      --ph-exec: rgba(34,197,94,.22);
+      --ph-guard: rgba(250,204,21,.20);
+      --ph-final: rgba(239,68,68,.18);
+
+      --chip: rgba(15,23,42,.85);
+      --chip-border: rgba(148,163,184,.28);
+    }
+
+    main { padding: 2.25rem 0 3rem; }
+    .dt-wrap { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+
+    .dt-hero {
+      padding: 1.25rem 1.25rem 1rem;
+      border: 1px solid var(--dt-border);
+      border-radius: 16px;
+      background: radial-gradient(circle at top left, rgba(14,165,233,.18), var(--dt-bg) 55%);
+      box-shadow: 0 18px 40px rgba(0,0,0,.25);
+    }
+    .dt-hero h1 { margin: 0 0 .35rem; font-size: 1.6rem; line-height: 1.2; }
+    .dt-hero p { margin: 0; color: var(--dt-muted); }
+
+    .dt-controls {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr 1fr auto;
+      gap: .75rem;
+      align-items: end;
+    }
+    .field label { display:block; font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--dt-muted); margin-bottom: .35rem; }
+    .field input, .field select {
+      width: 100%;
+      padding: .7rem .8rem;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.28);
+      background: rgba(15,23,42,.75);
+      color: var(--dt-text);
+      outline: none;
+    }
+    .field input:focus, .field select:focus {
+      border-color: rgba(56,189,248,.7);
+      box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+    }
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:.5rem;
+      padding: .72rem .95rem;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.28);
+      background: rgba(15,23,42,.85);
+      color: var(--dt-text);
+      cursor: pointer;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .btn:hover { border-color: rgba(56,189,248,.55); }
+    .btn.primary {
+      border-color: rgba(56,189,248,.55);
+      background: linear-gradient(135deg, rgba(14,165,233,.9), rgba(34,197,94,.75));
+      color: rgba(249,250,251,.98);
+    }
+
+    .dt-meta {
+      margin-top: .9rem;
+      display:flex; flex-wrap:wrap;
+      gap: .5rem;
+      align-items:center;
+      color: var(--dt-muted);
+      font-size: .9rem;
+    }
+    .chip {
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding: .25rem .6rem;
+      border-radius: 999px;
+      border: 1px solid var(--chip-border);
+      background: var(--chip);
+      color: rgba(226,232,240,.92);
+      font-size: .78rem;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(148,163,184,.9); }
+    .dot.route { background: rgba(56,189,248,.95); }
+    .dot.execute { background: rgba(34,197,94,.95); }
+    .dot.guardian { background: rgba(250,204,21,.95); }
+    .dot.finalize { background: rgba(239,68,68,.85); }
+
+    .dt-grid {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: 1.2fr .9fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--dt-border);
+      border-radius: 16px;
+      background: rgba(2,6,23,.55);
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(0,0,0,.18);
+    }
+    .panel-h {
+      padding: .85rem 1rem;
+      border-bottom: 1px solid rgba(148,163,184,.18);
+      display:flex; align-items:center; justify-content:space-between;
+      gap: .75rem;
+      background: rgba(15,23,42,.55);
+    }
+    .panel-h strong { color: rgba(226,232,240,.95); }
+    .panel-b { padding: 1rem; }
+
+    .lanes {
+      display: grid;
+      gap: .9rem;
+      padding: 1rem;
+    }
+
+    .lane {
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 14px;
+      background: rgba(15,23,42,.35);
+      overflow: hidden;
+    }
+    .lane-h {
+      display:flex; align-items:center; justify-content:space-between;
+      gap: .75rem;
+      padding: .65rem .85rem;
+      border-bottom: 1px solid rgba(148,163,184,.14);
+      background: rgba(15,23,42,.55);
+    }
+    .lane-h .name { display:flex; align-items:center; gap:.55rem; font-weight: 750; letter-spacing: .02em; }
+    .lane-h .count { color: var(--dt-muted); font-size: .85rem; }
+
+    .lane-events {
+      padding: .75rem;
+      display: grid;
+      gap: .6rem;
+    }
+
+    .evt {
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.18);
+      padding: .65rem .75rem;
+      background: rgba(2,6,23,.40);
+      cursor: pointer;
+      transition: transform .08s ease, border-color .12s ease, background .12s ease;
+    }
+    .evt:hover { transform: translateY(-1px); border-color: rgba(56,189,248,.35); background: rgba(2,6,23,.52); }
+    .evt.active { border-color: rgba(56,189,248,.65); box-shadow: 0 0 0 3px rgba(56,189,248,.12); }
+
+    .evt-top {
+      display:flex; flex-wrap:wrap;
+      align-items:center; justify-content:space-between;
+      gap: .5rem;
+      margin-bottom: .35rem;
+    }
+    .evt-title {
+      display:flex; align-items:center; gap:.5rem;
+      font-weight: 750;
+      color: rgba(226,232,240,.95);
+    }
+    .evt-time { color: var(--dt-muted); font-size: .82rem; }
+    .evt-mid {
+      display:flex; flex-wrap:wrap;
+      gap: .5rem;
+      align-items:center;
+      color: var(--dt-muted);
+      font-size: .85rem;
+    }
+
+    .pill {
+      display:inline-flex; align-items:center; gap:.35rem;
+      padding: .18rem .55rem;
+      border-radius: 999px;
+      font-size: .75rem;
+      border: 1px solid rgba(148,163,184,.20);
+      background: rgba(15,23,42,.7);
+      color: rgba(226,232,240,.92);
+    }
+    .pill.route { background: var(--ph-route); border-color: rgba(56,189,248,.25); }
+    .pill.execute { background: var(--ph-exec); border-color: rgba(34,197,94,.22); }
+    .pill.guardian { background: var(--ph-guard); border-color: rgba(250,204,21,.18); }
+    .pill.finalize { background: var(--ph-final); border-color: rgba(239,68,68,.18); }
+
+    pre {
+      margin: 0;
+      padding: .9rem;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.18);
+      background: rgba(2,6,23,.55);
+      color: rgba(226,232,240,.92);
+      overflow: auto;
+      max-height: 70vh;
+      font-size: .85rem;
+      line-height: 1.45;
+    }
+
+    .hint { color: var(--dt-muted); font-size: .9rem; }
+
+    @media (max-width: 980px) {
+      .dt-controls { grid-template-columns: 1fr 1fr; }
+      .dt-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Minimal header compatible with your CSS -->
+  <header class="header">
+    <div class="container nav">
+      <div class="brand">virtauto® <span class="badge">Trace</span></div>
+      <nav id="menu" class="menu" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="industrymodel.html">Industry Model</a>
+        <a href="status.html">Status</a>
+        <a class="active" href="decision-trace.html">Decision Trace</a>
+      </nav>
+      <button class="burger" id="burger" aria-label="Menu" type="button">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="dt-wrap">
+      <div class="dt-hero">
+        <h1>Decision Trace</h1>
+        <p>Visual timeline / swimlanes for <code>route → execute → guardian → finalize</code> (source: <code>ops/reports/decision_trace.jsonl</code>)</p>
+
+        <div class="dt-controls" role="region" aria-label="Filters">
+          <div class="field">
+            <label for="q">Search</label>
+            <input id="q" type="text" placeholder="decision_id, actor, phase, verdict, text in result…" />
+          </div>
+
+          <div class="field">
+            <label for="actor">Actor</label>
+            <select id="actor">
+              <option value="">All</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="phase">Phase</label>
+            <select id="phase">
+              <option value="">All</option>
+              <option value="route">route</option>
+              <option value="execute">execute</option>
+              <option value="guardian">guardian</option>
+              <option value="finalize">finalize</option>
+              <!-- sometimes you used guardian_precheck; we normalize below -->
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="verdict">Verdict</label>
+            <select id="verdict">
+              <option value="">All</option>
+              <option value="PASS">PASS</option>
+              <option value="FAIL">FAIL</option>
+              <option value="BLOCK">BLOCK</option>
+              <option value="ALLOW">ALLOW</option>
+            </select>
+          </div>
+
+          <button class="btn primary" id="reload" type="button">Reload</button>
+          <button class="btn" id="clear" type="button">Clear</button>
+        </div>
+
+        <div class="dt-meta" id="meta">
+          <span class="chip"><span class="dot route"></span>route</span>
+          <span class="chip"><span class="dot execute"></span>execute</span>
+          <span class="chip"><span class="dot guardian"></span>guardian</span>
+          <span class="chip"><span class="dot finalize"></span>finalize</span>
+          <span class="chip" id="statLines">…</span>
+          <span class="chip" id="statDecisions">…</span>
+          <span class="chip" id="statActors">…</span>
+        </div>
+      </div>
+
+      <div class="dt-grid">
+        <section class="panel" aria-label="Swimlanes">
+          <div class="panel-h">
+            <strong>Swimlanes</strong>
+            <span class="hint" id="hint">Loading…</span>
+          </div>
+          <div class="lanes" id="lanes"></div>
+        </section>
+
+        <aside class="panel" aria-label="Details">
+          <div class="panel-h">
+            <strong>Selected event</strong>
+            <span class="hint" id="selMeta">Click an event</span>
+          </div>
+          <div class="panel-b">
+            <pre id="details">{}</pre>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // --- tiny mobile menu toggle (matches your existing pattern) ---
+    (function(){
+      const burger = document.getElementById('burger');
+      const menu = document.getElementById('menu');
+      if (!burger || !menu) return;
+      burger.addEventListener('click', () => menu.classList.toggle('open'));
+    })();
+
+    // --- Decision trace visualization ---
+    const SOURCE_URL = "ops/reports/decision_trace.jsonl";
+
+    const el = (id) => document.getElementById(id);
+    const lanesEl = el('lanes');
+    const detailsEl = el('details');
+    const hintEl = el('hint');
+    const selMetaEl = el('selMeta');
+
+    const qEl = el('q');
+    const actorEl = el('actor');
+    const phaseEl = el('phase');
+    const verdictEl = el('verdict');
+    const reloadEl = el('reload');
+    const clearEl = el('clear');
+
+    const statLinesEl = el('statLines');
+    const statDecisionsEl = el('statDecisions');
+    const statActorsEl = el('statActors');
+
+    let rawEvents = [];
+    let filteredEvents = [];
+    let activeEventKey = null;
+
+    function normalizePhase(p) {
+      if (!p) return "";
+      const s = String(p).toLowerCase();
+      if (s.includes("guardian")) return "guardian";
+      if (s.includes("final")) return "finalize";
+      if (s.includes("exec")) return "execute";
+      if (s.includes("route")) return "route";
+      return s;
+    }
+
+    function safeJsonParse(line) {
+      try { return JSON.parse(line); } catch { return null; }
+    }
+
+    function toArrayFromJsonl(text) {
+      return text
+        .split(/\r?\n/)
+        .map(l => l.trim())
+        .filter(Boolean)
+        .map(safeJsonParse)
+        .filter(Boolean);
+    }
+
+    function toTsMs(ts) {
+      if (!ts) return 0;
+      const t = Date.parse(ts);
+      return Number.isFinite(t) ? t : 0;
+    }
+
+    function fmtTime(ts) {
+      if (!ts) return "—";
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return String(ts);
+      return d.toISOString().replace("T", " ").replace("Z", " UTC");
+    }
+
+    function eventKey(evt, idx) {
+      // stable key across render cycles
+      const id = evt.decision_id || "no-decision";
+      const ts = evt.ts || "";
+      const actor = evt.actor || "";
+      const ph = normalizePhase(evt.phase || "");
+      return `${id}::${ts}::${actor}::${ph}::${idx}`;
+    }
+
+    function stringifyForSearch(evt) {
+      // keep it cheap but useful
+      const parts = [
+        evt.ts, evt.trace_version, evt.decision_id, evt.actor, evt.phase,
+        (evt.result && typeof evt.result === 'object') ? JSON.stringify(evt.result) : evt.result
+      ];
+      return parts.filter(Boolean).join(" ").toLowerCase();
+    }
+
+    function uniqueSorted(arr) {
+      return [...new Set(arr)].sort((a,b)=> String(a).localeCompare(String(b)));
+    }
+
+    function setSelectOptions(selectEl, values, keepEmpty=true) {
+      const current = selectEl.value;
+      const opts = [];
+      if (keepEmpty) opts.push({value:"", label:"All"});
+      values.forEach(v => opts.push({value:v, label:v}));
+      selectEl.innerHTML = "";
+      for (const o of opts) {
+        const opt = document.createElement("option");
+        opt.value = o.value;
+        opt.textContent = o.label;
+        selectEl.appendChild(opt);
+      }
+      // restore if possible
+      if (opts.some(o => o.value === current)) selectEl.value = current;
+    }
+
+    function updateStats(events) {
+      const lines = rawEvents.length;
+      const decisions = uniqueSorted(rawEvents.map(e => e.decision_id).filter(Boolean)).length;
+      const actors = uniqueSorted(rawEvents.map(e => e.actor).filter(Boolean)).length;
+
+      statLinesEl.textContent = `lines: ${lines}`;
+      statDecisionsEl.textContent = `decisions: ${decisions}`;
+      statActorsEl.textContent = `actors: ${actors}`;
+    }
+
+    function extractVerdict(evt) {
+      const r = evt && evt.result;
+      if (!r) return "";
+      if (typeof r === "string") return r;
+      if (typeof r !== "object") return "";
+
+      // common shapes: {verdict:"BLOCK"} or {result:{verdict:...}}
+      if (r.verdict) return String(r.verdict);
+      if (r.policy && r.verdict) return String(r.verdict);
+      if (r.guardian && r.guardian.verdict) return String(r.guardian.verdict);
+      // try a shallow scan
+      for (const k of Object.keys(r)) {
+        if (k.toLowerCase() === "verdict") return String(r[k]);
+      }
+      return "";
+    }
+
+    function applyFilters() {
+      const q = (qEl.value || "").trim().toLowerCase();
+      const actor = actorEl.value;
+      const phase = phaseEl.value;
+      const verdict = verdictEl.value;
+
+      filteredEvents = rawEvents.filter((evt) => {
+        const nPhase = normalizePhase(evt.phase);
+        const v = extractVerdict(evt);
+
+        if (actor && String(evt.actor) !== actor) return false;
+        if (phase && nPhase !== phase) return false;
+        if (verdict && String(v).toUpperCase() !== verdict) return false;
+
+        if (q) {
+          const hay = stringifyForSearch(evt);
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      render();
+    }
+
+    function groupByActor(events) {
+      const map = new Map();
+      for (const e of events) {
+        const a = e.actor || "unknown";
+        if (!map.has(a)) map.set(a, []);
+        map.get(a).push(e);
+      }
+      // sort each lane by timestamp
+      for (const [a, list] of map.entries()) {
+        list.sort((x,y) => toTsMs(x.ts) - toTsMs(y.ts));
+      }
+      // order lanes by known “canonical” order, then alpha
+      const preferred = ["orchestrator","content-agent","deploy-agent","audit-agent","guardian","george","system","unknown"];
+      const actors = [...map.keys()];
+      actors.sort((a,b)=>{
+        const ia = preferred.indexOf(a);
+        const ib = preferred.indexOf(b);
+        if (ia !== -1 || ib !== -1) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+        return String(a).localeCompare(String(b));
+      });
+
+      return { map, actors };
+    }
+
+    function buildEventCard(evt, idx) {
+      const ph = normalizePhase(evt.phase);
+      const v = extractVerdict(evt);
+      const id = evt.decision_id || "—";
+      const key = eventKey(evt, idx);
+
+      const card = document.createElement("div");
+      card.className = "evt" + (activeEventKey === key ? " active" : "");
+      card.dataset.key = key;
+
+      const top = document.createElement("div");
+      top.className = "evt-top";
+
+      const title = document.createElement("div");
+      title.className = "evt-title";
+
+      const pill = document.createElement("span");
+      pill.className = `pill ${ph || ""}`;
+      pill.textContent = ph || (evt.phase || "phase");
+
+      const did = document.createElement("span");
+      did.textContent = id;
+
+      title.appendChild(pill);
+      title.appendChild(did);
+
+      const time = document.createElement("div");
+      time.className = "evt-time";
+      time.textContent = fmtTime(evt.ts);
+
+      top.appendChild(title);
+      top.appendChild(time);
+
+      const mid = document.createElement("div");
+      mid.className = "evt-mid";
+
+      if (v) {
+        const vPill = document.createElement("span");
+        vPill.className = "pill";
+        vPill.textContent = `verdict: ${String(v).toUpperCase()}`;
+        mid.appendChild(vPill);
+      }
+
+      // show small hints from result
+      const r = evt.result;
+      let hint = "";
+      if (r && typeof r === "object") {
+        if (r.reason) hint = `reason: ${r.reason}`;
+        else if (r.proposal) hint = `proposal: ${r.proposal}`;
+        else if (r.policy && r.reason) hint = `policy: ${r.policy} · ${r.reason}`;
+        else if (r.policy && !r.reason) hint = `policy: ${r.policy}`;
+        else if (r.result && typeof r.result === "string") hint = `result: ${r.result}`;
+      }
+      if (hint) {
+        const span = document.createElement("span");
+        span.textContent = hint;
+        mid.appendChild(span);
+      }
+
+      card.appendChild(top);
+      card.appendChild(mid);
+
+      card.addEventListener("click", () => {
+        activeEventKey = key;
+        // Update active highlight
+        document.querySelectorAll(".evt.active").forEach(x => x.classList.remove("active"));
+        card.classList.add("active");
+
+        detailsEl.textContent = JSON.stringify(evt, null, 2);
+        selMetaEl.textContent = `${evt.actor || "unknown"} · ${normalizePhase(evt.phase) || evt.phase || "phase"} · ${fmtTime(evt.ts)}`;
+      });
+
+      return card;
+    }
+
+    function render() {
+      lanesEl.innerHTML = "";
+      const { map, actors } = groupByActor(filteredEvents);
+
+      hintEl.textContent = filteredEvents.length
+        ? `showing ${filteredEvents.length} events`
+        : `no events match filters`;
+
+      for (const actor of actors) {
+        const lane = document.createElement("div");
+        lane.className = "lane";
+
+        const lh = document.createElement("div");
+        lh.className = "lane-h";
+
+        const name = document.createElement("div");
+        name.className = "name";
+        const dot = document.createElement("span");
+        dot.className = "dot " + normalizePhase(actor); // not used but keeps consistent
+        dot.style.background = "rgba(148,163,184,.9)";
+        name.appendChild(dot);
+        const txt = document.createElement("span");
+        txt.textContent = actor;
+        name.appendChild(txt);
+
+        const count = document.createElement("div");
+        count.className = "count";
+        count.textContent = `${map.get(actor).length} events`;
+
+        lh.appendChild(name);
+        lh.appendChild(count);
+
+        const body = document.createElement("div");
+        body.className = "lane-events";
+
+        const list = map.get(actor);
+        list.forEach((evt, i) => body.appendChild(buildEventCard(evt, i)));
+
+        lane.appendChild(lh);
+        lane.appendChild(body);
+        lanesEl.appendChild(lane);
+      }
+    }
+
+    async function load() {
+      hintEl.textContent = "Loading…";
+      selMetaEl.textContent = "Click an event";
+      detailsEl.textContent = "{}";
+      activeEventKey = null;
+
+      try {
+        const res = await fetch(SOURCE_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status} loading ${SOURCE_URL}`);
+        const txt = await res.text();
+
+        rawEvents = toArrayFromJsonl(txt);
+
+        // normalize phase values (keep original too)
+        rawEvents = rawEvents.map(e => ({
+          ...e,
+          phase: e.phase || "",
+          _phase_norm: normalizePhase(e.phase)
+        }));
+
+        // sort globally by timestamp for stable results
+        rawEvents.sort((a,b) => toTsMs(a.ts) - toTsMs(b.ts));
+
+        // populate actor dropdown
+        const actors = uniqueSorted(rawEvents.map(e => e.actor).filter(Boolean));
+        setSelectOptions(actorEl, actors, true);
+
+        updateStats(rawEvents);
+
+        hintEl.textContent = `loaded ${rawEvents.length} events`;
+        applyFilters();
+
+      } catch (err) {
+        hintEl.textContent = "Load failed";
+        lanesEl.innerHTML = `
+          <div class="panel" style="padding:1rem;border-radius:16px;">
+            <div class="hint">
+              Could not load <code>${SOURCE_URL}</code>.<br/>
+              ${String(err).replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+              <br/><br/>
+              Check that the file exists on <code>main</code> and is accessible via GitHub Pages.
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // Events
+    [qEl, actorEl, phaseEl, verdictEl].forEach(node => {
+      node.addEventListener("input", applyFilters);
+      node.addEventListener("change", applyFilters);
+    });
+
+    reloadEl.addEventListener("click", load);
+    clearEl.addEventListener("click", () => {
+      qEl.value = "";
+      actorEl.value = "";
+      phaseEl.value = "";
+      verdictEl.value = "";
+      applyFilters();
+    });
+
+    // init
+    load();
+  </script>
+</body>
+</html>
