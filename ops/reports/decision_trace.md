@@ -1,8 +1,9 @@
 # Decision Trace (Explainability v1)
 
-This document defines the **normative expectations** for the Decision Trace artifacts used by virtauto’s governance gates.
+This document is **normative documentation** for virtauto’s Decision Trace artifacts.
+It must remain **reference-only** (no inline decision payloads), so governance checks can validate it safely.
 
-**Core principle:**  
+**Core principle:**
 > No decision may pass governance without a trace.  
 A trace is the minimal proof that a decision was evaluated under constraints, authority, and policy — and that a **BLOCK** is always possible and explainable.
 
@@ -13,7 +14,7 @@ A trace is the minimal proof that a decision was evaluated under constraints, au
 **Primary (canonical):**
 - `ops/reports/decision_trace.jsonl`
 
-**Accepted legacy fallbacks (validator will also accept):**
+**Accepted legacy fallbacks (validator may accept):**
 - `ops/decision_trace.jsonl`
 - `ops/reports/decision_trace.json`
 - `ops/decision_trace.json`
@@ -22,9 +23,22 @@ If multiple files exist, the validator will use the first matching candidate pat
 
 ---
 
-## 2) Accepted formats
+## 2) What “Decision Trace” means here
 
-The governance gate allows two formats in order to remain tolerant to legacy evolution:
+The Decision Trace is an **append-only** log of decision processing steps.
+It is the evidence backbone for:
+- explainability (“why allowed / held / blocked”)
+- auditability (“what evidence, what policy, what authority”)
+- governance (“no silent execution”)
+
+This file (`decision_trace.md`) is the **documentation** for the trace contract.
+The actual machine-readable trace lives in `decision_trace.jsonl`.
+
+---
+
+## 3) Accepted trace formats (validator-level)
+
+To remain tolerant to legacy evolution, the validator accepts two formats:
 
 ### A) Record format (recommended) — JSONL
 Each line is one JSON object (one event/record).
@@ -37,14 +51,14 @@ Each line is one JSON object (one event/record).
 - `phase` *(string)*
 - `result` *(any JSON type; object recommended)*
 
-### B) Bundle format (tolerated) — single JSON object or list
-A “bundle” is one generated trace object that already contains inputs + outputs.
+### B) Bundle format (tolerated) — JSON object (or list of objects)
+A “bundle” is one generated trace object that contains inputs + outputs.
 
 **Required:**
-- `trace_id`
+- `trace_id` *(string)*
 - `inputs` *(non-empty list)*
 - `outputs` *(non-empty list)*
-- `generated_at` **or** `ts`
+- `generated_at` **or** `ts` *(string)*
 
 **Recommended:**
 - `because`
@@ -52,9 +66,9 @@ A “bundle” is one generated trace object that already contains inputs + outp
 
 ---
 
-## 3) Minimal phase vocabulary
+## 4) Minimal phase vocabulary (record format)
 
-The record format should use phases from this minimal set:
+Recommended phases:
 
 - `route`
 - `guardian_precheck`
@@ -69,47 +83,50 @@ Legacy synonyms may appear (accepted but should be migrated):
 
 ---
 
-## 4) What the trace must prove (Explainability v1)
+## 5) What the trace must prove (Explainability v1)
 
 A valid trace must make the following verifiable:
 
-1. **Decision identity**  
-   The trace clearly references a `decision_id` for the decision instance.
+1. **Decision identity**
+   - A stable `decision_id` exists for the decision instance.
 
-2. **Constraints & evidence were checked**  
-   The trace includes a deterministic check step (typically in `execute`) that references evidence or marks evidence as missing.
+2. **Constraints & evidence were checked**
+   - A deterministic check step exists (typically in `execute`) that references evidence
+     (or marks evidence as missing).
 
-3. **Governance and authority were enforced**  
-   The trace includes a governance step (e.g., `authority_enforcement`) and/or a guardian step.
+3. **Governance & authority were enforced**
+   - Authority enforcement is visible (e.g., `authority_enforcement`)
+   - Guardian or invariant checks are visible (e.g., `guardian_precheck` / `guardian_postcheck`)
 
-4. **A verdict exists**  
-   The trace ends with an outcome that is logically stable: `ALLOW`, `HOLD`, or `BLOCK` (typically in `finalize`).
+4. **A stable verdict exists**
+   - The decision ends with a logically stable outcome: `ALLOW`, `HOLD`, or `BLOCK`
+     (typically in `finalize` or `blocked`).
 
-5. **BLOCK is explicit (not implicit)**  
-   When the system blocks, the trace must contain:
+5. **BLOCK is explicit (not implicit)**
+   When the system blocks, the trace must show:
    - the blocking reason (e.g., `missing_required_evidence:*`)
    - the applied policy/invariant
    - the resulting safe state update (e.g., `door.state = HOLD`)
 
 ---
 
-## 5) Canonical BLOCK trace expectations
+## 6) Canonical BLOCK expectations
 
 A BLOCK is considered correct and “successful” if:
 
-- The missing/invalid condition is explicit (e.g., evidence chain incomplete)
-- Guardian/policy check is recorded and **FAIL**
-- No silent override occurs
-- A safe state update is recorded (e.g., HOLD / inspection buffer)
-- A next action can be proposed (ticket / inspection) without executing physical actions
+- the missing/invalid condition is explicit (e.g., evidence chain incomplete)
+- guardian/policy check is recorded and **FAIL**
+- no silent override occurs
+- a safe state update is recorded (e.g., HOLD / inspection buffer)
+- a next action can be proposed (ticket / inspection) without executing physical actions
 
 BLOCK is not a failure of autonomy — it is a **proof of governance**.
 
 ---
 
-## 6) Validator reference (governance gate)
+## 7) Validator reference (governance gate)
 
-The decision trace is validated by:
+Decision trace validation is executed by:
 
 - `ops/validate_decision_trace.py`
 
@@ -126,23 +143,19 @@ Exit codes:
 
 ---
 
-## 7) Operational rules (non-negotiables)
+## 8) Operational rules (non-negotiables)
 
 - The trace is **append-only** (no history rewriting).
 - PR-only changes for governed artifacts.
-- No decision should reach execution without trace coverage.
+- No decision reaches execution without trace coverage.
 - The trace is the public evidence backbone for the “Industry Model” proof object.
 
 ---
 
-## Appendix: Example (record format, JSONL)
+## 9) Contract compatibility (important)
 
-See: `ops/reports/decision_trace.jsonl` for the current canonical examples.
+Decision Contracts (v1) expect decision identifiers to be **strings** (references), not embedded payloads.
 
-## Contract Compatibility Note
-
-Decision Contracts (v1) require all decision identifiers
-(e.g. `proposal`, `decision_class`) to be declared as strings.
-
-Structured or contextual decision details MUST be placed
-in the Decision Trace (phase records), not in the Contract layer.
+Therefore:
+- This `decision_trace.md` MUST stay **reference-only** (no inline decision objects).
+- Structured decision details belong in `ops/reports/decision_trace.jsonl` as trace records/bundles.
