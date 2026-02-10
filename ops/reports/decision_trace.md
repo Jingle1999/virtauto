@@ -1,9 +1,44 @@
+# Decision Trace — PR #532 (Update styles.css)
 
-2. Inhalt **1:1** reinkopieren
+## Decision / Intent
+Update and normalize global styling (`styles.css`) to support:
+- explicit Spec v1 labeling in industrymodel.html
+- visual clarity for governance-related UI elements
+- consistent brand tokens and mobile behavior
 
-3. Commit & Push
+This change is **non-functional** and **presentation-only**.
 
-👉 Danach:
-- `validate_pr_decision_trace` ✅
-- PR #531 / #532 lassen sich **sauber mergen**
-- Thema **Decision / Block Trace ist offiziell abgeschlossen**
+---
+
+## Authority
+**Change class:** Presentation / Styling  
+**Authority level:** Maintainer  
+**Approval required:** Code owner review  
+**Automated gates:** Style, Design, Governance
+
+---
+
+## Scope
+**Files touched:**
+- `assets/styles.css`
+
+**No changes to:**
+- runtime logic
+- agent behavior
+- governance rules
+- decision contracts
+- operational endpoints
+
+---
+
+## Risk Assessment
+- Runtime risk: **None**
+- Governance risk: **None**
+- Reversibility: **Trivial (CSS rollback)**
+
+---
+
+## Expected Outcome
+- Styles updated without altering system behavior
+- Spec v1 visual markers rendered consistently
+- All governance and design gates pass
