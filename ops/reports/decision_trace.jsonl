@@ -1,4 +1,7 @@
-{"ts":"2026-02-10T09:15:00.000Z","trace_version":"v1","decision_id":"qg:TVL-2026-02-10-0001301","actor":"orchestrator","phase":"route","result":"domain=biw_doorline_tvl; decision_class=door_release_gate; ruleset_version=biw-door-qg-v1.0; proposal=RELEASE_AFTER_QG_STAGES"}
-{"ts":"2026-02-10T09:15:00.120Z","trace_version":"v1","decision_id":"qg:TVL-2026-02-10-0001301","actor":"orchestrator","phase":"execute","result":"checks: geometry=PASS; gap_flush=PASS; surface=MISSING; evidence_chain_complete=false"}
-{"ts":"2026-02-10T09:15:00.240Z","trace_version":"v1","decision_id":"qg:TVL-2026-02-10-0001301","actor":"guardian","phase":"guardian_precheck","result":"policy=release_requires_complete_evidence_chain; verdict=FAIL; reason=missing_required_evidence:surface"}
-{"ts":"2026-02-10T09:15:00.360Z","trace_version":"v1","decision_id":"qg:TVL-2026-02-10-0001301","actor":"george","phase":"finalize","result":"verdict=BLOCK; state_update: door_state=HOLD"}
+{"ts":"2026-02-10T13:05:12Z","trace_version":"v1","decision_id":"trace_content_publish_0001","actor":"GEORGE","phase":"route","decision_class":"CONTENT_PUBLISH","intent":"Publish website content update","target":{"path":"/industrymodel.html","channel":"website"},"inputs":{"trigger":"content_agent_publish_requested","pr_number":534,"commit_sha":"<PUT_SHA_HERE>","spec_ref":"industrymodel.html#spec-v1"},"result":"ROUTED"}
+
+{"ts":"2026-02-10T13:05:14Z","trace_version":"v1","decision_id":"trace_content_publish_0001","actor":"CONTENT_AGENT","phase":"execute","checks":{"files_changed":["industrymodel.html","assets/styles.css"],"publish_plan":"static_site_deploy"},"result":"EXECUTION_REQUESTED"}
+
+{"ts":"2026-02-10T13:05:15Z","trace_version":"v1","decision_id":"trace_content_publish_0001","actor":"GUARDIAN","phase":"guardian_check","policy":"CONTENT_PUBLISH_GUARDIAN","checks":[{"id":"P1","name":"decision_trace_present","status":"PASS"},{"id":"P2","name":"design_trace_present","status":"PASS"},{"id":"P3","name":"pr_based_change","status":"PASS"}],"result":"BLOCKED","block_reason":"Missing decision_trace.md update"}
+
+{"ts":"2026-02-10T13:05:16Z","trace_version":"v1","decision_id":"trace_content_publish_0001","actor":"GEORGE","phase":"finalize","result":"BLOCKED","next_actions":["Request content agent to resubmit with updated decision_trace.md"],"status":"FINAL"}

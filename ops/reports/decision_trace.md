@@ -1,66 +1,53 @@
-# Decision Trace — PR #532
+# Decision Trace – Content Publish BLOCK Example
 
-## Decision / Intent
-Introduce a first-class visualization for decision traces by adding a dedicated
-`decision-trace.html` page that directly reads and renders
-`ops/reports/decision_trace.jsonl`.
-
-Goal:
-- Make agent decisions observable and explainable
-- Expose the full lifecycle: route → execute → guardian → finalize
-- Provide a concrete, auditable UI example of governance-first agentic systems
-
-This change is purely **observational** (read-only) and does not alter runtime behavior.
+**Trace ID:** `trace_content_publish_0001`  
+**Decision Class:** CONTENT_PUBLISH  
+**Spec Reference:** industrymodel.html#spec-v1  
+**Status:** BLOCKED  
 
 ---
 
-## Authority
-- Change class: **Documentation / Visualization**
-- Authority level: **Advisory**
-- Approval required: **Repository maintainer**
-- No escalation required
+## Decision Intent
+Publish updated website content to the public channel.
 
 ---
 
-## Scope (files / modules touched)
-- `decision-trace.html` (new)
-- `assets/styles.css` (styling polish only)
-- No changes to:
-  - agent logic
-  - governance rules
-  - decision policies
-  - execution paths
+## Actors Involved
+- Content Agent (request)
+- GEORGE (orchestration & final decision)
+- Guardian (policy enforcement)
 
 ---
 
-## Expected Outcome
-- A human-readable, browser-based timeline & swimlane view of decision traces
-- Clear attribution by actor and phase
-- Transparent visibility of BLOCK / FAIL / PASS outcomes
-- Strengthened trust, auditability, and explainability of virtauto agents
+## Decision Flow
+
+1. **Route**  
+   Publish request routed by GEORGE.
+
+2. **Execute**  
+   Content Agent prepared static publish plan.
+
+3. **Guardian Check**  
+   Policy `CONTENT_PUBLISH_GUARDIAN` applied.  
+   All structural checks passed, but required decision trace documentation was missing.
+
+4. **Finalize**  
+   Decision blocked.  
+   No content published.
 
 ---
 
-## Risk Assessment
-- Operational risk: **None**
-- Security impact: **None**
-- Governance impact: **Positive**
-  - Improves trace transparency
-  - Makes implicit governance behavior explicit
+## Block Reason
+Required `decision_trace.md` update missing at time of submission.
 
 ---
 
-## Verification
-- Governance checks passed
-- Decision trace validation passed
-- No side effects observed
+## Outcome
+BLOCKED  
+No execution performed.
 
 ---
 
-## Notes
-This PR is a foundational step toward:
-- Decision Trace Explainability v1
-- Public-facing governance transparency
-- A decision-centric (not UI-centric) system narrative
-
-_UI reflects system truth. System truth is defined by JSON traces._
+## Governance Principle Demonstrated
+> No decision without trace.  
+> No execution without explainability.
