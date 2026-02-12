@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
@@ -30,6 +29,7 @@ GATE_RESULT_PATH = Path("ops/decisions/gate_result.json")
 ACTIVITY_PATH = Path("ops/agent_activity.jsonl")
 AUTONOMY_PATH = Path("ops/autonomy.json")
 LATEST_DECISION_PATH = Path("ops/decisions/latest.json")
+EMERGENCY_LOCK_PATH = Path("ops/emergency_lock.json")
 
 
 def iso_utc_now() -> str:
@@ -63,7 +63,7 @@ def write_json(path: Path, obj: Dict[str, Any]) -> None:
 
 def compute_autonomy_percent(autonomy: Dict[str, Any] | None) -> float:
     try:
-        lvl = float(autonomy.get("overview", {}).get("system_autonomy_level", 0.0))
+        lvl = float((autonomy or {}).get("overview", {}).get("system_autonomy_level", 0.0))
         # clamp 0..1
         lvl = 0.0 if lvl < 0 else (1.0 if lvl > 1 else lvl)
         return round(lvl * 100.0, 1)
@@ -71,9 +71,89 @@ def compute_autonomy_percent(autonomy: Dict[str, Any] | None) -> float:
         return 0.0
 
 
+def _tail_lines(path: Path, max_lines: int) -> list[str]:
+    """Return last max_lines non-empty lines (best-effort, deterministic)."""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return []
+    except Exception:
+        return []
+    lines = [ln for ln in lines if ln.strip()]
+    return lines[-max_lines:]
+
+
+def compute_trace_coverage(decision_trace_jsonl: Path, window: int = 20) -> float:
+    """
+    Trace coverage over last N runs: fraction of trace entries that meet
+    minimal audit requirements (schema + ids + evidence + I/O).
+    """
+    required_top_level_keys = {
+        "schema_version",
+        "generated_at",
+        "trace_id",
+        "because",
+        "inputs",
+        "outputs",
+        "evidence",
+    }
+
+    # Required outputs declared per trace entry to qualify as "covered"
+    required_output_paths = {
+        "ops/reports/system_status.json",
+        "ops/decisions/gate_result.json",
+        "ops/reports/decision_trace.json",
+        "ops/reports/decision_trace.jsonl",
+    }
+
+    lines = _tail_lines(decision_trace_jsonl, max_lines=max(1, int(window)))
+    if not lines:
+        return 0.0
+
+    ok = 0
+    total = 0
+
+    for ln in lines:
+        total += 1
+        try:
+            obj = json.loads(ln)
+        except Exception:
+            continue
+
+        # required keys
+        if not required_top_level_keys.issubset(set(obj.keys())):
+            continue
+
+        # types sanity
+        if not isinstance(obj.get("because"), list):
+            continue
+        if not isinstance(obj.get("inputs"), list):
+            continue
+        if not isinstance(obj.get("outputs"), list):
+            continue
+        if not isinstance(obj.get("evidence"), dict):
+            continue
+
+        outs = set(str(x) for x in obj.get("outputs", []))
+        if not required_output_paths.issubset(outs):
+            continue
+
+        ok += 1
+
+    if total == 0:
+        return 0.0
+    return round(ok / total, 3)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--env", default="production", help="environment label (production/staging/dev)")
+    ap.add_argument(
+        "--trace-window",
+        type=int,
+        default=20,
+        help="number of recent decision_trace.jsonl entries used to compute trace_coverage",
+    )
     args = ap.parse_args()
 
     ts = iso_utc_now()
@@ -85,9 +165,9 @@ def main() -> int:
     # Phase 9 default: HUMAN_GUARDED / supervised; hard actions are gated elsewhere.
     mode = "SUPERVISED"
 
-    # Gate verdict (authoritative snapshot). For now, we keep it deterministic and conservative:
-    # - PASS if truth generation succeeded and we have no explicit emergency lock file set to true.
-    emergency_lock = load_json(Path("ops/emergency_lock.json")) or {}
+    # Gate verdict (authoritative snapshot). Deterministic and conservative:
+    # - DENY if emergency lock is enabled
+    emergency_lock = load_json(EMERGENCY_LOCK_PATH) or {}
     locked = bool(emergency_lock.get("locked", False))
     gate_verdict = "DENY" if locked else "ALLOW"
 
@@ -101,6 +181,7 @@ def main() -> int:
     }
     write_json(GATE_RESULT_PATH, gate_result)
 
+    # IMPORTANT for Option A: outputs must include all truth artifacts for coverage validation.
     decision_trace = {
         "schema_version": "1.0",
         "generated_at": ts,
@@ -117,6 +198,8 @@ def main() -> int:
         "outputs": [
             "ops/reports/system_status.json",
             "ops/decisions/gate_result.json",
+            "ops/reports/decision_trace.json",
+            "ops/reports/decision_trace.jsonl",
         ],
         "evidence": {
             "ev_status_agent_run": {"type": "agent_run", "ts": ts, "ref": "ops/agent_activity.jsonl"},
@@ -125,6 +208,9 @@ def main() -> int:
     }
     write_json(DECISION_TRACE_JSON, decision_trace)
     append_jsonl(DECISION_TRACE_JSONL, decision_trace)
+
+    # Option A: compute actual trace coverage from recent trace entries
+    trace_coverage = compute_trace_coverage(DECISION_TRACE_JSONL, window=args.trace_window)
 
     system_status = {
         "schema_version": "1.0",
@@ -142,7 +228,7 @@ def main() -> int:
             "value": autonomy_percent,
             "percent": autonomy_percent,
             "mode": mode,
-            "trace_coverage": None,
+            "trace_coverage": trace_coverage,
             "gate_verdict": gate_verdict,
             "human_override_rate": None,
             "self_healing_factor": None,
