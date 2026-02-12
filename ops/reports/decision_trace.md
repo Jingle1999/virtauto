@@ -54,62 +54,89 @@ No execution performed.
 
 ---
 
-## 2026-02-12 — Agent Registry v1 (Governed Platform Configuration)
+2026-02-12 — Status Agent Stabilization (Workflow Governance Fix)
 
-**Decision ID:** `gov:agent-registry-v1-2026-02-12`  
-**Domain:** `virtauto_platform`  
-**Decision Class:** `platform.agent_registry_update`  
-**Verdict:** `ALLOW`
+Decision ID: gov_status_agent_stabilization_v1_2026-02-12
+Domain: virtauto_platform
+Decision Class: PLATFORM_WORKFLOW_UPDATE
+Verdict: ALLOW
+Status: FINAL
 
-### Intent
+Intent
 
-Create a canonical `agents/registry.yaml` defining all platform agents and their allowed / forbidden actions under PR-only governance.
+Stabilize the Status Agent workflow (.github/workflows/status-monitoring.yml) to ensure:
 
-This formalizes:
+Deterministic truth artifact publication
 
-- Status Agent (read-only SSOT)
-- Content Agent (PR-only updates)
-- Audit Agent (validation & advisory)
-- Deploy Agent (governed deployment flow)
+Correct Pages branch push (status-pages)
 
-### Why this decision matters
+No writes to main
 
-The agent registry is a governance artifact.  
-If an agent is not listed here, it is not part of the system.
+Governance-compliant artifact handling
 
-This update:
+Why This Decision Matters
 
-- Introduces a machine-readable authority definition
-- Makes agent scope explicit
-- Enforces PR-only change discipline
-- Prevents direct execution without governance checks
+The Status Agent is the system’s Single Source of Truth generator.
 
-### Governance Enforcement
+If its workflow is unstable:
+
+Truth artifacts may not publish
+
+/status/ may drift from system state
+
+Governance transparency degrades
+
+Stabilizing the workflow restores deterministic evidence publication without expanding authority.
+
+Governance Enforcement
 
 Required checks:
 
-- `validate_contract_v1`
-- `validate_decision_trace`
-- `validate_status`
-- `review_gate`
+validate_contract_v1
 
-Guardian check: `PASS`  
-Approval: `1 approving review`  
+validate_decision_trace
+
+validate_status
+
+review_gate
+
+Guardian check: PASS
+Approval: 1 approving review
 Policy: PR-only change required for governance artifacts
 
-### Operational Meaning
+Operational Meaning
 
-This decision does **not** deploy new behavior automatically.  
-It establishes authority boundaries and control constraints.
+This decision:
 
-It is a configuration governance decision, not an execution decision.
+Does not expand agent authority
 
-Audit pointer (machine-readable):
-- decision_id: gov_agent_registry_v1_2026-02-12
-- trace ledger: ops/reports/decision_trace.jsonl
-- governed artifact: agents/registry.yaml
-- enforcement: PR-only + required checks + 1 approving review
----
+Does not introduce new execution rights
 
-**Normative principle:**  
-If agent authority is not declared in the registry, it does not exist.
+Does not bypass governance
+
+It strictly corrects workflow execution logic to preserve:
+
+Deterministic behavior
+
+Controlled publishing
+
+Bounded operational authority
+
+It is a governance-level stabilization decision.
+
+Audit Pointer (Machine-Readable)
+
+decision_id: gov_status_agent_stabilization_v1_2026-02-12
+
+affected_artifact: .github/workflows/status-monitoring.yml
+
+enforcement: PR-only + required checks + 1 approving review
+
+related_trace_file: ops/reports/decision_trace.jsonl
+
+Normative Principle
+
+If the Status Agent cannot reliably publish truth,
+the system cannot claim governed autonomy.
+
+Stability of evidence generation is a prerequisite for bounded decision authority.

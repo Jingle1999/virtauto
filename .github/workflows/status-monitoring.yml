@@ -64,6 +64,72 @@ jobs:
 
           [ -f ops/decisions/gate_result.json ] && cp -f ops/decisions/gate_result.json status/ops/decisions/gate_result.json || true
 
+      - name: name: Status Monitoring (Truth Regeneration) - Phase 1 (Status Agent)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Heartbeat every 10 minutes
+    - cron: "*/10 * * * *"
+
+# IMPORTANT: do NOT cancel in-progress runs.
+concurrency:
+  group: status-monitoring-phase1
+  cancel-in-progress: false
+
+# We must be able to commit/push truth artifacts to a non-protected branch.
+permissions:
+  contents: write
+
+jobs:
+  status-agent-heartbeat:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (if present)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f requirements.txt ]; then
+            python -m pip install --upgrade pip
+            python -m pip install -r requirements.txt
+          fi
+
+      - name: Run Status Agent (heartbeat + evidence)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Running Status Agent heartbeat..."
+          python ops/status_agent.py --env production
+
+      - name: Mirror evidence into /status/ops (GitHub Pages-served)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p status/ops status/ops/reports status/ops/decisions
+
+          # Copy only if present (do not fail on missing files)
+          [ -f ops/agent_activity.json ] && cp -f ops/agent_activity.json status/ops/agent_activity.json || true
+          [ -f ops/agent_activity.jsonl ] && cp -f ops/agent_activity.jsonl status/ops/agent_activity.jsonl || true
+
+          [ -f ops/reports/system_status.json ] && cp -f ops/reports/system_status.json status/ops/reports/system_status.json || true
+          [ -f ops/reports/decision_trace.json ] && cp -f ops/reports/decision_trace.json status/ops/reports/decision_trace.json || true
+          [ -f ops/reports/decision_trace.jsonl ] && cp -f ops/reports/decision_trace.jsonl status/ops/reports/decision_trace.jsonl || true
+
+          [ -f ops/decisions/gate_result.json ] && cp -f ops/decisions/gate_result.json status/ops/decisions/gate_result.json || true
+
       - name: Publish truth artifacts to Pages branch (no write to main)
         shell: bash
         env:
@@ -109,4 +175,4 @@ jobs:
 
           # Force-push so the Pages branch always equals (main + latest truth).
           # This keeps it maintenance-free and avoids merge conflicts.
-          git push --force origin "$PAGES_BRANCH"
+          git push --force origin "$PAGES_BRANCH" 
