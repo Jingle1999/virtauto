@@ -104,6 +104,11 @@ It establishes authority boundaries and control constraints.
 
 It is a configuration governance decision, not an execution decision.
 
+Audit pointer (machine-readable):
+- decision_id: gov_agent_registry_v1_2026-02-12
+- trace ledger: ops/reports/decision_trace.jsonl
+- governed artifact: agents/registry.yaml
+- enforcement: PR-only + required checks + 1 approving review
 ---
 
 **Normative principle:**  
