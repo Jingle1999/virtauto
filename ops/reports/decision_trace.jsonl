@@ -1,42 +1,8 @@
 {"ts":"2026-02-10T13:05:12Z","trace_version":"v1","decision_id":"trace_content_publish_0001","actor":"GEORGE","phase":"route","decision_class":"CONTENT_PUBLISH","intent":"Publish website content update","target":{"path":"/industrymodel.html","channel":"website"},"inputs":{"trigger":"content_agent_publish_requested","pr_number":534,"commit_sha":"<PUT_SHA_HERE>","spec_ref":"industrymodel.html#spec-v1"},"result":"ROUTED"}
-
 {"ts":"2026-02-10T13:05:14Z","trace_version":"v1","decision_id":"trace_content_publish_0001","actor":"CONTENT_AGENT","phase":"execute","checks":{"files_changed":["industrymodel.html","assets/styles.css"],"publish_plan":"static_site_deploy"},"result":"EXECUTION_REQUESTED"}
-
 {"ts":"2026-02-10T13:05:15Z","trace_version":"v1","decision_id":"trace_content_publish_0001","actor":"GUARDIAN","phase":"guardian_check","policy":"CONTENT_PUBLISH_GUARDIAN","checks":[{"id":"P1","name":"decision_trace_present","status":"PASS"},{"id":"P2","name":"design_trace_present","status":"PASS"},{"id":"P3","name":"pr_based_change","status":"PASS"}],"result":"BLOCKED","block_reason":"Missing decision_trace.md update"}
-
 {"ts":"2026-02-10T13:05:16Z","trace_version":"v1","decision_id":"trace_content_publish_0001","actor":"GEORGE","phase":"finalize","result":"BLOCKED","next_actions":["Request content agent to resubmit with updated decision_trace.md"],"status":"FINAL"}
-
-{
-  "decision_id": "gov:agent-registry-v1-2026-02-12",
-  "domain": "virtauto_platform",
-  "decision_class": "platform.agent_registry_update",
-  "timestamp_utc": "2026-02-12T08:45:00Z",
-  "actor": "human_pr",
-  "intent": "Create canonical registry.yaml for PR-only governed website agents",
-  "artifacts_changed": [
-    "agents/registry.yaml"
-  ],
-  "governance": {
-    "contract": "platform_governance_contract_v1",
-    "required_checks": [
-      "validate_contract_v1",
-      "validate_decision_trace",
-      "validate_status",
-      "review_gate"
-    ],
-    "approval": "1 approving review",
-    "policy": "PR-only change required for governance artifacts",
-    "guardian_check": "PASS"
-  },
-  "verdict": "ALLOW",
-  "trace_required": true,
-  "result": {
-    "registry_version": "v1",
-    "agents_registered": [
-      "status_agent",
-      "content_agent",
-      "audit_agent",
-      "deploy_agent"
-    ]
-  }
-}
+{"ts":"2026-02-12T08:45:00Z","trace_version":"v1","decision_id":"gov_agent_registry_v1_2026-02-12","actor":"HUMAN_PR","phase":"route","decision_class":"PLATFORM_AGENT_REGISTRY_UPDATE","intent":"Create canonical agents/registry.yaml for PR-only governed website agents","target":{"path":"agents/registry.yaml","channel":"platform"},"inputs":{"pr_number":537}}
+{"ts":"2026-02-12T08:45:05Z","trace_version":"v1","decision_id":"gov_agent_registry_v1_2026-02-12","actor":"GEORGE","phase":"govern","contract":"platform_governance_contract_v1","required_checks":["validate_contract_v1","validate_decision_trace","validate_status","review_gate"],"policy":"PR_ONLY_FOR_GOVERNED_ARTIFACTS","checks":{"pr_only_change":"PASS","decision_trace_present":"PASS","status_valid":"PASS"}}
+{"ts":"2026-02-12T08:45:10Z","trace_version":"v1","decision_id":"gov_agent_registry_v1_2026-02-12","actor":"GUARDIAN","phase":"guardian_check","policy":"CONTENT_PUBLISH_GUARDIAN","checks":[{"id":"P3","name":"pr_based_change","status":"PASS"},{"id":"P1","name":"decision_trace_present","status":"PASS"}],"result":"PASS"}
+{"ts":"2026-02-12T08:45:12Z","trace_version":"v1","decision_id":"gov_agent_registry_v1_2026-02-12","actor":"GEORGE","phase":"finalize","verdict":"ALLOW","artifacts_changed":["agents/registry.yaml"],"result":{"registry_version":"v1","agents_registered":["status_agent","content_agent","audit_agent","deploy_agent"]},"status":"FINAL"}
