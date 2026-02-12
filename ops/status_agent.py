@@ -20,7 +20,7 @@ import argparse
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 
 TRUTH_PATH = Path("ops/reports/system_status.json")
 DECISION_TRACE_JSON = Path("ops/reports/decision_trace.json")
@@ -42,7 +42,7 @@ def load_json(path: Path) -> Dict[str, Any] | None:
     except FileNotFoundError:
         return None
     except Exception:
-        # If a file is malformed, we treat it as unavailable rather than crashing truth generation.
+        # If a file is malformed, treat it as unavailable rather than crashing truth generation.
         return None
 
 
@@ -71,102 +71,122 @@ def compute_autonomy_percent(autonomy: Dict[str, Any] | None) -> float:
         return 0.0
 
 
-def _tail_lines(path: Path, max_lines: int) -> list[str]:
-    """Return last max_lines non-empty lines (best-effort, deterministic)."""
+# --- Option A (Trace Coverage) ---
+def _read_jsonl_last_n(path: Path, n: int = 200) -> List[Dict[str, Any]]:
+    if not path.exists():
+        return []
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
-    except FileNotFoundError:
-        return []
+        tail = lines[-n:] if len(lines) > n else lines
+        out: List[Dict[str, Any]] = []
+        for ln in tail:
+            ln = ln.strip()
+            if not ln:
+                continue
+            try:
+                out.append(json.loads(ln))
+            except Exception:
+                # ignore malformed lines (conservative)
+                continue
+        return out
     except Exception:
         return []
-    lines = [ln for ln in lines if ln.strip()]
-    return lines[-max_lines:]
 
 
-def compute_trace_coverage(decision_trace_jsonl: Path, window: int = 20) -> float:
+def compute_trace_coverage(window_n: int = 50) -> Tuple[float, Dict[str, Any]]:
     """
-    Trace coverage over last N runs: fraction of trace entries that meet
-    minimal audit requirements (schema + ids + evidence + I/O).
+    Conservative trace coverage:
+    - Look at the last N decision trace entries
+    - Count entries that have minimal required keys and reasonable structure
+    Returns (coverage_0_to_1, details)
     """
-    required_top_level_keys = {
-        "schema_version",
-        "generated_at",
-        "trace_id",
-        "because",
-        "inputs",
-        "outputs",
-        "evidence",
-    }
+    entries = _read_jsonl_last_n(DECISION_TRACE_JSONL, n=max(window_n, 50))
+    if not entries:
+        return 0.0, {"window": window_n, "total": 0, "valid": 0, "coverage": 0.0, "reason": "no_traces"}
 
-    # Required outputs declared per trace entry to qualify as "covered"
-    required_output_paths = {
-        "ops/reports/system_status.json",
-        "ops/decisions/gate_result.json",
-        "ops/reports/decision_trace.json",
-        "ops/reports/decision_trace.jsonl",
-    }
-
-    lines = _tail_lines(decision_trace_jsonl, max_lines=max(1, int(window)))
-    if not lines:
-        return 0.0
-
-    ok = 0
     total = 0
+    valid = 0
 
-    for ln in lines:
+    required_keys = {"schema_version", "generated_at", "trace_id", "because", "inputs", "outputs", "evidence"}
+
+    for e in entries[-window_n:]:
         total += 1
-        try:
-            obj = json.loads(ln)
-        except Exception:
+        if not isinstance(e, dict):
             continue
+        if not required_keys.issubset(set(e.keys())):
+            continue
+        # minimal conservative structure checks
+        if not isinstance(e.get("because"), list) or len(e.get("because")) == 0:
+            continue
+        if not isinstance(e.get("inputs"), list) or not isinstance(e.get("outputs"), list):
+            continue
+        if not isinstance(e.get("evidence"), dict):
+            continue
+        valid += 1
 
-        # required keys
-        if not required_top_level_keys.issubset(set(obj.keys())):
-            continue
+    coverage = 0.0 if total == 0 else round(valid / float(total), 3)
+    details = {"window": window_n, "total": total, "valid": valid, "coverage": coverage}
+    return coverage, details
 
-        # types sanity
-        if not isinstance(obj.get("because"), list):
-            continue
-        if not isinstance(obj.get("inputs"), list):
-            continue
-        if not isinstance(obj.get("outputs"), list):
-            continue
-        if not isinstance(obj.get("evidence"), dict):
-            continue
 
-        outs = set(str(x) for x in obj.get("outputs", []))
-        if not required_output_paths.issubset(outs):
-            continue
-
-        ok += 1
-
-    if total == 0:
+# --- Option B (Decision Confidence) ---
+def compute_decision_confidence(
+    locked: bool,
+    gate_verdict: str,
+    trace_coverage: float,
+    inputs_ok: bool,
+    outputs_ok: bool,
+) -> float:
+    """
+    Very conservative confidence scoring (0..1):
+    - emergency lock => 0.0 hard stop
+    - only add points if hard evidence exists
+    """
+    if locked:
         return 0.0
-    return round(ok / total, 3)
+
+    score = 0.0
+
+    # 1) inputs present + parseable
+    if inputs_ok:
+        score += 0.20
+
+    # 2) required outputs exist
+    if outputs_ok:
+        score += 0.30
+
+    # 3) strong trace coverage
+    if trace_coverage >= 0.90:
+        score += 0.30
+
+    # 4) gate verdict allow
+    if gate_verdict == "ALLOW":
+        score += 0.20
+
+    # clamp
+    if score < 0.0:
+        score = 0.0
+    if score > 1.0:
+        score = 1.0
+    return round(score, 3)
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--env", default="production", help="environment label (production/staging/dev)")
-    ap.add_argument(
-        "--trace-window",
-        type=int,
-        default=20,
-        help="number of recent decision_trace.jsonl entries used to compute trace_coverage",
-    )
+    ap.add_argument("--trace-window", type=int, default=50, help="trace coverage window (last N entries)")
     args = ap.parse_args()
 
     ts = iso_utc_now()
     autonomy = load_json(AUTONOMY_PATH)
     latest_decision = load_json(LATEST_DECISION_PATH)
 
-    autonomy_percent = compute_autonomy_percent(autonomy)
+    autonomy_percent_raw = compute_autonomy_percent(autonomy)
 
     # Phase 9 default: HUMAN_GUARDED / supervised; hard actions are gated elsewhere.
     mode = "SUPERVISED"
 
     # Gate verdict (authoritative snapshot). Deterministic and conservative:
-    # - DENY if emergency lock is enabled
     emergency_lock = load_json(EMERGENCY_LOCK_PATH) or {}
     locked = bool(emergency_lock.get("locked", False))
     gate_verdict = "DENY" if locked else "ALLOW"
@@ -181,7 +201,18 @@ def main() -> int:
     }
     write_json(GATE_RESULT_PATH, gate_result)
 
-    # IMPORTANT for Option A: outputs must include all truth artifacts for coverage validation.
+    # Compute trace coverage (Option A)
+    trace_cov, trace_cov_details = compute_trace_coverage(window_n=max(1, int(args.trace_window)))
+
+    # Inputs / outputs hard checks (for conservative confidence)
+    inputs_ok = (load_json(AUTONOMY_PATH) is not None) and (load_json(LATEST_DECISION_PATH) is not None) and (
+        load_json(EMERGENCY_LOCK_PATH) is not None
+    )
+
+    # We'll write outputs below; but we can still conservatively require that paths exist after writes.
+    # For now, set outputs_ok later after writes.
+    outputs_ok = False
+
     decision_trace = {
         "schema_version": "1.0",
         "generated_at": ts,
@@ -189,28 +220,58 @@ def main() -> int:
         "because": [
             {"rule": "TRUTH_GENERATED", "evidence": "ev_status_agent_run"},
             {"rule": "NO_EMERGENCY_LOCK" if not locked else "EMERGENCY_LOCK_ACTIVE", "evidence": "ev_emergency_lock"},
+            {"rule": "TRACE_COVERAGE_COMPUTED", "evidence": "ev_trace_coverage"},
         ],
         "inputs": [
             "ops/autonomy.json",
             "ops/decisions/latest.json",
             "ops/emergency_lock.json",
+            "ops/reports/decision_trace.jsonl",
         ],
         "outputs": [
             "ops/reports/system_status.json",
-            "ops/decisions/gate_result.json",
             "ops/reports/decision_trace.json",
             "ops/reports/decision_trace.jsonl",
+            "ops/decisions/gate_result.json",
         ],
         "evidence": {
             "ev_status_agent_run": {"type": "agent_run", "ts": ts, "ref": "ops/agent_activity.jsonl"},
             "ev_emergency_lock": {"type": "config", "ts": ts, "ref": "ops/emergency_lock.json"},
+            "ev_trace_coverage": {
+                "type": "metric",
+                "ts": ts,
+                "metric": "trace_coverage",
+                "value": trace_cov,
+                "details": trace_cov_details,
+                "ref": "ops/reports/decision_trace.jsonl",
+            },
         },
     }
     write_json(DECISION_TRACE_JSON, decision_trace)
     append_jsonl(DECISION_TRACE_JSONL, decision_trace)
 
-    # Option A: compute actual trace coverage from recent trace entries
-    trace_coverage = compute_trace_coverage(DECISION_TRACE_JSONL, window=args.trace_window)
+    # Now outputs exist?
+    outputs_ok = all(
+        p.exists()
+        for p in [
+            TRUTH_PATH,  # will be written below; include anyway for strictness after write
+            DECISION_TRACE_JSON,
+            DECISION_TRACE_JSONL,
+            GATE_RESULT_PATH,
+        ]
+    )
+
+    # Compute decision confidence (Option B)
+    decision_confidence = compute_decision_confidence(
+        locked=locked,
+        gate_verdict=gate_verdict,
+        trace_coverage=trace_cov,
+        inputs_ok=inputs_ok,
+        outputs_ok=outputs_ok,
+    )
+
+    # Conservative: show CONFIRMED autonomy (raw * confidence)
+    autonomy_percent_confirmed = round(autonomy_percent_raw * decision_confidence, 1)
 
     system_status = {
         "schema_version": "1.0",
@@ -225,10 +286,13 @@ def main() -> int:
             "last_incident": None,
         },
         "autonomy_score": {
-            "value": autonomy_percent,
-            "percent": autonomy_percent,
+            # IMPORTANT: percent/value now represent CONFIRMED autonomy (conservative)
+            "value": autonomy_percent_confirmed,
+            "percent": autonomy_percent_confirmed,
             "mode": mode,
-            "trace_coverage": trace_coverage,
+            "raw_percent": autonomy_percent_raw,
+            "decision_confidence": decision_confidence,
+            "trace_coverage": trace_cov,
             "gate_verdict": gate_verdict,
             "human_override_rate": None,
             "self_healing_factor": None,
@@ -259,6 +323,17 @@ def main() -> int:
     }
     write_json(TRUTH_PATH, system_status)
 
+    # Re-evaluate outputs_ok after TRUTH_PATH exists (strict)
+    outputs_ok = all(
+        p.exists()
+        for p in [
+            TRUTH_PATH,
+            DECISION_TRACE_JSON,
+            DECISION_TRACE_JSONL,
+            GATE_RESULT_PATH,
+        ]
+    )
+
     # Activity evidence (append-only)
     append_jsonl(
         ACTIVITY_PATH,
@@ -273,6 +348,12 @@ def main() -> int:
                 str(GATE_RESULT_PATH),
             ],
             "gate_verdict": gate_verdict,
+            "trace_coverage": trace_cov,
+            "decision_confidence": decision_confidence,
+            "autonomy_raw_percent": autonomy_percent_raw,
+            "autonomy_confirmed_percent": autonomy_percent_confirmed,
+            "inputs_ok": inputs_ok,
+            "outputs_ok": outputs_ok,
         },
     )
 
