@@ -1,0 +1,61 @@
+version: v1
+normative: true
+description: >
+  Canonical registry of all platform agents operating on virtauto.
+  If an agent is not listed here, it is not part of the system.
+
+agents:
+
+  - id: status_agent
+    name: Status Agent
+    layer: evidence
+    purpose: Reads system_status.json and renders SSOT.
+    autonomy: supervised
+    allowed_actions:
+      - read: ops/reports/system_status.json
+    forbidden_actions:
+      - write
+      - deploy
+      - publish
+    authority: none
+    trace_required: false
+
+  - id: content_agent
+    name: Content Agent
+    layer: platform
+    purpose: Proposes content updates via pull requests.
+    autonomy: supervised
+    allowed_actions:
+      - open_pr
+      - modify: content/*
+    forbidden_actions:
+      - direct_write
+      - deploy
+    authority: requires_governance_approval
+    trace_required: true
+
+  - id: audit_agent
+    name: Audit Agent
+    layer: governance
+    purpose: Validates trace artifacts and governance consistency.
+    autonomy: supervised
+    allowed_actions:
+      - validate: ops/reports/*
+      - open_pr
+    forbidden_actions:
+      - modify_policies
+      - deploy
+    authority: advisory
+    trace_required: true
+
+  - id: deploy_agent
+    name: Deploy Agent
+    layer: execution
+    purpose: Proposes deployment changes via PR only.
+    autonomy: supervised
+    allowed_actions:
+      - open_pr
+    forbidden_actions:
+      - direct_deploy
+    authority: requires_governance_approval
+    trace_required: true
