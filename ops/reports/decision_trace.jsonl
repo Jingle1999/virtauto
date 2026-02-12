@@ -5,3 +5,38 @@
 {"ts":"2026-02-10T13:05:15Z","trace_version":"v1","decision_id":"trace_content_publish_0001","actor":"GUARDIAN","phase":"guardian_check","policy":"CONTENT_PUBLISH_GUARDIAN","checks":[{"id":"P1","name":"decision_trace_present","status":"PASS"},{"id":"P2","name":"design_trace_present","status":"PASS"},{"id":"P3","name":"pr_based_change","status":"PASS"}],"result":"BLOCKED","block_reason":"Missing decision_trace.md update"}
 
 {"ts":"2026-02-10T13:05:16Z","trace_version":"v1","decision_id":"trace_content_publish_0001","actor":"GEORGE","phase":"finalize","result":"BLOCKED","next_actions":["Request content agent to resubmit with updated decision_trace.md"],"status":"FINAL"}
+
+{
+  "decision_id": "gov:agent-registry-v1-2026-02-12",
+  "domain": "virtauto_platform",
+  "decision_class": "platform.agent_registry_update",
+  "timestamp_utc": "2026-02-12T08:45:00Z",
+  "actor": "human_pr",
+  "intent": "Create canonical registry.yaml for PR-only governed website agents",
+  "artifacts_changed": [
+    "agents/registry.yaml"
+  ],
+  "governance": {
+    "contract": "platform_governance_contract_v1",
+    "required_checks": [
+      "validate_contract_v1",
+      "validate_decision_trace",
+      "validate_status",
+      "review_gate"
+    ],
+    "approval": "1 approving review",
+    "policy": "PR-only change required for governance artifacts",
+    "guardian_check": "PASS"
+  },
+  "verdict": "ALLOW",
+  "trace_required": true,
+  "result": {
+    "registry_version": "v1",
+    "agents_registered": [
+      "status_agent",
+      "content_agent",
+      "audit_agent",
+      "deploy_agent"
+    ]
+  }
+}
