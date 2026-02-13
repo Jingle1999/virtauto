@@ -1,0 +1,70 @@
+# ops/consistency_rules.yaml — Consistency Agent v1 rules (website-only)
+version: "1.0"
+agent: "consistency_agent_v1"
+
+paths:
+  system_status: "ops/reports/system_status.json"
+  decision_trace_jsonl: "ops/reports/decision_trace.jsonl"
+  gate_result: "ops/decisions/gate_result.json"
+  registry: "agents/registry.yaml"
+
+# Fast "exists" checks (hard fail if missing)
+required_files:
+  - "ops/reports/system_status.json"
+  - "ops/reports/decision_trace.jsonl"
+  - "ops/decisions/gate_result.json"
+  - "agents/registry.yaml"
+
+thresholds:
+  # Tail window for decision_trace.jsonl checks (deterministic, keeps CI fast)
+  decision_trace_tail_lines: 200
+  # Soft warning if system_status generated_at is older than this (minutes)
+  max_generated_age_minutes_warn: 60
+
+values:
+  health_signals: ["GREEN", "YELLOW", "RED"]
+  gate_verdicts: ["ALLOW", "DENY"]
+  autonomy_modes: ["MANUAL", "SUPERVISED", "AUTONOMOUS"]
+  agent_states: ["PLANNED", "ACTIVE", "DISABLED", "DEPRECATED"]
+
+schemas:
+  system_status:
+    required_keys:
+      - "schema_version"
+      - "generated_at"
+      - "environment"
+      - "system_state"
+      - "autonomy"
+      - "health"
+      - "agents"
+      - "links"
+
+  gate_result:
+    required_keys:
+      - "schema_version"
+      - "generated_at"
+      - "environment"
+      - "gate_verdict"
+      - "reason"
+      - "trace_id"
+
+  decision_trace:
+    required_keys:
+      - "schema_version"
+      - "generated_at"
+      - "trace_id"
+      - "inputs"
+      - "outputs"
+      - "because"
+
+    # Ensure last trace proves the truth artifacts were produced (best-effort via tail window)
+    required_outputs_in_latest:
+      - "ops/reports/system_status.json"
+      - "ops/decisions/gate_result.json"
+
+  registry:
+    required_agent_fields:
+      - "id"
+      - "role"
+      - "autonomy_mode"
+      - "state"
