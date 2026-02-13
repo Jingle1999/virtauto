@@ -52,3 +52,6 @@ under evidence: `ev_autonomy_score.details`.
 - Never exceeds what is supported by **coverage**.
 - Strongly degrades under **staleness** or missing trace.
 - Hard-clamps to **0%** on emergency lock (DENY).
+
+### Addition to industrymodel.html PR#545
+- Slight change of wording needed for better process-understanding
