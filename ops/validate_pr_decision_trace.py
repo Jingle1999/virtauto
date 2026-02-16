@@ -1,85 +1,60 @@
-#!/usr/bin/env python3
-"""
-Validate that every Pull Request carries an explicit decision trace artifact.
-
-Phase 2 goal: "No decision without trace" (Explainability v1).
-
-This check is intentionally mechanical (not "AI"):
-  - For PRs, require that the PR adds/modifies at least one of:
-      * decision_trace.md
-      * decision_trace.json
-
-The file can live anywhere in the repository.
-"""
-
-from __future__ import annotations
-
-import json
+# ops/validate_pr_decision_trace.py
 import os
 import subprocess
 import sys
-from typing import List, Tuple
+from pathlib import Path
 
+MANDATORY_ANY_OF = [
+    "decision_trace.md",
+    "decision_trace.json",
+]
 
-REQUIRED_BASENAMES = ("decision_trace.md", "decision_trace.json")
+# Optional accepted alt patterns (keeps governance strict, but unblocks common naming)
+ALT_SUFFIXES = [
+    ".decision_trace.md",
+    ".decision-trace.md",
+]
 
+def git_changed_files() -> list[str]:
+    # In PR validation we typically have merge-base available; if not, we fail safe.
+    try:
+        base = subprocess.check_output(["git", "merge-base", "HEAD", "origin/main"], text=True).strip()
+    except Exception:
+        # fallback: try main (in case origin/main not present)
+        try:
+            base = subprocess.check_output(["git", "merge-base", "HEAD", "main"], text=True).strip()
+        except Exception:
+            print("[FATAL] No merge-base found. Cannot reliably validate PR decision trace.")
+            sys.exit(2)
 
-def run(cmd: List[str]) -> Tuple[int, str]:
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    return p.returncode, p.stdout.strip()
+    out = subprocess.check_output(["git", "diff", "--name-only", f"{base}...HEAD"], text=True)
+    return [l.strip() for l in out.splitlines() if l.strip()]
 
+def matches_alt(name: str) -> bool:
+    return any(name.endswith(sfx) for sfx in ALT_SUFFIXES)
 
-def load_event() -> dict:
-    event_path = os.environ.get("GITHUB_EVENT_PATH", "")
-    if not event_path or not os.path.exists(event_path):
-        return {}
-    with open(event_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+def main():
+    changed = set(git_changed_files())
 
+    ok = any(x in changed for x in MANDATORY_ANY_OF) or any(matches_alt(x) for x in changed)
 
-def main() -> int:
-    event_name = os.environ.get("GITHUB_EVENT_NAME", "")
-    if event_name != "pull_request":
-        print(f"[OK] validate_pr_decision_trace: not a pull_request event ({event_name}).")
-        return 0
+    if not ok:
+        print("[FATAL] Missing mandatory decision trace artifact for this Pull Request.")
+        print("Add or modify at least one of the following in this PR:")
+        for x in MANDATORY_ANY_OF:
+            print(f" - {x}")
+        print("\nAccepted alternatives:")
+        for sfx in ALT_SUFFIXES:
+            print(f" - *{sfx}")
+        print("\nTip (minimal): add a file named 'decision_trace.md' with:")
+        print(" - Decision / Intent")
+        print(" - Authority")
+        print(" - Scope (files/modules touched)")
+        print(" - Expected outcome")
+        sys.exit(1)
 
-    event = load_event()
-    pr = (event.get("pull_request") or {})
-    base_sha = (pr.get("base") or {}).get("sha")
-    head_sha = (pr.get("head") or {}).get("sha")
-
-    if not base_sha or not head_sha:
-        print("[FAIL] Could not read base/head SHA from GitHub event payload.")
-        print(f"Event keys present: {list(event.keys())}")
-        return 1
-
-    # Determine changed files for this PR (merge-base diff).
-    rc, out = run(["git", "diff", "--name-only", f"{base_sha}...{head_sha}"])
-    if rc != 0:
-        print("[FAIL] git diff failed. Output:")
-        print(out)
-        return 1
-
-    changed = [line.strip() for line in out.splitlines() if line.strip()]
-    hits = [p for p in changed if os.path.basename(p) in REQUIRED_BASENAMES]
-
-    if hits:
-        print("[OK] Decision trace artifact present in PR diff:")
-        for h in hits:
-            print(f" - {h}")
-        return 0
-
-    print("[FAIL] Missing mandatory decision trace artifact for this Pull Request.")
-    print("Add or modify at least one of the following in this PR:")
-    for b in REQUIRED_BASENAMES:
-        print(f" - {b}")
-    print("\nTip (minimal): add a file named 'decision_trace.md' with:")
-    print(" - Decision / Intent")
-    print(" - Authority")
-    print(" - Scope (files/modules touched)")
-    print(" - Expected outcome")
-    return 1
-
+    print("[OK] PR decision trace present.")
+    sys.exit(0)
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
