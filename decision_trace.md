@@ -1,42 +1,21 @@
-# Decision Trace — PR: Status Agent PASS/BLOCK + Artifact Evidence
+# decision_trace.md
 
 ## Decision / Intent
-Align the Status Agent to the platform governance pattern:
-- Use **PASS/BLOCK semantics** via process exit code (like Guardian).
-- Publish deterministic truth + evidence as **GitHub Actions artifacts**.
-- Remove the need for a separate `gate_result.json` truth artifact.
+Introduce the **Status Agent** as the factory’s **Single Source of Truth** publisher.  
+Goal: generate/maintain `ops/reports/system_status.json` deterministically via governed CI workflows (PR-based).
 
 ## Authority
-- **Governance-first**: truth regeneration must be deterministic, auditable, and conservative.
-- **Low-but-true beats high-but-uncertain**.
-- **No additional mutable truth artifact** for “gate_result”; gate is expressed by PASS/BLOCK (exit code) and trace evidence.
+- Class: **Governance / Operational Transparency**
+- Authority level: **Supervised**
+- Escalation: Guardian blocks on policy/security violations; human approval required for merge.
 
 ## Scope (files/modules touched)
-- `ops/status_agent.py`
-- `.github/workflows/status-monitoring.yml`
-- `agents/registry.yaml`
-- `ops/consistency_agent.py`
-- `decision_trace.md`
+- `scripts/status_agent.py` (Status Agent implementation / update)
+- `agents/registry.yaml` (registry fields aligned to governance checks)
+- `ops/consistency_agent.py` (consistency rules aligned to PASS/BLOCK model)
+- `ops/validate_pr_decision_trace.py` (PR decision trace enforcement & accepted naming)
 
-## Expected Outcome
-1. **CI checks pass**
-   - `Consistency Agent v1` no longer expects `ops/decisions/gate_result.json`.
-   - `agents/registry.yaml` contains required fields: `state`, `autonomy_mode`.
-   - `ops/reports/decision_trace.json` conforms to required keys (`schema_version`, `generated_at`, `trace_id`, `inputs`, `outputs`, `because`).
-
-2. **Operational behavior**
-   - Status Agent runs on schedule.
-   - Produces:
-     - `ops/reports/system_status.json`
-     - `ops/reports/decision_trace.json`
-     - `ops/reports/decision_trace.jsonl`
-     - `ops/agent_activity.jsonl`
-   - Uploads these as a **GitHub Actions artifact** each run.
-   - If `ops/emergency_lock.json` indicates `locked=true`, the job **BLOCKS** (exit code 2), and evidence still uploads (via `if: always()`).
-
-## Risk / Trade-offs
-- Removing `gate_result.json` requires updating any checks that previously depended on it.
-- If other workflows expect `gate_result.json`, they must be migrated to PASS/BLOCK semantics or to reading `decision_trace.json` / `system_status.json` for gate state.
-
-## Rollback
-Revert these files to prior versions and re-introduce `ops/decisions/gate_result.json` + associated checks if required by downstream tooling.
+## Expected outcome
+- All required governance checks pass (including Consistency Agent & PR decision trace requirement).
+- Status Agent can be merged and will publish valid `ops/reports/system_status.json` as the canonical truth source.
+- No dependency on `ops/decisions/gate_result.json` (PASS/BLOCK handled via CI result + artifacts).
