@@ -1,7 +1,7 @@
 # pr/563.decision_trace.md
 
 ## Decision / Intent
-Enable merge of PR #563 by aligning registry/status/decision-trace requirements and updating the PR decision trace validator to accept *.decision_trace.md.
+Enable merge of PR #564 by aligning registry/status/decision-trace requirements and updating the PR decision trace validator to accept *.decision_trace.md.
 
 ## Authority
 - Class: Governance / CI Compliance
