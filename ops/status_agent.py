@@ -5,7 +5,6 @@ Generates / refreshes (Single Source of Truth + evidence):
 - ops/reports/system_status.json          (primary truth for website)
 - ops/reports/decision_trace.json         (machine-readable explainability v1)
 - ops/reports/decision_trace.jsonl        (append-only trace log, lightweight)
-- ops/decisions/gate_result.json          (authoritative gate verdict snapshot)
 - ops/agent_activity.jsonl                (append-only agent activity evidence)
 
 Design goals:
@@ -13,6 +12,11 @@ Design goals:
 - safe to run on GitHub Actions schedule
 - conservative: low-but-true beats high-but-uncertain
 - additive: does not require other agents to exist
+
+Gate semantics (like Guardian PASS/BLOCK):
+- Exit code 0  => PASS (truth regenerated)
+- Exit code 2  => BLOCK (emergency lock active)
+- Exit code 1  => FAIL  (unexpected error)
 """
 
 from __future__ import annotations
@@ -27,14 +31,13 @@ from typing import Any, Dict
 TRUTH_PATH = Path("ops/reports/system_status.json")
 DECISION_TRACE_JSON = Path("ops/reports/decision_trace.json")
 DECISION_TRACE_JSONL = Path("ops/reports/decision_trace.jsonl")
-GATE_RESULT_PATH = Path("ops/decisions/gate_result.json")
 ACTIVITY_PATH = Path("ops/agent_activity.jsonl")
 
 AUTONOMY_PATH = Path("ops/autonomy.json")
 LATEST_DECISION_PATH = Path("ops/decisions/latest.json")
 EMERGENCY_LOCK_PATH = Path("ops/emergency_lock.json")
 
-# Option D: governance evidence (file-based, deterministic)
+# governance evidence (file-based, deterministic)
 AUTHORITY_PATH_JSON = Path("ops/authority_matrix.json")
 AUTHORITY_PATH_YAML = Path("ops/authority_matrix.yaml")
 GEORGE_RULES_PATH = Path("ops/george_rules.yaml")
@@ -50,7 +53,7 @@ def load_json(path: Path) -> Dict[str, Any] | None:
     except FileNotFoundError:
         return None
     except Exception:
-        # If a file is malformed, treat it as unavailable rather than crashing truth generation.
+        # If malformed, treat as unavailable rather than crashing truth generation.
         return None
 
 
@@ -78,7 +81,6 @@ def compute_autonomy_percent(autonomy: Dict[str, Any] | None) -> float:
         if not autonomy:
             return 0.0
         lvl = float(autonomy.get("overview", {}).get("system_autonomy_level", 0.0))
-        # clamp 0..1
         lvl = 0.0 if lvl < 0 else (1.0 if lvl > 1 else lvl)
         return round(lvl * 100.0, 1)
     except Exception:
@@ -100,12 +102,7 @@ def file_evidence(path: Path) -> Dict[str, Any]:
         .isoformat()
         .replace("+00:00", "Z")
     )
-    return {
-        "present": True,
-        "path": str(path),
-        "bytes": int(st.st_size),
-        "mtime_utc": mtime,
-    }
+    return {"present": True, "path": str(path), "bytes": int(st.st_size), "mtime_utc": mtime}
 
 
 def main() -> int:
@@ -120,40 +117,30 @@ def main() -> int:
 
     autonomy_percent = compute_autonomy_percent(autonomy)
 
-    # Phase 1 / conservative default: supervised. (Hard actions gated elsewhere.)
+    # Phase 1 default: supervised.
     mode = "SUPERVISED"
 
-    # Gate verdict (authoritative snapshot).
-    # Conservative: DENY if emergency lock is active, otherwise ALLOW.
+    # Gate semantics: emergency lock => BLOCK (like Guardian).
     emergency_lock = load_json(EMERGENCY_LOCK_PATH) or {}
     locked = bool(emergency_lock.get("locked", False))
-    gate_verdict = "DENY" if locked else "ALLOW"
+    gate_verdict = "BLOCK" if locked else "PASS"
 
     trace_prefix = f"trc_{ts.replace('-', '').replace(':', '').replace('T', '_').replace('Z','')}"
 
-    gate_result = {
-        "schema_version": "1.0",
-        "generated_at": ts,
-        "environment": args.env,
-        "gate_verdict": gate_verdict,
-        "reason": "emergency_lock" if locked else "status_agent_ok",
-        "trace_id": f"{trace_prefix}_gate",
-    }
-    write_json(GATE_RESULT_PATH, gate_result)
-
-    # Option D: Governance evidence (file-based)
+    # Governance evidence (file-based)
     authority_ev = file_evidence(AUTHORITY_PATH_JSON)
     if not authority_ev.get("present"):
         authority_ev = file_evidence(AUTHORITY_PATH_YAML)
     policy_ev = file_evidence(GEORGE_RULES_PATH)
 
+    # Decision trace (Explainability v1)
     decision_trace = {
         "schema_version": "1.0",
         "generated_at": ts,
-        "trace_id": f"{trace_prefix}_decision",
+        "trace_id": f"{trace_prefix}_status_truth",
         "because": [
             {"rule": "TRUTH_GENERATED", "evidence": "ev_status_agent_run"},
-            {"rule": "NO_EMERGENCY_LOCK" if not locked else "EMERGENCY_LOCK_ACTIVE", "evidence": "ev_emergency_lock"},
+            {"rule": "EMERGENCY_LOCK_ACTIVE" if locked else "NO_EMERGENCY_LOCK", "evidence": "ev_emergency_lock"},
             {
                 "rule": "AUTHORITY_EVIDENCE_PRESENT"
                 if authority_ev.get("present")
@@ -171,7 +158,6 @@ def main() -> int:
         ],
         "outputs": [
             "ops/reports/system_status.json",
-            "ops/decisions/gate_result.json",
             "ops/reports/decision_trace.json",
             "ops/reports/decision_trace.jsonl",
             "ops/agent_activity.jsonl",
@@ -182,11 +168,15 @@ def main() -> int:
             "ev_authority": {"type": "file_evidence", "ts": ts, "details": authority_ev},
             "ev_policies": {"type": "file_evidence", "ts": ts, "details": policy_ev},
         },
+        "result": {
+            "gate_verdict": gate_verdict,
+            "exit_code": 2 if locked else 0,
+        },
     }
     write_json(DECISION_TRACE_JSON, decision_trace)
     append_jsonl(DECISION_TRACE_JSONL, decision_trace)
 
-    # Conservative health: only "GREEN" if not locked. (We do not infer extra health signals.)
+    # Conservative health: only GREEN if not locked.
     health_signal = "GREEN" if not locked else "RED"
     health_score = 0.9 if not locked else 0.2
 
@@ -202,8 +192,6 @@ def main() -> int:
             "note": "Phase 1: Status Agent truth regeneration active (GitHub-native, deterministic).",
             "last_incident": None,
         },
-        # Conservative: autonomy is sourced from ops/autonomy.json only.
-        # Missing governance evidence must NOT increase autonomy.
         "autonomy_score": {
             "value": autonomy_percent,
             "percent": autonomy_percent,
@@ -228,11 +216,10 @@ def main() -> int:
             "authority": authority_ev,
             "policies": policy_ev,
             "note": "Evidence is file-based (existence/mtime/size). Content is not parsed (Phase 1) to keep execution deterministic and dependency-free.",
-            "status": "OK"
-            if authority_ev.get("present") and policy_ev.get("present")
-            else "PARTIAL_EVIDENCE",
+            "status": "OK" if authority_ev.get("present") and policy_ev.get("present") else "PARTIAL_EVIDENCE",
         },
         "agents": {
+            "status_agent": {"status": "ok" if not locked else "blocked", "state": "ACTIVE", "autonomy_mode": mode, "role": "truth_regenerator"},
             "george": {"status": "ok", "state": "ACTIVE", "autonomy_mode": mode, "role": "orchestrator"},
             "guardian": {"status": "ok", "state": "ACTIVE", "autonomy_mode": "AUTONOMOUS", "role": "guardian"},
             "monitoring": {"status": "ok", "state": "ACTIVE", "autonomy_mode": "AUTONOMOUS", "role": "observer"},
@@ -242,7 +229,6 @@ def main() -> int:
         },
         "links": {
             "latest_decision": str(LATEST_DECISION_PATH) if latest_decision else None,
-            "gate_result": str(GATE_RESULT_PATH),
             "decision_trace": str(DECISION_TRACE_JSONL),
         },
     }
@@ -254,25 +240,25 @@ def main() -> int:
         {
             "ts": ts,
             "agent": "status_agent",
-            "event": "truth_regenerated",
+            "event": "truth_regenerated" if not locked else "truth_blocked",
             "outputs": [
                 str(TRUTH_PATH),
                 str(DECISION_TRACE_JSON),
                 str(DECISION_TRACE_JSONL),
-                str(GATE_RESULT_PATH),
                 str(ACTIVITY_PATH),
             ],
             "gate_verdict": gate_verdict,
             "governance_evidence": {
                 "authority_present": bool(authority_ev.get("present")),
                 "policies_present": bool(policy_ev.get("present")),
-                "status": "OK"
-                if authority_ev.get("present") and policy_ev.get("present")
-                else "PARTIAL_EVIDENCE",
+                "status": "OK" if authority_ev.get("present") and policy_ev.get("present") else "PARTIAL_EVIDENCE",
             },
         },
     )
 
+    # Guardian-like semantics: BLOCK if locked.
+    if locked:
+        return 2
     return 0
 
 
