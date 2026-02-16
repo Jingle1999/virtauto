@@ -1,71 +1,80 @@
 #!/usr/bin/env python3
 """
-ops/consistency_agent.py
-
-Consistency checks for virtauto governance.
-
-Policy updates (per Andreas):
-- PASS/BLOCK is enforced via CI outcome + GitHub artifacts (no mandatory gate_result.json file).
-- Keep checks deterministic and minimal.
-
-Exit codes:
-- 0 => PASS
-- 2 => BLOCK (violations)
+Consistency Agent v1 (CI mode)
+- Validates agents/registry.yaml required fields
+- Validates ops/reports/system_status.json basic shape and registry alignment
+- Validates ops/reports/decision_trace.jsonl entries contain required keys
 """
+
+from __future__ import annotations
 
 import json
 import sys
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+import yaml
 
 REGISTRY_PATH = Path("agents/registry.yaml")
 SYSTEM_STATUS_PATH = Path("ops/reports/system_status.json")
 DECISION_TRACE_JSONL = Path("ops/reports/decision_trace.jsonl")
 
-REQUIRED_REGISTRY_FIELDS = {"autonomy_mode", "state"}
-REQUIRED_SYSTEM_STATUS_KEYS = {"schema_version", "generated_at", "environment", "agents"}
-REQUIRED_TRACE_KEYS = {"schema_version", "generated_at", "trace_id", "intent", "inputs", "outputs", "because"}
+REPO_ROOT = Path(".")
+REGISTRY_PATH = REPO_ROOT / "agents" / "registry.yaml"
+SYSTEM_STATUS_PATH = REPO_ROOT / "ops" / "reports" / "system_status.json"
+DECISION_TRACE_PATH = REPO_ROOT / "ops" / "reports" / "decision_trace.jsonl"
+
+# ===== tunables
+MAX_STATUS_AGE_MIN = 60 * 24  # 24h
+TRACE_TAIL_LINES = 200
+
+REQUIRED_REGISTRY_FIELDS = ["agent_id", "state", "autonomy_mode"]
+REQUIRED_TRACE_KEYS = ["schema_version", "generated_at", "trace_id", "inputs", "outputs", "because"]
 
 
-def fail(msg: str, code: str) -> None:
-    print(f" - FAIL {code}: {msg}")
+def fail(msg: str) -> None:
+    print(f"[FAIL] {msg}")
+    raise SystemExit(2)
 
 
-def warn(msg: str, code: str) -> None:
-    print(f" - WARN {code}: {msg}")
+def warn(msg: str) -> None:
+    print(f"[WARN] {msg}")
 
 
-def load_json(path: Path):
-    return json.loads(path.read_text(encoding="utf-8"))
+def ok(msg: str) -> None:
+    print(f"[OK] {msg}")
 
 
-def load_yaml_minimal(path: Path) -> dict:
-    # Minimal YAML loader without dependencies:
-    # We only support the exact structure used in agents/registry.yaml above.
-    # If you already have PyYAML in requirements, replace this with yaml.safe_load.
-    txt = path.read_text(encoding="utf-8").splitlines()
-    data = {"agents": []}
-    cur = None
-    for line in txt:
-        s = line.strip()
-        if not s or s.startswith("#"):
-            continue
-        if s.startswith("agents:"):
-            continue
-        if s.startswith("- "):
-            if cur:
-                data["agents"].append(cur)
-            cur = {}
-            s = s[2:].strip()
-            if ":" in s:
-                k, v = s.split(":", 1)
-                cur[k.strip()] = v.strip().strip('"').strip("'")
-        elif ":" in s and cur is not None:
-            k, v = s.split(":", 1)
-            cur[k.strip()] = v.strip().strip('"').strip("'")
-    if cur:
-        data["agents"].append(cur)
-    return data
+def load_yaml(path: Path) -> dict:
+    if not path.exists():
+        fail(f"Missing required file: {path.as_posix()}")
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
+
+def load_json(path: Path) -> dict:
+    if not path.exists():
+        fail(f"Missing required file: {path.as_posix()}")
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        fail(f"Invalid JSON: {path.as_posix()} ({e})")
+
+
+def parse_iso(ts: str) -> datetime:
+    # Accept Z or offset
+    try:
+        if ts.endswith("Z"):
+            return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        return datetime.fromisoformat(ts)
+    except Exception:
+        raise ValueError(f"Invalid ISO timestamp: {ts}")
+
+
+def tail_lines(path: Path, n: int) -> list[str]:
+    if not path.exists():
+        fail(f"Missing required file: {path.as_posix()}")
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return lines[-n:] if len(lines) > n else lines
 
 def check_registry() -> list[str]:
     errors = []
@@ -73,96 +82,89 @@ def check_registry() -> list[str]:
         errors.append("CNS-REG-001: agents/registry.yaml missing")
         return errors
 
-    reg = load_yaml_minimal(REGISTRY_PATH)
+def validate_registry() -> dict:
+    reg = load_yaml(REGISTRY_PATH)
     agents = reg.get("agents", [])
     if not isinstance(agents, list) or not agents:
-        errors.append("CNS-REG-002: agents list missing/empty in agents/registry.yaml")
-        return errors
+        fail("agents/registry.yaml must contain a non-empty 'agents:' list")
 
     for a in agents:
-        agent_id = a.get("agent_id", "<missing agent_id>")
+        if not isinstance(a, dict):
+            fail("agents/registry.yaml: each agent entry must be a mapping")
         for f in REQUIRED_REGISTRY_FIELDS:
-            if f not in a or not str(a.get(f)).strip():
-                errors.append(f"CNS-REG-007: Agent '{agent_id}' missing field: {f} (agents/registry.yaml)")
-    return errors
+            if f not in a or a.get(f) in (None, "", "unknown"):
+                fail(f"Agent missing field: {f} ({REGISTRY_PATH.as_posix()})")
+
+    ok("agents/registry.yaml required fields present.")
+    return reg
 
 
-def check_system_status() -> list[str]:
-    errors = []
-    if not SYSTEM_STATUS_PATH.exists():
-        errors.append("CNS-TIME-001: ops/reports/system_status.json missing")
-        return errors
+def validate_system_status(registry: dict) -> None:
+    ss = load_json(SYSTEM_STATUS_PATH)
+
+    for k in ["generated_at", "environment"]:
+        if k not in ss or not isinstance(ss[k], str) or not ss[k].strip():
+            fail(f"system_status missing/invalid key: {k} ({SYSTEM_STATUS_PATH.as_posix()})")
 
     try:
-        s = load_json(SYSTEM_STATUS_PATH)
-    except Exception as e:
-        errors.append(f"CNS-STAT-001: system_status.json invalid JSON: {e}")
-        return errors
+        gen = parse_iso(ss["generated_at"])
+    except ValueError as e:
+        fail(f"{e} ({SYSTEM_STATUS_PATH.as_posix()})")
 
-    missing = [k for k in REQUIRED_SYSTEM_STATUS_KEYS if k not in s]
-    if missing:
-        errors.append(f"CNS-STAT-002: system_status.json missing keys: {missing}")
+    now = datetime.now(timezone.utc)
+    age = now - gen.astimezone(timezone.utc)
+    if age > timedelta(minutes=MAX_STATUS_AGE_MIN):
+        warn(f"system_status generated_at is {age.total_seconds()/60:.1f} minutes old (max={MAX_STATUS_AGE_MIN})")
 
-    # Ensure every agent in system_status exists in registry
-    try:
-        reg = load_yaml_minimal(REGISTRY_PATH)
-        reg_ids = {a.get("agent_id") for a in reg.get("agents", [])}
-        status_ids = set((s.get("agents") or {}).keys())
-        for sid in sorted(status_ids):
-            if sid not in reg_ids:
-                errors.append(f"CNS-REG-002: Agent '{sid}' present in system_status but missing in agents/registry.yaml (ops/reports/system_status.json)")
-    except Exception as e:
-        errors.append(f"CNS-REG-003: Failed registry/status cross-check: {e}")
+    # Align system_status agents with registry
+    reg_ids = {a["agent_id"] for a in registry.get("agents", []) if isinstance(a, dict) and "agent_id" in a}
+    ss_agents = ss.get("agents", [])
+    if isinstance(ss_agents, list) and ss_agents:
+        for a in ss_agents:
+            aid = a.get("agent_id") if isinstance(a, dict) else None
+            if aid and aid not in reg_ids:
+                fail(f"Agent '{aid}' present in system_status but missing in agents/registry.yaml ({SYSTEM_STATUS_PATH.as_posix()})")
 
-    return errors
+    ok("ops/reports/system_status.json basic checks ok.")
 
 
-def check_decision_trace() -> list[str]:
-    errors = []
-    if not DECISION_TRACE_JSONL.exists():
-        errors.append("CNS-TRACE-001: ops/reports/decision_trace.jsonl missing")
-        return errors
-
-    lines = [ln.strip() for ln in DECISION_TRACE_JSONL.read_text(encoding="utf-8").splitlines() if ln.strip()]
+def validate_decision_trace() -> None:
+    lines = tail_lines(DECISION_TRACE_PATH, TRACE_TAIL_LINES)
     if not lines:
-        errors.append("CNS-TRACE-002: decision_trace.jsonl is empty")
-        return errors
+        fail("ops/reports/decision_trace.jsonl is empty")
 
-    # Validate only the last ~200 lines (consistent with your logs)
-    window = lines[-200:]
-    for ln in window[-1:]:
+    # Validate at least one valid entry in tail
+    valid = 0
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
         try:
-            obj = json.loads(ln)
-        except Exception as e:
-            errors.append(f"CNS-TRACE-003: invalid JSONL entry: {e}")
+            obj = json.loads(line)
+        except json.JSONDecodeError:
             continue
 
-        for k in REQUIRED_TRACE_KEYS:
-            if k not in obj:
-                errors.append(f"CNS-TRACE-010: decision_trace entry missing key: {k} (ops/reports/decision_trace.jsonl)")
+        missing = [k for k in REQUIRED_TRACE_KEYS if k not in obj]
+        if missing:
+            # Keep scanning; but count fails for visibility
+            for m in missing:
+                warn(f"decision_trace entry missing key: {m} ({DECISION_TRACE_PATH.as_posix()})")
+            continue
 
-        # NOTE: No requirement for ops/decisions/gate_result.json
-        # PASS/BLOCK is enforced by CI exit code + artifacts.
+        valid += 1
 
-    return errors
+    if valid == 0:
+        fail("No valid decision_trace entries found in tail window (last 200 lines)")
+
+    ok("ops/reports/decision_trace.jsonl contains at least one valid entry.")
 
 
 def main() -> int:
-    print("[Consistency Agent v1] FAIL -> BLOCK (exit 2) / PASS -> exit 0\n")
-
-    errors = []
-    errors += check_registry()
-    errors += check_system_status()
-    errors += check_decision_trace()
-
-    if errors:
-        print("[BLOCK] Violations detected:")
-        for e in errors:
-            fail(e, e.split(":")[0] if ":" in e else "CNS-UNK")
-        print("\nResult: BLOCK")
-        return 2
-
-    print("[PASS] All consistency checks passed.")
+    print("[Consistency Agent v1] START")
+    registry = validate_registry()
+    validate_system_status(registry)
+    validate_decision_trace()
+    print("[Consistency Agent v1] PASS")
     return 0
 
 

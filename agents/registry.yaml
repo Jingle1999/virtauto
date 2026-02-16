@@ -1,43 +1,38 @@
-# agents/registry.yaml
-# Minimal, governance-friendly agent registry.
-# Required per Consistency Agent v1: autonomy_mode, state
-
 schema_version: "1.0"
-generated_at: "2026-02-16T00:00:00Z"
 
 agents:
   - agent_id: "guardian"
     name: "Guardian"
+    description: "Governance gatekeeper (policy/security/contract enforcement)."
+    state: "operational"
     autonomy_mode: "supervised"
-    state: "active"
-    purpose: "Policy & safety enforcement / governance gatekeeper."
 
   - agent_id: "monitoring"
     name: "Monitoring Agent"
+    description: "Observability & health checks."
+    state: "operational"
     autonomy_mode: "supervised"
-    state: "active"
-    purpose: "Monitoring signals, budgets, and operational metrics."
-
-  - agent_id: "deploy"
-    name: "Deployment Agent"
-    autonomy_mode: "supervised"
-    state: "active"
-    purpose: "CI/CD orchestration (PR-based), no direct production changes without governance."
 
   - agent_id: "content"
     name: "Content Agent"
+    description: "Drafts governed content; PR-based publication."
+    state: "operational"
     autonomy_mode: "supervised"
-    state: "active"
-    purpose: "Draft content proposals via PRs (never publishes directly)."
 
   - agent_id: "site_audit"
     name: "Site Audit Agent"
+    description: "Static checks for site consistency and regressions."
+    state: "operational"
     autonomy_mode: "supervised"
-    state: "active"
-    purpose: "Audits site structure & consistency against truth layer and contracts."
+
+  - agent_id: "deploy"
+    name: "Deployment Agent"
+    description: "Build/deploy orchestration (governed)."
+    state: "operational"
+    autonomy_mode: "supervised"
 
   - agent_id: "status"
     name: "Status Agent"
+    description: "Publishes ops/reports/system_status.json as Single Source of Truth."
+    state: "operational"
     autonomy_mode: "supervised"
-    state: "active"
-    purpose: "Publishes ops/reports/system_status.json as Single Source of Truth (deterministic)."
