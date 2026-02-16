@@ -1,133 +1,42 @@
-# decision_trace.md — industrymodel.html (AEO Stage 1) PR #523
+# Decision Trace — PR: Status Agent PASS/BLOCK + Artifact Evidence
 
-## Summary
-This change replaces `industrymodel.html` with **Patch 1** to align the page with **AEO Layer — Stage 1 (Bounded Domain)**:
-- One domain: **Bodyshop Doorline (TVL)**
-- One decision class: **Door Release Gate**
-- One authority path: **Edge → Orchestrator → GEORGE → Guardian**
-- Explicit, explainable **BLOCK** case
-- **Decision-first, Audit-first, PR-driven** (no “OS/platform” claims)
+## Decision / Intent
+Align the Status Agent to the platform governance pattern:
+- Use **PASS/BLOCK semantics** via process exit code (like Guardian).
+- Publish deterministic truth + evidence as **GitHub Actions artifacts**.
+- Remove the need for a separate `gate_result.json` truth artifact.
 
----
+## Authority
+- **Governance-first**: truth regeneration must be deterministic, auditable, and conservative.
+- **Low-but-true beats high-but-uncertain**.
+- **No additional mutable truth artifact** for “gate_result”; gate is expressed by PASS/BLOCK (exit code) and trace evidence.
 
-## Change intent
-**Why now**
-- We need a visible, credible showcase that demonstrates *governed decision-making* (ALLOW/HOLD/BLOCK) before adding “value agents” (Content Agent, Knowledge Curator).
-- `industrymodel.html` is positioned as the **first visible AEO node**, not the full virtauto OS.
+## Scope (files/modules touched)
+- `ops/status_agent.py`
+- `.github/workflows/status-monitoring.yml`
+- `agents/registry.yaml`
+- `ops/consistency_agent.py`
+- `decision_trace.md`
 
-**What this page is**
-A machine-readable, decision-first “world model” slice for a BIW doorline, designed to:
-- declare an industrial decision class
-- show authority & governance constraints
-- make BLOCK legitimate and explainable
-- produce audit-grade trace objects
+## Expected Outcome
+1. **CI checks pass**
+   - `Consistency Agent v1` no longer expects `ops/decisions/gate_result.json`.
+   - `agents/registry.yaml` contains required fields: `state`, `autonomy_mode`.
+   - `ops/reports/decision_trace.json` conforms to required keys (`schema_version`, `generated_at`, `trace_id`, `inputs`, `outputs`, `because`).
 
-**What this page is not**
-- Not a digital twin marketing demo
-- Not an optimizer/simulator showcase
-- Not a platform/OS claim
-- Not a multi-domain roadmap
+2. **Operational behavior**
+   - Status Agent runs on schedule.
+   - Produces:
+     - `ops/reports/system_status.json`
+     - `ops/reports/decision_trace.json`
+     - `ops/reports/decision_trace.jsonl`
+     - `ops/agent_activity.jsonl`
+   - Uploads these as a **GitHub Actions artifact** each run.
+   - If `ops/emergency_lock.json` indicates `locked=true`, the job **BLOCKS** (exit code 2), and evidence still uploads (via `if: always()`).
 
----
+## Risk / Trade-offs
+- Removing `gate_result.json` requires updating any checks that previously depended on it.
+- If other workflows expect `gate_result.json`, they must be migrated to PASS/BLOCK semantics or to reading `decision_trace.json` / `system_status.json` for gate state.
 
-## Files changed
-- `industrymodel.html` (full replacement)
-
-No other files are intended to be modified.
-
----
-
-## Decision graph (Stage 1)
-**Decision Class:** `door_release_gate`  
-**Domain:** `biw_doorline_tvl`  
-**Outcomes:** `ALLOW | HOLD | BLOCK`
-
-**Nodes**
-1. **PROPOSE** — release proposal created with Door ID + ruleset version
-2. **CHECK** — deterministic checks over evidence + constraints
-3. **GOVERN** — authority/policy enforcement via GEORGE + Guardian
-4. **VERDICT** — ALLOW/HOLD/BLOCK published (audit object)
-
----
-
-## Governance & authority
-**Authority path**
-- **Edge:** generates signals / measurements (no policy authority)
-- **Orchestrator:** assembles proposal and sequences checks
-- **GEORGE:** enforces contracts/policies (governing layer)
-- **Guardian:** blocks on violated invariants (no bypass)
-
-**Non-negotiables enforced by narrative**
-- No decision without trace
-- No silent autonomy
-- Fail-safe behavior on missing evidence (HOLD/BLOCK)
-
----
-
-## Evidence model (minimal)
-**Required evidence refs for release gate (Stage 5 example)**
-- geometry scan ref (structured light / 3D)
-- surface scan ref (line scan / surface vision)
-- gap/flush measurement ref
-- ruleset version
-
----
-
-## BLOCK case (explicit)
-**Trigger**
-- Any required evidence missing/unverifiable (e.g., surface evidence ref unresolved)
-
-**Expected outcome**
-- `guardian_check = FAIL`
-- `verdict = BLOCK`
-- `door.state = HOLD`
-
-**Reason**
-- `missing_required_evidence:<type>`
-
----
-
-## Acceptance criteria
-✅ The page states clearly:
-- “AEO Stage 1 / bounded decision space”
-- “not the OS / not the platform / not a full world model core”
-- decision-first + audit-first framing
-- explicit authority path and BLOCK semantics
-
-✅ The BLOCK case is:
-- explicit
-- explainable
-- represented as a deterministic audit record (example JSON)
-
-✅ No scope creep:
-- no agent catalog promises
-- no multi-domain expansion
-- no “AI runs production” claims
-
----
-
-## Risks & mitigations
-**Risk:** Overpromising beyond Stage 1  
-**Mitigation:** Tightened copy: single domain + single decision class + explicit non-claims
-
-**Risk:** Page becomes “documentation only”  
-**Mitigation:** Structured as executable/auditable decision artifact (decision graph + audit records)
-
----
-
-## Rollback plan
-Revert PR to restore previous `industrymodel.html` if:
-- wording is too aggressive/weak for positioning,
-- layout breaks on production,
-- governance claims conflict with current repo contracts.
-
----
-
-## PR metadata (suggested)
-**Title:** `industrymodel: AEO Stage 1 bounded decision space + explicit BLOCK case`  
-**Labels:** `governed, aeo-stage-1, showcase, industrymodel`  
-**Review focus:**
-1) scope discipline (Stage 1 only)  
-2) clarity of decision class + authority path  
-3) BLOCK semantics and audit object examples
-
+## Rollback
+Revert these files to prior versions and re-introduce `ops/decisions/gate_result.json` + associated checks if required by downstream tooling.
