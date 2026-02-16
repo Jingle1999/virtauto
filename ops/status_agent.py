@@ -5,7 +5,6 @@ Generates / refreshes (Single Source of Truth + evidence):
 - ops/reports/system_status.json          (primary truth for website)
 - ops/reports/decision_trace.json         (machine-readable explainability v1)
 - ops/reports/decision_trace.jsonl        (append-only trace log, lightweight)
-- ops/decisions/gate_result.json          (authoritative gate verdict snapshot)
 - ops/agent_activity.jsonl                (append-only agent activity evidence)
 
 Design goals:
@@ -13,6 +12,11 @@ Design goals:
 - safe to run on GitHub Actions schedule
 - conservative: low-but-true beats high-but-uncertain
 - additive: does not require other agents to exist
+
+IMPORTANT CHANGE (per governance style):
+- Uses PASS/BLOCK like Guardian.
+- DOES NOT write ops/decisions/gate_result.json (removed).
+- Evidence is published as GitHub Actions artifact by workflow (not pushed to branches).
 """
 
 from __future__ import annotations
@@ -27,14 +31,13 @@ from typing import Any, Dict
 TRUTH_PATH = Path("ops/reports/system_status.json")
 DECISION_TRACE_JSON = Path("ops/reports/decision_trace.json")
 DECISION_TRACE_JSONL = Path("ops/reports/decision_trace.jsonl")
-GATE_RESULT_PATH = Path("ops/decisions/gate_result.json")
 ACTIVITY_PATH = Path("ops/agent_activity.jsonl")
 
 AUTONOMY_PATH = Path("ops/autonomy.json")
 LATEST_DECISION_PATH = Path("ops/decisions/latest.json")
 EMERGENCY_LOCK_PATH = Path("ops/emergency_lock.json")
 
-# Option D: governance evidence (file-based, deterministic)
+# Governance evidence (file-based, deterministic)
 AUTHORITY_PATH_JSON = Path("ops/authority_matrix.json")
 AUTHORITY_PATH_YAML = Path("ops/authority_matrix.yaml")
 GEORGE_RULES_PATH = Path("ops/george_rules.yaml")
@@ -121,27 +124,17 @@ def main() -> int:
     autonomy_percent = compute_autonomy_percent(autonomy)
 
     # Phase 1 / conservative default: supervised. (Hard actions gated elsewhere.)
-    mode = "SUPERVISED"
+    autonomy_mode = "SUPERVISED"
 
-    # Gate verdict (authoritative snapshot).
-    # Conservative: DENY if emergency lock is active, otherwise ALLOW.
+    # PASS/BLOCK (Guardian-style)
     emergency_lock = load_json(EMERGENCY_LOCK_PATH) or {}
     locked = bool(emergency_lock.get("locked", False))
-    gate_verdict = "DENY" if locked else "ALLOW"
+    gate_verdict = "BLOCK" if locked else "PASS"
+    gate_reason = "emergency_lock" if locked else "status_agent_ok"
 
     trace_prefix = f"trc_{ts.replace('-', '').replace(':', '').replace('T', '_').replace('Z','')}"
 
-    gate_result = {
-        "schema_version": "1.0",
-        "generated_at": ts,
-        "environment": args.env,
-        "gate_verdict": gate_verdict,
-        "reason": "emergency_lock" if locked else "status_agent_ok",
-        "trace_id": f"{trace_prefix}_gate",
-    }
-    write_json(GATE_RESULT_PATH, gate_result)
-
-    # Option D: Governance evidence (file-based)
+    # Governance evidence (file-based)
     authority_ev = file_evidence(AUTHORITY_PATH_JSON)
     if not authority_ev.get("present"):
         authority_ev = file_evidence(AUTHORITY_PATH_YAML)
@@ -151,13 +144,13 @@ def main() -> int:
         "schema_version": "1.0",
         "generated_at": ts,
         "trace_id": f"{trace_prefix}_decision",
+        "gate_verdict": gate_verdict,
+        "gate_reason": gate_reason,
         "because": [
             {"rule": "TRUTH_GENERATED", "evidence": "ev_status_agent_run"},
             {"rule": "NO_EMERGENCY_LOCK" if not locked else "EMERGENCY_LOCK_ACTIVE", "evidence": "ev_emergency_lock"},
             {
-                "rule": "AUTHORITY_EVIDENCE_PRESENT"
-                if authority_ev.get("present")
-                else "AUTHORITY_EVIDENCE_MISSING",
+                "rule": "AUTHORITY_EVIDENCE_PRESENT" if authority_ev.get("present") else "AUTHORITY_EVIDENCE_MISSING",
                 "evidence": "ev_authority",
             },
             {"rule": "POLICY_EVIDENCE_PRESENT" if policy_ev.get("present") else "POLICY_EVIDENCE_MISSING", "evidence": "ev_policies"},
@@ -171,7 +164,6 @@ def main() -> int:
         ],
         "outputs": [
             "ops/reports/system_status.json",
-            "ops/decisions/gate_result.json",
             "ops/reports/decision_trace.json",
             "ops/reports/decision_trace.jsonl",
             "ops/agent_activity.jsonl",
@@ -186,7 +178,7 @@ def main() -> int:
     write_json(DECISION_TRACE_JSON, decision_trace)
     append_jsonl(DECISION_TRACE_JSONL, decision_trace)
 
-    # Conservative health: only "GREEN" if not locked. (We do not infer extra health signals.)
+    # Conservative health: only "GREEN" if not locked.
     health_signal = "GREEN" if not locked else "RED"
     health_score = 0.9 if not locked else 0.2
 
@@ -195,19 +187,17 @@ def main() -> int:
         "generated_at": ts,
         "environment": args.env,
         "system_state": "ACTIVE",
-        "autonomy": mode,
+        "autonomy": autonomy_mode,
         "system": {
             "state": "ACTIVE",
-            "autonomy_mode": mode,
+            "autonomy_mode": autonomy_mode,
             "note": "Phase 1: Status Agent truth regeneration active (GitHub-native, deterministic).",
             "last_incident": None,
         },
-        # Conservative: autonomy is sourced from ops/autonomy.json only.
-        # Missing governance evidence must NOT increase autonomy.
         "autonomy_score": {
             "value": autonomy_percent,
             "percent": autonomy_percent,
-            "mode": mode,
+            "mode": autonomy_mode,
             "trace_coverage": None,
             "gate_verdict": gate_verdict,
             "human_override_rate": None,
@@ -228,21 +218,18 @@ def main() -> int:
             "authority": authority_ev,
             "policies": policy_ev,
             "note": "Evidence is file-based (existence/mtime/size). Content is not parsed (Phase 1) to keep execution deterministic and dependency-free.",
-            "status": "OK"
-            if authority_ev.get("present") and policy_ev.get("present")
-            else "PARTIAL_EVIDENCE",
+            "status": "OK" if authority_ev.get("present") and policy_ev.get("present") else "PARTIAL_EVIDENCE",
         },
         "agents": {
-            "george": {"status": "ok", "state": "ACTIVE", "autonomy_mode": mode, "role": "orchestrator"},
+            "george": {"status": "ok", "state": "ACTIVE", "autonomy_mode": autonomy_mode, "role": "orchestrator"},
             "guardian": {"status": "ok", "state": "ACTIVE", "autonomy_mode": "AUTONOMOUS", "role": "guardian"},
             "monitoring": {"status": "ok", "state": "ACTIVE", "autonomy_mode": "AUTONOMOUS", "role": "observer"},
-            "content": {"status": "ok", "state": "ACTIVE", "autonomy_mode": mode, "role": "executor"},
+            "content": {"status": "ok", "state": "ACTIVE", "autonomy_mode": autonomy_mode, "role": "executor"},
             "deploy_agent": {"status": "ok", "state": "PLANNED", "autonomy_mode": "MANUAL", "role": "executor"},
             "site_audit": {"status": "ok", "state": "PLANNED", "autonomy_mode": "MANUAL", "role": "observer"},
         },
         "links": {
             "latest_decision": str(LATEST_DECISION_PATH) if latest_decision else None,
-            "gate_result": str(GATE_RESULT_PATH),
             "decision_trace": str(DECISION_TRACE_JSONL),
         },
     }
@@ -259,20 +246,19 @@ def main() -> int:
                 str(TRUTH_PATH),
                 str(DECISION_TRACE_JSON),
                 str(DECISION_TRACE_JSONL),
-                str(GATE_RESULT_PATH),
                 str(ACTIVITY_PATH),
             ],
             "gate_verdict": gate_verdict,
+            "gate_reason": gate_reason,
             "governance_evidence": {
                 "authority_present": bool(authority_ev.get("present")),
                 "policies_present": bool(policy_ev.get("present")),
-                "status": "OK"
-                if authority_ev.get("present") and policy_ev.get("present")
-                else "PARTIAL_EVIDENCE",
+                "status": "OK" if authority_ev.get("present") and policy_ev.get("present") else "PARTIAL_EVIDENCE",
             },
         },
     )
 
+    # Guardian-style semantics: BLOCK should fail in workflow (not here).
     return 0
 
 
