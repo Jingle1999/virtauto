@@ -1,257 +1,50 @@
-# agents/registry.yaml
-version: 2
-updated: "2025-12-19T09:30:00Z"
-
-status_enum: [active, mvp, preparing, planned, disabled]
-execution_mode_enum: [manual, supervised, autonomous]
-agent_roles: [governor, orchestrator, guardian, observer, executor]
+schema_version: "1.0"
 
 agents:
+  - id: status_agent
+    state: ACTIVE
+    autonomy_mode: SUPERVISED
+    role: truth_regenerator
+    entrypoint: ops/status_agent.py
 
-  - id: website_monitoring
-    name: Self-Monitoring Agent
-    owner: ops
-    role: observer
-    execution_mode: supervised
-    status: active
-    description: >
-      Observability layer for virtauto.de. Tracks workflow activity,
-      basic health signals, and writes artifacts for system status.
-    capabilities:
-      - healthcheck
-      - http_probe
-      - status_snapshot
-    workflows:
-      - file: ".github/workflows/monitoring.yml"
-        purpose: "health + status signals"
-    events:
-      - type: "ci/deploy-success"
-      - type: "agent/report"
-    outputs:
-      - "/status/status.json"
-      - "/ops/reports/system_status.json"
-    metrics:
-      - id: system_health_score
-    triggers:
-      - on: schedule
-        cron: "*/15 * * * *"
-    sla:
-      rto: "15m"
-      rpo: "24h"
-    tags: [core, health, observability]
-
-  - id: self_guardian
-    name: Self-Guardian
-    owner: governance
+  - id: guardian
+    state: ACTIVE
+    autonomy_mode: AUTONOMOUS
     role: guardian
-    execution_mode: supervised
-    status: active
-    description: >
-      Policy gatekeeper. Enforces security and compliance rules and
-      blocks unsafe changes before production.
-    capabilities:
-      - policy_gate
-      - headers_check
-      - csp_check
-      - robots_check
-      - sitemap_check
-    workflows:
-      - file: ".github/workflows/guardian.yml"
-        purpose: "primary policy gate"
-    events:
-      - type: "pr/opened"
-      - type: "pr/synchronize"
-      - type: "ci/pre-deploy"
-    hard_stop:
-      require_security_gate: true
-      require_status_schema_valid: true
-    triggers:
-      - on: schedule
-        cron: "0 * * * *"
-    sla:
-      rto: "1h"
-      rpo: "24h"
-    tags: [core, security, governance]
+    entrypoint: ops/guardian_agent.py
 
-  - id: self_content
-    name: Self-Content Agent
-    owner: content
-    role: executor
-    execution_mode: supervised
-    status: active
-    description: >
-      Ingests external sources and produces drafts and PR proposals.
-      No autonomous publishing.
-    capabilities:
-      - ingest
-      - draft
-      - update
-      - link_check
-    workflows:
-      - file: ".github/workflows/content-ingest.yml"
-        purpose: "draft generation"
-    events:
-      - type: "content/refresh"
-    outputs:
-      - "/content/drafts/"
-    governance:
-      requires_human_approval: true
-      allowed_actions: [draft, propose_pr]
-      forbidden_actions: [auto_publish, auto_merge]
-    triggers:
-      - on: schedule
-        cron: "0 */6 * * *"
-    sla:
-      rto: "2h"
-      rpo: "24h"
-    tags: [core, content]
+  - id: self_healing
+    state: ACTIVE
+    autonomy_mode: SUPERVISED
+    role: recovery_proposer
+    entrypoint: self_healing/heal.py
 
   - id: george
-    name: GEORGE Executive Governor
-    owner: core
-    role: governor
-    execution_mode: supervised
-    status: mvp
+    state: ACTIVE
+    autonomy_mode: SUPERVISED
+    role: orchestrator
+    entrypoint: ops/george_orchestrator.py
 
-    authority:
-      mode: governor
-      version: v1
-      enforcement: runtime
-      override_allowed: false
-
-    decision_classes:
-      - safety_critical
-      - operational
-      - strategic
-      - deploy
-
-    decision_policies:
-      operational:
-      requires_authority: george
-      block_without_decision: true
-
-    authority_chain:
-      safety_critical: [guardian, george, human]
-      operational: [george, guardian, human]
-      strategic: [human, guardian, george]
-
-    golden_rules:
-      human_default: false
-      exception_only: true
-
-    thresholds:
-      health_score_min: 0.80
-
-    fail_safe:
-      block_if_status_endpoint_unavailable: true  
-      block_if_guardian_not_ok: true
-      block_if_authority_missing: true
-
-    decision_trace:
-      required: true
-      format: json
-      path: "/ops/decisions/decisions.jsonl"
-
-    description: >
-      Central executive governor. Routes events, applies authority rules,
-      enforces policies, and maintains a traceable decision loop.
-      Human intervention is exception-based, not default.
-
-    capabilities:
-      - event_routing
-      - conflict_resolution
-      - orchestration
-      - policy_enforcement
-      - authority_block
-      - escalation
-
-    signal_sources:
-      - "/status/status.json"
-      - "/ops/reports/system_status.json"
-
-    workflows:
-      - file: ".github/workflows/george_orchestrator.yml"
-        purpose: "scheduled orchestration and authority enforcement"
-      - file: ".github/workflows/george_dry_run.yml"
-        purpose: "safe simulation runs"
-
-    events:
-      - type: "agent/report"
-      - type: "content/ingest"
-      - type: "deploy_requested"
-
-    outputs:
-      - "/ops/reports/"
-      - "/ops/decisions/"
-
-    triggers:
-      - on: schedule
-        cron: "*/10 * * * *"
-
-    sla:
-      rto: "5m"
-      rpo: "1h"
-
-    tags: [core, governor, executive]
-   
-  - id: self_audit
-    name: Audit Agent
-    owner: quality
+  - id: monitoring
+    state: ACTIVE
+    autonomy_mode: AUTONOMOUS
     role: observer
-    execution_mode: supervised
-    status: planned
-    description: >
-      Audits diffs, links, content linting and writes an auditable trail.
-      Activate only when workflow + outputs are wired end-to-end.
-    capabilities: [diff-audit, link-check, image-alt, content-lint]
-    signal_sources:
-      workflows:
-        - file: ".github/workflows/self-audit.yml"
-          purpose: "audit workflow (if present)"
-    events:
-      - type: "content/ingest"
-      - type: "pr/merged"
-    outputs:
-      - "ops/reports/audit/"
-      - "status/audit.log"
-    sla:
-      rto: "1h"
-      rpo: "24h"
-    tags: [quality, audit]
+    entrypoint: ops/monitoring_agent.py
+
+  - id: content
+    state: ACTIVE
+    autonomy_mode: SUPERVISED
+    role: executor
+    entrypoint: scripts/self_content
 
   - id: deploy_agent
-    name: Deploy Agent
-    owner: ops
+    state: PLANNED
+    autonomy_mode: MANUAL
     role: executor
-    execution_mode: supervised
-    status: planned
-    description: >
-      Executes guarded deployments and provides rollback hints.
-      Remains simulation-only until governance is fully enforced.
-    capabilities:
-      - deploy
-      - rollback
-      - healthcheck
-    workflows:
-      - file: ".github/workflows/site-deploy.yml"
-        purpose: "deployment pipeline (triggered by GEORGE)"
-      - file: ".github/workflows/manual-rollback.yml"
-        purpose: "rollback fallback"
-    events:
-      - type: "deploy_requested"
-    outputs:
-      - "/status/deploy_agent_report.md"
-      - "/logs/deploy.log"
-    policy:
-      requires_guardian_green: true
-      requires_health_score_min: 0.80
-      requires_human_override_for_prod: true
-      allows_simulation: true
-    deploy:
-      type: execution
-      status: simulation
-      mode: simulation_only
-    sla:
-      rto: "15m"
-      rpo: "24h"
-    tags: [core, deploy]
+    entrypoint: .github/workflows/site-deploy.yml
+
+  - id: site_audit
+    state: PLANNED
+    autonomy_mode: MANUAL
+    role: observer
+    entrypoint: .github/workflows/site-audit.yml
