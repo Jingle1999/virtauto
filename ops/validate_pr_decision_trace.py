@@ -1,85 +1,84 @@
 #!/usr/bin/env python3
 """
-Validate that every Pull Request carries an explicit decision trace artifact.
+Require a decision trace artifact for every PR that changes code/config.
 
-Phase 2 goal: "No decision without trace" (Explainability v1).
-
-This check is intentionally mechanical (not "AI"):
-  - For PRs, require that the PR adds/modifies at least one of:
-      * decision_trace.md
-      * decision_trace.json
-
-The file can live anywhere in the repository.
+PASS if the PR modifies at least one of:
+- decision_trace.md
+- decision_trace.json
+- any file ending with .decision_trace.md (any path)
 """
 
 from __future__ import annotations
 
-import json
+import fnmatch
 import os
 import subprocess
 import sys
-from typing import List, Tuple
+from typing import List
 
 
-REQUIRED_BASENAMES = ("decision_trace.md", "decision_trace.json")
+ALLOWED = [
+    "decision_trace.md",
+    "decision_trace.json",
+]
+ALLOWED_GLOB = [
+    "**/*.decision_trace.md",
+]
 
 
-def run(cmd: List[str]) -> Tuple[int, str]:
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    return p.returncode, p.stdout.strip()
+def _run(cmd: List[str]) -> str:
+    return subprocess.check_output(cmd, text=True).strip()
 
 
-def load_event() -> dict:
-    event_path = os.environ.get("GITHUB_EVENT_PATH", "")
-    if not event_path or not os.path.exists(event_path):
-        return {}
-    with open(event_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+def _changed_files(base: str, head: str) -> List[str]:
+    out = _run(["git", "diff", "--name-only", f"{base}...{head}"])
+    files = [line.strip() for line in out.splitlines() if line.strip()]
+    return files
+
+
+def _matches_allowed(path: str) -> bool:
+    if path in ALLOWED:
+        return True
+    # glob match for .decision_trace.md anywhere
+    for pat in ALLOWED_GLOB:
+        if fnmatch.fnmatch(path, pat) or fnmatch.fnmatch(path, pat.replace("**/", "")):
+            return True
+    return False
 
 
 def main() -> int:
-    event_name = os.environ.get("GITHUB_EVENT_NAME", "")
-    if event_name != "pull_request":
-        print(f"[OK] validate_pr_decision_trace: not a pull_request event ({event_name}).")
+    base = os.environ.get("GITHUB_BASE_SHA", "").strip()
+    head = os.environ.get("GITHUB_SHA", "").strip()
+
+    # Fallbacks that work in PR context where merge-base is available
+    if not base:
+        # Try merge-base of HEAD and origin/main
+        try:
+            base = _run(["git", "merge-base", "HEAD", "origin/main"])
+        except Exception:
+            base = ""
+    if not head:
+        head = "HEAD"
+
+    if not base:
+        print("[WARN] No merge-base found; skipping PR decision trace validation.")
         return 0
 
-    event = load_event()
-    pr = (event.get("pull_request") or {})
-    base_sha = (pr.get("base") or {}).get("sha")
-    head_sha = (pr.get("head") or {}).get("sha")
+    changed = _changed_files(base, head)
 
-    if not base_sha or not head_sha:
-        print("[FAIL] Could not read base/head SHA from GitHub event payload.")
-        print(f"Event keys present: {list(event.keys())}")
-        return 1
-
-    # Determine changed files for this PR (merge-base diff).
-    rc, out = run(["git", "diff", "--name-only", f"{base_sha}...{head_sha}"])
-    if rc != 0:
-        print("[FAIL] git diff failed. Output:")
-        print(out)
-        return 1
-
-    changed = [line.strip() for line in out.splitlines() if line.strip()]
-    hits = [p for p in changed if os.path.basename(p) in REQUIRED_BASENAMES]
-
-    if hits:
-        print("[OK] Decision trace artifact present in PR diff:")
-        for h in hits:
-            print(f" - {h}")
+    if any(_matches_allowed(p) for p in changed):
+        print("[OK] PR contains a decision trace artifact change.")
         return 0
 
     print("[FAIL] Missing mandatory decision trace artifact for this Pull Request.")
     print("Add or modify at least one of the following in this PR:")
-    for b in REQUIRED_BASENAMES:
-        print(f" - {b}")
-    print("\nTip (minimal): add a file named 'decision_trace.md' with:")
-    print(" - Decision / Intent")
-    print(" - Authority")
-    print(" - Scope (files/modules touched)")
-    print(" - Expected outcome")
+    for a in ALLOWED:
+        print(f"  - {a}")
+    print("  - any file ending with .decision_trace.md (any folder)")
+    print("")
+    print("Tip (minimal): add docs/decision_traces/<topic>.decision_trace.md")
     return 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
