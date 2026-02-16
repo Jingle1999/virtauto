@@ -1,4 +1,4 @@
-name: Status Monitoring (Truth Regeneration) - Phase 1 (Status Agent)
+name: Status Monitoring (Truth Regeneration) — Phase 1 (Status Agent)
 
 on:
   workflow_dispatch:
@@ -6,25 +6,22 @@ on:
     # Heartbeat every 10 minutes
     - cron: "*/10 * * * *"
 
-# IMPORTANT: do NOT cancel in-progress runs.
+# IMPORTANT: Do NOT cancel in-progress runs.
 concurrency:
   group: status-monitoring-phase1
   cancel-in-progress: false
 
-# We must be able to commit/push truth artifacts to a non-protected branch.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   status-agent-heartbeat:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout (full history)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -47,86 +44,45 @@ jobs:
           echo "Running Status Agent heartbeat..."
           python ops/status_agent.py --env production
 
-      - name: Mirror evidence into /status/ops (GitHub Pages-served)
+      - name: Read verdict (PASS/BLOCK)
+        id: verdict
         shell: bash
         run: |
           set -euo pipefail
+          python - << 'PY' > verdict.txt
+          import json
+          from pathlib import Path
+          p = Path("ops/reports/system_status.json")
+          if not p.exists():
+              print("BLOCK")
+              raise SystemExit(0)
+          data = json.loads(p.read_text(encoding="utf-8"))
+          v = (data.get("autonomy_score", {}) or {}).get("gate_verdict", "BLOCK")
+          print(v)
+          PY
+          v="$(cat verdict.txt | tr -d '\n\r')"
+          echo "gate_verdict=$v" >> "$GITHUB_OUTPUT"
+          echo "Gate verdict: $v"
 
-          mkdir -p status/ops status/ops/reports status/ops/decisions
+      - name: Upload status evidence (GitHub artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: status-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: error
+          path: |
+            ops/reports/system_status.json
+            ops/reports/decision_trace.json
+            ops/reports/decision_trace.jsonl
+            ops/agent_activity.jsonl
 
-          # Copy only if present (do not fail on missing files)
-          [ -f ops/agent_activity.json ] && cp -f ops/agent_activity.json status/ops/agent_activity.json || true
-          [ -f ops/agent_activity.jsonl ] && cp -f ops/agent_activity.jsonl status/ops/agent_activity.jsonl || true
-
-          [ -f ops/reports/system_status.json ] && cp -f ops/reports/system_status.json status/ops/reports/system_status.json || true
-          [ -f ops/reports/decision_trace.json ] && cp -f ops/reports/decision_trace.json status/ops/reports/decision_trace.json || true
-          [ -f ops/reports/decision_trace.jsonl ] && cp -f ops/reports/decision_trace.jsonl status/ops/reports/decision_trace.jsonl || true
-
-          [ -f ops/decisions/gate_result.json ] && cp -f ops/decisions/gate_result.json status/ops/decisions/gate_result.json || true
-
-      - name: Publish truth artifacts to Pages branch (no write to main)
+      - name: Enforce gate (BLOCK stops workflow)
         shell: bash
-        env:
-          PAGES_BRANCH: status-pages
         run: |
           set -euo pipefail
-
-          # --- 1) Snapshot generated artifacts BEFORE switching branches ---
-          mkdir -p /tmp/va_truth
-          copy_if_exists () { [ -e "$1" ] && cp -a "$1" "/tmp/va_truth/$1" || true; }
-
-          copy_if_exists "ops/agent_activity.json"
-          copy_if_exists "ops/agent_activity.jsonl"
-          copy_if_exists "ops/reports/system_status.json"
-          copy_if_exists "ops/reports/decision_trace.json"
-          copy_if_exists "ops/reports/decision_trace.jsonl"
-          copy_if_exists "ops/decisions/gate_result.json"
-
-          copy_if_exists "status/ops/agent_activity.json"
-          copy_if_exists "status/ops/agent_activity.jsonl"
-          copy_if_exists "status/ops/reports/system_status.json"
-          copy_if_exists "status/ops/reports/decision_trace.json"
-          copy_if_exists "status/ops/reports/decision_trace.jsonl"
-          copy_if_exists "status/ops/decisions/gate_result.json"
-
-          # Configure committer
-          git config user.name "status-agent"
-          git config user.email "status-agent@virtauto.local"
-
-          # --- 2) Switch to Pages branch as "main snapshot" ---
-          git fetch origin main
-          git checkout -B "$PAGES_BRANCH" "origin/main"
-
-          # --- 3) Restore artifacts AFTER switching branches ---
-          if [ -d /tmp/va_truth ]; then
-            (cd /tmp/va_truth && find . -type f -print0 | while IFS= read -r -d '' f; do
-              dst="${f#./}"
-              mkdir -p "$(dirname "$dst")"
-              cp -a "$f" "$dst"
-            done)
+          verdict="${{ steps.verdict.outputs.gate_verdict }}"
+          if [ "$verdict" != "PASS" ]; then
+            echo "Status Agent gate BLOCKED." >&2
+            exit 2
           fi
-
-          # Stage only truth artifacts (avoid unrelated runner files)
-          add_if_exists () { [ -e "$1" ] && git add "$1" || true; }
-
-          add_if_exists "ops/agent_activity.json"
-          add_if_exists "ops/agent_activity.jsonl"
-          add_if_exists "ops/reports/system_status.json"
-          add_if_exists "ops/reports/decision_trace.json"
-          add_if_exists "ops/reports/decision_trace.jsonl"
-          add_if_exists "ops/decisions/gate_result.json"
-
-          add_if_exists "status/ops/agent_activity.json"
-          add_if_exists "status/ops/agent_activity.jsonl"
-          add_if_exists "status/ops/reports/system_status.json"
-          add_if_exists "status/ops/reports/decision_trace.json"
-          add_if_exists "status/ops/reports/decision_trace.jsonl"
-          add_if_exists "status/ops/decisions/gate_result.json"
-
-          if git diff --cached --quiet; then
-            echo "No truth artifact changes to publish."
-            exit 0
-          fi
-
-          git commit -m "chore(status-agent): publish truth artifacts"
-          git push --force origin "$PAGES_BRANCH"
+          echo "Status Agent gate PASSED."
