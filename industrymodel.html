@@ -196,7 +196,7 @@
             <span class="muted">Bodyshop — Doorline Front Left (TVL)</span>
           </div>
           <div class="kpi">
-            <strong>Decision class</strong>
+            <strong>Core decision class (Option 1)</strong>
             <span class="muted">May this door be released / handed over?</span>
           </div>
           <div class="kpi">
@@ -213,19 +213,29 @@
           <span class="pill"><span class="dot"></span>PR-driven</span>
         </div>
 
-        <h3>Stage 1.1 — Energy Optimization (bounded advisory)</h3>
-        <ul>
-          <li><code>energy_output_stability_advisory</code> (Door Model 2)</li>
-          <li><code>energy_peak_mitigation_advisory</code> (Door Model 3)</li>
-        </ul>
+        <hr class="mini-hr">
 
-        <p class="muted">
-          See <a href="#decision-space">Decision Space</a> for authority and governed artifacts.
+        <strong>Stage 1.1 (bounded use case extension)</strong>
+        <p class="muted" style="margin:.45rem 0 0">
+          The first “real” use case we attach to the model is <strong>Energy Optimization</strong> — not as autonomous execution,
+          but as a <strong>bounded advisory layer</strong> that must still obey the same governance discipline
+          (explicit inputs, evidence posture, versioned rulesets, traceability).
+        </p>
+        <div class="pill-row" aria-label="Use case tags">
+          <span class="pill"><span class="dot"></span>Advisory-only</span>
+          <span class="pill"><span class="dot"></span>Same domain context</span>
+          <span class="pill red"><span class="dot"></span>Conservative defaults</span>
+          <span class="pill"><span class="dot"></span>Traceable recommendations</span>
+        </div>
+
+        <p class="muted" style="margin-top:.65rem">
+          Jump to: <a href="#decision-space">Decision Space</a> · <a href="#use-case-energy">Use Case</a>
         </p>
 
         <div class="anchors" aria-label="Jump links">
           <a href="#proof">Proof Object</a>
           <a href="#intent">Intent</a>
+          <a href="#use-case-energy">Use Case</a>
           <a href="#world-model">World Model</a>
           <a href="#decision-graph">Decision Graph</a>
           <a href="#governance">Governance</a>
@@ -246,10 +256,10 @@
         This page only claims capabilities that exist as governed artifacts (contract, ruleset, examples, trace).
         No artifact, no capability.
       </p>
-      
+
       <div class="card">
-        <strong>Active decision classes</strong>
-        
+        <strong>Active decision classes (Options 1–3)</strong>
+
         <div class="table-wrap" style="margin-top:12px;">
           <table class="table" style="width:100%;">
             <thead>
@@ -262,10 +272,11 @@
               </tr>
             </thead>
             <tbody>
+              <!-- OPTION 1 -->
               <tr>
-                <td><code>pp_door_release</code></td>
+                <td><code>pp_door_release</code> <span class="pill" style="margin-left:.35rem">Option 1</span></td>
                 <td><span class="pill">Gate-blocking</span></td>
-                <td>BIW Doorline · Door</td>
+                <td>BIW Doorline · Door (TVL)</td>
                 <td>
                   <code>governance/contracts/pp-door-release-v1.md</code><br/>
                   <code>ops/reports/decision_trace.jsonl</code><br/>
@@ -275,8 +286,9 @@
                 <td>BLOCK-capable · trace required</td>
               </tr>
 
+              <!-- OPTION 2 -->
               <tr>
-                <td><code>energy_output_stability_advisory</code></td>
+                <td><code>energy_output_stability_advisory</code> <span class="pill" style="margin-left:.35rem">Option 2</span></td>
                 <td><span class="pill">Advisory-only</span></td>
                 <td>BIW Doorline · Door Model 2</td>
                 <td>
@@ -285,11 +297,12 @@
                   <code>ops/examples/energy_output_stability_advisory_*.json</code><br/>
                   <code>decision_traces/pr-&lt;PRID&gt;_decision_trace.md</code>
                 </td>
-                <td>Conservative defaults · BLOCK on missing evidence</td>
+                <td>Conservative defaults · HOLD/BLOCK on missing evidence</td>
               </tr>
 
+              <!-- OPTION 3 -->
               <tr>
-                <td><code>energy_peak_mitigation_advisory</code></td>
+                <td><code>energy_peak_mitigation_advisory</code> <span class="pill" style="margin-left:.35rem">Option 3</span></td>
                 <td><span class="pill">Advisory-only</span></td>
                 <td>BIW Doorline · Door Model 3</td>
                 <td>
@@ -306,11 +319,12 @@
 
         <p class="muted" style="margin-top:12px;">
           Advisory-only means: recommendations may be produced, but no autonomous execution happens on the shopfloor.
+          The model stays governance-first: explicit inputs, explicit evidence posture, explicit traceability.
         </p>
       </div>
     </div>
   </section>
-          
+
   <!-- PROOF OBJECT -->
   <section class="section" id="proof">
     <div class="container">
@@ -370,7 +384,7 @@
 
       <div class="two-col">
         <div class="card">
-          <h3>Decision intent</h3>
+          <h3>Decision intent (Option 1)</h3>
           <ul class="list-tight muted">
             <li>Produce Door <code>TVL</code> for variant <code>FrontLeft_BIW</code></li>
             <li>Only release if audit-grade evidence is complete</li>
@@ -402,13 +416,108 @@
     </div>
   </section>
 
+  <!-- USE CASE: ENERGY -->
+  <section class="section" id="use-case-energy">
+    <div class="container">
+      <h2>1.1) Use Case — Energy Optimization (bounded advisory)</h2>
+      <p class="muted">
+        This use case is intentionally <strong>not</strong> “AI optimizes the factory”.
+        It is a <strong>governed advisory extension</strong> inside the same bounded world model:
+        inputs are explicit, evidence posture is explicit, rulesets are versioned, and the result is traceable.
+      </p>
+
+      <div class="card callout">
+        <strong>Why it belongs here</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          Energy optimization becomes credible only when it is anchored in the same discipline as quality gating:
+          you can’t “optimize” what you can’t <strong>measure</strong>, <strong>attribute</strong>, and <strong>govern</strong>.
+          Therefore Options 2–3 are advisory layers that reuse the same constraints: conservative defaults, no silent execution, traceable outputs.
+        </p>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Measurement-first</span>
+          <span class="pill"><span class="dot"></span>Attribution</span>
+          <span class="pill red"><span class="dot"></span>No silent action</span>
+          <span class="pill"><span class="dot"></span>Traceable recommendation</span>
+        </div>
+      </div>
+
+      <div class="three-col">
+        <!-- Option 1 -->
+        <div class="card">
+          <h3>Option 1 — Door release gate</h3>
+          <p class="muted" style="margin:.35rem 0 0">
+            Baseline decision class that proves the system can <strong>ALLOW/HOLD/BLOCK</strong> deterministically.
+            Energy is not optimized here — this is the governance spine that makes all later optimization safe.
+          </p>
+          <hr class="mini-hr">
+          <ul class="list-tight muted">
+            <li>Decision: <code>pp_door_release</code></li>
+            <li>Outcome: ALLOW/HOLD/BLOCK</li>
+            <li>Requires: evidence chain + trace</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill ok"><span class="dot"></span>Gate-blocking</span>
+            <span class="pill red"><span class="dot"></span>BLOCK-capable</span>
+          </div>
+        </div>
+
+        <!-- Option 2 -->
+        <div class="card">
+          <h3>Option 2 — Output stability advisory (Door Model 2)</h3>
+          <p class="muted" style="margin:.35rem 0 0">
+            Advisory recommendations to stabilize energy output (reduce variance / avoid oscillations),
+            bounded by quality and process constraints. If required evidence is missing, the result must degrade conservatively.
+          </p>
+          <hr class="mini-hr">
+          <ul class="list-tight muted">
+            <li>Decision: <code>energy_output_stability_advisory</code></li>
+            <li>Output: recommended setpoints / sequence suggestions</li>
+            <li>Mode: advisory-only (no execution)</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Advisory-only</span>
+            <span class="pill amb"><span class="dot"></span>Conservative defaults</span>
+          </div>
+        </div>
+
+        <!-- Option 3 -->
+        <div class="card">
+          <h3>Option 3 — Peak mitigation advisory (Door Model 3)</h3>
+          <p class="muted" style="margin:.35rem 0 0">
+            Advisory recommendations to mitigate energy peaks (shift loads, avoid simultaneous high-draw actions),
+            while staying inside quality guardrails and cycle-time boundaries.
+          </p>
+          <hr class="mini-hr">
+          <ul class="list-tight muted">
+            <li>Decision: <code>energy_peak_mitigation_advisory</code></li>
+            <li>Output: peak-avoidance schedule / bounded shaping</li>
+            <li>Mode: advisory-only (no execution)</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Advisory-only</span>
+            <span class="pill"><span class="dot"></span>Quality guardrails</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <strong>Common boundary for Options 2–3</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          Recommendations are only “valid” if they can be backed by governed artifacts:
+          contract + versioned ruleset + example inputs + decision trace.
+          If any required evidence is missing, the advisory result must become <strong>HOLD / no-recommendation</strong> (fail-safe posture).
+        </p>
+      </div>
+    </div>
+  </section>
+
   <!-- WORLD MODEL -->
   <section class="section" id="world-model">
     <div class="container">
       <h2>2) World Model (bounded)</h2>
       <p class="muted">
         A minimal, explicit representation of entities, state, constraints/policies, tools, and evidence —
-        sufficient to govern a single decision class for Doorline TVL.
+        sufficient to govern a single decision class for Doorline TVL, plus bounded advisory extensions.
       </p>
 
       <div class="three-col">
@@ -688,11 +797,6 @@
         </p>
       </div>
     </div>
-    <h3>Stage 1.1 — Energy Optimization (bounded advisory)</h3>
-    <ul>
-      <li><code>energy_output_stability_advisory</code> (Door Model 2)</li>
-      <li><code>energy_peak_mitigation_advisory</code> (Door Model 3)</li>
-    </ul>
   </section>
 
   <!-- AUDIT -->
