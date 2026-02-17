@@ -1,0 +1,41 @@
+{
+  "ts": "2026-02-17T11:02:00Z",
+  "trace_version": "1.0",
+  "decision_id": "ex-energy-peak-001",
+  "decision_class": "energy_peak_mitigation_advisory",
+  "actor": "GEORGE",
+  "phase": "execute",
+  "inputs": {
+    "door_id": "D-22345",
+    "door_model": "MODEL_3_HIGH_REINFORCEMENT",
+    "line_id": "BIW-DOORLINE-01",
+    "station_id": "S5_WELD_CELL",
+    "window_sec": 120,
+    "telemetry": {
+      "peak_kw": 0,
+      "energy_kwh": 3.10,
+      "cycle_time_sec": 61.4,
+      "hold_rate": 0.01,
+      "retry_rate": 0.01,
+      "electrode_life_remaining_pct": 44,
+      "weld_signature_drift": 0.09
+    }
+  },
+  "result": {
+    "verdict": "RECOMMEND",
+    "recommendation": {
+      "action": "SHAPE_LOAD",
+      "parameters": { "limit_concurrent_welds": 2 },
+      "confidence": 0.68,
+      "reason": "Peak limit not configured (conservative); applying load shaping as safe no-regret recommendation."
+    },
+    "constraints_applied": [
+      "QUALITY_GUARD_WELD_DRIFT<0.20",
+      "PROCESS_STABILITY_HOLD<=0.03",
+      "PROCESS_STABILITY_RETRY<=0.02",
+      "TOOLING_GUARD_ELECTRODE>=15",
+      "ENVELOPE_LIMIT_CONCURRENT_WELDS=2"
+    ],
+    "tradeoff_note": "May reduce throughput under congestion; requires monitoring of cycle_time_sec."
+  }
+}
