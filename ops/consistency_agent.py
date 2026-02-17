@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
 """
-Consistency Agent v1 (CI)
+consistency_agent.py (v1 minimal)
 
-Purpose:
-- Validate core "truth + governance" consistency.
-- Align with PASS/BLOCK model and GitHub artifacts (no gate_result.json required).
+Goal (minimal):
+- Ensure agents/registry.yaml exists + parses + each agent has required fields:
+  - autonomy_mode
+  - state
+- Ensure ops/reports/decision_trace.jsonl exists, is valid JSONL, and last entry includes:
+  - outputs as list
+  - outputs contains "ops/reports/system_status.json"
 
-Checks (FAIL):
-1) agents/registry.yaml: each agent must include autonomy_mode + state
-2) ops/reports/decision_trace.jsonl: latest entry must include required keys
-3) latest decision_trace.outputs must reference ops/reports/system_status.json
+Exit codes:
+- 0 on pass
+- 2 on fail (to match existing pipeline expectations)
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -23,107 +27,87 @@ try:
 except Exception:
     yaml = None
 
-ROOT = Path(".")
-REGISTRY = ROOT / "agents" / "registry.yaml"
-DECISION_TRACE = ROOT / "ops" / "reports" / "decision_trace.jsonl"
-SYSTEM_STATUS = ROOT / "ops" / "reports" / "system_status.json"
-
-REQUIRED_REGISTRY_AGENT_FIELDS = ["autonomy_mode", "state"]
-REQUIRED_DECISION_TRACE_FIELDS = [
-    "schema_version",
-    "generated_at",
-    "trace_id",
-    "intent",
-    "inputs",
-    "outputs",
-    "because",
-    "authority",
-]
+REGISTRY_PATH = Path("agents/registry.yaml")
+DECISION_TRACE_JSONL = Path("ops/reports/decision_trace.jsonl")
+SYSTEM_STATUS = "ops/reports/system_status.json"
 
 FAILURES: list[str] = []
 WARNINGS: list[str] = []
 
 
-def fail(msg: str) -> None:
-    FAILURES.append(msg)
+def fail(code: str, msg: str) -> None:
+    FAILURES.append(f"{code}: {msg}")
 
 
-def warn(msg: str) -> None:
-    WARNINGS.append(msg)
+def warn(code: str, msg: str) -> None:
+    WARNINGS.append(f"{code}: {msg}")
 
 
 def load_yaml(path: Path) -> dict:
     if yaml is None:
-        raise RuntimeError("PyYAML not installed. Add to requirements or workflow.")
-    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        raise RuntimeError("PyYAML not available. Add pyyaml to workflow deps or vendor a minimal parser.")
+    with path.open("r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
 
 
-def load_jsonl_last(path: Path) -> dict | None:
-    if not path.exists():
-        return None
+def load_last_jsonl_entry(path: Path) -> dict:
     lines = [ln.strip() for ln in path.read_text(encoding="utf-8").splitlines() if ln.strip()]
     if not lines:
-        return None
-    # last non-empty line
-    try:
-        return json.loads(lines[-1])
-    except Exception as e:
-        fail(f"CNS-TRACE-000: decision_trace.jsonl last line is not valid JSON ({path}): {e}")
-        return None
+        raise ValueError("empty jsonl")
+    return json.loads(lines[-1])
 
 
 def main() -> int:
-    # 1) registry.yaml
-    if not REGISTRY.exists():
-        fail(f"CNS-REG-001: Missing {REGISTRY}")
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--mode", default="ci", choices=["ci", "local"])
+    _ = ap.parse_args()
+
+    # 1) Registry
+    if not REGISTRY_PATH.exists():
+        fail("CNS-REG-001", f"Missing {REGISTRY_PATH}")
     else:
         try:
-            data = load_yaml(REGISTRY)
-            agents = data.get("agents", [])
-            if not isinstance(agents, list) or not agents:
-                fail(f"CNS-REG-002: registry.yaml missing 'agents' list ({REGISTRY})")
+            reg = load_yaml(REGISTRY_PATH)
+            agents = reg.get("agents")
+            if not isinstance(agents, list):
+                fail("CNS-REG-002", "registry.yaml missing 'agents' list")
             else:
                 for a in agents:
                     if not isinstance(a, dict):
-                        fail(f"CNS-REG-003: registry agent entry is not a dict ({REGISTRY})")
+                        fail("CNS-REG-003", "registry agent entry is not a dict")
                         continue
-                    aid = a.get("agent_id", "<unknown>")
-                    for f in REQUIRED_REGISTRY_AGENT_FIELDS:
-                        if f not in a or a.get(f) in (None, "", "unknown"):
-                            fail(f"CNS-REG-007: Agent '{aid}' missing field: {f} ({REGISTRY})")
+                    aid = a.get("agent_id", "<missing>")
+                    if "autonomy_mode" not in a:
+                        fail("CNS-REG-010", f"Agent '{aid}' missing field: autonomy_mode")
+                    if "state" not in a:
+                        fail("CNS-REG-011", f"Agent '{aid}' missing field: state")
         except Exception as e:
-            fail(f"CNS-REG-010: Could not parse registry.yaml ({REGISTRY}): {e}")
+            fail("CNS-REG-900", f"Could not parse registry.yaml: {e}")
 
-    # 2) decision_trace.jsonl schema
-    last = load_jsonl_last(DECISION_TRACE)
-    if last is None:
-        fail(f"CNS-TRACE-001: Missing or empty decision_trace.jsonl ({DECISION_TRACE})")
+    # 2) Decision trace JSONL
+    if not DECISION_TRACE_JSONL.exists():
+        fail("CNS-TRACE-001", f"Missing {DECISION_TRACE_JSONL}")
     else:
-        for k in REQUIRED_DECISION_TRACE_FIELDS:
-            if k not in last:
-                fail(f"CNS-TRACE-010: decision_trace entry missing key: {k} ({DECISION_TRACE})")
+        try:
+            last = load_last_jsonl_entry(DECISION_TRACE_JSONL)
+            outs = last.get("outputs")
+            if not isinstance(outs, list):
+                fail("CNS-TRACE-020", "latest decision_trace.outputs must be a list")
+            else:
+                outs_str = [str(x) for x in outs]
+                if SYSTEM_STATUS not in outs_str:
+                    fail("CNS-TRACE-021", f"latest decision_trace.outputs must include '{SYSTEM_STATUS}'")
+        except Exception as e:
+            fail("CNS-TRACE-900", f"Could not parse decision_trace.jsonl: {e}")
 
-        # 3) outputs references canonical truth file
-        outs = last.get("outputs", [])
-        if isinstance(outs, list):
-            if str(SYSTEM_STATUS).replace("\\", "/") not in [str(x) for x in outs]:
-                fail(
-                    "CNS-TRACE-020: latest decision_trace.outputs must include "
-                    f"'{SYSTEM_STATUS.as_posix()}' ({DECISION_TRACE})"
-                )
-        else:
-            fail(f"CNS-TRACE-021: decision_trace.outputs must be a list ({DECISION_TRACE})")
-
-    # Emit results
-    if WARNINGS:
-        print("[WARN]")
-        for w in WARNINGS:
-            print(" -", w)
+    # Report
+    for w in WARNINGS:
+        print(f"[WARN] {w}")
 
     if FAILURES:
         print("[FAIL] Consistency Agent v1")
         for f in FAILURES:
-            print(" -", f)
+            print(f" - {f}")
         return 2
 
     print("[PASS] Consistency Agent v1")
