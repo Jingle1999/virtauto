@@ -1,0 +1,36 @@
+{
+  "ruleset_id": "biw-door-energy-v1",
+  "scope": {
+    "domain": "automotive",
+    "area": "BIW",
+    "line": "doorline"
+  },
+  "defaults_conservative": true,
+  "thresholds": {
+    "hold_rate_trigger": 0.03,
+    "retry_rate_trigger": 0.02,
+    "weld_signature_drift_threshold": 0.2,
+    "peak_limit_kw": 0
+  },
+  "approved_envelopes": {
+    "MODEL_2_MIXED_MATERIAL": {
+      "hemming_speed_delta_pct_min": -5,
+      "hemming_speed_delta_pct_max": 0,
+      "weld_schedule_offset_ms_max": 600
+    },
+    "MODEL_3_HIGH_REINFORCEMENT": {
+      "limit_concurrent_welds": 2,
+      "electrode_life_remaining_pct_min": 15,
+      "weld_schedule_offset_ms_max": 600
+    }
+  },
+  "policy": {
+    "mode": "advisory_only",
+    "no_unsafe_changes": true,
+    "no_legal_violations": true,
+    "require_explicit_tradeoff_note": true
+  },
+  "notes": {
+    "peak_limit_kw": "0 means 'not set yet' — keep advisory output but do not claim compliance to a peak target."
+  }
+}
