@@ -219,6 +219,10 @@
           <li><code>energy_peak_mitigation_advisory</code> (Door Model 3)</li>
         </ul>
 
+        <p class="muted">
+          See <a href="#decision-space">Decision Space</a> for authority and governed artifacts.
+        </p>
+
         <div class="anchors" aria-label="Jump links">
           <a href="#proof">Proof Object</a>
           <a href="#intent">Intent</a>
@@ -234,6 +238,79 @@
     </div>
   </section>
 
+  <!-- DECISION SPACE -->
+  <section class="section" id="decision-space">
+    <div class="container">
+      <h2>Decision Space (governed)</h2>
+      <p class="muted">
+        This page only claims capabilities that exist as governed artifacts (contract, ruleset, examples, trace).
+        No artifact, no capability.
+      </p>
+      
+      <div class="card">
+        <strong>Active decision classes</strong>
+        
+        <div class="table-wrap" style="margin-top:12px;">
+          <table class="table" style="width:100%;">
+            <thead>
+              <tr>
+                <th>Decision class</th>
+                <th>Authority / Mode</th>
+                <th>Scope</th>
+                <th>Artifacts (repo)</th>
+                <th>Evidence posture</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>pp_door_release</code></td>
+                <td><span class="pill">Gate-blocking</span></td>
+                <td>BIW Doorline · Door</td>
+                <td>
+                  <code>governance/contracts/pp-door-release-v1.md</code><br/>
+                  <code>ops/reports/decision_trace.jsonl</code><br/>
+                  <code>ops/decisions/gate_result.json</code><br/>
+                  <code>ops/reports/system_status.json</code>
+                </td>
+                <td>BLOCK-capable · trace required</td>
+              </tr>
+
+              <tr>
+                <td><code>energy_output_stability_advisory</code></td>
+                <td><span class="pill">Advisory-only</span></td>
+                <td>BIW Doorline · Door Model 2</td>
+                <td>
+                  <code>governance/contracts/energy-output-stability-advisory-v1.md</code><br/>
+                  <code>governance/rulesets/biw-door-energy-v1.json</code><br/>
+                  <code>ops/examples/energy_output_stability_advisory_*.json</code><br/>
+                  <code>decision_traces/pr-&lt;PRID&gt;_decision_trace.md</code>
+                </td>
+                <td>Conservative defaults · BLOCK on missing evidence</td>
+              </tr>
+
+              <tr>
+                <td><code>energy_peak_mitigation_advisory</code></td>
+                <td><span class="pill">Advisory-only</span></td>
+                <td>BIW Doorline · Door Model 3</td>
+                <td>
+                  <code>governance/contracts/energy-peak-mitigation-advisory-v1.md</code><br/>
+                  <code>governance/rulesets/biw-door-energy-v1.json</code><br/>
+                  <code>ops/examples/energy_peak_mitigation_advisory_*.json</code><br/>
+                  <code>decision_traces/pr-&lt;PRID&gt;_decision_trace.md</code>
+                </td>
+                <td>Quality guardrails · bounded shaping</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="muted" style="margin-top:12px;">
+          Advisory-only means: recommendations may be produced, but no autonomous execution happens on the shopfloor.
+        </p>
+      </div>
+    </div>
+  </section>
+          
   <!-- PROOF OBJECT -->
   <section class="section" id="proof">
     <div class="container">
