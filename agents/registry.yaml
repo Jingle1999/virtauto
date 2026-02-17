@@ -1,38 +1,57 @@
+# agents/registry.yaml
+# Minimal governed agent registry
+# Required fields for CI (Consistency Agent v1):
+# - autonomy_mode
+# - state
+
 schema_version: "1.0"
 
 agents:
   - agent_id: "guardian"
     name: "Guardian"
-    description: "Governance gatekeeper (policy/security/contract enforcement)."
-    state: "operational"
     autonomy_mode: "supervised"
+    state: "active"
+    owner: "virtauto"
+    description: "Governance gatekeeper (policy/security)."
 
   - agent_id: "monitoring"
     name: "Monitoring Agent"
-    description: "Observability & health checks."
-    state: "operational"
     autonomy_mode: "supervised"
+    state: "active"
+    owner: "virtauto"
+    description: "Operational monitoring and health signals."
 
   - agent_id: "content"
     name: "Content Agent"
-    description: "Drafts governed content; PR-based publication."
-    state: "operational"
     autonomy_mode: "supervised"
+    state: "active"
+    owner: "virtauto"
+    description: "Drafts governed content proposals (PR-based)."
 
   - agent_id: "site_audit"
     name: "Site Audit Agent"
-    description: "Static checks for site consistency and regressions."
-    state: "operational"
     autonomy_mode: "supervised"
+    state: "active"
+    owner: "virtauto"
+    description: "Checks site integrity, links, structure, and consistency."
 
   - agent_id: "deploy"
     name: "Deployment Agent"
-    description: "Build/deploy orchestration (governed)."
-    state: "operational"
     autonomy_mode: "supervised"
+    state: "inactive"
+    owner: "virtauto"
+    description: "Performs governed deployment workflows (PR-based)."
 
   - agent_id: "status"
     name: "Status Agent"
-    description: "Publishes ops/reports/system_status.json as Single Source of Truth."
-    state: "operational"
     autonomy_mode: "supervised"
+    state: "active"
+    owner: "virtauto"
+    description: "Publishes canonical system truth to ops/reports/system_status.json."
+
+pipelines:
+  monitoring: "active"
+  audit: "active"
+  guardian: "active"
+  deploy: "inactive"
+  content: "active"
