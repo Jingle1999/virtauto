@@ -1,0 +1,30 @@
+{
+  "ts": "2026-02-17T11:03:00Z",
+  "trace_version": "1.0",
+  "decision_id": "ex-energy-peak-002",
+  "decision_class": "energy_peak_mitigation_advisory",
+  "actor": "GEORGE",
+  "phase": "guardian",
+  "inputs": {
+    "door_id": "D-22346",
+    "door_model": "MODEL_3_HIGH_REINFORCEMENT",
+    "station_id": "S5_WELD_CELL",
+    "window_sec": 120,
+    "telemetry": {
+      "peak_kw": 0,
+      "energy_kwh": 3.22,
+      "cycle_time_sec": 60.1,
+      "hold_rate": 0.01,
+      "retry_rate": 0.01,
+      "electrode_life_remaining_pct": 38,
+      "weld_signature_drift": 0.26
+    }
+  },
+  "result": {
+    "verdict": "BLOCK",
+    "reason": "QUALITY_GUARD_WELD_DRIFT",
+    "constraints_applied": [
+      "QUALITY_GUARD_WELD_DRIFT>=0.20"
+    ]
+  }
+}
