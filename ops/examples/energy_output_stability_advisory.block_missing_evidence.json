@@ -1,0 +1,28 @@
+{
+  "ts": "2026-02-17T11:01:00Z",
+  "trace_version": "1.0",
+  "decision_id": "ex-energy-stability-002",
+  "decision_class": "energy_output_stability_advisory",
+  "actor": "GEORGE",
+  "phase": "guardian",
+  "inputs": {
+    "door_id": "D-12346",
+    "door_model": "MODEL_2_MIXED_MATERIAL",
+    "station_id": "S4_HEMMING",
+    "window_sec": 300,
+    "telemetry": {
+      "energy_kwh": 2.40,
+      "cycle_time_sec": 0,
+      "hold_rate": 0.01,
+      "retry_rate": 0.01,
+      "weld_signature_drift": 0.10
+    }
+  },
+  "result": {
+    "verdict": "BLOCK",
+    "reason": "Missing/invalid evidence: cycle_time_sec must be > 0 for stability assessment.",
+    "constraints_applied": [
+      "EVIDENCE_REQUIRED_CYCLE_TIME"
+    ]
+  }
+}
