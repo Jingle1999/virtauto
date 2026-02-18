@@ -123,6 +123,25 @@
     }
     .repo .row code{ font-size:.9rem; }
 
+    /* NEW: Production process (Stages 1–6) helpers */
+    .stage-head{
+      display:flex; align-items:center; justify-content:space-between; gap:.75rem;
+      margin-bottom:.35rem;
+    }
+    .stage-badge{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.22rem .55rem; border-radius:999px;
+      border:1px solid #243255; background:#0b1220; color:#dbe7ff;
+      font-size:.78rem; white-space:nowrap;
+    }
+    .stage-badge .n{
+      width:18px; height:18px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:.72rem; border:1px solid #2a3a5e;
+    }
+    .stage-badge.ok  { border-color: rgba(34,197,94,.25); }
+    .stage-badge.amb { border-color: rgba(251,191,36,.35); }
+
     @media (max-width: 900px) {
       .two-col, .three-col { grid-template-columns: 1fr; }
       .kpi{ min-width: unset; width:100%; }
@@ -229,12 +248,13 @@
         </div>
 
         <p class="muted" style="margin-top:.65rem">
-          Jump to: <a href="#decision-space">Decision Space</a> · <a href="#use-case-energy">Use Case</a>
+          Jump to: <a href="#decision-space">Decision Space</a> · <a href="#production-process">Production Process</a> · <a href="#use-case-energy">Use Case</a>
         </p>
 
         <div class="anchors" aria-label="Jump links">
           <a href="#proof">Proof Object</a>
           <a href="#intent">Intent</a>
+          <a href="#production-process">Production Process (Stages 1–6)</a>
           <a href="#use-case-energy">Use Case</a>
           <a href="#world-model">World Model</a>
           <a href="#decision-graph">Decision Graph</a>
@@ -411,6 +431,195 @@
             <span class="pill amb"><span class="dot"></span>No heuristics</span>
             <span class="pill amb"><span class="dot"></span>No vendor lock-in</span>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEW: PRODUCTION PROCESS (Stages 1–6) -->
+  <section class="section" id="production-process">
+    <div class="container">
+      <h2>1.05) Production Process (Doorline Stages 1–6)</h2>
+      <p class="muted">
+        These are <strong>production stages</strong> (work groups), not governance stages.
+        They anchor the spec in a plausible BIW doorline route: inner build → outer prep → hemming → finishing → quality gate.
+        The goal is to make clear: this model could run on a real line because it has
+        <strong>explicit evidence points</strong> and a <strong>credible release gate</strong>.
+      </p>
+
+      <div class="card callout">
+        <strong>How this maps to the decision model</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          The core decision class (<code>pp_door_release</code>) is evaluated at <strong>Stage 6</strong>.
+          Stages 1–5 generate the evidence artifacts that must be resolvable for ALLOW.
+          If evidence is missing or inconsistent, the model must degrade conservatively to HOLD/BLOCK.
+        </p>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Evidence chain</span>
+          <span class="pill"><span class="dot"></span>Attribution</span>
+          <span class="pill red"><span class="dot"></span>Fail-safe</span>
+          <span class="pill"><span class="dot"></span>Audit-grade</span>
+        </div>
+      </div>
+
+      <div class="three-col">
+        <!-- Stage 1 -->
+        <div class="card">
+          <div class="stage-head">
+            <h3 style="margin:0">Stage 1 — Parts & Preparation</h3>
+            <span class="stage-badge amb"><span class="n">1</span> Work group</span>
+          </div>
+          <p class="muted" style="margin:.35rem 0 0">
+            Inner/outer panels and reinforcements are provided per Door ID + variant. Variant mismatch must be prevented.
+          </p>
+          <hr class="mini-hr">
+          <strong>Typical operations</strong>
+          <ul class="list-tight muted">
+            <li>Barcode/RFID identification (Door ID, variant)</li>
+            <li>Material handling (KLT/pallet), fixture loading</li>
+            <li>Basic preparation (cleaning, edge trim) if required</li>
+          </ul>
+          <div class="pill-row" aria-label="Actors">
+            <span class="pill"><span class="dot"></span>Werker</span>
+            <span class="pill"><span class="dot"></span>Handling</span>
+            <span class="pill"><span class="dot"></span>Poka-Yoke</span>
+          </div>
+          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>door_id</code>, <code>variant</code>, <code>part_batch_id</code>, <code>fixture_id</code></p>
+        </div>
+
+        <!-- Stage 2 -->
+        <div class="card">
+          <div class="stage-head">
+            <h3 style="margin:0">Stage 2 — Door Inner Build</h3>
+            <span class="stage-badge amb"><span class="n">2</span> Work group</span>
+          </div>
+          <p class="muted" style="margin:.35rem 0 0">
+            Inner panel is assembled with reinforcements. Joining must remain inside defined process windows.
+          </p>
+          <hr class="mini-hr">
+          <strong>Typical operations</strong>
+          <ul class="list-tight muted">
+            <li>Load inner panel into fixture, clamp verification</li>
+            <li>Add reinforcements (hinge/lock/crash areas)</li>
+            <li>Join: spot welding / clinching / riveting (concept-dependent)</li>
+          </ul>
+          <div class="pill-row" aria-label="Actors">
+            <span class="pill"><span class="dot"></span>Robots</span>
+            <span class="pill"><span class="dot"></span>Joining</span>
+            <span class="pill"><span class="dot"></span>Werker support</span>
+          </div>
+          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>weld_program_id</code>, <code>spot_count_ok</code>, <code>process_curve_ref</code>, <code>clamp_ok</code></p>
+        </div>
+
+        <!-- Stage 3 -->
+        <div class="card">
+          <div class="stage-head">
+            <h3 style="margin:0">Stage 3 — Door Outer Prep / Sealing</h3>
+            <span class="stage-badge amb"><span class="n">3</span> Work group</span>
+          </div>
+          <p class="muted" style="margin:.35rem 0 0">
+            Outer panel is prepared for hemming. If adhesive/sealer is used, bead geometry and material window must be controlled.
+          </p>
+          <hr class="mini-hr">
+          <strong>Typical operations</strong>
+          <ul class="list-tight muted">
+            <li>Load outer panel into hemming carrier / frame</li>
+            <li>Optional adhesive/sealer bead application</li>
+            <li>Temperature / viscosity window checks (if applicable)</li>
+          </ul>
+          <div class="pill-row" aria-label="Actors">
+            <span class="pill"><span class="dot"></span>Robots</span>
+            <span class="pill"><span class="dot"></span>Sealer</span>
+            <span class="pill"><span class="dot"></span>Vision check</span>
+          </div>
+          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>sealer_batch</code>, <code>bead_geometry_ref</code>, <code>temp_ok</code></p>
+        </div>
+
+        <!-- Stage 4 -->
+        <div class="card">
+          <div class="stage-head">
+            <h3 style="margin:0">Stage 4 — Hemming (Inner + Outer Marriage)</h3>
+            <span class="stage-badge amb"><span class="n">4</span> Work group</span>
+          </div>
+          <p class="muted" style="margin:.35rem 0 0">
+            Inner and outer panels are joined by hemming. Tool condition and recipe stability drive quality and repeatability.
+          </p>
+          <hr class="mini-hr">
+          <strong>Typical operations</strong>
+          <ul class="list-tight muted">
+            <li>Pre-hem → intermediate hem → final hem (roll/press hemming)</li>
+            <li>Force/displacement monitoring, path control</li>
+            <li>Tool condition tracking (roll wear, setup)</li>
+          </ul>
+          <div class="pill-row" aria-label="Actors">
+            <span class="pill"><span class="dot"></span>Hemming cell</span>
+            <span class="pill"><span class="dot"></span>Process window</span>
+            <span class="pill"><span class="dot"></span>Maintenance</span>
+          </div>
+          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>hemming_recipe_id</code>, <code>force_disp_ref</code>, <code>path_ok</code></p>
+        </div>
+
+        <!-- Stage 5 -->
+        <div class="card">
+          <div class="stage-head">
+            <h3 style="margin:0">Stage 5 — Finish / Calibration / Rework (bounded)</h3>
+            <span class="stage-badge amb"><span class="n">5</span> Work group</span>
+          </div>
+          <p class="muted" style="margin:.35rem 0 0">
+            Controlled finishing steps. Rework must be explicit and recorded (no silent repair).
+          </p>
+          <hr class="mini-hr">
+          <strong>Typical operations</strong>
+          <ul class="list-tight muted">
+            <li>Remaining join points (concept-dependent)</li>
+            <li>Calibration fixture / controlled straightening</li>
+            <li>Rework station with explicit counters and reasons</li>
+          </ul>
+          <div class="pill-row" aria-label="Actors">
+            <span class="pill"><span class="dot"></span>Mixed</span>
+            <span class="pill"><span class="dot"></span>Calibration</span>
+            <span class="pill red"><span class="dot"></span>No silent rework</span>
+          </div>
+          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>rework_count</code>, <code>rework_reason</code>, <code>cal_fixture_id</code>, <code>delta_geo_ref</code></p>
+        </div>
+
+        <!-- Stage 6 -->
+        <div class="card">
+          <div class="stage-head">
+            <h3 style="margin:0">Stage 6 — Quality Gate & Release Decision</h3>
+            <span class="stage-badge ok"><span class="n">6</span> Gate</span>
+          </div>
+          <p class="muted" style="margin:.35rem 0 0">
+            Audit-grade checks determine whether the door may proceed. This is where <code>pp_door_release</code> is evaluated:
+            ALLOW / HOLD / BLOCK with explicit reasons and evidence references.
+          </p>
+          <hr class="mini-hr">
+          <strong>Typical checks</strong>
+          <ul class="list-tight muted">
+            <li>Geometry (3D scan / structured light)</li>
+            <li>Surface (line scan / vision tags)</li>
+            <li>Gap/flush (measurement system or surrogate reference)</li>
+          </ul>
+          <div class="pill-row" aria-label="Actors">
+            <span class="pill"><span class="dot"></span>Metrology</span>
+            <span class="pill"><span class="dot"></span>Quality</span>
+            <span class="pill red"><span class="dot"></span>BLOCK-capable</span>
+          </div>
+          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>scan3d_ref</code>, <code>surface_ref</code>, <code>gap_flush_ref</code>, <code>evidence_chain_complete</code></p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <strong>Energy overlays (Options 2–3) mapped to stages</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          Energy optimization must connect to where energy is actually consumed:
+          joining and hemming (Stages 2 &amp; 4), sealing/conditioning (Stage 3), and shiftable loads like metrology (Stage 6).
+          Options 2–3 remain advisory-only and must never bypass quality constraints.
+        </p>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Option 2 → stabilize energy output (Stages 2/3/4)</span>
+          <span class="pill"><span class="dot"></span>Option 3 → mitigate peaks (Stages 2/4/6)</span>
+          <span class="pill red"><span class="dot"></span>Quality guardrails always apply</span>
         </div>
       </div>
     </div>
