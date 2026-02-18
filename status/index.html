@@ -1119,17 +1119,25 @@
 
     const order = [
       ["guardian", "Self-Guardian", ["Security", "Policy checks", "Guardrails"],
-        "Monitors every change, applies Guardian rules and blocks unsafe updates before they reach production."],
+       "Monitors every change, applies Guardian rules and blocks unsafe updates before they reach production."],
+      
       ["monitoring", "Self-Monitoring", ["Workflow logs", "Status signals"],
-        "Tracks CI/CD runs, agent activity and basic system health across orchestration runs."],
+       "Tracks CI/CD runs, agent activity and basic system health across orchestration runs."],
+      
+      ["consistency", "Consistency Agent", ["Contracts", "Schema checks", "Truth integrity"],
+       "Ensures registry + decision trace artifacts are present and structurally valid (gate-compatible)."],
+      
       ["content", "Self-Content Agent", ["Draft generation", "Pull request content"],
-        "Generates content drafts and change proposals as pull requests for human-in-the-loop review."],
+       "Generates content drafts and change proposals as pull requests for human-in-the-loop review."],
+      
       ["george", "GEORGE Orchestrator", ["Event routing", "Agent registry"],
-        "Coordinates when which agent should run. Orchestration is enforced through deterministic rules and traceability."],
+       "Coordinates when which agent should run. Orchestration is enforced through deterministic rules and traceability."],
+      
       ["site_audit", "Site Audit", ["Evidence", "Controls", "Links"],
-        "Verifies site integrity and governance signals. Surfaces audit-relevant evidence for review."],
+       "Verifies site integrity and governance signals. Surfaces audit-relevant evidence for review."],
+      
       ["deploy_agent", "Deploy Agent", ["Safe rollout", "Rollback"],
-        "Handles guarded deployments and rollback paths when enabled by authority and gate conditions."]
+       "Handles guarded deployments and rollback paths when enabled by authority and gate conditions."]
     ];
 
     const used = new Set();
