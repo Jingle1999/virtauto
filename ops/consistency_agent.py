@@ -28,8 +28,13 @@ except Exception:
     yaml = None
 
 REGISTRY_PATH = Path("agents/registry.yaml")
+<<<<<<< Jingle1999-patch-877947
+SYSTEM_STATUS_PATH = Path("ops/reports/system_status.json")
+DECISION_TRACE_JSONL = Path("ops/reports/decision_trace.jsonl")
+=======
 DECISION_TRACE_JSONL = Path("ops/reports/decision_trace.jsonl")
 SYSTEM_STATUS = "ops/reports/system_status.json"
+>>>>>>> main
 
 FAILURES: list[str] = []
 WARNINGS: list[str] = []
@@ -44,10 +49,64 @@ def warn(code: str, msg: str) -> None:
 
 
 def load_yaml(path: Path) -> dict:
+<<<<<<< Jingle1999-patch-877947
+    if not path.exists():
+        fail(f"Missing required file: {path.as_posix()}")
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
+def load_json(path: Path) -> dict:
+    if not path.exists():
+        fail(f"Missing required file: {path.as_posix()}")
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        fail(f"Invalid JSON: {path.as_posix()} ({e})")
+
+
+def parse_iso(ts: str) -> datetime:
+    # Accept Z or offset
+    try:
+        if ts.endswith("Z"):
+            return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        return datetime.fromisoformat(ts)
+    except Exception:
+        raise ValueError(f"Invalid ISO timestamp: {ts}")
+
+
+def tail_lines(path: Path, n: int) -> list[str]:
+    if not path.exists():
+        fail(f"Missing required file: {path.as_posix()}")
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return lines[-n:] if len(lines) > n else lines
+
+def check_registry() -> list[str]:
+    errors = []
+    if not REGISTRY_PATH.exists():
+        errors.append("CNS-REG-001: agents/registry.yaml missing")
+        return errors
+
+def validate_registry() -> dict:
+    reg = load_yaml(REGISTRY_PATH)
+    agents = reg.get("agents", [])
+    if not isinstance(agents, list) or not agents:
+        fail("agents/registry.yaml must contain a non-empty 'agents:' list")
+
+    for a in agents:
+        if not isinstance(a, dict):
+            fail("agents/registry.yaml: each agent entry must be a mapping")
+        for f in REQUIRED_REGISTRY_FIELDS:
+            if f not in a or a.get(f) in (None, "", "unknown"):
+                fail(f"Agent missing field: {f} ({REGISTRY_PATH.as_posix()})")
+
+    ok("agents/registry.yaml required fields present.")
+    return reg
+=======
     if yaml is None:
         raise RuntimeError("PyYAML not available. Add pyyaml to workflow deps or vendor a minimal parser.")
     with path.open("r", encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
+>>>>>>> main
 
 
 def load_last_jsonl_entry(path: Path) -> dict:
