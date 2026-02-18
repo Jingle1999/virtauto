@@ -2,17 +2,14 @@
   "schema_version": "1.0",
   "generated_at": "2025-12-17T11:55:08Z",
   "environment": "production",
-
   "system_state": "ACTIVE",
   "autonomy": "SUPERVISED",
-
   "system": {
     "state": "ACTIVE",
     "autonomy_mode": "SUPERVISED",
     "mode": "STABILIZATION",
     "last_incident": null
   },
-
   "governance": {
     "phase": {
       "current": "10",
@@ -30,13 +27,11 @@
       "status_validation_required": true
     }
   },
-
   "autonomy_model": {
     "system_level": "SUPERVISED",
     "agent_level": "MIXED",
     "explanation": "Autonomous agents may run, but system-level changes remain governed and supervised."
   },
-
   "autonomy_score": {
     "value": 0.7,
     "percent": 70,
@@ -48,7 +43,6 @@
       "self_healing_factor": null
     }
   },
-
   "health": {
     "signal": "GREEN",
     "overall_score": 0.88,
@@ -59,7 +53,6 @@
       "mean_decision_latency_ms": 420
     }
   },
-
   "agents": {
     "george": {
       "status": "ok",
@@ -79,6 +72,14 @@
       "autonomy_mode": "AUTONOMOUS",
       "role": "observer"
     },
+
+    "consistency": {
+      "status": "ok",
+      "state": "ACTIVE",
+      "autonomy_mode": "SUPERVISED",
+      "role": "validator"
+    },
+
     "content": {
       "status": "ok",
       "state": "ACTIVE",
@@ -98,7 +99,6 @@
       "role": "observer"
     }
   },
-
   "links": {
     "latest_decision": "ops/decisions/latest.json",
     "gate_result": "ops/decisions/gate_result.json",

@@ -49,6 +49,12 @@ agents:
     owner: "virtauto"
     description: "Publishes canonical system truth to ops/reports/system_status.json."
 
+  - agent_id: consistency
+    name: Consistency Agent
+    autonomy_mode: SUPERVISED
+    state: ACTIVE
+    role: validator
+
 pipelines:
   monitoring: "active"
   audit: "active"
