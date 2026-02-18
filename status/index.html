@@ -1117,28 +1117,158 @@
     const grid = $("agents-grid");
     grid.innerHTML = "";
 
-    const order = [
-      ["guardian", "Self-Guardian", ["Security", "Policy checks", "Guardrails"],
-       "Monitors every change, applies Guardian rules and blocks unsafe updates before they reach production."],
-      
-      ["monitoring", "Self-Monitoring", ["Workflow logs", "Status signals"],
-       "Tracks CI/CD runs, agent activity and basic system health across orchestration runs."],
-      
-      ["consistency", "Consistency Agent", ["Contracts", "Schema checks", "Truth integrity"],
-       "Ensures registry + decision trace artifacts are present and structurally valid (gate-compatible)."],
-      
-      ["content", "Self-Content Agent", ["Draft generation", "Pull request content"],
-       "Generates content drafts and change proposals as pull requests for human-in-the-loop review."],
-      
-      ["george", "GEORGE Orchestrator", ["Event routing", "Agent registry"],
-       "Coordinates when which agent should run. Orchestration is enforced through deterministic rules and traceability."],
-      
-      ["site_audit", "Site Audit", ["Evidence", "Controls", "Links"],
-       "Verifies site integrity and governance signals. Surfaces audit-relevant evidence for review."],
-      
-      ["deploy_agent", "Deploy Agent", ["Safe rollout", "Rollback"],
-       "Handles guarded deployments and rollback paths when enabled by authority and gate conditions."]
-    ];
+    <script>
+  // --- Dynamic Agent Rendering (no hardcoded order) -------------------------
+
+  // Optional: Friendly labels/descriptions for known agents.
+  // New agents will still show up via fallback.
+  const AGENT_META = {
+    guardian: {
+      title: "Self-Guardian",
+      tags: ["Security", "Policy checks", "Guardrails"],
+      desc: "Monitors every change, applies Guardian rules and blocks unsafe updates before they reach production."
+    },
+    monitoring: {
+      title: "Self-Monitoring",
+      tags: ["Workflow logs", "Status signals"],
+      desc: "Tracks CI/CD runs, agent activity and basic system health across orchestration runs."
+    },
+    consistency: {
+      title: "Consistency Agent",
+      tags: ["Contracts", "Schema checks", "Truth integrity"],
+      desc: "Ensures registry + decision trace artifacts are present and structurally valid (gate-compatible)."
+    },
+    content: {
+      title: "Self-Content Agent",
+      tags: ["Draft generation", "Pull request content"],
+      desc: "Generates content drafts and change proposals as pull requests for human-in-the-loop review."
+    },
+    george: {
+      title: "GEORGE",
+      tags: ["Orchestrator", "Event routing", "Agent registry"],
+      desc: "Coordinates which agent should run. Orchestration is enforced through deterministic rules and traceability."
+    },
+    site_audit: {
+      title: "Site Audit",
+      tags: ["Evidence", "Controls", "Links"],
+      desc: "Verifies site integrity and governance signals. Surfaces audit-relevant evidence for review."
+    },
+    deploy_agent: {
+      title: "Deploy Agent",
+      tags: ["Safe rollout", "Rollback"],
+      desc: "Handles guarded deployments and rollback paths when enabled by authority and gate conditions."
+    }
+  };
+
+  // Stable role ordering (adjust anytime)
+  const ROLE_RANK = {
+    guardian: 10,
+    orchestrator: 20,
+    observer: 30,
+    validator: 40,
+    executor: 50,
+    unknown: 99
+  };
+
+  function titleFromKey(key) {
+    // "deploy_agent" -> "Deploy Agent", "qualityVision" -> "Quality Vision"
+    const spaced = key
+      .replace(/_/g, " ")
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .trim();
+    return spaced
+      .split(/\s+/)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  }
+
+  function roleRank(role) {
+    if (!role) return ROLE_RANK.unknown;
+    return ROLE_RANK[role] ?? ROLE_RANK.unknown;
+  }
+
+  function getAgentViewModel(agentKey, agentObj) {
+    const meta = AGENT_META[agentKey] || {};
+    return {
+      key: agentKey,
+      title: meta.title || titleFromKey(agentKey),
+      tags: meta.tags || [],
+      desc: meta.desc || "",
+      status: agentObj?.status || "unknown",
+      state: agentObj?.state || "UNKNOWN",
+      autonomy_mode: agentObj?.autonomy_mode || "UNKNOWN",
+      role: agentObj?.role || "unknown"
+    };
+  }
+
+  // IMPORTANT:
+  // Your existing code likely already fetches system_status.json into `data`.
+  // After you have `data`, call `renderAgentsDynamic(data)` instead of using `order`.
+
+  function renderAgentsDynamic(data) {
+    const agentsObj = (data && data.agents) ? data.agents : {};
+    const agentKeys = Object.keys(agentsObj);
+
+    // Build view models
+    const models = agentKeys.map(k => getAgentViewModel(k, agentsObj[k]));
+
+    // Sort by role rank, then by title
+    models.sort((a, b) => {
+      const ra = roleRank(a.role);
+      const rb = roleRank(b.role);
+      if (ra !== rb) return ra - rb;
+      return a.title.localeCompare(b.title);
+    });
+
+    // Find the container your UI uses for the "Core Agents & Layers" cards.
+    // In your current file, this is typically a grid element.
+    const container = document.querySelector("#core-agents-grid") ||
+                      document.querySelector("[data-core-agents]") ||
+                      document.querySelector(".core-agents-grid");
+
+    if (!container) {
+      console.warn("Core agents container not found. Add an id='core-agents-grid' to the grid container.");
+      return;
+    }
+
+    // Clear and render
+    container.innerHTML = "";
+
+    for (const m of models) {
+      // If you already have a helper that builds a card, use it here.
+      // Otherwise this minimal card HTML should match your existing CSS classes roughly.
+      const tagsHtml = (m.tags || []).map(t => `<span class="tag">${t}</span>`).join("");
+      const card = document.createElement("div");
+      card.className = "agent-card";
+
+      card.innerHTML = `
+        <div class="agent-card-header">
+          <div class="agent-title">${m.title}</div>
+          <div class="agent-badges">
+            <span class="badge state">${m.state}</span>
+            <span class="badge mode">${m.autonomy_mode}</span>
+          </div>
+        </div>
+        <div class="agent-subtitle">${m.role}</div>
+        ${m.desc ? `<div class="agent-desc">${m.desc}</div>` : ""}
+        ${tagsHtml ? `<div class="agent-tags">${tagsHtml}</div>` : ""}
+      `;
+
+      container.appendChild(card);
+    }
+  }
+
+  // --- Hook: call renderAgentsDynamic(data) where you currently render "Core Agents & Layers"
+  // Example (adapt to your existing fetch pipeline):
+  //
+  // fetch("ops/reports/system_status.json")
+  //   .then(r => r.json())
+  //   .then(data => {
+  //     renderAgentsDynamic(data);
+  //     // ...rest of your rendering (KPIs, pipelines, etc.)
+  //   });
+
+</script>
 
     const used = new Set();
 
