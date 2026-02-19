@@ -1,21 +1,4 @@
 {
-  "agents": [
-    {
-      "agent": "self_content",
-      "status": "ok",
-      "timestamp": "2026-01-19T06:09:31Z"
-    },
-    {
-      "agent": "self_guardian",
-      "status": "ok",
-      "timestamp": "2026-02-09T06:34:08Z"
-    }
-  ],
-  "pipelines": {
-    "monitoring": "unknown",
-    "audit": "unknown",
-    "guardian": "ok",
-    "deploy": "unknown",
-    "content": "ok"
-  }
+  "deprecated": true,
+  "moved_to": "/ops/reports/system_status.json"
 }
