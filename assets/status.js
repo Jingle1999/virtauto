@@ -5,7 +5,7 @@
 
   try {
     // Statusdaten aus ops/status.json holen
-    const res = await fetch("ops/reports/system_status.json", { cache: "no-store" });
+    const res = await fetch("/ops/reports/system_status.json?v=" + Date.now(), { cache: "no-store" });
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
