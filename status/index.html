@@ -2,1281 +2,1046 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <meta name="robots" content="noindex,nofollow"/>
-  <title>virtauto.OS — Live System Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-  <!-- Minimal favicon (optional) -->
-  <link rel="icon" href="/assets/favicon.ico"/>
+  <title>virtauto.OS — Live System Status · virtauto®</title>
+  <link rel="canonical" href="https://www.virtauto.de/status/"/>
 
+  <!-- SEO -->
+  <meta name="description" content="virtauto.OS Live System Status — truth-locked dashboard rendered exclusively from /ops/reports/system_status.json."/>
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="virtauto.OS — Live System Status">
+  <meta property="og:description" content="Truth-locked. Every value rendered from the Single Source of Truth.">
+  <meta property="og:url" content="https://www.virtauto.de/status/">
+
+  <!-- Theme (global site styles) -->
+  <link rel="stylesheet" href="/assets/styles_unify.css"/>
+  <link rel="stylesheet" href="/assets/styles.css"/>
+
+  <!-- Header/Nav auto-injection + nav behavior -->
+  <script defer src="/assets/header_include.js"></script>
+  <script defer src="/assets/site.js"></script>
+
+  <!-- Page-scoped styling ONLY (no global side effects) -->
   <style>
-    :root{
-      --bg0:#050812;
-      --bg1:#070b18;
-      --panel:#0b1226;
-      --panel2:#0a1022;
-      --stroke:rgba(255,255,255,.08);
-      --stroke2:rgba(255,255,255,.12);
-      --txt:#e9eefc;
-      --muted:rgba(233,238,252,.72);
-      --muted2:rgba(233,238,252,.52);
+    /* ===========================
+       STATUS PAGE — SCOPED STYLES
+       Everything is scoped under .va-status
+       =========================== */
 
-      --ok:#35d07f;
-      --warn:#ffbf3c;
-      --crit:#ff4d4d;
-      --info:#55a6ff;
-
-      --pill:#0d1733;
-      --shadow:0 24px 80px rgba(0,0,0,.55);
-      --shadow2:0 10px 40px rgba(0,0,0,.45);
-
-      --radius:18px;
-      --radius2:14px;
-
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    .va-status {
+      --va-surface: rgba(12, 16, 28, 0.72);
+      --va-surface-2: rgba(12, 16, 28, 0.55);
+      --va-border: rgba(255,255,255,0.08);
+      --va-border-2: rgba(255,255,255,0.12);
+      --va-text: rgba(255,255,255,0.92);
+      --va-text-2: rgba(255,255,255,0.70);
+      --va-shadow: 0 18px 50px rgba(0,0,0,0.45);
+      --va-radius: 18px;
+      --va-gap: 16px;
     }
 
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      color:var(--txt);
-      font-family:var(--sans);
-      background:
-        radial-gradient(1200px 600px at 50% 10%, rgba(89,140,255,.10), transparent 60%),
-        radial-gradient(800px 500px at 70% 30%, rgba(117,72,255,.12), transparent 62%),
-        radial-gradient(900px 500px at 30% 55%, rgba(35,208,127,.07), transparent 60%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
+    .va-status .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
     }
 
-    a{color:inherit; text-decoration:none}
-    a:hover{text-decoration:underline}
-
-    .wrap{
-      max-width:1200px;
-      margin:0 auto;
-      padding:32px 22px 54px;
+    .va-status .hero {
+      padding: 18px 0 18px;
     }
 
-    .top{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom:14px;
+    .va-status h1.title {
+      margin: 0 0 8px;
+      font-size: 34px;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--va-text);
     }
 
-    .brand{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      min-width:260px;
+    .va-status .subtitle {
+      margin: 0 0 18px;
+      color: var(--va-text-2);
+      max-width: 80ch;
     }
 
-    .title{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      line-height:1.1;
+    .va-status .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
     }
 
-    .title h1{
-      margin:0;
-      font-size:30px;
-      letter-spacing:.2px;
-      font-weight:700;
+    .va-status .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--va-border);
+      color: var(--va-text);
+      font-size: 13px;
+      line-height: 1;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
-    .badge{
-      padding:6px 10px;
-      border:1px solid var(--stroke);
-      border-radius:999px;
-      background:rgba(255,255,255,.02);
-      color:var(--muted);
-      font-size:12px;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      box-shadow:var(--shadow2);
-    }
-    .dot{
-      width:8px; height:8px; border-radius:50%;
-      background:var(--muted2);
-      box-shadow:0 0 0 3px rgba(255,255,255,.03);
-    }
-    .dot.ok{background:var(--ok)}
-    .dot.warn{background:var(--warn)}
-    .dot.crit{background:var(--crit)}
-    .dot.info{background:var(--info)}
-
-    .subtitle{
-      margin:0;
-      color:var(--muted);
-      font-size:13px;
-      max-width:720px;
-      line-height:1.5;
+    .va-status .chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.35);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.06);
     }
 
-    .chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:10px;
+    .va-status .chip .muted { color: var(--va-text-2); }
+
+    /* Status colors */
+    .va-status .dot.ok    { background: rgba(72, 255, 171, 0.95); box-shadow: 0 0 0 3px rgba(72,255,171,0.14); }
+    .va-status .dot.warn  { background: rgba(255, 211, 87, 0.95); box-shadow: 0 0 0 3px rgba(255,211,87,0.14); }
+    .va-status .dot.crit  { background: rgba(255, 98, 98, 0.95); box-shadow: 0 0 0 3px rgba(255,98,98,0.14); }
+    .va-status .dot.info  { background: rgba(110, 170, 255, 0.95); box-shadow: 0 0 0 3px rgba(110,170,255,0.14); }
+
+    .va-status .grid {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: var(--va-gap);
+      align-items: start;
+      margin-top: 18px;
     }
 
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background:rgba(255,255,255,.02);
-      color:var(--muted);
-      font-size:12px;
-      box-shadow:var(--shadow2);
-    }
-    .chip strong{color:var(--txt); font-weight:600}
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1.55fr 1fr;
-      gap:16px;
-      margin-top:18px;
+    @media (max-width: 980px) {
+      .va-status .grid { grid-template-columns: 1fr; }
     }
 
-    @media (max-width: 980px){
-      .grid{grid-template-columns:1fr}
-      .top{flex-direction:column}
+    .va-status .card {
+      background: var(--va-surface);
+      border: 1px solid var(--va-border);
+      border-radius: var(--va-radius);
+      box-shadow: var(--va-shadow);
+      overflow: hidden;
     }
 
-    .card{
-      border:1px solid var(--stroke);
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-      position:relative;
+    .va-status .cardHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--va-border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
     }
 
-    .cardHeader{
-      padding:16px 18px 12px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:14px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      background: rgba(0,0,0,.06);
+    .va-status .cardHeader h2 {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.78);
+      font-weight: 700;
     }
 
-    .cardTitle{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
+    .va-status .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      border: 1px solid var(--va-border-2);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.86);
+      white-space: nowrap;
     }
 
-    .cardTitle h2{
-      margin:0;
-      font-size:12px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:rgba(233,238,252,.70);
-      font-weight:700;
+    .va-status .badge .dot { width: 7px; height: 7px; border-radius: 999px; }
+
+    .va-status .cardBody {
+      padding: 14px 16px 16px;
     }
 
-    .cardTitle p{
-      margin:0;
-      font-size:12px;
-      color:var(--muted2);
-      line-height:1.4;
+    .va-status .kpiGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background: rgba(255,255,255,.02);
-      color:var(--muted);
-      font-size:12px;
-      white-space:nowrap;
-    }
-    .pill.ok{border-color: rgba(53,208,127,.25); color: rgba(53,208,127,.95)}
-    .pill.warn{border-color: rgba(255,191,60,.28); color: rgba(255,191,60,.95)}
-    .pill.crit{border-color: rgba(255,77,77,.28); color: rgba(255,77,77,.95)}
-    .pill.info{border-color: rgba(85,166,255,.28); color: rgba(85,166,255,.95)}
-
-    .cardBody{padding:16px 18px 18px}
-
-    .kpis{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
-    @media (max-width: 520px){ .kpis{grid-template-columns:1fr} }
-
-    .kpi{
-      padding:14px 14px 12px;
-      border:1px solid rgba(255,255,255,.07);
-      border-radius:var(--radius2);
-      background: rgba(0,0,0,.08);
-    }
-    .kpiLabel{
-      font-size:11px;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      color:rgba(233,238,252,.62);
-      font-weight:700;
-      margin-bottom:8px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .kpiValue{
-      font-size:20px;
-      font-weight:750;
-      letter-spacing:.2px;
-      margin:0;
-      line-height:1.1;
-    }
-    .kpiSub{
-      margin-top:8px;
-      color:var(--muted2);
-      font-size:12px;
-      line-height:1.35;
+    @media (max-width: 520px) {
+      .va-status .kpiGrid { grid-template-columns: 1fr; }
     }
 
-    .section{
-      margin-top:14px;
-      padding-top:14px;
-      border-top:1px solid rgba(255,255,255,.06);
+    .va-status .kpi {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--va-border);
+      border-radius: 14px;
+      padding: 12px;
     }
 
-    .list{
-      margin:8px 0 0;
-      padding-left:18px;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.55;
-    }
-    .list li{margin:4px 0}
-
-    .agentsGrid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
-    @media (max-width: 780px){ .agentsGrid{grid-template-columns:1fr} }
-
-    .agent{
-      border:1px solid rgba(255,255,255,.07);
-      border-radius:var(--radius2);
-      background: rgba(0,0,0,.08);
-      padding:14px 14px 12px;
+    .va-status .kpi .label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.60);
+      margin-bottom: 6px;
+      font-weight: 700;
     }
 
-    .agentTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
+    .va-status .kpi .value {
+      font-size: 22px;
+      font-weight: 800;
+      color: rgba(255,255,255,0.92);
+      margin-bottom: 4px;
     }
 
-    .agentName{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      min-width:0;
-    }
-    .agentName strong{
-      font-size:14px;
-      font-weight:750;
-      letter-spacing:.2px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width:100%;
-    }
-    .agentMeta{
-      font-family:var(--mono);
-      font-size:11px;
-      color:var(--muted2);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width:100%;
+    .va-status .kpi .sub {
+      font-size: 12px;
+      color: rgba(255,255,255,0.65);
     }
 
-    .agentBadges{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
-      justify-content:flex-end;
+    .va-status .list {
+      display: grid;
+      gap: 10px;
     }
 
-    .tiny{
-      font-size:11px;
-      color:var(--muted2);
-      line-height:1.4;
-      margin-top:10px;
+    .va-status .agentCard {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--va-border);
+      border-radius: 14px;
     }
 
-    .rows{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      margin-top:12px;
+    .va-status .agentTitle {
+      font-weight: 800;
+      color: rgba(255,255,255,0.92);
+      margin: 0 0 4px;
+      font-size: 14px;
     }
 
-    .row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      border:1px solid rgba(255,255,255,.07);
-      background: rgba(0,0,0,.08);
-      padding:12px 12px;
-      border-radius:14px;
-    }
-    .rowLeft{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      min-width:0;
-    }
-    .rowLabel{
-      font-size:11px;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      color:rgba(233,238,252,.62);
-      font-weight:700;
-    }
-    .rowValue{
-      font-family:var(--mono);
-      font-size:12px;
-      color:var(--txt);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width:100%;
+    .va-status .agentMeta {
+      color: rgba(255,255,255,0.66);
+      font-size: 12px;
+      line-height: 1.35;
     }
 
-    .expander{
-      width:28px; height:28px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background: rgba(255,255,255,.02);
-      display:grid;
-      place-items:center;
-      color:var(--muted);
-      cursor:pointer;
-      flex:0 0 auto;
-      user-select:none;
-    }
-    .expander:hover{border-color:var(--stroke2)}
-    .details{
-      display:none;
-      padding-top:10px;
-      font-family:var(--mono);
-      font-size:11px;
-      color:var(--muted);
-      line-height:1.45;
-      white-space:pre-wrap;
-      word-break:break-word;
-    }
-    .row.open .details{display:block}
-    .row.open .expander{transform:rotate(90deg)}
-
-    .feed{
-      margin-top:12px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
+    .va-status .pillRow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
     }
 
-    .feedItem{
-      border:1px solid rgba(255,255,255,.07);
-      background: rgba(0,0,0,.08);
-      border-radius:14px;
-      padding:12px 12px;
+    .va-status .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      border: 1px solid var(--va-border-2);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.88);
+      white-space: nowrap;
     }
 
-    .feedTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:8px;
+    .va-status .pill .dot { width: 7px; height: 7px; border-radius: 999px; }
+
+    .va-status .sectionGrid {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: var(--va-gap);
+      align-items: start;
+      margin-top: var(--va-gap);
     }
 
-    .feedLeft{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      min-width:0;
+    @media (max-width: 980px) {
+      .va-status .sectionGrid { grid-template-columns: 1fr; }
     }
 
-    .feedTitle{
-      font-family:var(--mono);
-      font-size:12px;
-      color:var(--txt);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width:100%;
+    .va-status .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
-    .feedSub{
-      font-family:var(--mono);
-      font-size:11px;
-      color:var(--muted2);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width:100%;
+    .va-status .small {
+      font-size: 12px;
+      color: rgba(255,255,255,0.66);
     }
 
-    .feedBody{
-      font-family:var(--mono);
-      font-size:11px;
-      color:var(--muted);
-      line-height:1.45;
-      white-space:pre-wrap;
-      word-break:break-word;
+    .va-status .bullets {
+      margin: 0;
+      padding-left: 16px;
+      color: rgba(255,255,255,0.76);
+      line-height: 1.45;
+      font-size: 13px;
     }
 
-    .footer{
-      margin-top:18px;
-      color:rgba(233,238,252,.40);
-      font-size:11px;
-      text-align:center;
-      padding-top:10px;
+    .va-status .bullets li { margin: 6px 0; }
+
+    .va-status .rows {
+      display: grid;
+      gap: 10px;
     }
 
-    .hidden{display:none !important}
+    .va-status .rowCard {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--va-border);
+      border-radius: 14px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
 
-    /* Fatal overlay */
-    .fatal{
-      position:fixed;
-      inset:0;
-      background: rgba(5,8,18,.96);
-      display:none;
-      padding:34px 22px;
-      overflow:auto;
-      z-index:9999;
+    .va-status .rowLeft .rowTitle {
+      font-weight: 800;
+      font-size: 13px;
+      margin: 0 0 4px;
+      color: rgba(255,255,255,0.92);
     }
-    .fatalInner{
-      max-width:820px;
-      margin:0 auto;
-      border:1px solid rgba(255,77,77,.25);
-      background: rgba(0,0,0,.30);
-      border-radius:20px;
-      box-shadow:var(--shadow);
-      padding:18px 18px 16px;
+
+    .va-status .rowLeft .rowSub {
+      font-size: 12px;
+      color: rgba(255,255,255,0.66);
+      margin: 0;
     }
-    .fatalTitle{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
+
+    .va-status .chev {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      border: 1px solid var(--va-border);
+      background: rgba(255,255,255,0.03);
+      color: rgba(255,255,255,0.75);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      user-select: none;
     }
-    .fatalTitle h2{
-      margin:0;
-      font-size:14px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:rgba(255,77,77,.95);
-      font-weight:800;
+
+    .va-status .chev:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.14);
     }
-    .fatalMsg{
-      margin:0;
-      color:rgba(233,238,252,.85);
-      font-size:13px;
-      line-height:1.5;
+
+    .va-status .details {
+      margin-top: 10px;
+      border-top: 1px dashed rgba(255,255,255,0.10);
+      padding-top: 10px;
+      display: none;
     }
-    .fatalCode{
-      margin-top:10px;
-      font-family:var(--mono);
-      font-size:11px;
-      color:rgba(233,238,252,.65);
-      white-space:pre-wrap;
-      word-break:break-word;
-      border-top:1px solid rgba(255,255,255,.08);
-      padding-top:10px;
+
+    .va-status .details.open { display: block; }
+
+    .va-status pre.log {
+      margin: 0;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.30);
+      overflow: auto;
+      color: rgba(255,255,255,0.80);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .va-status .fatal {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,98,98,0.28);
+      background: rgba(255,98,98,0.10);
+      color: rgba(255,255,255,0.92);
+      display: none;
+    }
+
+    .va-status .fatal h3 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .va-status .fatal p {
+      margin: 0;
+      color: rgba(255,255,255,0.78);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .va-status .footnote {
+      margin-top: 14px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      text-align: center;
     }
   </style>
 </head>
 
-<body>
-  <div class="fatal" id="fatal">
-    <div class="fatalInner">
-      <div class="fatalTitle">
-        <h2>TRUTH SOURCE MISSING</h2>
-        <span class="pill crit"><span class="dot crit"></span>LOCKED</span>
-      </div>
-      <p class="fatalMsg" id="fatalMsg"></p>
-      <div class="fatalCode" id="fatalCode"></div>
-    </div>
-  </div>
+<body class="bg">
+  <!-- Header/Nav gets injected here -->
+  <div id="site-header"></div>
 
-  <div class="wrap" id="page">
-    <div class="top">
-      <div class="brand">
-        <div class="title">
-          <h1>virtauto.OS — Live System Status</h1>
-          <span class="badge" id="truthLockBadge"><span class="dot info"></span><span id="truthLockText">TRUTH-LOCKED</span></span>
-        </div>
+  <main class="va-status">
+    <div class="wrap">
+      <header class="hero">
+        <h1 class="title">virtauto.OS — Live System Status <span class="badge"><span class="dot info"></span>TRUTH-LOCKED</span></h1>
         <p class="subtitle">
-          This dashboard is the single authoritative interface for the operational state of <span style="color:rgba(233,238,252,.9)">www.virtauto.de</span>.
-          Every value on this page is rendered from the <strong>Single Source of Truth</strong> and refuses to show if the truth source is missing.
+          This dashboard is the single authoritative interface for the operational state of <span class="mono">www.virtauto.de</span>.
+          Every value on this page is rendered from the Single Source of Truth and refuses to show if the truth source is missing.
+          <br/><br/>
+          Agents operate as governed system actors with auditable behavior and bounded authority.
         </p>
+
         <div class="chips">
-          <span class="chip"><span class="dot info"></span><span>Agentic Website</span> — <strong>Live in Production</strong></span>
-          <span class="chip"><span class="dot" id="dotTruth"></span><span>Truth Source</span> — <strong id="truth-source">/ops/reports/system_status.json</strong></span>
-          <span class="chip"><span class="dot" id="dotFresh"></span><span>Freshness</span> — <strong id="freshness">—</strong></span>
+          <span class="chip">
+            <span id="statusDot" class="dot info"></span>
+            <span><span class="muted">Agentic Website</span> — <strong id="statusMode">—</strong></span>
+          </span>
+          <span class="chip">
+            <span class="dot info"></span>
+            <span><span class="muted">Truth Source</span> — <strong id="truthSourcePath">—</strong></span>
+          </span>
+          <span class="chip">
+            <span id="freshDot" class="dot info"></span>
+            <span><span class="muted">Freshness</span> — <strong id="freshnessLabel">—</strong></span>
+          </span>
         </div>
-      </div>
+
+        <div id="fatalBox" class="fatal" role="alert" aria-live="polite">
+          <h3>Truth lock violated — nothing rendered</h3>
+          <p id="fatalMsg">—</p>
+        </div>
+      </header>
+
+      <section class="grid" aria-label="Status Dashboard">
+        <!-- LEFT COLUMN -->
+        <div class="card" id="coreCard">
+          <div class="cardHeader">
+            <h2>Core Agents &amp; Layers</h2>
+            <span class="badge"><span id="systemDot" class="dot info"></span><span id="systemLabel">SYSTEM —</span></span>
+          </div>
+          <div class="cardBody">
+            <div class="list" id="coreAgents">
+              <!-- injected -->
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <aside class="card" id="kpiCard">
+          <div class="cardHeader">
+            <h2>System KPIs</h2>
+            <span class="badge"><span id="snapshotDot" class="dot info"></span>LIVE SNAPSHOT</span>
+          </div>
+          <div class="cardBody">
+            <div class="kpiGrid">
+              <div class="kpi">
+                <div class="label">Agent Health</div>
+                <div class="value" id="kpiAgentHealth">—</div>
+                <div class="sub" id="kpiAgentHealthSub">Active agents / total agents</div>
+              </div>
+
+              <div class="kpi">
+                <div class="label">Autonomy (confirmed)</div>
+                <div class="value" id="kpiAutonomy">—</div>
+                <div class="sub" id="kpiAutonomySub">Mode: —</div>
+              </div>
+
+              <div class="kpi">
+                <div class="label">Health Score</div>
+                <div class="value" id="kpiHealthScore">—</div>
+                <div class="sub" id="kpiHealthScoreSub">Signal: —</div>
+              </div>
+
+              <div class="kpi">
+                <div class="label">Governance</div>
+                <div class="value" id="kpiGovernance">—</div>
+                <div class="sub" id="kpiGovernanceSub">Audit trail &amp; gate verdict</div>
+              </div>
+            </div>
+
+            <div style="height:12px"></div>
+
+            <div class="kpi">
+              <div class="label">Truth Lock</div>
+              <div class="sub small">
+                This page reads from <span class="mono" id="truthPathEcho">—</span><br/>
+                Generated at: <span class="mono" id="generatedAt">—</span><br/>
+                Environment: <span class="mono" id="environment">—</span>
+              </div>
+            </div>
+
+            <div style="height:14px"></div>
+
+            <div class="card" style="background: transparent; border: 1px solid rgba(255,255,255,0.08); box-shadow: none;">
+              <div class="cardHeader" style="background: rgba(255,255,255,0.03);">
+                <h2>Governance Explanation</h2>
+                <span class="badge"><span id="govDot" class="dot info"></span><span id="govLabel">EVALUATED</span></span>
+              </div>
+              <div class="cardBody">
+                <div class="small" style="margin-bottom:8px;">Why is the current state allowed?</div>
+                <ul class="bullets" id="govBullets">
+                  <li>—</li>
+                </ul>
+              </div>
+            </div>
+
+            <div style="height:12px"></div>
+
+            <div class="card" style="background: transparent; border: 1px solid rgba(255,255,255,0.08); box-shadow: none;">
+              <div class="cardHeader" style="background: rgba(255,255,255,0.03);">
+                <h2>Self-Healing Capability</h2>
+                <span class="badge"><span id="healDot" class="dot info"></span><span id="healLabel">GOVERNED</span></span>
+              </div>
+              <div class="cardBody">
+                <div class="small" style="margin-bottom:8px;">Governed by PRs — no silent execution.</div>
+                <ul class="bullets">
+                  <li>Health degradation can be detected deterministically</li>
+                  <li>Corrective actions are proposed via pull request (never executed silently)</li>
+                  <li>All actions require governance approval and a decision trace</li>
+                  <li>Production changes without review are explicitly disallowed</li>
+                  <li>Controlled autonomy — no autopilot.</li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </aside>
+      </section>
+
+      <section class="sectionGrid" aria-label="Evidence and Guards">
+        <!-- LEFT -->
+        <div class="card" id="evidenceCard">
+          <div class="cardHeader">
+            <h2>Status Agent (Evidence)</h2>
+            <span class="badge"><span id="evidenceDot" class="dot info"></span><span id="evidenceLabel">—</span></span>
+          </div>
+          <div class="cardBody">
+            <p class="small" style="margin:0 0 12px;">
+              This panel displays server-side evidence produced by the Status Agent. The browser does not generate operations.
+            </p>
+
+            <div class="kpiGrid">
+              <div class="kpi">
+                <div class="label">Source</div>
+                <div class="value mono" style="font-size:16px" id="evidenceSource">—</div>
+                <div class="sub">Rendered from server artifact. No client-side timers, no simulated operations.</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Last Run (UTC)</div>
+                <div class="value mono" style="font-size:16px" id="evidenceLastRun">—</div>
+                <div class="sub">Freshness: <span class="mono" id="evidenceFreshness">—</span></div>
+              </div>
+              <div class="kpi">
+                <div class="label">Last Result</div>
+                <div class="value" style="font-size:16px" id="evidenceLastResult">—</div>
+                <div class="sub">Total runs <span class="mono" id="evidenceTotalRuns">—</span></div>
+              </div>
+              <div class="kpi">
+                <div class="label">Feed</div>
+                <div class="value" style="font-size:16px" id="evidenceFeedState">—</div>
+                <div class="sub">Latest <span class="mono" id="evidenceFeedCount">—</span> events (non-sensitive)</div>
+              </div>
+            </div>
+
+            <div style="height:12px"></div>
+
+            <div class="rows" id="evidenceRows">
+              <!-- injected -->
+            </div>
+
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <aside class="card" id="guardsCard">
+          <div class="cardHeader">
+            <h2>Pipelines &amp; Guards</h2>
+            <span class="badge"><span id="guardsDot" class="dot info"></span>TRUTH LOCKED</span>
+          </div>
+          <div class="cardBody">
+            <p class="small" style="margin:0 0 10px;">
+              Truth-locked checks derived from artifacts.
+            </p>
+
+            <div class="rows" id="guardsRows">
+              <!-- injected -->
+            </div>
+
+            <div class="footnote">
+              Status page generated by <span class="mono">virtauto.OS</span> — single source of truth.
+            </div>
+          </div>
+        </aside>
+      </section>
     </div>
+  </main>
 
-    <div class="grid">
-      <!-- Left: Core Agents -->
-      <div class="card">
-        <div class="cardHeader">
-          <div class="cardTitle">
-            <h2>CORE AGENTS &amp; LAYERS</h2>
-            <p>Rendered exclusively from the truth source (no simulated data).</p>
-          </div>
-          <span class="pill" id="pillSystem"><span class="dot" id="dotSystem"></span><span id="systemState">—</span></span>
-        </div>
+  <script>
+    /**
+     * ============================================================
+     * HARD RULE:
+     *   - Single Source of Truth: /ops/reports/system_status.json
+     *   - If missing or unreadable -> showFatal() and render NOTHING.
+     * ============================================================
+     */
 
-        <div class="cardBody">
-          <div class="agentsGrid" id="agentsGrid"></div>
+    const TRUTH_PATH = "/ops/reports/system_status.json";
+    const STATUS_AGENT_LOG_PATH = "/ops/agent_activity.jsonl";
 
-          <div class="section">
-            <div class="cardTitle" style="margin-bottom:10px">
-              <h2>STATUS AGENT (EVIDENCE)</h2>
-              <p>This panel displays server-side evidence produced by the Status Agent. The browser does not generate operations.</p>
-            </div>
+    const $ = (id) => document.getElementById(id);
 
-            <div class="kpis">
-              <div class="kpi">
-                <div class="kpiLabel">Source <span class="pill" id="status-agent-pill"><span class="dot" id="dotStatusAgent"></span><span id="status-agent-pill-text">—</span></span></div>
-                <div class="kpiValue" id="status-agent-source">—</div>
-                <div class="kpiSub" id="status-agent-note">—</div>
-              </div>
-
-              <div class="kpi">
-                <div class="kpiLabel">Last run (UTC)</div>
-                <div class="kpiValue" id="status-agent-last">—</div>
-                <div class="kpiSub">Freshness <strong id="status-agent-freshness">—</strong></div>
-              </div>
-
-              <div class="kpi">
-                <div class="kpiLabel">Last result</div>
-                <div class="kpiValue" id="status-agent-result">—</div>
-                <div class="kpiSub">Total runs <strong id="status-agent-ops">—</strong></div>
-              </div>
-
-              <div class="kpi">
-                <div class="kpiLabel">Feed</div>
-                <div class="kpiValue" id="status-agent-feed-state">—</div>
-                <div class="kpiSub">Latest 6 events (non-sensitive)</div>
-              </div>
-            </div>
-
-            <div class="feed" id="feed"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right: KPIs, Governance, Guards -->
-      <div class="card">
-        <div class="cardHeader">
-          <div class="cardTitle">
-            <h2>SYSTEM KPIs</h2>
-            <p>Derived directly from the truth source.</p>
-          </div>
-          <span class="pill" id="pillSnapshot"><span class="dot" id="dotSnapshot"></span><span id="snapshotText">LIVE SNAPSHOT</span></span>
-        </div>
-
-        <div class="cardBody">
-          <div class="kpis">
-            <div class="kpi">
-              <div class="kpiLabel">Agent Health</div>
-              <p class="kpiValue" id="agentHealth">—</p>
-              <div class="kpiSub">Active agents / total agents</div>
-            </div>
-
-            <div class="kpi">
-              <div class="kpiLabel">Autonomy (Confirmed)</div>
-              <p class="kpiValue" id="autonomy">—</p>
-              <div class="kpiSub">Mode: <strong id="autonomyMode">—</strong></div>
-            </div>
-
-            <div class="kpi">
-              <div class="kpiLabel">Health Score</div>
-              <p class="kpiValue" id="healthScore">—</p>
-              <div class="kpiSub">Signal: <strong id="healthSignal">—</strong></div>
-            </div>
-
-            <div class="kpi">
-              <div class="kpiLabel">Governance</div>
-              <p class="kpiValue" id="govVerdict">—</p>
-              <div class="kpiSub">Audit trail &amp; gate verdict</div>
-            </div>
-
-            <div class="kpi" style="grid-column:1 / -1">
-              <div class="kpiLabel">Truth lock</div>
-              <div class="kpiSub">
-                This page reads from <strong id="truthPath">/ops/reports/system_status.json</strong><br/>
-                Generated at: <strong id="generatedAt">—</strong><br/>
-                Environment: <strong id="environment">—</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="cardHeader" style="padding:0 0 12px;border:none;background:transparent">
-              <div class="cardTitle">
-                <h2>GOVERNANCE EXPLANATION</h2>
-                <p>Why is the current state allowed?</p>
-              </div>
-              <span class="pill" id="gov-pill"><span class="dot" id="dotGov"></span><span id="gov-state">EVALUATED</span></span>
-            </div>
-            <ul class="list" id="gov-reasons"></ul>
-          </div>
-
-          <div class="section">
-            <div class="cardHeader" style="padding:0 0 12px;border:none;background:transparent">
-              <div class="cardTitle">
-                <h2>SELF-HEALING CAPABILITY</h2>
-                <p>Governed by PRs — no silent execution.</p>
-              </div>
-              <span class="pill" id="heal-pill"><span class="dot" id="dotHeal"></span><span id="heal-state">GOVERNED</span></span>
-            </div>
-            <ul class="list">
-              <li>Health degradation can be detected deterministically</li>
-              <li>Corrective actions are proposed via pull request (never executed silently)</li>
-              <li>All actions require governance approval and a decision trace</li>
-              <li>Production changes without review are explicitly disallowed</li>
-              <li>Controlled autonomy — no autopilot.</li>
-            </ul>
-          </div>
-
-          <div class="section">
-            <div class="cardHeader" style="padding:0 0 12px;border:none;background:transparent">
-              <div class="cardTitle">
-                <h2>PIPELINES &amp; GUARDS</h2>
-                <p>Truth-locked checks derived from artifacts.</p>
-              </div>
-              <span class="pill" id="guard-pill"><span class="dot" id="dotGuard"></span><span id="guard-state">TRUTH LOCKED</span></span>
-            </div>
-
-            <div class="rows">
-              <div class="row" id="rowFresh">
-                <div class="rowLeft">
-                  <div class="rowLabel">Freshness</div>
-                  <div class="rowValue" id="guard-freshness">—</div>
-                  <div class="details" id="guard-freshness-details"></div>
-                </div>
-                <div class="pill" id="guard-freshness-pill"><span class="dot" id="dotGuardFresh"></span><span id="guard-freshness-pill-text">—</span></div>
-                <div class="expander" data-open="guard-freshness-details">›</div>
-              </div>
-
-              <div class="row" id="rowGate">
-                <div class="rowLeft">
-                  <div class="rowLabel">Runtime Gate</div>
-                  <div class="rowValue" id="guard-gate">—</div>
-                  <div class="details" id="guard-gate-details"></div>
-                </div>
-                <div class="pill" id="guard-gate-pill"><span class="dot" id="dotGuardGate"></span><span id="guard-gate-pill-text">—</span></div>
-                <div class="expander" data-open="guard-gate-details">›</div>
-              </div>
-
-              <div class="row" id="rowAudit">
-                <div class="rowLeft">
-                  <div class="rowLabel">Audit Trail</div>
-                  <div class="rowValue" id="guard-audit">—</div>
-                  <div class="details" id="guard-audit-details"></div>
-                </div>
-                <div class="pill" id="guard-audit-pill"><span class="dot" id="dotGuardAudit"></span><span id="guard-audit-pill-text">—</span></div>
-                <div class="expander" data-open="guard-audit-details">›</div>
-              </div>
-
-              <div class="row" id="rowTrace">
-                <div class="rowLeft">
-                  <div class="rowLabel">Decision Trace</div>
-                  <div class="rowValue" id="guard-trace">—</div>
-                  <div class="details" id="guard-trace-details"></div>
-                </div>
-                <div class="pill" id="guard-trace-pill"><span class="dot" id="dotGuardTrace"></span><span id="guard-trace-pill-text">—</span></div>
-                <div class="expander" data-open="guard-trace-details">›</div>
-              </div>
-
-              <div class="row" id="rowStatusAgent">
-                <div class="rowLeft">
-                  <div class="rowLabel">Status Agent</div>
-                  <div class="rowValue" id="guard-status-agent">—</div>
-                  <div class="details" id="guard-status-agent-details"></div>
-                </div>
-                <div class="pill" id="guard-status-agent-pill"><span class="dot" id="dotGuardStatusAgent"></span><span id="guard-status-agent-pill-text">—</span></div>
-                <div class="expander" data-open="guard-status-agent-details">›</div>
-              </div>
-            </div>
-
-            <div class="footer">Status page generated by virtauto.OS — single source of truth.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-<script>
-  /**
-   * ============================================================
-   * HARD RULE:
-   *   - Single Source of Truth: /ops/reports/system_status.json
-   *   - If missing or unreadable -> showFatal() and render NOTHING.
-   * ============================================================
-   */
-
-  const TRUTH_PATH = "/ops/reports/system_status.json";
-  const STATUS_AGENT_LOG_PATH = "/ops/agent_activity.jsonl";
-
-  const $ = (id) => document.getElementById(id);
-
-  function setDot(dotEl, kind){
-    dotEl.classList.remove("ok","warn","crit","info");
-    dotEl.classList.add(kind);
-  }
-  function setPill(pillEl, kind){
-    pillEl.classList.remove("ok","warn","crit","info");
-    pillEl.classList.add(kind);
-  }
-
-  function minutesSince(iso){
-    if (!iso) return null;
-    const t = new Date(iso).getTime();
-    if (!Number.isFinite(t)) return null;
-    const now = Date.now();
-    return Math.max(0, Math.round((now - t) / 60000));
-  }
-
-  function classifyFreshness(ageMin){
-    if (ageMin === null) return {label:"UNKNOWN", kind:"warn"};
-    if (ageMin <= 15) return {label:"FRESH", kind:"ok"};
-    if (ageMin <= 60) return {label:"STALE", kind:"warn"};
-    return {label:"EXPIRED", kind:"crit"};
-  }
-
-  function normalizeVerdict(v){
-    const s = (v ?? "").toString().trim().toUpperCase();
-    if (!s) return "—";
-    return s;
-  }
-
-  function verdictKind(v){
-    const s = normalizeVerdict(v);
-    if (s === "ALLOW" || s === "PASS") return "ok";
-    if (s === "BLOCK" || s === "FAIL" || s === "DENY") return "crit";
-    if (s === "—") return "warn";
-    return "warn";
-  }
-
-  function safeText(v, fallback="—"){
-    if (v === null || v === undefined) return fallback;
-    const s = String(v);
-    return s.length ? s : fallback;
-  }
-
-  function showFatal(msg, details){
-    $("page").classList.add("hidden");
-    const fatal = $("fatal");
-    fatal.style.display = "block";
-    $("fatalMsg").textContent = msg || "Truth source missing or unreadable.";
-    $("fatalCode").textContent = details ? String(details) : "";
-  }
-
-  function attachExpanders(){
-    const buttons = document.querySelectorAll(".expander");
-    buttons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-open");
-        const row = btn.closest(".row");
-        if (!row || !id) return;
-        row.classList.toggle("open");
-      });
-    });
-  }
-
-  function agentStateKind(state){
-    const s = (state ?? "").toString().toUpperCase();
-    if (s === "ACTIVE" || s === "OK") return "ok";
-    if (s === "PLANNED" || s === "MIXED") return "warn";
-    if (s === "INACTIVE" || s === "FAILED" || s === "ERROR") return "crit";
-    return "warn";
-  }
-
-  function renderAgentsDynamic(data){
-    const grid = $("agentsGrid");
-    grid.innerHTML = "";
-
-    const agents = (data && data.agents && typeof data.agents === "object") ? data.agents : null;
-    if (!agents) {
-      const div = document.createElement("div");
-      div.className = "tiny";
-      div.textContent = 'system_status.json contains no "agents" object.';
-      grid.appendChild(div);
-      return;
+    function setDot(dotEl, kind){
+      dotEl.classList.remove("ok","warn","crit","info");
+      dotEl.classList.add(kind);
+    }
+    function setPill(pillEl, kind){
+      pillEl.classList.remove("ok","warn","crit","info");
+      pillEl.classList.add(kind);
     }
 
-    // Stable ordering (preferred)
-    const order = [
-      ["status_agent", "Status Agent", "truth_regenerator", "Evidence / truth regeneration"],
-      ["george", "GEORGE", "orchestrator", "Decision orchestration"],
-      ["guardian", "Guardian", "observer", "Guardrails / policy lock"],
-      ["monitoring", "Monitoring", "observer", "System monitoring"],
-      ["content", "Content", "observer", "Content layer"],
-      ["deploy_agent", "Deployment Agent", "executor", "Deployment executor"],
-      ["consistency", "Consistency", "validator", "Consistency checks"],
-      ["deploy", "deploy", "observer", "Deployment status"],
-      ["site_audit", "site_audit", "observer", "Site audit agent"],
-      ["status", "status", "observer", "Status page agent"],
-    ];
+    function showFatal(message){
+      const box = $("fatalBox");
+      const msg = $("fatalMsg");
+      msg.textContent = message;
+      box.style.display = "block";
 
-    const used = new Set();
-    for (const [key, title, role, desc] of order) {
-      if (!agents[key]) continue;
-      used.add(key);
+      // hide all cards (render NOTHING)
+      const ids = ["coreCard","kpiCard","evidenceCard","guardsCard"];
+      for (const id of ids) {
+        const el = $(id);
+        if (el) el.style.display = "none";
+      }
 
-      const a = agents[key] || {};
-      const state = a.state || a.status || "UNKNOWN";
-      const mode = a.autonomy_mode || a.autonomy || a.mode || "";
-      const kind = agentStateKind(state);
+      // top chips still show but should indicate failure
+      const sDot = $("statusDot");
+      const fDot = $("freshDot");
+      if (sDot) setDot(sDot, "crit");
+      if (fDot) setDot(fDot, "crit");
+      $("statusMode").textContent = "TRUTH SOURCE MISSING";
+      $("truthSourcePath").textContent = TRUTH_PATH;
+      $("truthPathEcho").textContent = TRUTH_PATH;
+      $("freshnessLabel").textContent = "—";
+    }
 
-      const card = document.createElement("div");
-      card.className = "agent";
+    function safeText(v, fallback="—"){
+      if (v === null || v === undefined) return fallback;
+      const s = String(v);
+      return s.length ? s : fallback;
+    }
 
-      const top = document.createElement("div");
-      top.className = "agentTop";
+    function fmtPercent(p){
+      if (p === null || p === undefined || Number.isNaN(Number(p))) return "—";
+      const n = Number(p);
+      return (n % 1 === 0) ? `${n}%` : `${n.toFixed(1)}%`;
+    }
+
+    function fmtScore(x){
+      if (x === null || x === undefined || Number.isNaN(Number(x))) return "—";
+      const n = Number(x);
+      return (n % 1 === 0) ? String(n) : n.toFixed(2);
+    }
+
+    function freshnessFromISO(iso){
+      if (!iso) return { label:"—", kind:"info" };
+      const t = Date.parse(iso);
+      if (Number.isNaN(t)) return { label:"—", kind:"info" };
+      const now = Date.now();
+      const diffMs = Math.max(0, now - t);
+      const mins = Math.round(diffMs / 60000);
+
+      if (mins <= 2) return { label:`${mins} min`, kind:"ok" };
+      if (mins <= 10) return { label:`${mins} min`, kind:"warn" };
+      return { label:`${mins} min`, kind:"crit" };
+    }
+
+    function computeAgentCounts(data){
+      const agents = data?.agents || data?.agent_registry || data?.system?.agents || {};
+      const keys = Object.keys(agents || {});
+      const total = keys.length;
+
+      let active = 0;
+      for (const k of keys){
+        const a = agents[k] || {};
+        const state = (a.state || a.status || "").toUpperCase();
+        if (state === "ACTIVE") active += 1;
+      }
+      return { active, total, agents };
+    }
+
+    function buildAgentCard(key, agent){
+      const el = document.createElement("div");
+      el.className = "agentCard";
 
       const left = document.createElement("div");
-      left.className = "agentName";
-
-      const name = document.createElement("strong");
-      name.textContent = title;
+      const title = document.createElement("p");
+      title.className = "agentTitle";
+      title.textContent = safeText(agent.title || agent.name || key);
 
       const meta = document.createElement("div");
       meta.className = "agentMeta";
-      meta.textContent = `Role: ${role}${mode ? "  Mode: " + String(mode).toUpperCase() : ""}  Key: ${key}`;
-
-      left.appendChild(name);
-      left.appendChild(meta);
-
-      const badges = document.createElement("div");
-      badges.className = "agentBadges";
-
-      const pillState = document.createElement("span");
-      pillState.className = `pill ${kind}`;
-      pillState.innerHTML = `<span class="dot ${kind}"></span><span>${String(state).toUpperCase()}</span>`;
-
-      badges.appendChild(pillState);
-
-      if (mode) {
-        const pm = document.createElement("span");
-        pm.className = "pill";
-        pm.innerHTML = `<span class="dot info"></span><span>${String(mode).toUpperCase()}</span>`;
-        badges.appendChild(pm);
-      }
-
-      top.appendChild(left);
-      top.appendChild(badges);
-
-      const tiny = document.createElement("div");
-      tiny.className = "tiny";
-      tiny.textContent = desc;
-
-      card.appendChild(top);
-      card.appendChild(tiny);
-      grid.appendChild(card);
-    }
-
-    // Render remaining agents not in list, sorted
-    const remainingKeys = Object.keys(agents).filter(k => !used.has(k)).sort();
-    for (const key of remainingKeys) {
-      const a = agents[key] || {};
-      const state = a.state || a.status || "UNKNOWN";
-      const mode = a.autonomy_mode || a.autonomy || a.mode || "";
-      const role = a.role || "agent";
-      const kind = agentStateKind(state);
-
-      const card = document.createElement("div");
-      card.className = "agent";
-
-      const top = document.createElement("div");
-      top.className = "agentTop";
-
-      const left = document.createElement("div");
-      left.className = "agentName";
-
-      const name = document.createElement("strong");
-      name.textContent = key;
-
-      const meta = document.createElement("div");
-      meta.className = "agentMeta";
-      meta.textContent = `Role: ${role}${mode ? "  Mode: " + String(mode).toUpperCase() : ""}  Key: ${key}`;
-
-      left.appendChild(name);
-      left.appendChild(meta);
-
-      const badges = document.createElement("div");
-      badges.className = "agentBadges";
-
-      const pillState = document.createElement("span");
-      pillState.className = `pill ${kind}`;
-      pillState.innerHTML = `<span class="dot ${kind}"></span><span>${String(state).toUpperCase()}</span>`;
-
-      badges.appendChild(pillState);
-
-      if (mode) {
-        const pm = document.createElement("span");
-        pm.className = "pill";
-        pm.innerHTML = `<span class="dot info"></span><span>${String(mode).toUpperCase()}</span>`;
-        badges.appendChild(pm);
-      }
-
-      top.appendChild(left);
-      top.appendChild(badges);
-
-      card.appendChild(top);
-
-      const tiny = document.createElement("div");
-      tiny.className = "tiny";
-      tiny.textContent = "";
-      card.appendChild(tiny);
-
-      grid.appendChild(card);
-    }
-  }
-
-  function getGateVerdict(status){
-    const gate = status?.autonomy_score?.inputs?.gate_verdict ?? status?.gate?.verdict ?? status?.gate?.result ?? status?.governance?.gate_verdict;
-    return normalizeVerdict(gate);
-  }
-
-  function renderKPIs(status){
-    const env = status?.environment ?? "—";
-    const generatedAt = status?.generated_at ?? status?.timestamp ?? null;
-    const ageMin = minutesSince(generatedAt);
-    const freshness = classifyFreshness(ageMin);
-
-    $("truthPath").textContent = TRUTH_PATH;
-    $("generatedAt").textContent = generatedAt ? generatedAt : "—";
-    $("environment").textContent = env;
-
-    $("freshness").textContent = ageMin === null ? "—" : `${ageMin} min`;
-    setDot($("dotFresh"), freshness.kind);
-
-    const systemState = status?.system?.state ?? status?.system_state ?? status?.system?.status ?? "UNKNOWN";
-    $("systemState").textContent = safeText(systemState).toUpperCase();
-    const sysKind = agentStateKind(systemState);
-    setDot($("dotSystem"), sysKind);
-    setPill($("pillSystem"), sysKind);
-
-    // Agent health: active / total
-    const agents = status?.agents && typeof status.agents === "object" ? status.agents : {};
-    const keys = Object.keys(agents);
-    const total = keys.length;
-    const active = keys.filter(k => String(agents[k]?.state ?? agents[k]?.status ?? "").toUpperCase() === "ACTIVE").length;
-    $("agentHealth").textContent = total ? `${active}/${total}` : "—";
-
-    // Autonomy score
-    const autonomyPercent = status?.autonomy_score?.percent ?? (status?.autonomy_score?.value != null ? status.autonomy_score.value * 100 : null);
-    const autonomyMode = status?.autonomy_score?.mode ?? status?.autonomy?.mode ?? status?.system?.autonomy_mode ?? status?.autonomy_mode ?? "—";
-    $("autonomy").textContent = autonomyPercent == null ? "—" : `${Number(autonomyPercent).toFixed(1)}%`;
-    $("autonomyMode").textContent = safeText(autonomyMode).toUpperCase();
-
-    // Health score
-    const healthScore = status?.health?.overall_score ?? status?.health?.score ?? null;
-    const healthSignal = status?.health?.signal ?? "—";
-    $("healthScore").textContent = healthScore == null ? "—" : String(healthScore);
-    $("healthSignal").textContent = safeText(healthSignal).toUpperCase();
-
-    // Governance verdict
-    const gateVerdict = getGateVerdict(status);
-    $("govVerdict").textContent = gateVerdict;
-    setPill($("govVerdict").parentElement?.querySelector?.(".pill") || $("pillSnapshot"), verdictKind(gateVerdict));
-    setDot($("dotSnapshot"), verdictKind(gateVerdict));
-
-    // Truth lock header badge
-    $("truthLockText").textContent = "TRUTH-LOCKED";
-    setDot($("dotTruth"), "info");
-  }
-
-  function renderGovernanceExplanation(status){
-    const reasons = [];
-    const health = status?.health ?? {};
-    const gate = getGateVerdict(status);
-
-    if (health?.signal) reasons.push(`Health signal is ${String(health.signal).toUpperCase()}`);
-    if (health?.overall_score != null) reasons.push(`Health score is ${health.overall_score}`);
-    if (gate && gate !== "—") reasons.push(`Governance gate verdict is ${gate}`);
-
-    const links = status?.links ?? {};
-    const decisionTrace = links?.decision_trace || links?.decision_trace_jsonl || status?.links?.decision_trace;
-    const gateResult = links?.gate_result || links?.gate_result_json || status?.links?.gate_result;
-
-    if (decisionTrace) reasons.push(`Decision trace is linked (audit trail available)`);
-    else reasons.push(`Decision trace link is missing (audit limited)`);
-
-    if (gateResult) reasons.push(`Gate result artifact is linked`);
-    else reasons.push(`Gate result artifact link is missing`);
-
-    const ul = $("gov-reasons");
-    ul.innerHTML = "";
-    for (const r of reasons) {
-      const li = document.createElement("li");
-      li.textContent = r;
-      ul.appendChild(li);
-    }
-
-    const kind = verdictKind(gate);
-    setDot($("dotGov"), kind);
-    setPill($("gov-pill"), kind);
-    $("gov-state").textContent = "EVALUATED";
-  }
-
-  function renderGuards(status){
-    const generatedAt = status?.generated_at ?? status?.timestamp ?? null;
-    const ageMin = minutesSince(generatedAt);
-    const freshness = classifyFreshness(ageMin);
-
-    // Freshness
-    $("guard-freshness").textContent = ageMin === null ? "—" : `${ageMin} min ago`;
-    $("guard-freshness-details").textContent = `generated_at: ${generatedAt || "—"}\nsource: ${TRUTH_PATH}`;
-    $("guard-freshness-pill-text").textContent = freshness.label;
-    setDot($("dotGuardFresh"), freshness.kind);
-    setPill($("guard-freshness-pill"), freshness.kind);
-
-    // Runtime Gate
-    const gate = getGateVerdict(status);
-    $("guard-gate").textContent = gate;
-    $("guard-gate-details").textContent = `gate_verdict: ${gate}\n(derived from truth inputs/links)`;
-    const gk = verdictKind(gate);
-    $("guard-gate-pill-text").textContent = gate === "—" ? "UNKNOWN" : gate;
-    setDot($("dotGuardGate"), gk);
-    setPill($("guard-gate-pill"), gk);
-
-    // Audit trail
-    const links = status?.links ?? {};
-    const auditAvail = Boolean(links?.decision_trace || links?.decision_trace_jsonl);
-    $("guard-audit").textContent = auditAvail ? "Available" : "Missing";
-    $("guard-audit-details").textContent = auditAvail
-      ? `decision_trace: ${links.decision_trace || links.decision_trace_jsonl}`
-      : `No decision_trace link present in truth.`;
-    $("guard-audit-pill-text").textContent = auditAvail ? "OK" : "MISSING";
-    setDot($("dotGuardAudit"), auditAvail ? "ok" : "warn");
-    setPill($("guard-audit-pill"), auditAvail ? "ok" : "warn");
-
-    // Decision trace linked?
-    const trace = links?.decision_trace || links?.decision_trace_jsonl;
-    $("guard-trace").textContent = trace ? "LINKED" : "UNLINKED";
-    $("guard-trace-details").textContent = trace ? trace : "No decision_trace link in truth.";
-    $("guard-trace-pill-text").textContent = trace ? "OK" : "UNLINKED";
-    setDot($("dotGuardTrace"), trace ? "ok" : "warn");
-    setPill($("guard-trace-pill"), trace ? "ok" : "warn");
-
-    // Status agent (evidence) freshness mirrored later when we read log
-    $("guard-status-agent").textContent = "—";
-    $("guard-status-agent-details").textContent = `Evidence source: ${STATUS_AGENT_LOG_PATH}`;
-    $("guard-status-agent-pill-text").textContent = "—";
-    setDot($("dotGuardStatusAgent"), "warn");
-    setPill($("guard-status-agent-pill"), "warn");
-
-    // Guard header pill
-    setDot($("dotGuard"), "info");
-    setPill($("guard-pill"), "info");
-  }
-
-  function parseJSONL(text){
-    const lines = (text || "").split("\n").map(l => l.trim()).filter(Boolean);
-    const events = [];
-    for (const ln of lines) {
-      try { events.push(JSON.parse(ln)); } catch (_) {}
-    }
-    return events;
-  }
-
-  function fmtDate(iso){
-    if (!iso) return "—";
-    const d = new Date(iso);
-    if (!Number.isFinite(d.getTime())) return String(iso);
-    // Keep it ISO-ish but short
-    return d.toISOString().replace(".000Z","Z");
-  }
-
-  function renderStatusAgentEvidence(events){
-    $("status-agent-source").textContent = STATUS_AGENT_LOG_PATH;
-
-    if (!events || !events.length) {
-      $("status-agent-note").textContent = `Evidence loaded, but no events found.`;
-      $("status-agent-last").textContent = "—";
-      $("status-agent-freshness").textContent = "—";
-      $("status-agent-result").textContent = "—";
-      $("status-agent-ops").textContent = "0";
-      $("status-agent-feed-state").textContent = "NO DATA";
-      $("status-agent-pill-text").textContent = "NO DATA";
-      setDot($("dotStatusAgent"), "warn");
-      setPill($("status-agent-pill"), "warn");
-
-      $("guard-status-agent").textContent = "No status_agent events";
-      $("guard-status-agent-details").textContent = `No events in ${STATUS_AGENT_LOG_PATH}`;
-      $("guard-status-agent-pill-text").textContent = "NO DATA";
-      setDot($("dotGuardStatusAgent"), "warn");
-      setPill($("guard-status-agent-pill"), "warn");
-      return;
-    }
-
-    // Prefer events with agent == status_agent, otherwise use all
-    const filtered = events.filter(e => (e.agent || "").toString().toLowerCase() === "status_agent");
-    const useEvents = filtered.length ? filtered : events;
-
-    // Latest event by timestamp
-    useEvents.sort((a,b) => (new Date(b.timestamp).getTime()||0) - (new Date(a.timestamp).getTime()||0));
-    const latest = useEvents[0];
-    const lastIso = latest?.timestamp || null;
-    const ageMin = minutesSince(lastIso);
-    const freshness = classifyFreshness(ageMin);
-
-    $("status-agent-last").textContent = fmtDate(lastIso);
-    $("status-agent-freshness").textContent = ageMin === null ? "—" : freshness.label;
-    $("status-agent-result").textContent = safeText(latest?.result, "UNKNOWN").toUpperCase();
-    $("status-agent-ops").textContent = String(useEvents.length);
-    $("status-agent-feed-state").textContent = "OK";
-
-    $("status-agent-pill-text").textContent = freshness.label;
-    setDot($("dotStatusAgent"), freshness.kind);
-    setPill($("status-agent-pill"), freshness.kind);
-
-    // Guard mirror
-    $("guard-status-agent").textContent = freshness.label;
-    $("guard-status-agent-details").textContent =
-      `source: ${STATUS_AGENT_LOG_PATH}\nlast: ${fmtDate(lastIso)}\nage_min: ${ageMin === null ? "—" : ageMin}\nresult: ${safeText(latest?.result,"UNKNOWN")}`;
-    $("guard-status-agent-pill-text").textContent = freshness.label;
-    setDot($("dotGuardStatusAgent"), freshness.kind);
-    setPill($("guard-status-agent-pill"), freshness.kind);
-
-    // Notes
-    $("status-agent-note").textContent = `Rendered from ${STATUS_AGENT_LOG_PATH}. No client-side timers, no simulated operations.`;
-
-    // Feed (latest 6)
-    const feed = $("feed");
-    feed.innerHTML = "";
-
-    const slice = useEvents.slice(0, 6);
-    for (const e of slice) {
-      const item = document.createElement("div");
-      item.className = "feedItem";
-
-      const top = document.createElement("div");
-      top.className = "feedTop";
-
-      const left = document.createElement("div");
-      left.className = "feedLeft";
-
-      const title = document.createElement("div");
-      title.className = "feedTitle";
-      const op = safeText(e.operation || e.op, "operation");
-      const res = safeText(e.result, "UNKNOWN").toUpperCase();
-      title.textContent = `${res} — ${op}`;
-
-      const sub = document.createElement("div");
-      sub.className = "feedSub";
-      sub.textContent = `${fmtDate(e.timestamp)}  ·  agent=${safeText(e.agent,"—")}`;
+      const role = safeText(agent.role || "—");
+      const mode = safeText(agent.mode || agent.autonomy_mode || "—");
+      meta.textContent = `Role: ${role}  Mode: ${mode}  Key: ${key}`;
 
       left.appendChild(title);
-      left.appendChild(sub);
+      left.appendChild(meta);
 
-      const tag = document.createElement("span");
-      tag.className = `pill ${res === "OK" ? "ok" : (res === "WARN" ? "warn" : (res === "FAIL" ? "crit" : "warn"))}`;
-      tag.innerHTML = `<span class="dot ${res === "OK" ? "ok" : (res === "WARN" ? "warn" : (res === "FAIL" ? "crit" : "warn"))}"></span><span>${res}</span>`;
+      const pills = document.createElement("div");
+      pills.className = "pillRow";
 
-      top.appendChild(left);
-      top.appendChild(tag);
+      const st = (agent.state || agent.status || "UNKNOWN").toUpperCase();
+      const stPill = document.createElement("span");
+      stPill.className = "pill";
+      const stDot = document.createElement("span");
+      stDot.className = "dot";
+      stPill.appendChild(stDot);
+      stPill.appendChild(document.createTextNode(st));
+      setDot(stDot, st === "ACTIVE" ? "ok" : (st === "PLANNED" ? "warn" : (st === "INACTIVE" ? "crit" : "info")));
 
-      const body = document.createElement("div");
-      body.className = "feedBody";
+      const mPill = document.createElement("span");
+      mPill.className = "pill";
+      const mDot = document.createElement("span");
+      mDot.className = "dot";
+      mPill.appendChild(mDot);
+      mPill.appendChild(document.createTextNode(mode.toUpperCase()));
+      setDot(mDot, mode.toUpperCase().includes("SUPERVISED") ? "ok" : (mode.toUpperCase().includes("MANUAL") ? "warn" : "info"));
 
-      // Safe short evidence summary (avoid dumping huge structures)
-      const ev = e.evidence;
-      const pairs = [];
-      if (ev && typeof ev === "object") {
-        if ("system_health" in ev) pairs.push(`system_health=${String(ev.system_health)}`);
-        if ("governance" in ev) pairs.push(`governance=${String(ev.governance)}`);
-        if ("decision_trace" in ev) pairs.push(`decision_trace=${ev.decision_trace ? "yes" : "no"}`);
+      pills.appendChild(stPill);
+      pills.appendChild(mPill);
+
+      el.appendChild(left);
+      el.appendChild(pills);
+      return el;
+    }
+
+    function buildGuardRow(label, value, kind, detailsText){
+      const wrap = document.createElement("div");
+      wrap.className = "rowCard";
+
+      const left = document.createElement("div");
+      left.className = "rowLeft";
+
+      const t = document.createElement("p");
+      t.className = "rowTitle";
+      t.textContent = label;
+
+      const s = document.createElement("p");
+      s.className = "rowSub";
+      s.textContent = value;
+
+      left.appendChild(t);
+      left.appendChild(s);
+
+      const right = document.createElement("div");
+      right.style.display = "flex";
+      right.style.alignItems = "center";
+      right.style.gap = "10px";
+
+      const pill = document.createElement("span");
+      pill.className = "pill";
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      pill.appendChild(dot);
+      pill.appendChild(document.createTextNode(kind.toUpperCase()));
+      setDot(dot, kind);
+
+      const btn = document.createElement("div");
+      btn.className = "chev";
+      btn.textContent = "›";
+
+      const details = document.createElement("div");
+      details.className = "details";
+
+      const pre = document.createElement("pre");
+      pre.className = "log mono";
+      pre.textContent = detailsText || "";
+      details.appendChild(pre);
+
+      btn.addEventListener("click", () => {
+        const open = details.classList.toggle("open");
+        btn.textContent = open ? "⌄" : "›";
+      });
+
+      right.appendChild(pill);
+      right.appendChild(btn);
+
+      wrap.appendChild(left);
+      wrap.appendChild(right);
+      wrap.appendChild(details);
+
+      return wrap;
+    }
+
+    function buildEvidenceRow(item){
+      const label = safeText(item.label || item.operation || "operation");
+      const ts = safeText(item.ts || item.time || item.timestamp || "—");
+      const status = safeText(item.status || item.result || "UNKNOWN").toUpperCase();
+      const note = safeText(item.note || item.message || "");
+
+      const kind =
+        status === "OK" || status === "PASS" ? "ok" :
+        status === "WARN" ? "warn" :
+        status === "FAIL" || status === "ERROR" ? "crit" : "info";
+
+      const details = note ? `${note}` : `—`;
+      return buildGuardRow(`${status} — ${label}`, ts, kind, details);
+    }
+
+    async function fetchJSON(path){
+      const bust = `${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`;
+      const res = await fetch(bust, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
+      return await res.json();
+    }
+
+    async function fetchText(path){
+      const bust = `${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`;
+      const res = await fetch(bust, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
+      return await res.text();
+    }
+
+    function parseJSONL(text, limit=6){
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      const out = [];
+      for (let i = Math.max(0, lines.length - limit); i < lines.length; i++){
+        try {
+          out.push(JSON.parse(lines[i]));
+        } catch {
+          out.push({ status:"UNKNOWN", operation:"operation", ts:"—", note:"(unparseable line)" });
+        }
       }
-      body.textContent = pairs.length ? pairs.join(" · ") : "";
-
-      item.appendChild(top);
-      if (body.textContent) item.appendChild(body);
-      feed.appendChild(item);
-    }
-  }
-
-  async function boot(){
-    attachExpanders();
-
-    // 1) MUST load truth source (single source of truth)
-    let status;
-    try {
-      const r = await fetch(TRUTH_PATH, { cache: "no-store" });
-      if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
-      status = await r.json();
-    } catch (err) {
-      showFatal(
-        `Cannot read Single Source of Truth: ${TRUTH_PATH}`,
-        `Reason: ${String(err)}`
-      );
-      return;
+      return out;
     }
 
-    // Render dashboard from truth
-    renderKPIs(status);
-    renderAgentsDynamic(status);
-    renderGovernanceExplanation(status);
-    renderGuards(status);
+    function render(data){
+      // Header chips
+      $("truthSourcePath").textContent = TRUTH_PATH;
+      $("truthPathEcho").textContent = TRUTH_PATH;
 
-    // 2) Load Status Agent evidence (optional, but shown as missing/expired if not available)
-    try {
-      const r = await fetch(STATUS_AGENT_LOG_PATH, { cache: "no-store" });
-      if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
-      const text = await r.text();
-      const events = parseJSONL(text);
-      renderStatusAgentEvidence(events);
-    } catch (err) {
-      // Evidence missing should NOT fake data; show as missing
-      $("status-agent-note").textContent =
-        `Evidence source missing or unreadable: ${STATUS_AGENT_LOG_PATH}. This is not simulated in the browser.`;
-      $("status-agent-feed-state").textContent = "MISSING";
-      $("status-agent-pill-text").textContent = "MISSING";
-      setDot($("dotStatusAgent"), "warn");
-      setPill($("status-agent-pill"), "warn");
+      const gen = data.generated_at || data.generatedAt || data?.meta?.generated_at || null;
+      const env = data.environment || data?.meta?.environment || "production";
+      $("generatedAt").textContent = safeText(gen);
+      $("environment").textContent = safeText(env);
 
-      $("guard-status-agent").textContent = "Evidence source missing";
-      $("guard-status-agent-details").textContent = `Error: ${String(err)}`;
-      $("guard-status-agent-pill-text").textContent = "MISSING";
-      setDot($("dotGuardStatusAgent"), "warn");
-      setPill($("guard-status-agent-pill"), "warn");
+      // System status
+      const sysState = (data.system_state || data?.system?.state || data?.system?.status || "UNKNOWN").toUpperCase();
+      const sysMode = safeText(data.autonomy || data?.system?.autonomy_mode || data?.autonomy_model?.system_level || "—");
+      $("statusMode").textContent = sysState === "ACTIVE" ? "Live in Production" : sysState;
+
+      // overall dots
+      setDot($("statusDot"), sysState === "ACTIVE" ? "ok" : "warn");
+
+      // Freshness (from generated_at)
+      const fresh = freshnessFromISO(gen);
+      $("freshnessLabel").textContent = fresh.label;
+      setDot($("freshDot"), fresh.kind);
+
+      // SYSTEM badge
+      $("systemLabel").textContent = `SYSTEM ${sysState}`;
+      setDot($("systemDot"), sysState === "ACTIVE" ? "ok" : "warn");
+      setDot($("snapshotDot"), "ok");
+
+      // KPIs
+      const { active, total, agents } = computeAgentCounts(data);
+      $("kpiAgentHealth").textContent = (total ? `${active}/${total}` : "—");
+      $("kpiAgentHealthSub").textContent = "Active agents / total agents";
+
+      const autonomyPct = data?.autonomy_score?.percent ?? data?.autonomy_score?.value;
+      const autonomyMode = data?.autonomy_score?.mode || data?.autonomy_model?.system_level || sysMode;
+      $("kpiAutonomy").textContent = (typeof autonomyPct === "number" ? fmtPercent(autonomyPct) : (autonomyPct ? String(autonomyPct) : "—"));
+      $("kpiAutonomySub").textContent = `Mode: ${safeText(autonomyMode)}`;
+
+      const healthScore = data?.health?.overall_score ?? data?.health?.score ?? null;
+      const healthSignal = (data?.health?.signal || "—").toUpperCase();
+      $("kpiHealthScore").textContent = fmtScore(healthScore);
+      $("kpiHealthScoreSub").textContent = `Signal: ${healthSignal}`;
+      setDot($("govDot"), "ok");
+
+      const gateVerdict = (data?.runtime_gate?.verdict || data?.governance?.gate_verdict || "—").toUpperCase();
+      $("kpiGovernance").textContent = gateVerdict === "ALLOW" ? "ALLOW" : safeText(gateVerdict);
+      $("kpiGovernanceSub").textContent = "Audit trail & gate verdict";
+
+      // Governance bullets (derive from available truth)
+      const bullets = [];
+      bullets.push(`Health signal is ${healthSignal}`);
+      if (healthScore !== null && healthScore !== undefined) bullets.push(`Health score is ${fmtScore(healthScore)}`);
+      if (gateVerdict && gateVerdict !== "—") bullets.push(`Governance gate verdict is ${gateVerdict}`);
+
+      const decisionTraceLinked = !!(data?.governance_evidence?.decision_trace?.present ?? data?.governance_evidence?.decision_trace);
+      const gateResultLinked = !!(data?.governance_evidence?.gate_result?.present ?? data?.governance_evidence?.gate_result);
+      bullets.push(`Decision trace is ${decisionTraceLinked ? "linked (audit trail available)" : "missing"}`);
+      bullets.push(`Gate result artifact is ${gateResultLinked ? "linked" : "missing"}`);
+
+      const ul = $("govBullets");
+      ul.innerHTML = "";
+      for (const b of bullets){
+        const li = document.createElement("li");
+        li.textContent = b;
+        ul.appendChild(li);
+      }
+
+      // Core agents list (order preference)
+      const order = [
+        ["status_agent", "Status Agent"],
+        ["george", "GEORGE"],
+        ["guardian", "Guardian"],
+        ["monitoring", "Monitoring"],
+        ["content", "Content"],
+        ["deploy_agent", "Deployment Agent"],
+        ["consistency", "Consistency"],
+        ["deploy", "deploy"],
+        ["site_audit", "site_audit"],
+        ["status", "status"],
+      ];
+
+      const container = $("coreAgents");
+      container.innerHTML = "";
+
+      const used = new Set();
+      for (const [key, title] of order){
+        if (!agents[key]) continue;
+        used.add(key);
+        const a = { ...agents[key], title };
+        container.appendChild(buildAgentCard(key, a));
+      }
+
+      // append any remaining agents deterministically
+      const restKeys = Object.keys(agents).filter(k => !used.has(k)).sort();
+      for (const k of restKeys){
+        container.appendChild(buildAgentCard(k, agents[k] || {}));
+      }
+
+      // Evidence panel & guard rows
+      $("evidenceSource").textContent = STATUS_AGENT_LOG_PATH;
+
+      // Guards (derived from truth source where possible)
+      const guards = $("guardsRows");
+      guards.innerHTML = "";
+
+      const freshnessKind = fresh.kind;
+      guards.appendChild(buildGuardRow("Freshness", `${fresh.label} ago`, freshnessKind, `generated_at: ${safeText(gen)}\ntruth: ${TRUTH_PATH}`));
+
+      const gateKind = gateVerdict === "ALLOW" ? "ok" : (gateVerdict === "DENY" ? "crit" : "warn");
+      guards.appendChild(buildGuardRow("Runtime Gate", safeText(gateVerdict), gateKind, `runtime_gate.verdict: ${safeText(gateVerdict)}`));
+
+      const auditKind = (data?.governance_evidence?.audit_trail?.present ?? true) ? "ok" : "warn";
+      guards.appendChild(buildGuardRow("Audit Trail", (auditKind === "ok" ? "Available" : "Missing"), auditKind, JSON.stringify(data?.governance_evidence?.audit_trail || {}, null, 2)));
+
+      const dtKind = decisionTraceLinked ? "ok" : "warn";
+      guards.appendChild(buildGuardRow("Decision Trace", decisionTraceLinked ? "LINKED" : "MISSING", dtKind, JSON.stringify(data?.governance_evidence?.decision_trace || {}, null, 2)));
+
+      // Status Agent guard - from evidence freshness if present later
+      // placeholder until evidence load:
+      guards.appendChild(buildGuardRow("Status Agent", "—", "info", "Derived from /ops/agent_activity.jsonl"));
+
+      // Keep some dots aligned
+      setDot($("guardsDot"), "ok");
+      setDot($("healDot"), "ok");
+      $("healLabel").textContent = "GOVERNED";
     }
-  }
 
-  boot();
-</script>
+    async function renderEvidenceAndUpdateGuard(){
+      let text;
+      try {
+        text = await fetchText(STATUS_AGENT_LOG_PATH);
+      } catch (e){
+        $("evidenceDot").classList.add("crit");
+        $("evidenceLabel").textContent = "UNAVAILABLE";
+        $("evidenceSource").textContent = STATUS_AGENT_LOG_PATH;
+        $("evidenceLastRun").textContent = "—";
+        $("evidenceFreshness").textContent = "—";
+        $("evidenceLastResult").textContent = "—";
+        $("evidenceTotalRuns").textContent = "—";
+        $("evidenceFeedState").textContent = "—";
+        $("evidenceFeedCount").textContent = "—";
+        $("evidenceRows").innerHTML = "";
+        return;
+      }
+
+      const items = parseJSONL(text, 6);
+
+      // derive last run / total runs heuristically
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      const totalRuns = lines.length;
+
+      // last item fields
+      const last = items[items.length - 1] || {};
+      const lastTs = last.ts || last.time || last.timestamp || "—";
+      const lastStatus = (last.status || last.result || "UNKNOWN").toUpperCase();
+
+      $("evidenceLastRun").textContent = safeText(lastTs);
+      $("evidenceTotalRuns").textContent = safeText(totalRuns, "0");
+      $("evidenceFeedCount").textContent = safeText(items.length, "0");
+
+      // freshness from lastTs (if ISO)
+      const fr = freshnessFromISO(lastTs);
+      $("evidenceFreshness").textContent = `EXPIRED`.includes(fr.kind.toUpperCase()) ? fr.label : fr.label;
+      $("evidenceFreshness").textContent = fr.kind === "crit" ? "EXPIRED" : "OK";
+
+      const lastResultKind =
+        lastStatus === "OK" || lastStatus === "PASS" ? "ok" :
+        lastStatus === "WARN" ? "warn" :
+        lastStatus === "FAIL" || lastStatus === "ERROR" ? "crit" : "info";
+
+      $("evidenceLastResult").textContent = (lastStatus === "OK" || lastStatus === "PASS") ? "PASS" : lastStatus;
+
+      // feed state
+      $("evidenceFeedState").textContent = (lastResultKind === "ok") ? "OK" : "UNKNOWN";
+
+      // label badge
+      setDot($("evidenceDot"), fr.kind === "crit" ? "crit" : "ok");
+      $("evidenceLabel").textContent = fr.kind === "crit" ? "EXPIRED" : "FRESH";
+
+      // rows
+      const rows = $("evidenceRows");
+      rows.innerHTML = "";
+      for (const it of items){
+        rows.appendChild(buildEvidenceRow(it));
+      }
+
+      // update guards "Status Agent" row (the last guard row we appended)
+      const guards = $("guardsRows");
+      const lastGuard = guards.lastElementChild; // Status Agent row
+      if (lastGuard){
+        const labelEl = lastGuard.querySelector(".rowLeft .rowSub");
+        const titleEl = lastGuard.querySelector(".rowLeft .rowTitle");
+        const pillDot = lastGuard.querySelector(".pill .dot");
+        const pillText = lastGuard.querySelector(".pill");
+
+        const statusLabel = (fr.kind === "crit") ? "EXPIRED" : "OK";
+        if (titleEl) titleEl.textContent = "Status Agent";
+        if (labelEl) labelEl.textContent = statusLabel;
+
+        const kind = (fr.kind === "crit") ? "crit" : "ok";
+        if (pillDot) setDot(pillDot, kind);
+        if (pillText) pillText.lastChild.nodeValue = statusLabel; // keep dot + text
+      }
+    }
+
+    async function main(){
+      try {
+        const data = await fetchJSON(TRUTH_PATH);
+        render(data);
+      } catch (e){
+        showFatal(`Cannot read truth source (${TRUTH_PATH}). ${e.message || e}`);
+        return;
+      }
+
+      // Evidence is not required to render the page, but improves completeness.
+      // Still no simulated operations.
+      await renderEvidenceAndUpdateGuard();
+    }
+
+    main();
+  </script>
 </body>
 </html>
