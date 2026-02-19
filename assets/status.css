@@ -1,0 +1,568 @@
+/* ==========================================================================
+   virtauto® Status Dashboard (Enterprise UI) — scoped, no side effects
+   File: /assets/status.css
+   Scope: body.va-status-page ...
+   Requires: /assets/styles.css + /assets/styles_unify.css loaded before this
+   ========================================================================== */
+
+body.va-status-page {
+  --va-status-bg: var(--va-bg, #050816);
+  --va-status-card: var(--va-card, rgba(255,255,255,0.03));
+  --va-status-card-2: rgba(255,255,255,0.02);
+  --va-status-border: var(--va-border, rgba(255,255,255,0.10));
+  --va-status-text: var(--va-text, #e5e7eb);
+  --va-status-muted: var(--va-muted, rgba(229,231,235,0.72));
+  --va-status-accent: var(--va-accent, #8b5cf6);
+  --va-status-accent-2: rgba(139, 92, 246, 0.16);
+
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --crit: #ef4444;
+
+  background:
+    radial-gradient(900px 540px at 20% -10%, rgba(139,92,246,0.16), transparent 60%),
+    radial-gradient(800px 460px at 110% 10%, rgba(34,197,94,0.12), transparent 55%),
+    radial-gradient(720px 420px at 40% 110%, rgba(59,130,246,0.10), transparent 55%),
+    var(--va-status-bg);
+  color: var(--va-status-text);
+}
+
+body.va-status-page * { box-sizing: border-box; }
+
+body.va-status-page .wrap {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 28px 18px 40px;
+}
+@media (max-width: 720px) {
+  body.va-status-page .wrap { padding: 20px 14px 34px; }
+}
+
+body.va-status-page .top {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+body.va-status-page .titleRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+body.va-status-page h1 {
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  margin: 0;
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+}
+
+body.va-status-page .badge {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--va-status-accent);
+  border: 1px solid rgba(139,92,246,0.40);
+  background: var(--va-status-accent-2);
+  white-space: nowrap;
+}
+
+body.va-status-page .subtitle {
+  max-width: 860px;
+  color: var(--va-status-muted);
+  line-height: 1.45;
+  font-size: 14px;
+}
+
+body.va-status-page .meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 4px;
+}
+
+body.va-status-page .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--va-status-border);
+  background: rgba(2,6,23,0.35);
+  color: var(--va-status-muted);
+}
+
+body.va-status-page .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--va-status-accent);
+  flex: 0 0 auto;
+}
+
+body.va-status-page .grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.15fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  margin-top: 10px;
+}
+@media (max-width: 1040px) {
+  body.va-status-page .grid { grid-template-columns: 1fr; }
+}
+
+body.va-status-page .card {
+  border: 1px solid var(--va-status-border);
+  border-radius: 16px;
+  background:
+    radial-gradient(650px 320px at 20% 0%, rgba(255,255,255,0.06), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+  box-shadow: 0 18px 55px rgba(0,0,0,0.55);
+  padding: 14px 14px 12px;
+  overflow: hidden;
+}
+
+body.va-status-page .cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+body.va-status-page .cardHeader h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--va-status-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.va-status-page .statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.35);
+  background: rgba(2,6,23,0.40);
+  color: var(--va-status-text);
+  white-space: nowrap;
+}
+body.va-status-page .statusPill .dot { background: var(--ok); }
+body.va-status-page .statusPill.warn .dot { background: var(--warn); }
+body.va-status-page .statusPill.crit .dot { background: var(--crit); }
+
+body.va-status-page .agentsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+body.va-status-page .agentCard {
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 14px;
+  background:
+    radial-gradient(420px 200px at 15% 0%, rgba(139,92,246,0.10), transparent 55%),
+    linear-gradient(135deg, rgba(2,6,23,0.45), rgba(2,6,23,0.20));
+  padding: 11px 11px 10px;
+  min-height: 138px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+body.va-status-page .agentTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+body.va-status-page .agentName {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.15;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+body.va-status-page .chip {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.25);
+  background: rgba(2,6,23,0.35);
+  color: var(--va-status-muted);
+  max-width: 62%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.va-status-page .chip.ok { border-color: rgba(34,197,94,0.55); color: rgba(187,247,208,0.95); }
+body.va-status-page .chip.warn { border-color: rgba(245,158,11,0.55); color: rgba(254,215,170,0.95); }
+body.va-status-page .chip.crit { border-color: rgba(239,68,68,0.55); color: rgba(254,202,202,0.95); }
+body.va-status-page .chip.soon { border-style: dashed; }
+
+body.va-status-page .agentMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font-size: 11px;
+  color: var(--va-status-muted);
+}
+
+body.va-status-page .agentNote {
+  margin: 0;
+  font-size: 12px;
+  color: var(--va-status-muted);
+  line-height: 1.35;
+}
+
+body.va-status-page .subhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  margin-bottom: 10px;
+}
+
+body.va-status-page .subhead h3 {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--va-status-muted);
+}
+
+body.va-status-page .miniPill {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.25);
+  background: rgba(2,6,23,0.35);
+  color: var(--va-status-muted);
+  white-space: nowrap;
+}
+body.va-status-page .miniPill.ok { border-color: rgba(34,197,94,0.55); color: rgba(187,247,208,0.95); }
+body.va-status-page .miniPill.warn { border-color: rgba(245,158,11,0.55); color: rgba(254,215,170,0.95); }
+body.va-status-page .miniPill.crit { border-color: rgba(239,68,68,0.55); color: rgba(254,202,202,0.95); }
+
+body.va-status-page .evidence {
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 14px;
+  background: rgba(2,6,23,0.25);
+  padding: 12px;
+}
+
+body.va-status-page .kvGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+@media (max-width: 520px) {
+  body.va-status-page .kvGrid { grid-template-columns: 1fr; }
+}
+
+body.va-status-page .kv {
+  border: 1px solid rgba(148,163,184,0.16);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 10px;
+}
+
+body.va-status-page .kv .k {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--va-status-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.va-status-page .kv .v {
+  font-size: 14px;
+  font-weight: 650;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.va-status-page code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12px;
+  color: rgba(196,181,253,0.95);
+}
+
+body.va-status-page .feed {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148,163,184,0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+body.va-status-page .feedItem {
+  border: 1px solid rgba(148,163,184,0.14);
+  border-radius: 12px;
+  background: rgba(2,6,23,0.18);
+  padding: 10px 10px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+body.va-status-page .feedLeft { min-width: 0; }
+
+body.va-status-page .feedTitle {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--va-status-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 62vw;
+}
+
+body.va-status-page .feedMeta {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--va-status-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 62vw;
+}
+
+body.va-status-page .feedTag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.25);
+  color: var(--va-status-muted);
+  background: rgba(2,6,23,0.35);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+body.va-status-page .feedTag.ok { border-color: rgba(34,197,94,0.55); color: rgba(187,247,208,0.95); }
+body.va-status-page .feedTag.warn { border-color: rgba(245,158,11,0.55); color: rgba(254,215,170,0.95); }
+body.va-status-page .feedTag.crit { border-color: rgba(239,68,68,0.55); color: rgba(254,202,202,0.95); }
+
+body.va-status-page .kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 520px) {
+  body.va-status-page .kpiGrid { grid-template-columns: 1fr; }
+}
+
+body.va-status-page .kpi {
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 14px;
+  background:
+    radial-gradient(420px 200px at 15% 0%, rgba(59,130,246,0.10), transparent 55%),
+    rgba(2,6,23,0.18);
+  padding: 11px 11px 10px;
+}
+
+body.va-status-page .kpiLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--va-status-muted);
+}
+
+body.va-status-page .kpiValue {
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 760;
+  letter-spacing: 0.01em;
+}
+
+body.va-status-page .kpiNote {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--va-status-muted);
+  line-height: 1.35;
+}
+
+body.va-status-page .truthBox {
+  margin-top: 12px;
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 14px;
+  background: rgba(2,6,23,0.22);
+  padding: 11px 12px;
+  color: var(--va-status-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+body.va-status-page .truthBox strong { color: rgba(229,231,235,0.92); }
+
+body.va-status-page .guards {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+body.va-status-page .guardRow {
+  border: 1px solid rgba(148,163,184,0.18);
+  border-radius: 14px;
+  background: rgba(2,6,23,0.20);
+  padding: 10px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+body.va-status-page .guardLeft {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 4px;
+}
+
+body.va-status-page .guardName {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--va-status-muted);
+}
+
+body.va-status-page .guardValue {
+  font-size: 13px;
+  font-weight: 650;
+  color: rgba(229,231,235,0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60vw;
+}
+
+body.va-status-page .guardPill {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.25);
+  color: var(--va-status-muted);
+  background: rgba(2,6,23,0.35);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+body.va-status-page .guardPill.ok { border-color: rgba(34,197,94,0.55); color: rgba(187,247,208,0.95); }
+body.va-status-page .guardPill.warn { border-color: rgba(245,158,11,0.55); color: rgba(254,215,170,0.95); }
+body.va-status-page .guardPill.crit { border-color: rgba(239,68,68,0.55); color: rgba(254,202,202,0.95); }
+
+body.va-status-page footer {
+  margin-top: 16px;
+  color: var(--va-status-muted);
+  font-size: 11px;
+  text-align: right;
+}
+
+body.va-status-page footer span {
+  color: var(--va-status-accent);
+  font-weight: 650;
+}
+
+body.va-status-page .fatal {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.92);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+
+body.va-status-page .fatalInner {
+  max-width: 760px;
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  background: rgba(15, 23, 42, 0.95);
+  box-shadow: 0 22px 60px rgba(0,0,0,0.6);
+  padding: 18px 18px 16px;
+}
+
+body.va-status-page .fatalTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+body.va-status-page .fatalTitle h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(254, 202, 202, 0.95);
+  margin: 0;
+}
+
+body.va-status-page .fatalPill {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  color: rgba(254, 202, 202, 0.95);
+  background: rgba(239, 68, 68, 0.08);
+  white-space: nowrap;
+}
+
+body.va-status-page .fatal p {
+  color: var(--va-status-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+body.va-status-page .fatal code {
+  display: block;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.20);
+  background: rgba(2, 6, 23, 0.70);
+  color: rgba(196,181,253,0.95);
+  font-size: 12px;
+  overflow-x: auto;
+}
