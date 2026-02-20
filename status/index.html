@@ -60,9 +60,7 @@
       padding: 28px 0 56px;
     }
 
-    #vt-status .vt-hero {
-      padding: 18px 0 10px;
-    }
+    #vt-status .vt-hero { padding: 18px 0 10px; }
 
     #vt-status .vt-titleRow {
       display: flex;
@@ -126,9 +124,7 @@
       align-items: start;
     }
 
-    @media (max-width: 980px) {
-      #vt-status .vt-grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 980px) { #vt-status .vt-grid { grid-template-columns: 1fr; } }
 
     #vt-status .vt-card {
       background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
@@ -158,19 +154,14 @@
       margin: 0;
     }
 
-    #vt-status .vt-cardBody {
-      padding: 14px 16px 16px;
-    }
+    #vt-status .vt-cardBody { padding: 14px 16px 16px; }
 
     #vt-status .vt-kpiGrid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
-
-    @media (max-width: 520px) {
-      #vt-status .vt-kpiGrid { grid-template-columns: 1fr; }
-    }
+    @media (max-width: 520px) { #vt-status .vt-kpiGrid { grid-template-columns: 1fr; } }
 
     #vt-status .vt-kpi {
       border: 1px solid rgba(170, 190, 255, 0.10);
@@ -283,11 +274,7 @@
     #vt-status .vt-miniPill.vt-bad { border-color: rgba(255, 92, 124, 0.26); }
 
     /* Sections */
-    #vt-status .vt-section {
-      margin-top: 14px;
-      display: grid;
-      gap: 12px;
-    }
+    #vt-status .vt-section { margin-top: 14px; display: grid; gap: 12px; }
 
     #vt-status .vt-list {
       margin: 0;
@@ -296,7 +283,6 @@
       font-size: 13px;
       line-height: 1.5;
     }
-
     #vt-status .vt-list li { margin: 6px 0; }
 
     /* Evidence panel */
@@ -351,11 +337,7 @@
       border-radius: var(--vt-r-md);
     }
 
-    #vt-status .vt-feedLeft {
-      display: grid;
-      gap: 2px;
-      min-width: 0;
-    }
+    #vt-status .vt-feedLeft { display: grid; gap: 2px; min-width: 0; }
 
     #vt-status .vt-feedTitle {
       font-size: 12px;
@@ -383,11 +365,7 @@
       color: rgba(242, 245, 255, 0.45);
       font-size: 12px;
     }
-
-    #vt-status .vt-footer strong {
-      color: rgba(242, 245, 255, 0.78);
-      font-weight: 700;
-    }
+    #vt-status .vt-footer strong { color: rgba(242, 245, 255, 0.78); font-weight: 700; }
 
     /* Error / truth lock */
     #vt-status .vt-emptyState {
@@ -443,33 +421,33 @@
         </div>
 
         <div class="vt-emptyState vt-hide" id="vt-truthMissing">
-          <p class="vt-emptyTitle">Truth source missing</p>
+          <p class="vt-emptyTitle">Truth source missing / invalid</p>
           <p class="vt-emptyText">
-            The page could not load the Single Source of Truth. No simulated values are shown.
-            Verify that <code style="color:rgba(242,245,255,0.85)">/ops/reports/system_status.json</code> is available.
+            The page could not load or validate the Single Source of Truth. No simulated values are shown.
+            Verify that <code style="color:rgba(242,245,255,0.85)">/ops/reports/system_status.json</code> is available and schema-valid.
           </p>
+          <p class="vt-emptyText" id="vt-truthMissingDetail" style="margin-top:10px;"></p>
         </div>
       </header>
 
-      <section class="vt-grid" aria-label="Status layout">
+      <!-- IMPORTANT: dashboard is hidden until SSOT is loaded + validated -->
+      <section class="vt-grid vt-hide" id="vt-dashboard" aria-label="Status layout">
         <!-- LEFT COLUMN -->
         <div class="vt-left">
           <section class="vt-card" aria-label="Core agents">
             <div class="vt-cardHeader">
               <p class="vt-cardTitle">Core Agents & Layers</p>
-              <span class="vt-statusTag vt-tagGreen" id="vt-systemTag"><span class="vt-dot"></span><span id="vt-systemTagText">ACTIVE · STABILIZATION</span></span>
+              <span class="vt-statusTag vt-tagGreen" id="vt-systemTag"><span class="vt-dot"></span><span id="vt-systemTagText">—</span></span>
             </div>
             <div class="vt-cardBody">
-              <div class="vt-agents" id="vt-agentsGrid">
-                <!-- injected -->
-              </div>
+              <div class="vt-agents" id="vt-agentsGrid"></div>
             </div>
           </section>
 
           <section class="vt-card" aria-label="Status agent evidence" style="margin-top: 16px;">
             <div class="vt-cardHeader">
               <p class="vt-cardTitle">Status Agent (Evidence)</p>
-              <span class="vt-statusTag vt-tagGreen" id="vt-evidenceTag"><span class="vt-dot"></span><span id="vt-evidenceTagText">OPERATIONAL</span></span>
+              <span class="vt-statusTag vt-tagGreen" id="vt-evidenceTag"><span class="vt-dot"></span><span id="vt-evidenceTagText">—</span></span>
             </div>
             <div class="vt-cardBody">
               <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -497,9 +475,7 @@
                 </div>
               </div>
 
-              <div class="vt-feed" id="vt-activityFeed">
-                <!-- feed items injected -->
-              </div>
+              <div class="vt-feed" id="vt-activityFeed"></div>
             </div>
           </section>
         </div>
@@ -509,14 +485,14 @@
           <section class="vt-card" aria-label="System KPIs">
             <div class="vt-cardHeader">
               <p class="vt-cardTitle">System KPIs</p>
-              <span class="vt-statusTag vt-tagGreen" id="vt-kpiTag"><span class="vt-dot"></span><span id="vt-kpiTagText">GREEN</span></span>
+              <span class="vt-statusTag vt-tagGreen" id="vt-kpiTag"><span class="vt-dot"></span><span id="vt-kpiTagText">—</span></span>
             </div>
             <div class="vt-cardBody">
               <div class="vt-kpiGrid">
                 <div class="vt-kpi">
                   <p class="vt-kpiLabel">Agent Health</p>
                   <p class="vt-kpiValue" id="vt-agentHealth">—</p>
-                  <p class="vt-kpiHint">Active agents / total agents</p>
+                  <p class="vt-kpiHint">Active agents / total agents (canonical, deduped)</p>
                 </div>
 
                 <div class="vt-kpi">
@@ -554,15 +530,13 @@
           <section class="vt-card" aria-label="Governance explanation" style="margin-top: 16px;">
             <div class="vt-cardHeader">
               <p class="vt-cardTitle">Governance Explanation</p>
-              <span class="vt-statusTag vt-tagGreen" id="vt-governanceTag"><span class="vt-dot"></span><span id="vt-governanceTagText">EVALUATED</span></span>
+              <span class="vt-statusTag vt-tagGreen" id="vt-governanceTag"><span class="vt-dot"></span><span id="vt-governanceTagText">—</span></span>
             </div>
             <div class="vt-cardBody">
               <p style="margin:0 0 10px;color:rgba(242,245,255,0.72);font-size:12px;">
                 Why is the current state allowed?
               </p>
-              <ul class="vt-list" id="vt-governanceReasons">
-                <!-- injected -->
-              </ul>
+              <ul class="vt-list" id="vt-governanceReasons"></ul>
               <p style="margin:10px 0 0;color:rgba(242,245,255,0.52);font-size:12px;">
                 Governance is active even when nothing breaks.
               </p>
@@ -594,9 +568,7 @@
               <span class="vt-statusTag vt-tagGreen"><span class="vt-dot"></span><span>TRUTH LOCKED</span></span>
             </div>
             <div class="vt-cardBody">
-              <div class="vt-section" id="vt-guards">
-                <!-- injected -->
-              </div>
+              <div class="vt-section" id="vt-guards"></div>
               <p style="margin:12px 0 0;color:rgba(242,245,255,0.40);font-size:12px;text-align:center;">
                 Status page generated by <strong>virtauto.OS</strong> — single source of truth.
               </p>
@@ -654,8 +626,6 @@
 
       const safeNum = (v) => (typeof v === 'number' && isFinite(v)) ? v : null;
 
-      const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
-
       const secondsBetween = (aIso, bDate) => {
         try {
           const a = new Date(aIso).getTime();
@@ -686,9 +656,9 @@
 
       const pillClassForStatus = (status) => {
         const s = String(status || '').toUpperCase();
-        if (['OK', 'PASS', 'ALLOW', 'ACTIVE', 'OPERATIONAL'].some(x => s.includes(x))) return 'vt-ok';
-        if (['WARN', 'STALE', 'PLANNED', 'UNKNOWN', 'EXPIRED'].some(x => s.includes(x))) return 'vt-warn';
-        if (['FAIL', 'BLOCK', 'ERROR', 'INACTIVE'].some(x => s.includes(x))) return 'vt-bad';
+        if (['OK', 'PASS', 'ALLOW', 'ACTIVE', 'OPERATIONAL', 'GREEN'].some(x => s.includes(x))) return 'vt-ok';
+        if (['WARN', 'STALE', 'PLANNED', 'UNKNOWN', 'EXPIRED', 'AMBER', 'YELLOW'].some(x => s.includes(x))) return 'vt-warn';
+        if (['FAIL', 'BLOCK', 'ERROR', 'INACTIVE', 'RED'].some(x => s.includes(x))) return 'vt-bad';
         return 'vt-warn';
       };
 
@@ -703,16 +673,10 @@
       // =====================
       // Header/Nav auto-inject
       // =====================
-      // The virtauto site uses shared header partials in some pages.
-      // We support multiple strategies:
-      // 1) If site.js exposes a header injection function, use it.
-      // 2) Else, fetch a known partial and inject.
-      // 3) Else, keep empty (page still works).
       async function injectHeader() {
         const target = document.getElementById('site-header');
         if (!target) return;
 
-        // Strategy A: if global helper exists (future-proof)
         try {
           if (window.virtauto && typeof window.virtauto.injectHeader === 'function') {
             await window.virtauto.injectHeader(target);
@@ -720,8 +684,6 @@
           }
         } catch {}
 
-        // Strategy B: try to fetch a shared header partial if present
-        // (Common repo patterns: /partials/header.html or /templates/header.html)
         const candidates = [
           '../partials/header.html',
           '../templates/header.html',
@@ -740,8 +702,119 @@
             }
           } catch {}
         }
+      }
 
-        // Strategy C: no-op
+      // ==========================
+      // TRUTH-LOCK gating helpers
+      // ==========================
+      function showTruthMissing(detail) {
+        $('#vt-dashboard')?.classList.add('vt-hide');
+        $('#vt-truthMissing')?.classList.remove('vt-hide');
+        $('#vt-truthMissingDetail').textContent = detail ? String(detail) : '';
+      }
+
+      function showDashboard() {
+        $('#vt-truthMissing')?.classList.add('vt-hide');
+        $('#vt-dashboard')?.classList.remove('vt-hide');
+      }
+
+      function validateSsot(ssot) {
+        const errs = [];
+
+        if (!ssot || typeof ssot !== 'object' || Array.isArray(ssot)) errs.push('SSOT is not an object.');
+        if (!pick(ssot, 'schema_version')) errs.push('Missing: schema_version');
+        if (!pick(ssot, 'generated_at')) errs.push('Missing: generated_at');
+        if (!pick(ssot, 'system_state') && !pick(ssot, 'system.state')) errs.push('Missing: system_state / system.state');
+
+        const agents = pick(ssot, 'agents');
+        const okAgents = (agents && typeof agents === 'object') || Array.isArray(agents);
+        if (!okAgents) errs.push('Missing/invalid: agents (must be object-map or array).');
+
+        return { ok: errs.length === 0, errs };
+      }
+
+      // ==========================
+      // Agents normalization + dedup
+      // ==========================
+      const canonicalKey = (k) => String(k || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/-+/g, '_')
+        .replace(/__+/g, '_')
+        .replace(/_agent$/g, '')         // deploy_agent -> deploy
+        .replace(/\bagent\b/g, '')       // "status agent" -> "status"
+        .replace(/__+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
+      const titleCaseKey = (k) => String(k || '')
+        .replace(/_/g, ' ')
+        .trim()
+        .replace(/\b\w/g, (m) => m.toUpperCase());
+
+      function normalizeAgents(agentsRaw) {
+        // returns: [{ key, canon, agent }]
+        const items = [];
+
+        if (Array.isArray(agentsRaw)) {
+          // schema allows array entries with {agent, state}
+          for (const row of agentsRaw) {
+            const key = row?.agent || row?.key || row?.name || '';
+            if (!key) continue;
+            items.push({ key: String(key), agent: row });
+          }
+        } else if (agentsRaw && typeof agentsRaw === 'object') {
+          for (const [k, v] of Object.entries(agentsRaw)) {
+            items.push({ key: String(k), agent: v });
+          }
+        }
+
+        // Dedup by canonical identity
+        const map = new Map();
+
+        for (const it of items) {
+          const canon = canonicalKey(it.key);
+          if (!canon) continue;
+
+          const agent = (it.agent && typeof it.agent === 'object') ? it.agent : { value: it.agent };
+          const state = String(agent?.state || agent?.status || 'UNKNOWN').toUpperCase();
+
+          if (!map.has(canon)) {
+            map.set(canon, { key: it.key, canon, agent });
+            continue;
+          }
+
+          // deterministic merge rule:
+          // Prefer ACTIVE over non-ACTIVE; else prefer object with more fields.
+          const prev = map.get(canon);
+          const prevA = prev.agent || {};
+          const prevState = String(prevA?.state || prevA?.status || 'UNKNOWN').toUpperCase();
+
+          const prevScore = Object.keys(prevA || {}).length;
+          const newScore = Object.keys(agent || {}).length;
+
+          const pickNew =
+            (prevState !== 'ACTIVE' && state === 'ACTIVE') ||
+            (prevState === state && newScore > prevScore);
+
+          if (pickNew) map.set(canon, { key: it.key, canon, agent });
+        }
+
+        // stable order: core first, then alpha
+        const priority = [
+          'guardian','monitoring','content','george','consistency',
+          'deploy','status','site_audit','executor'
+        ];
+
+        const arr = Array.from(map.values());
+        arr.sort((a, b) => {
+          const ai = priority.indexOf(a.canon);
+          const bi = priority.indexOf(b.canon);
+          if (ai !== -1 || bi !== -1) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+          return a.canon.localeCompare(b.canon);
+        });
+
+        return arr;
       }
 
       // ==========================
@@ -749,48 +822,40 @@
       // ==========================
       function renderAgents(ssot) {
         const grid = $('#vt-agentsGrid');
+        if (!grid) return { activeCount: 0, totalCount: 0 };
+
         grid.innerHTML = '';
 
-        const agentsObj = ssot && ssot.agents ? ssot.agents : null;
-        if (!agentsObj || typeof agentsObj !== 'object') {
-          grid.appendChild(el('div', { class: 'vt-emptyState', html: '<p class="vt-emptyTitle">Agents not available</p><p class="vt-emptyText">No agent registry found in the truth source.</p>' }));
+        const agentsRaw = pick(ssot, 'agents');
+        const normalized = normalizeAgents(agentsRaw);
+
+        if (!normalized.length) {
+          grid.appendChild(el('div', { class: 'vt-emptyState', html: '<p class="vt-emptyTitle">Agents not available</p><p class="vt-emptyText">No canonical agents found in the truth source.</p>' }));
           return { activeCount: 0, totalCount: 0 };
         }
 
-        const entries = Object.entries(agentsObj);
-
-        // Keep stable ordering: core agents first, then alphabetical
-        const priority = ['guardian', 'monitoring', 'content', 'george', 'consistency', 'deploy_agent', 'executor', 'status_agent', 'site_audit', 'deploy', 'status'];
-        entries.sort((a, b) => {
-          const ai = priority.indexOf(a[0]); const bi = priority.indexOf(b[0]);
-          if (ai !== -1 || bi !== -1) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-          return a[0].localeCompare(b[0]);
-        });
-
         let activeCount = 0;
-        const totalCount = entries.length;
+        const totalCount = normalized.length;
 
-        for (const [key, agent] of entries) {
+        for (const entry of normalized) {
+          const agent = entry.agent || {};
           const state = String(agent?.state || agent?.status || 'UNKNOWN').toUpperCase();
           const role = textOrDash(agent?.role);
           const mode = textOrDash(agent?.autonomy_mode || agent?.mode);
 
           if (state === 'ACTIVE') activeCount++;
 
-          // Title casing for display
-          const displayName = key
-            .replace(/_/g, ' ')
-            .replace(/\b\w/g, (m) => m.toUpperCase());
+          const displayName = titleCaseKey(entry.canon);
 
           const card = el('div', { class: 'vt-agent' }, [
             el('div', {}, [
               el('p', { class: 'vt-agentName', text: displayName }),
-              el('p', { class: 'vt-agentMeta', html: `Role: <strong style="color:rgba(242,245,255,0.86)">${role}</strong> · Mode: <strong style="color:rgba(242,245,255,0.86)">${mode}</strong> · Key: <strong style="color:rgba(242,245,255,0.86)">${key}</strong>` }),
+              el('p', { class: 'vt-agentMeta', html: `Role: <strong style="color:rgba(242,245,255,0.86)">${role}</strong> · Mode: <strong style="color:rgba(242,245,255,0.86)">${mode}</strong> · Key: <strong style="color:rgba(242,245,255,0.86)">${entry.canon}</strong>` }),
               agent?.summary ? el('p', { class: 'vt-agentMeta', text: agent.summary }) : null
             ]),
             el('div', { class: 'vt-agentPills' }, [
               el('span', { class: `vt-miniPill ${pillClassForStatus(state)}` , html: `<strong>${state}</strong>` }),
-              agent?.autonomy_mode ? el('span', { class: `vt-miniPill ${pillClassForStatus(mode)}` , html: `<strong>${String(mode).toUpperCase()}</strong>` }) : null
+              (agent?.autonomy_mode || agent?.mode) ? el('span', { class: `vt-miniPill ${pillClassForStatus(mode)}` , html: `<strong>${String(mode).toUpperCase()}</strong>` }) : null
             ])
           ]);
 
@@ -801,62 +866,50 @@
       }
 
       function renderKPIs(ssot, agentCounts) {
-        // Agent health: use counts from SSOT agents object (source of truth)
         const active = agentCounts.activeCount;
         const total = agentCounts.totalCount;
-
         $('#vt-agentHealth').textContent = (total > 0) ? `${active} / ${total}` : '—';
 
-        // Autonomy
         const autonomyPercent = safeNum(pick(ssot, 'autonomy_score.percent'));
         $('#vt-autonomyPercent').textContent = autonomyPercent !== null ? `${autonomyPercent.toFixed(1)}%` : '—';
-        $('#vt-autonomyMode').textContent = textOrDash(pick(ssot, 'system.autonomy_mode') ?? pick(ssot, 'system.autonomyMode') ?? pick(ssot, 'system.autonomy'));
+        $('#vt-autonomyMode').textContent = textOrDash(pick(ssot, 'system.autonomy_mode') ?? pick(ssot, 'system.autonomyMode') ?? pick(ssot, 'system.autonomy') ?? pick(ssot, 'autonomy'));
 
-        // Health
         const healthScore = safeNum(pick(ssot, 'health.overall_score')) ?? safeNum(pick(ssot, 'health.score'));
         const healthSignal = textOrDash(pick(ssot, 'health.signal'));
         $('#vt-healthScore').textContent = healthScore !== null ? `${(healthScore * 100).toFixed(1)}%` : '—';
         $('#vt-healthSignal').textContent = healthSignal;
 
-        // Governance
-        const gate = (pick(ssot, 'governance.gate_verdict') ?? pick(ssot, 'governance.gate') ?? pick(ssot, 'governance.verdict'));
+        const gate = (pick(ssot, 'governance.gate_verdict') ?? pick(ssot, 'governance.gate') ?? pick(ssot, 'governance.verdict') ?? pick(ssot, 'autonomy_score.inputs.gate_verdict'));
         const audit = (pick(ssot, 'governance.audit_trail') ?? pick(ssot, 'governance.auditTrail'));
         const govLabel =
           (String(gate || '').toUpperCase() === 'ALLOW' || String(gate || '').toUpperCase() === 'PASS')
             ? 'ENFORCED'
             : textOrDash(gate);
-
         $('#vt-governanceVerdict').textContent = govLabel;
 
-        // Header badge and tags
         const overallSignal = String(healthSignal || '').toUpperCase();
         const kpiTag = $('#vt-kpiTag');
         kpiTag.classList.remove('vt-tagGreen','vt-tagAmber','vt-tagRed');
         kpiTag.classList.add(tagClassFor(overallSignal));
         $('#vt-kpiTagText').textContent = overallSignal || '—';
 
-        // System tag
         const sysState = String(pick(ssot, 'system.state') ?? pick(ssot, 'system_state') ?? 'UNKNOWN').toUpperCase();
         const sysTag = $('#vt-systemTag');
         sysTag.classList.remove('vt-tagGreen','vt-tagAmber','vt-tagRed');
         sysTag.classList.add(tagClassFor(sysState));
         $('#vt-systemTagText').textContent = `${sysState} · STABILIZATION`;
 
-        // Meta
         $('#vt-generatedAt').textContent = textOrDash(pick(ssot, 'generated_at'));
         $('#vt-environment').textContent = textOrDash(pick(ssot, 'environment'));
 
-        // Top badge freshness
         const genIso = toISO(pick(ssot, 'generated_at'));
         const ageSec = genIso ? secondsBetween(genIso, new Date()) : null;
         const ageLabel = formatAge(ageSec);
         $('#vt-freshnessLabel').textContent = ageLabel;
 
-        // truth source label
         $('#vt-truthSourceLabel').textContent = 'system_status.json';
         $('#vt-truthPath').textContent = './ops/reports/system_status.json';
 
-        // Governance reasons
         const reasons = $('#vt-governanceReasons');
         reasons.innerHTML = '';
         const list = [];
@@ -865,23 +918,19 @@
         if (healthScore !== null) list.push(`Health score is <strong>${healthScore}</strong>`);
         if (gate) list.push(`Governance gate verdict is <strong>${String(gate).toUpperCase()}</strong>`);
         if (audit) list.push(`Audit trail is <strong>${String(audit).toUpperCase()}</strong>`);
-        if (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace')) list.push(`Decision trace is linked (audit trail available)`);
-        if (pick(ssot,'links.gate_result') || pick(ssot,'links.gateResult')) list.push(`Gate result artifact is linked`);
+        if (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace') || pick(ssot,'links.decision_trace')) list.push(`Decision trace is linked (audit trail available)`);
+        if (pick(ssot,'links.gate_result') || pick(ssot,'links.gateResult') || pick(ssot,'links.gate_result')) list.push(`Gate result artifact is linked`);
 
-        if (list.length === 0) {
-          reasons.appendChild(el('li', { html: '—' }));
-        } else {
-          list.forEach(item => reasons.appendChild(el('li', { html: item })));
-        }
+        if (list.length === 0) reasons.appendChild(el('li', { html: '—' }));
+        else list.forEach(item => reasons.appendChild(el('li', { html: item })));
 
-        // Guards
         const guards = $('#vt-guards');
         guards.innerHTML = '';
         const guardItems = [
           { label: 'Freshness', value: ageLabel, status: (ageSec !== null && ageSec < 3600) ? 'FRESH' : 'STALE' },
           { label: 'Runtime gate', value: (gate ? String(gate).toUpperCase() : '—'), status: gate ? String(gate).toUpperCase() : '—' },
           { label: 'Audit trail', value: audit ? 'Available' : '—', status: audit ? 'OK' : 'UNKNOWN' },
-          { label: 'Decision trace', value: (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace')) ? 'LINKED' : '—', status: (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace')) ? 'LINKED' : '—' },
+          { label: 'Decision trace', value: (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace')) ? 'LINKED' : '—', status: (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace')) ? 'LINKED' : '—' },
           { label: 'Status agent', value: (ageSec !== null ? `STALE · ${ageLabel}` : '—'), status: (ageSec !== null && ageSec < 3600) ? 'FRESH' : 'STALE' },
         ];
 
@@ -904,22 +953,16 @@
         const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
         const out = [];
         for (let i = lines.length - 1; i >= 0 && out.length < max; i--) {
-          try {
-            out.push(JSON.parse(lines[i]));
-          } catch {
-            // ignore malformed lines
-          }
+          try { out.push(JSON.parse(lines[i])); } catch {}
         }
         return out.reverse();
       }
 
       function renderActivity(jsonlText) {
-        // Evidence header values
         $('#vt-activitySource').textContent = './ops/agent_activity.jsonl';
 
         const events = parseJsonl(jsonlText, 8);
 
-        // Derive last run / last result / total runs when possible
         let lastTs = null;
         let lastRes = null;
         if (events.length) {
@@ -928,7 +971,6 @@
           lastRes = last.result || last.status || last.outcome || null;
         }
 
-        // Total runs: try to read embedded count
         let totalRuns = null;
         try {
           const m = String(jsonlText || '').match(/"total_runs"\s*:\s*(\d+)/);
@@ -945,13 +987,11 @@
         $('#vt-lastResult').textContent = textOrDash(lastRes).toUpperCase();
         $('#vt-totalRuns').textContent = (typeof totalRuns === 'number' && isFinite(totalRuns)) ? String(totalRuns) : '—';
 
-        // Tag
         const eTag = $('#vt-evidenceTag');
         eTag.classList.remove('vt-tagGreen','vt-tagAmber','vt-tagRed');
         eTag.classList.add(tagClassFor(ageSec !== null && ageSec < 3600 ? 'GREEN' : 'AMBER'));
         $('#vt-evidenceTagText').textContent = (ageSec !== null && ageSec < 3600) ? 'OPERATIONAL' : 'STALE';
 
-        // Feed
         const feed = $('#vt-activityFeed');
         feed.innerHTML = '';
 
@@ -980,33 +1020,49 @@
       // ==========
       // Main loader
       // ==========
+      function withCacheBust(url) {
+        const u = new URL(url, window.location.href);
+        u.searchParams.set('cb', String(Date.now()));
+        return u.toString();
+      }
+
       async function load() {
         await injectHeader();
 
-        // Load SSOT
+        // Hard truth-lock default: dashboard hidden until SSOT validates.
+        $('#vt-dashboard')?.classList.add('vt-hide');
+
         let ssot = null;
         try {
-          const res = await fetch(SSOT_PATH, { cache: 'no-store' });
+          const res = await fetch(withCacheBust(SSOT_PATH), { cache: 'no-store', headers: { 'Accept': 'application/json' } });
           if (!res.ok) throw new Error('SSOT fetch failed: ' + res.status);
           ssot = await res.json();
         } catch (e) {
-          $('#vt-truthMissing').classList.remove('vt-hide');
-          // Keep everything else empty / not derived
+          showTruthMissing(e && e.message ? e.message : 'SSOT fetch error');
           return;
         }
 
-        // Agents first, then KPIs derived from *what we actually rendered*
+        const verdict = validateSsot(ssot);
+        if (!verdict.ok) {
+          showTruthMissing('SSOT schema invalid: ' + verdict.errs.join(' | '));
+          return;
+        }
+
+        // From here: truth is present + minimally valid => allow rendering
+        showDashboard();
+
+        // Agents first, KPIs derived from canonical agent set
         const counts = renderAgents(ssot);
         renderKPIs(ssot, counts);
 
-        // Load agent activity
+        // Evidence is NOT SSOT; it may be missing independently.
+        // That is fine: we still show the evidence panel as "unavailable" without inventing numbers.
         try {
-          const res = await fetch(AGENT_ACTIVITY_PATH, { cache: 'no-store' });
+          const res = await fetch(withCacheBust(AGENT_ACTIVITY_PATH), { cache: 'no-store' });
           if (!res.ok) throw new Error('activity fetch failed: ' + res.status);
           const text = await res.text();
           renderActivity(text);
         } catch {
-          // Show empty evidence but don't break the page
           $('#vt-lastRunUtc').textContent = '—';
           $('#vt-activityFreshness').textContent = '—';
           $('#vt-lastResult').textContent = '—';
