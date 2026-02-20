@@ -491,9 +491,23 @@
       }
 
       // any remaining agents
+      const HIDDEN_AGENT_KEYS = new Set([
+        "status",        // duplicate of status_agent
+        "deploy",        // duplicate/legacy of deploy_agent
+        "executor",      // optional if present
+        "executor_agent" // optional if present
+      ]);
+      
       for (const key of Object.keys(agents)) {
         if (used.has(key)) continue;
-        addAgentCard(key, key, ["Agent", "Truth locked"], "Status rendered from system_status.json.");
+        if (HIDDEN_AGENT_KEYS.has(key)) continue;
+        
+        addAgentCard(
+          key,
+          key,
+          ["Agent", "Truth locked"],
+          "Status rendered from system_status.json."
+        );
       }
 
       if (!Object.keys(agents).length) {
