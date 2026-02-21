@@ -6,17 +6,41 @@
   <title>Architecture · virtauto®</title>
 
   <link rel="canonical" href="https://www.virtauto.de/architecture.html">
-  <meta name="description" content="Unified multi-agent architecture for automotive value creation — self-organizing, self-regulating, self-adapting, self-optimizing, self-determining.">
-  <meta property="og:title" content="virtauto Architecture — Unified Multi-Agent System"/>
+  <meta name="description" content="GEORGE as a governed decision layer between ERP intent and MES reality — unified multi-agent architecture with SSOT, contracts, and audit-grade traces.">
+  <meta property="og:title" content="virtauto Architecture — GEORGE (Governed Decision Layer)"/>
   <meta property="og:url" content="https://www.virtauto.de/architecture.html"/>
   <meta property="og:image" content="https://www.virtauto.de/assets/img/unified_architecture.png"/>
-  <meta name="twitter:title" content="virtauto Architecture — Unified Multi-Agent System"/>
+  <meta name="twitter:title" content="virtauto Architecture — GEORGE (Governed Decision Layer)"/>
   <meta name="twitter:image" content="https://www.virtauto.de/assets/img/unified_architecture.png"/>
 
   <link href="assets/styles.css" rel="stylesheet"/>
   <link href="assets/styles_unify.css" rel="stylesheet"/>
   <script defer src="assets/site.js"></script>
   <script defer src="assets/agent-status.js"></script>
+
+  <!-- Minimal, strictly page-scoped helpers (no global side effects) -->
+  <style>
+    .arch-page .meta-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+    .arch-page .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid #1a2332;border-radius:999px;background:rgba(255,255,255,0.02);font-size:12px;line-height:1}
+    .arch-page .pill .dot{width:8px;height:8px;border-radius:999px;background:#20d493;display:inline-block}
+    .arch-page .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .arch-page .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+    @media (max-width: 900px){.arch-page .grid-2,.arch-page .grid-3{grid-template-columns:1fr}}
+    .arch-page .card{border:1px solid #1a2332;border-radius:16px;background:rgba(255,255,255,0.02);padding:14px}
+    .arch-page .card h3{margin:0 0 8px}
+    .arch-page .card p{margin:0 0 10px}
+    .arch-page .muted{opacity:.8}
+    .arch-page .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:12px}
+    .arch-page .spec{border-left:3px solid #2b3a55;padding-left:12px;margin-top:10px}
+    .arch-page details{border:1px solid #1a2332;border-radius:14px;background:rgba(255,255,255,0.015);padding:10px 12px}
+    .arch-page details summary{cursor:pointer;font-weight:700}
+    .arch-page details + details{margin-top:10px}
+    .arch-page ul{margin:10px 0 0;padding-left:18px}
+    .arch-page li{margin:6px 0}
+    .arch-page .callout{border:1px dashed #2b3a55;border-radius:16px;padding:14px;background:rgba(255,255,255,0.015)}
+    .arch-page .anchor-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+    .arch-page .anchor-row a{border:1px solid #1a2332;border-radius:12px;padding:8px 10px;display:inline-block;background:rgba(255,255,255,0.02)}
+  </style>
 </head>
 
 <body>
@@ -33,8 +57,8 @@
       <a class="cta" href="solutions.html#george">Meet GEORGE</a>
     </nav>
 
-    <div class="agent-flag" aria-label="Agentic Website"> 
-    Agentic Website
+    <div class="agent-flag" aria-label="Agentic Website">
+      Agentic Website
     </div>
 
     <button aria-label="Menu" class="burger" type="button">
@@ -43,28 +67,372 @@
   </div>
 </header>
 
-<main>
+<main class="arch-page">
+  <!-- HERO -->
   <section class="hero">
     <div class="container">
       <div class="kicker">Architecture</div>
-      <h1>Unified Multi-Agent Architecture</h1>
-      <p class="lead">GEORGE orchestrates specialized agents across ISA-95 levels — unified by APIs, memory and governance.</p>
+      <h1>GEORGE — The Governed Decision Layer</h1>
+      <p class="lead">
+        A unified multi-agent architecture for industrial execution:
+        GEORGE orchestrates specialized agents across ISA-95 levels —
+        governed by contracts, constrained by policy, and grounded in a Single Source of Truth.
+      </p>
+
+      <div class="meta-row">
+        <span class="pill"><span class="dot"></span> TRUTH-LOCKED UI</span>
+        <span class="pill"><span class="dot"></span> PR-only execution</span>
+        <span class="pill"><span class="dot"></span> No decision without trace</span>
+        <span class="pill muted">Phase 10 focus: GEORGE Contract v1+</span>
+      </div>
+
+      <div class="anchor-row">
+        <a href="#story">Story</a>
+        <a href="#contract">GEORGE Contract</a>
+        <a href="#erp-mes">ERP ↔ MES</a>
+        <a href="#rag">RAG & Memory</a>
+        <a href="#artifacts">Artifacts</a>
+        <a href="#flow">Orchestration Flow</a>
+      </div>
     </div>
   </section>
 
+  <!-- DIAGRAM -->
   <section class="section">
     <div class="container">
       <img alt="Architecture diagram" class="frame img-fluid responsive-img" decoding="async" loading="eager" src="assets/img/unified_architecture.png"/>
+      <p class="muted" style="margin-top:10px;">
+        The diagram shows the unified architecture. Below, we make it explicit and audit-grade: boundaries, inputs/outputs, and governance rules.
+      </p>
     </div>
   </section>
 
+  <!-- STORY -->
+  <section class="section" id="story">
+    <div class="container">
+      <h2>Story: why GEORGE exists</h2>
+
+      <div class="callout">
+        <p style="margin:0;">
+          <strong>Core idea:</strong> the real conflict is not ERP vs. MES — it’s the absence of a neutral, governed decision layer.
+          ERP optimizes <em>intent</em>. MES optimizes <em>physical reality</em>. Without an explicit decision architecture between them,
+          optimization turns into structural conflict, hidden trade-offs, and silent inconsistency.
+        </p>
+      </div>
+
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="card">
+          <h3>ERP optimizes intent</h3>
+          <p class="muted">
+            Cost, delivery commitments, sourcing constraints, inventory, contractual obligations —
+            the “economic plan” of the enterprise.
+          </p>
+          <div class="spec">
+            <div class="mono">Examples</div>
+            <ul>
+              <li>Expedite vs. cost trade-off</li>
+              <li>Supplier constraints & lead times</li>
+              <li>Order priorities and promise dates</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>MES optimizes reality</h3>
+          <p class="muted">
+            Takt time, downtime, quality gates, scrap/rework loops, OEE, WIP —
+            the “physical truth” of the factory.
+          </p>
+          <div class="spec">
+            <div class="mono">Examples</div>
+            <ul>
+              <li>Line stop, rework routing</li>
+              <li>Quality containment decisions</li>
+              <li>Capacity and resource availability</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h3>GEORGE makes trade-offs explicit</h3>
+        <p class="muted">
+          GEORGE does not “integrate systems”. It orchestrates decisions:
+          ranks priorities dynamically, applies constraints, enforces authority,
+          writes a decision trace, and produces auditable action proposals.
+        </p>
+        <div class="spec">
+          <div class="mono">One sentence</div>
+          <p style="margin:8px 0 0;">
+            <strong>GEORGE is the governed decision layer between ERP intent and MES reality.</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ERP <-> MES -->
+  <section class="section" id="erp-mes">
+    <div class="container">
+      <h2>ERP ↔ MES: where they stop — and GEORGE starts</h2>
+
+      <div class="grid-3" style="margin-top:12px;">
+        <div class="card">
+          <h3>ERP (Intent Signals)</h3>
+          <p class="muted">Financial intent, plan commitments, sourcing and inventory constraints.</p>
+          <div class="spec">
+            <div class="mono">Provides</div>
+            <ul>
+              <li>Order priorities & promise dates</li>
+              <li>Cost targets & budget constraints</li>
+              <li>Supplier/contract constraints</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>GEORGE (Decision Layer)</h3>
+          <p class="muted">Neutral decision architecture: governed, traceable, auditable.</p>
+          <div class="spec">
+            <div class="mono">Produces</div>
+            <ul>
+              <li>Decision drafts (ranked options)</li>
+              <li>Gate verdicts (allow/block)</li>
+              <li>PR-only action proposals</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>MES (Reality Signals)</h3>
+          <p class="muted">Real-time production truth: events, quality, throughput, availability.</p>
+          <div class="spec">
+            <div class="mono">Provides</div>
+            <ul>
+              <li>Events: downtime, alarms</li>
+              <li>Quality: scrap, rework, containment</li>
+              <li>Throughput & WIP</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <p class="muted" style="margin-top:12px;">
+        Phase-10 implication: decisions must be machine-checkable before they can become operational —
+        across abstraction layers (UI → system → factory).
+      </p>
+    </div>
+  </section>
+
+  <!-- RAG -->
+  <section class="section" id="rag">
+    <div class="container">
+      <h2>RAG is memory — SSOT is truth</h2>
+
+      <div class="grid-2" style="margin-top:12px;">
+        <div class="card">
+          <h3>SSOT (Single Source of Truth)</h3>
+          <p class="muted">
+            Operational reality. The UI must render <strong>only</strong> what is in the truth source —
+            and show an explicit “truth missing” state if it isn’t available.
+          </p>
+          <div class="spec">
+            <div class="mono">Normative rule</div>
+            <ul>
+              <li>No UI fallbacks</li>
+              <li>No “partial truth” rendering</li>
+              <li>Schema-validated snapshots</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>RAG (Organizational Memory)</h3>
+          <p class="muted">
+            Context, procedures, historical cases, standards, supplier specs, and prior decision traces —
+            helpful for reasoning, never authoritative for truth.
+          </p>
+          <div class="spec">
+            <div class="mono">Governance rule</div>
+            <ul>
+              <li>RAG can <em>suggest</em>, not assert truth</li>
+              <li>Decisions must reference evidence + SSOT</li>
+              <li>No decision without trace</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h3>Practical implication</h3>
+        <p class="muted">
+          If RAG says “likely cause is X” but SSOT and evidence don’t support it,
+          the system must treat it as a hypothesis — not an operational fact.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTRACT -->
+  <section class="section" id="contract">
+    <div class="container">
+      <h2>GEORGE Contract v1+ (Spec inside the story)</h2>
+
+      <p class="muted">
+        Phase 10 prepares the normative boundary: inputs, outputs, guarantees, and non-negotiable constraints.
+        The point is not “smart automation”, but <strong>governed autonomy</strong>.
+      </p>
+
+      <details open>
+        <summary>Inputs (what GEORGE is allowed to read)</summary>
+        <div style="margin-top:10px;" class="grid-2">
+          <div class="card">
+            <h3>Truth & Reality</h3>
+            <ul>
+              <li><span class="mono">SSOT.state</span> — current snapshot of reality</li>
+              <li><span class="mono">MES.events</span> — real-time production signals</li>
+              <li><span class="mono">Evidence links</span> — logs, measurements, audit files</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Intent & Constraints</h3>
+            <ul>
+              <li><span class="mono">ERP.intent</span> — commitments, cost, sourcing constraints</li>
+              <li><span class="mono">Policies</span> — authority matrix, escalation rules</li>
+              <li><span class="mono">Constraints</span> — safety, legal, physical, economic</li>
+              <li><span class="mono">RAG.context</span> — memory (non-authoritative)</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Outputs (what GEORGE is allowed to write)</summary>
+        <div style="margin-top:10px;" class="grid-2">
+          <div class="card">
+            <h3>Decision Outputs</h3>
+            <ul>
+              <li><span class="mono">decision_draft</span> — ranked options + rationale</li>
+              <li><span class="mono">decision_trace.jsonl</span> — append-only audit trail</li>
+              <li><span class="mono">gate_result.json</span> — allow/block + reasons</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Execution Outputs</h3>
+            <ul>
+              <li><span class="mono">action_proposal</span> — PR-only change proposal</li>
+              <li><span class="mono">no silent execution</span> — execution requires governance</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Guarantees (non-negotiable)</summary>
+        <div style="margin-top:10px;" class="card">
+          <ul>
+            <li><strong>No decision without trace.</strong></li>
+            <li><strong>Authority enforcement.</strong> Guardian gating is binding.</li>
+            <li><strong>Deterministic artifacts.</strong> Same inputs → same trace format.</li>
+            <li><strong>PR-only production changes.</strong> Governance approves execution.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details>
+        <summary>GEORGE never…</summary>
+        <div style="margin-top:10px;" class="card">
+          <ul>
+            <li>…writes UI/HTML</li>
+            <li>…bypasses Guardian</li>
+            <li>…treats RAG as truth</li>
+            <li>…executes production changes silently</li>
+            <li>…decides without a trace</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ARTIFACTS -->
+  <section class="section" id="artifacts">
+    <div class="container">
+      <h2>Audit-grade artifacts (what makes autonomy governable)</h2>
+
+      <div class="grid-2" style="margin-top:12px;">
+        <div class="card">
+          <h3>Truth artifacts</h3>
+          <ul>
+            <li><span class="mono">/ops/reports/system_status.json</span> — SSOT snapshot</li>
+            <li><span class="mono">/ops/reports/latest.json</span> — pointer/summary</li>
+          </ul>
+          <p class="muted" style="margin-top:10px;">
+            The public status UI is a strict mirror of these artifacts.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Decision & governance artifacts</h3>
+          <ul>
+            <li><span class="mono">/ops/reports/decision_trace.jsonl</span> — append-only trace</li>
+            <li><span class="mono">/ops/decisions/gate_result.json</span> — allow/block verdict</li>
+            <li><span class="mono">/ops/agent_activity.jsonl</span> — evidence of runs</li>
+          </ul>
+          <p class="muted" style="margin-top:10px;">
+            Governance is not “documentation” — it is machine-readable evidence.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top:16px;">
+        <p style="margin:0;">
+          <strong>Consistency before autonomy:</strong> autonomy without consistency is just fast inconsistency.
+          A system’s intelligence is only as reliable as the consistency of its underlying truth.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLOW (keep your existing section, enhanced copy) -->
   <section class="section" id="flow">
     <div class="container">
       <h2>How orchestration works</h2>
-      <p>We leverage Multi-Agent-Orchestration to revolutionize automotive manufacturing.</p>
+      <p class="muted">
+        GEORGE orchestrates specialized agents (Root Cause, Quality, Procurement, Finance, etc.) and binds them
+        to governed contracts. The agents may propose actions — execution is PR-only and gate-controlled.
+      </p>
       <img alt="Orchestration flow" class="frame img-fluid responsive-img" decoding="async" loading="lazy" src="assets/img/orchestration_flow.png"/>
+
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="card">
+          <h3>Runtime loop (supervised)</h3>
+          <ul>
+            <li>Read SSOT + events</li>
+            <li>Evaluate constraints + policies</li>
+            <li>Ask specialized agents for options</li>
+            <li>Produce decision draft + trace</li>
+            <li>Gate verdict (allow/block/escalate)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Change loop (PR-only)</h3>
+          <ul>
+            <li>Create action proposal as PR</li>
+            <li>Governance CI validates contracts & artifacts</li>
+            <li>Human approval required</li>
+            <li>Deploy changes via governed workflow</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="anchor-row" style="margin-top:14px;">
+        <a href="/status/">Open System Status (Truth-Locked)</a>
+        <a href="/industrymodel.html">Industry Model (Governed Factory World Model)</a>
+        <a href="solutions.html#george">Meet GEORGE</a>
+      </div>
     </div>
   </section>
+
 </main>
 
 <footer class="footer">
