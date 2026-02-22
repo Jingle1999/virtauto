@@ -4,26 +4,4 @@
 }
 
 
-{
-  "autonomy_level": 50.1,
-  "autonomy_target": 60,
-  "agents_online": 4,
-  "agents_total": 7,
-  "workflows": 17,
-  "health_score": 52.8,
-  "system_health": "stable",
-  "system_status": "ok",
-  "system_mode": "prod",          ← **NEU**
-  "george_version": "MVP-2",
-  "last_update": "2025-12-11T07:58:00+01:00",
-  "updates": [
-    "deploy_agent.py updated",
-    "content_creator.py added",
-    "autonomy.json updated",
-    "george_rules.yaml updated"
-  ]
-}
-
-
-
 
