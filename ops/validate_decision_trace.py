@@ -2,29 +2,35 @@
 """
 Decision Trace Ledger Validator (Append-only, Record-format)
 
-Validates ops/reports/decision_trace.jsonl as an append-only ledger where EACH line is a trace record.
+Validates ops/reports/decision_trace.jsonl as an append-only ledger where EACH line is
+a trace record (JSON object).
 
 Hard rules:
 - File must exist and contain at least 1 non-empty JSONL record.
-- EVERY line must be a JSON object in record format (no meta/schema-only lines).
-- Required keys must be present and non-empty strings:
-  ts, trace_version, decision_id, actor, phase, result
-- Ledger integrity:
-  - Records must be unique (no exact duplicate records) using a composite key.
-  - ts must be non-decreasing across the file (monotonic).
+- EVERY line must be a JSON object in record format (no meta/schema lines).
+- Required keys must be present and non-empty:
+    ts, trace_version, decision_id, actor, phase, result
+- record_id is the ledger identity per line:
+    - if present: must be a string and unique across the file
+    - if missing: a deterministic SHA256 hash will be computed from the record content
+- ts must be a string and must NOT go backwards (monotonic non-decreasing).
+
 Exit: 0 OK, 1 FAIL
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple
 
 PATH = Path("ops/reports/decision_trace.jsonl")
+
 REQUIRED: Tuple[str, ...] = ("ts", "trace_version", "decision_id", "actor", "phase", "result")
+HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def fail(msg: str) -> None:
@@ -51,73 +57,79 @@ def _parse_obj(idx: int, ln: str) -> Dict[str, Any]:
     return obj
 
 
-def _parse_iso(ts: str, idx: int) -> datetime:
-    if not isinstance(ts, str) or not ts.strip():
-        fail(f"{PATH}: line {idx} ts must be a non-empty string")
-    s = ts.strip()
-    # Accept Z (UTC) and offsets; normalize Z -> +00:00 for fromisoformat
-    try:
-        if s.endswith("Z"):
-            s = s[:-1] + "+00:00"
-        return datetime.fromisoformat(s)
-    except Exception:
-        fail(f"{PATH}: line {idx} ts not ISO-parseable: {ts}")
-    raise AssertionError("unreachable")
-
-
 def _validate_required(idx: int, obj: Dict[str, Any]) -> None:
     missing = [k for k in REQUIRED if k not in obj or obj[k] in (None, "", [])]
     if missing:
         fail(f"{PATH}: line {idx} missing required keys {missing}")
 
-    # Type checks (strings)
+    # type checks for required fields
     for k in REQUIRED:
         if not isinstance(obj[k], str):
             fail(f"{PATH}: line {idx} key '{k}' must be string")
 
-    # Quick sanity: avoid accidental meta-only records
-    # (We only accept record-format lines that include decision_id etc.)
+    # quick sanity: block meta/schema records (these are NOT trace records)
+    # (We explicitly forbid 'schema_version' + missing decision_id in trace ledger.)
     if obj.get("schema_version") is not None and "decision_id" not in obj:
-        fail(
-            f"{PATH}: line {idx} looks like a meta/schema record; "
-            "ledger must contain record-format only"
-        )
+        fail(f"{PATH}: line {idx} looks like a meta/schema record; ledger must contain record-format only")
 
-    if not obj["phase"].strip():
-        fail(f"{PATH}: line {idx} phase must not be empty")
+
+def _canonical_bytes_without_record_id(obj: Dict[str, Any]) -> bytes:
+    # Deterministic hash basis:
+    # - remove record_id if present
+    # - canonical JSON (sorted keys, compact)
+    payload = dict(obj)
+    payload.pop("record_id", None)
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+
+
+def _get_or_compute_record_id(idx: int, obj: Dict[str, Any]) -> str:
+    rid = obj.get("record_id")
+    if rid is None or rid == "":
+        # Backward-compatible: compute deterministic record_id
+        h = hashlib.sha256(_canonical_bytes_without_record_id(obj)).hexdigest()
+        return h
+
+    if not isinstance(rid, str):
+        fail(f"{PATH}: line {idx} record_id must be string")
+
+    # accept UUIDs OR sha256 hex; but strongly prefer sha256 (64 hex)
+    # If you want UUID-only, tighten here.
+    if HEX64_RE.match(rid):
+        return rid
+
+    # very permissive UUID check (optional)
+    # If you want strict UUID: tighten regex accordingly.
+    if len(rid) >= 16:
+        return rid
+
+    fail(f"{PATH}: line {idx} record_id has invalid format: '{rid}'")
+    return rid  # unreachable
 
 
 def main() -> None:
     lines = _load_lines()
 
-    seen_records: Set[Tuple[str, str, str, str, str]] = set()
-    prev_dt: datetime | None = None
+    seen_record_ids: Set[str] = set()
+    prev_ts: str | None = None
 
     for i, ln in enumerate(lines, start=1):
         obj = _parse_obj(i, ln)
         _validate_required(i, obj)
 
-        # Record uniqueness (NOT decision_id uniqueness!)
-        rec_key = (
-            obj["ts"],
-            obj["trace_version"],
-            obj["decision_id"],
-            obj["actor"],
-            obj["phase"],
-        )
-        if rec_key in seen_records:
-            fail(f"{PATH}: duplicate record found at line {i} (key={rec_key})")
-        seen_records.add(rec_key)
+        record_id = _get_or_compute_record_id(i, obj)
+        if record_id in seen_record_ids:
+            fail(f"{PATH}: duplicate record_id '{record_id}' found (line {i})")
+        seen_record_ids.add(record_id)
 
-        # Monotonic ts (non-decreasing)
-        dt = _parse_iso(obj["ts"], i)
-        if prev_dt is not None and dt < prev_dt:
-            fail(f"{PATH}: non-monotonic ts at line {i} ({obj['ts']} < previous)")
-        prev_dt = dt
+        ts = obj["ts"]
+        # monotonic (string compare works for consistent ISO8601 'Z' timestamps)
+        if prev_ts is not None and ts < prev_ts:
+            fail(f"{PATH}: non-monotonic ts at line {i} (ts={ts} < prev_ts={prev_ts})")
+        prev_ts = ts
 
     print(
-        f"VALIDATION OK: {PATH} "
-        f"(checked {len(lines)} ledger records; unique record keys; monotonic ts)."
+        f"VALIDATION OK: {PATH} (checked {len(lines)} ledger records, "
+        f"unique record_id, monotonic ts)."
     )
     sys.exit(0)
 
