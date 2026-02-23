@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Decision Trace Ledger Validator (Append-only, Record-format)
+Decision Trace Ledger Validator (Append-only, Record-format, HARD record_id)
 
 Validates ops/reports/decision_trace.jsonl as an append-only ledger where EACH line is
 a trace record (JSON object).
@@ -41,6 +41,7 @@ def fail(msg: str) -> None:
 def _load_lines() -> List[str]:
     if not PATH.exists():
         fail(f"Missing {PATH}")
+
     lines = [ln.strip() for ln in PATH.read_text(encoding="utf-8").splitlines() if ln.strip()]
     if not lines:
         fail(f"{PATH} is empty")
@@ -52,6 +53,7 @@ def _parse_obj(idx: int, ln: str) -> Dict[str, Any]:
         obj = json.loads(ln)
     except Exception as e:
         fail(f"{PATH}: invalid JSON at line {idx}: {e}")
+
     if not isinstance(obj, dict):
         fail(f"{PATH}: line {idx} must be a JSON object")
     return obj
