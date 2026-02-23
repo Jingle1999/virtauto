@@ -1,156 +1,199 @@
-# GEORGE Contract v1 (Frozen)
+GEORGE Contract v1 (Frozen)
+Version: 1.0.2
+Status: FROZEN (hard constraints for governance gates)
+Applies to: ops/validate_contract_v1.py (CI), Guardian checks, and all UI/readers that treat files as authoritative.
 
-**Version:** 1.0.1  
-**Status:** FROZEN (hard constraints for governance gates)  
-**Applies to:** `ops/validate_contract_v1.py` (CI), Guardian checks, and all UI/readers that treat files as authoritative.
 
----
+1) Truth Sources (Single Source of Truth)
 
-## 1) Truth Sources (Single Source of Truth)
+Authoritative files (SSOT):
 
-Authoritative files:
+Canonical system truth:
+ops/reports/system_status.json
 
-- Canonical system truth: `ops/reports/system_status.json`
-- Canonical latest decision: `ops/decisions/latest.json`
-- Canonical decision trace stream: `ops/reports/decision_trace.jsonl`
+Canonical latest decision:
+ops/decisions/latest.json
 
-**No other file may be treated as authoritative** by the website, governance gates, or agent runtime.
+Canonical decision trace stream:
+ops/reports/decision_trace.jsonl
 
-Backward-compatible / legacy (non-authoritative):
+No other file may be treated as authoritative by:
+- the website
+- governance gates
+- any agent runtime
+- dashboards
+- workflows
 
-- `ops/status.json` (internal health persistence only)
-- `ops/reports/system_status.json` is authoritative; older `status/status.json` or similar are deprecated.
+Legacy / deprecated (non-authoritative):
 
----
+ops/status.json (deprecated pointer only; MUST NOT contain authoritative state)
+status/status.json or similar legacy artifacts are deprecated and MUST NOT be used.
 
-## 2) Output Guarantees (Hard)
+
+2) Output Guarantees (Hard)
 
 For every GEORGE run that produces or updates a decision:
 
-1. `ops/decisions/latest.json` **MUST** exist and validate against  
-   `ops/contracts/schemas/decision_latest_v1.schema.json`
-2. `ops/reports/decision_trace.jsonl` **MUST** contain deterministic records that validate against  
-   `ops/contracts/schemas/decision_trace_record_v1.schema.json`
-3. `ops/reports/system_status.json` **MUST** exist and validate against  
-   `ops/contracts/schemas/system_status_v1.schema.json`
+ops/decisions/latest.json MUST:
+- exist
+- validate against ops/contracts/schemas/decision_latest_v1.schema.json
 
----
+ops/reports/decision_trace.jsonl MUST:
+- contain deterministic records
+- validate against ops/contracts/schemas/decision_trace_record_v1.schema.json
 
-## 3) “GEORGE NEVER …” (Hard Rules)
+ops/reports/system_status.json MUST:
+- exist
+- validate against ops/contracts/schemas/system_status_v1.schema.json
 
-- GEORGE never writes/edits website HTML directly.
-- GEORGE never bypasses required governance checks (CI must pass).
-- GEORGE never executes actions without writing trace evidence.
-- GEORGE never invents alternative truth sources (only the canonical files above).
-- GEORGE never writes to unknown/undocumented paths outside `ops/` governed artifacts.
 
----
+3) “GEORGE NEVER …” (Hard Rules)
 
-## 4) Operating Modes (Contract)
+GEORGE never writes or edits website HTML directly.
 
-### HUMAN_GUARDED (default)
-- GEORGE can **propose** decisions.
-- GEORGE cannot **apply** decisions autonomously.
-- A “success/applied” state is only legitimate after **human approval via PR merge**.
+GEORGE never bypasses required governance checks.
+(CI must pass; no administrative override of required checks.)
 
-### NIGHT_SHIFT
-- GEORGE may apply decisions **only** if:
-  - action is allowlisted,
-  - action is reversible,
-  - rate limits are respected,
-  - stop rules do not trigger.
+GEORGE never executes actions without writing trace evidence.
 
----
+GEORGE never invents alternative truth sources.
+(Only the canonical files defined in Section 1 are valid.)
 
-## 5) Action Policy (Allowlist / Denylist)
+GEORGE never writes to unknown or undocumented paths outside governed ops/ artifacts.
 
-### Allowlist (explicit)
-- `switch_degraded_mode`
-- `rollback_to_last_known_good`
-- `restart_probe_worker`
+GEORGE never elevates autonomy level without a governance event.
 
-### Denylist (patterns)
-- `deploy_*` (no autonomous deploys in v1)
-- `delete_*` (no destructive actions)
-- `exfiltrate_*` (no data exfiltration)
-- `*credential*`, `*token*` (no credential/token access)
 
-> **Important:** “Not allowlisted” means “not applicable” in NIGHT_SHIFT.
+4) Operating Modes (Contract)
 
----
+HUMAN_GUARDED (default)
 
-## 6) Status Vocabulary (Allowed Values)
+- GEORGE can propose decisions.
+- GEORGE cannot apply decisions autonomously.
+- A “success/applied” state is legitimate only after PR merge.
+
+
+NIGHT_SHIFT
+
+GEORGE may apply decisions only if:
+
+- action is explicitly allowlisted
+- action is reversible
+- rate limits are respected
+- stop rules do not trigger
+- trace is written before execution
+- system_status.json is updated deterministically
+
+
+5) Action Policy (Allowlist / Denylist)
+
+Allowlist (explicit)
+
+- switch_degraded_mode
+- rollback_to_last_known_good
+- restart_probe_worker
+
+
+Denylist (patterns)
+
+- deploy_* (no autonomous deploys in v1)
+- delete_* (no destructive actions)
+- exfiltrate_* (no data exfiltration)
+- *credential*
+- *token*
+
+Important:
+"Not allowlisted" means "not applicable" in NIGHT_SHIFT.
+Absence from allowlist = automatic block.
+
+
+6) Status Vocabulary (Allowed Values)
 
 Decision status:
-- `pending`
-- `success`
-- `error`
-- `blocked`
 
-System/Agent state:
-- `ok`
-- `degraded`
-- `blocked`
-- `unknown`
+- pending
+- success
+- error
+- blocked
+
+
+System / Agent state:
+
+- ok
+- degraded
+- blocked
+- unknown
+
 
 Autonomy mode:
-- `supervised`
-- `advisory`
-- `enforced`
 
----
+- supervised
+- advisory
+- enforced
 
-## 7) Gate Compatibility Contract
 
-`ops/decisions/latest.json` MUST contain (at minimum):
+7) Gate Compatibility Contract
 
-- `decision_id` (string)
-- `decision_class` (string)
-- `authority_source` (string)
-- `agent` (string)
-- `action` (string)
-- `status` (string, from vocabulary)
-- `timestamp` (ISO UTC)
-- `signals` (object)
-- `trace` (object)
+ops/decisions/latest.json MUST contain (at minimum):
 
----
+- decision_id (string)
+- decision_class (string)
+- authority_source (string)
+- agent (string)
+- action (string)
+- status (string, from vocabulary)
+- timestamp (ISO UTC)
+- signals (object)
+- trace (object)
 
-## 8) Trace Determinism
 
-A valid decision trace must contain these phases **in order** (at least once each):
+8) Trace Determinism
 
-- `route`
-- `guardian_precheck`
-- `authority_enforcement`
-- `execute_or_blocked`
-- `guardian_postcheck`
-- `finalize`
+A valid decision trace MUST contain these phases in order
+(at least once each):
 
-Each trace record must include:
+- route
+- guardian_precheck
+- authority_enforcement
+- execute_or_blocked
+- guardian_postcheck
+- finalize
 
-- `ts` (ISO UTC)
-- `trace_version` (e.g. `v1`)
-- `decision_id`
-- `actor`
-- `phase`
-- `result`
+Each trace record MUST include:
 
----
+- ts (ISO UTC)
+- trace_version (e.g. v1)
+- decision_id
+- actor
+- phase
+- result
 
-## 9) Enforcement
 
-- Contract validation runs in CI via `ops/validate_contract_v1.py`.
-- Any contract violation is a hard FAIL (merge blocked).
+9) Enforcement
 
----
+Contract validation runs in CI via:
 
-## 10) What we still need next (Phase 10 readiness)
+ops/validate_contract_v1.py
 
-To make GEORGE truly **Hard Governing** (not only “proto-governing”), we still need:
+Any contract violation is a hard FAIL.
+Merge is blocked.
 
-1. A runtime-visible **active mode file** (e.g. `ops/george/mode.json`) governed by PR rules.
-2. A hard-stop executor boundary (where “apply” can be technically refused, not just recorded).
-3. A contract-aware action runner that maps `decision.action` → permitted tools with safe defaults.
+There are no soft warnings for contract violations.
 
-This contract is the foundation; the next step is binding execution to it.
+
+10) Phase 10 Readiness (Next Hardening Steps)
+
+To move from proto-governing to hard-governing execution, the following must exist:
+
+- A runtime-visible active mode file
+  (e.g. ops/george/mode.json), governed via PR
+
+- A hard execution boundary
+  (execution can be technically refused, not only logged)
+
+- A contract-aware action runner
+  mapping decision.action → permitted tools
+  with safe defaults and deny-by-default behavior
+
+This contract defines the normative boundary.
+Execution must bind to it.
