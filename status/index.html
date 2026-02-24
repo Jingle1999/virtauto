@@ -492,7 +492,7 @@
                 <div class="vt-kpi">
                   <p class="vt-kpiLabel">Agent Health</p>
                   <p class="vt-kpiValue" id="vt-agentHealth">—</p>
-                  <p class="vt-kpiHint">Active agents / total agents (canonical, deduped)</p>
+                  <p class="vt-kpiHint">Active agents / total agents (canonical, no dedupe heuristics)</p>
                 </div>
 
                 <div class="vt-kpi">
@@ -591,15 +591,40 @@
     (() => {
       'use strict';
 
+      // ==========================================
+      // GOVERNANCE GRADE — STATUS PAGE TRUTH LOCK
+      // ==========================================
+      //
+      // Policy:
+      // - Render NOTHING unless SSOT loads and passes hard validation.
+      // - No heuristic dedupe: identity conflicts => TRUTH INVALID.
+      // - No ambiguous fields: conflicts => TRUTH INVALID.
+      // - Evidence panel is non-authoritative and may be missing.
+      //
+      // This file intentionally remains self-contained to avoid global side effects.
+
       // ================
       // Constants / paths
       // ================
       const SSOT_PATH = '../ops/reports/system_status.json';     // relative from /status/
       const AGENT_ACTIVITY_PATH = '../ops/agent_activity.jsonl'; // relative from /status/
 
-      // ==========
-      // DOM helpers
-      // ==========
+      // ==========================
+      // Governance-locked constants
+      // ==========================
+      const REQUIRED_SCHEMA_VERSION = "1.0";
+
+      // Allowed vocabularies (governance-grade hardening)
+      const ALLOWED_SYSTEM_STATES = new Set(["OK","DEGRADED","BLOCKED","UNKNOWN"]);
+      const ALLOWED_AGENT_STATES  = new Set(["OK","DEGRADED","BLOCKED","UNKNOWN","ACTIVE","INACTIVE","ERROR","WARN","PASS","FAIL"]);
+      const ALLOWED_AUTONOMY_MODES = new Set(["SUPERVISED","ADVISORY","ENFORCED","SIMULATE","EXECUTE","HUMAN_GUARDED","NIGHT_SHIFT"]);
+
+      // Governance gate vocab
+      const ALLOWED_GATE_VERDICTS = new Set(["ALLOW","PASS","BLOCK","FAIL","DENY","UNKNOWN"]);
+
+      // =======================
+      // DOM helpers (page-local)
+      // =======================
       const $ = (sel, root=document) => root.querySelector(sel);
       const el = (tag, attrs={}, children=[]) => {
         const node = document.createElement(tag);
@@ -657,8 +682,8 @@
       const pillClassForStatus = (status) => {
         const s = String(status || '').toUpperCase();
         if (['OK', 'PASS', 'ALLOW', 'ACTIVE', 'OPERATIONAL', 'GREEN'].some(x => s.includes(x))) return 'vt-ok';
-        if (['WARN', 'STALE', 'PLANNED', 'UNKNOWN', 'EXPIRED', 'AMBER', 'YELLOW'].some(x => s.includes(x))) return 'vt-warn';
-        if (['FAIL', 'BLOCK', 'ERROR', 'INACTIVE', 'RED'].some(x => s.includes(x))) return 'vt-bad';
+        if (['WARN', 'STALE', 'PLANNED', 'UNKNOWN', 'EXPIRED', 'AMBER', 'YELLOW', 'DEGRADED'].some(x => s.includes(x))) return 'vt-warn';
+        if (['FAIL', 'BLOCK', 'ERROR', 'INACTIVE', 'RED', 'DENY'].some(x => s.includes(x))) return 'vt-bad';
         return 'vt-warn';
       };
 
@@ -669,6 +694,23 @@
           return path.split('.').reduce((acc, k) => (acc && acc[k] !== undefined) ? acc[k] : undefined, obj);
         } catch { return undefined; }
       };
+
+      const isPlainObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+
+      const canonicalKey = (k) => String(k || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/-+/g, '_')
+        .replace(/__+/g, '_')
+        .replace(/\bagent\b/g, '')       // remove literal "agent"
+        .replace(/__+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
+      const titleCaseKey = (k) => String(k || '')
+        .replace(/_/g, ' ')
+        .trim()
+        .replace(/\b\w/g, (m) => m.toUpperCase());
 
       // =====================
       // Header/Nav auto-inject
@@ -718,103 +760,213 @@
         $('#vt-dashboard')?.classList.remove('vt-hide');
       }
 
+      // ==========================================
+      // GOVERNANCE GRADE VALIDATION (NO HEURISTICS)
+      // ==========================================
       function validateSsot(ssot) {
         const errs = [];
 
-        if (!ssot || typeof ssot !== 'object' || Array.isArray(ssot)) errs.push('SSOT is not an object.');
-        if (!pick(ssot, 'schema_version')) errs.push('Missing: schema_version');
-        if (!pick(ssot, 'generated_at')) errs.push('Missing: generated_at');
-        if (!pick(ssot, 'system_state') && !pick(ssot, 'system.state')) errs.push('Missing: system_state / system.state');
+        // 0) Base object shape
+        if (!isPlainObject(ssot)) {
+          errs.push('SSOT must be a JSON object (not array / not null).');
+          return { ok: false, errs };
+        }
 
-        const agents = pick(ssot, 'agents');
-        const okAgents = (agents && typeof agents === 'object') || Array.isArray(agents);
-        if (!okAgents) errs.push('Missing/invalid: agents (must be object-map or array).');
+        // 1) Schema lock
+        if (ssot.schema_version !== REQUIRED_SCHEMA_VERSION) {
+          errs.push(`schema_version must be "${REQUIRED_SCHEMA_VERSION}" (got "${textOrDash(ssot.schema_version)}").`);
+        }
+
+        // 2) generated_at (must be valid ISO)
+        if (typeof ssot.generated_at !== 'string' || !toISO(ssot.generated_at)) {
+          errs.push('generated_at must be a valid ISO-8601 timestamp string.');
+        }
+
+        // 3) environment
+        if (typeof ssot.environment !== 'string' || !ssot.environment.trim()) {
+          errs.push('environment must be a non-empty string.');
+        }
+
+        // 4) system state: accept either system.state OR system_state but not conflicting
+        const sysStateA = pick(ssot, 'system.state');
+        const sysStateB = pick(ssot, 'system_state');
+
+        if (sysStateA !== undefined && sysStateB !== undefined && String(sysStateA).toUpperCase() !== String(sysStateB).toUpperCase()) {
+          errs.push('Conflicting system state: system.state != system_state.');
+        }
+
+        const sysState = (sysStateA !== undefined) ? sysStateA : sysStateB;
+
+        if (typeof sysState !== 'string' || !sysState.trim()) {
+          errs.push('Missing/invalid system state (system.state or system_state must be a non-empty string).');
+        } else {
+          const s = String(sysState).toUpperCase();
+          if (!ALLOWED_SYSTEM_STATES.has(s)) {
+            errs.push(`system state "${s}" not in allowed vocabulary: ${Array.from(ALLOWED_SYSTEM_STATES).join(', ')}`);
+          }
+        }
+
+        // 5) agents must be object-map (arrays not allowed)
+        if (!isPlainObject(ssot.agents)) {
+          errs.push('agents must be an object-map (arrays are not allowed).');
+        } else {
+          // must be non-empty (governance grade expects explicit agent truth)
+          const keys = Object.keys(ssot.agents);
+          if (keys.length === 0) {
+            errs.push('agents map is empty (truth must explicitly declare agents).');
+          }
+
+          // canonical identity must be unique (no "Status" vs "Status Agent")
+          // We do NOT dedupe; we fail the truth.
+          const canonSeen = new Map();
+          for (const k of keys) {
+            const canon = canonicalKey(k);
+            if (!canon) {
+              errs.push(`agents contains invalid key "${k}" (canonical key empty).`);
+              continue;
+            }
+            if (canonSeen.has(canon)) {
+              errs.push(`agents identity conflict: "${canonSeen.get(canon)}" and "${k}" both canonicalize to "${canon}".`);
+            } else {
+              canonSeen.set(canon, k);
+            }
+
+            const v = ssot.agents[k];
+            if (!isPlainObject(v)) {
+              errs.push(`agents["${k}"] must be an object.`);
+              continue;
+            }
+
+            // agent state (strict)
+            const st = v.state ?? v.status;
+            if (typeof st !== 'string' || !st.trim()) {
+              errs.push(`agents["${k}"] missing "state" (or "status") string.`);
+            } else {
+              const sst = String(st).toUpperCase();
+              if (!ALLOWED_AGENT_STATES.has(sst)) {
+                errs.push(`agents["${k}"].state "${sst}" not in allowed vocabulary.`);
+              }
+            }
+
+            // recommended: role must exist (for governance-grade truth, no unknown agent types)
+            if (v.role !== undefined && v.role !== null && typeof v.role !== 'string') {
+              errs.push(`agents["${k}"].role must be a string if provided.`);
+            }
+
+            // autonomy mode per agent optional, but if present must be from vocabulary
+            const am = v.autonomy_mode ?? v.mode;
+            if (am !== undefined && am !== null) {
+              if (typeof am !== 'string' || !am.trim()) {
+                errs.push(`agents["${k}"].autonomy_mode (or mode) must be non-empty string if provided.`);
+              } else {
+                const aam = String(am).toUpperCase();
+                if (!ALLOWED_AUTONOMY_MODES.has(aam)) {
+                  errs.push(`agents["${k}"].autonomy_mode "${aam}" not in allowed vocabulary.`);
+                }
+              }
+            }
+          }
+        }
+
+        // 6) autonomy score must exist and be bounded
+        const autonomyPercent = pick(ssot, 'autonomy_score.percent');
+        if (typeof autonomyPercent !== 'number' || !isFinite(autonomyPercent)) {
+          errs.push('autonomy_score.percent must be a number.');
+        } else {
+          if (autonomyPercent < 0 || autonomyPercent > 100) {
+            errs.push('autonomy_score.percent must be within 0..100.');
+          }
+        }
+
+        // 7) autonomy mode: exactly one source (no silent fallback ambiguity)
+        const modeA = pick(ssot, 'system.autonomy_mode');
+        const modeB = pick(ssot, 'system.autonomyMode');
+        const modeC = pick(ssot, 'system.autonomy');
+        const modeD = pick(ssot, 'autonomy');
+
+        const modes = [modeA, modeB, modeC, modeD].filter(v => v !== undefined && v !== null && String(v).trim() !== '');
+        const distinctModes = Array.from(new Set(modes.map(v => String(v).toUpperCase())));
+
+        if (distinctModes.length === 0) {
+          errs.push('Missing autonomy mode (system.autonomy_mode is required).');
+        } else if (distinctModes.length > 1) {
+          errs.push(`Conflicting autonomy mode definitions: ${distinctModes.join(' vs ')}`);
+        } else {
+          if (!ALLOWED_AUTONOMY_MODES.has(distinctModes[0])) {
+            errs.push(`autonomy mode "${distinctModes[0]}" not in allowed vocabulary.`);
+          }
+        }
+
+        // 8) health score must exist and be bounded (0..1)
+        const healthScore = pick(ssot, 'health.overall_score') ?? pick(ssot, 'health.score');
+        if (typeof healthScore !== 'number' || !isFinite(healthScore)) {
+          errs.push('health.overall_score must be a number in 0..1.');
+        } else {
+          if (healthScore < 0 || healthScore > 1) {
+            errs.push('health.overall_score must be within 0..1.');
+          }
+        }
+
+        // 9) health signal must exist and be string (used for tag color)
+        const healthSignal = pick(ssot, 'health.signal');
+        if (typeof healthSignal !== 'string' || !healthSignal.trim()) {
+          errs.push('health.signal must be a non-empty string.');
+        }
+
+        // 10) governance gate verdict must exist and be from vocabulary
+        const gate = pick(ssot, 'governance.gate_verdict') ?? pick(ssot, 'governance.gate') ?? pick(ssot, 'governance.verdict') ?? pick(ssot, 'autonomy_score.inputs.gate_verdict');
+        if (typeof gate !== 'string' || !gate.trim()) {
+          errs.push('governance.gate_verdict must be a non-empty string.');
+        } else {
+          const g = String(gate).toUpperCase();
+          if (!ALLOWED_GATE_VERDICTS.has(g)) {
+            errs.push(`governance gate verdict "${g}" not in allowed vocabulary.`);
+          }
+        }
+
+        // 11) Optional links: if present, must be strings (no objects)
+        const links = pick(ssot,'links');
+        if (links !== undefined && links !== null) {
+          if (!isPlainObject(links)) errs.push('links must be an object if present.');
+          else {
+            for (const [lk, lv] of Object.entries(links)) {
+              if (lv === null || lv === undefined) continue;
+              if (typeof lv !== 'string') errs.push(`links.${lk} must be string if present.`);
+            }
+          }
+        }
 
         return { ok: errs.length === 0, errs };
       }
 
       // ==========================
-      // Agents normalization + dedup
+      // Agents normalization (strict)
       // ==========================
-      const canonicalKey = (k) => String(k || '')
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, '_')
-        .replace(/-+/g, '_')
-        .replace(/__+/g, '_')
-        .replace(/_agent$/g, '')         // deploy_agent -> deploy
-        .replace(/\bagent\b/g, '')       // "status agent" -> "status"
-        .replace(/__+/g, '_')
-        .replace(/^_+|_+$/g, '');
-
-      const titleCaseKey = (k) => String(k || '')
-        .replace(/_/g, ' ')
-        .trim()
-        .replace(/\b\w/g, (m) => m.toUpperCase());
-
-      function normalizeAgents(agentsRaw) {
-        // returns: [{ key, canon, agent }]
-        const items = [];
-
-        if (Array.isArray(agentsRaw)) {
-          // schema allows array entries with {agent, state}
-          for (const row of agentsRaw) {
-            const key = row?.agent || row?.key || row?.name || '';
-            if (!key) continue;
-            items.push({ key: String(key), agent: row });
-          }
-        } else if (agentsRaw && typeof agentsRaw === 'object') {
-          for (const [k, v] of Object.entries(agentsRaw)) {
-            items.push({ key: String(k), agent: v });
-          }
+      function normalizeAgentsStrict(agentsMap) {
+        // agentsMap MUST be plain object-map (enforced by validateSsot)
+        const out = [];
+        for (const [k, v] of Object.entries(agentsMap)) {
+          out.push({
+            key: String(k),
+            canon: canonicalKey(k),
+            agent: v
+          });
         }
 
-        // Dedup by canonical identity
-        const map = new Map();
-
-        for (const it of items) {
-          const canon = canonicalKey(it.key);
-          if (!canon) continue;
-
-          const agent = (it.agent && typeof it.agent === 'object') ? it.agent : { value: it.agent };
-          const state = String(agent?.state || agent?.status || 'UNKNOWN').toUpperCase();
-
-          if (!map.has(canon)) {
-            map.set(canon, { key: it.key, canon, agent });
-            continue;
-          }
-
-          // deterministic merge rule:
-          // Prefer ACTIVE over non-ACTIVE; else prefer object with more fields.
-          const prev = map.get(canon);
-          const prevA = prev.agent || {};
-          const prevState = String(prevA?.state || prevA?.status || 'UNKNOWN').toUpperCase();
-
-          const prevScore = Object.keys(prevA || {}).length;
-          const newScore = Object.keys(agent || {}).length;
-
-          const pickNew =
-            (prevState !== 'ACTIVE' && state === 'ACTIVE') ||
-            (prevState === state && newScore > prevScore);
-
-          if (pickNew) map.set(canon, { key: it.key, canon, agent });
-        }
-
-        // stable order: core first, then alpha
+        // Stable order: core first, then alpha (deterministic)
         const priority = [
           'guardian','monitoring','content','george','consistency',
           'deploy','status','site_audit','executor'
         ];
 
-        const arr = Array.from(map.values());
-        arr.sort((a, b) => {
+        out.sort((a, b) => {
           const ai = priority.indexOf(a.canon);
           const bi = priority.indexOf(b.canon);
           if (ai !== -1 || bi !== -1) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
           return a.canon.localeCompare(b.canon);
         });
 
-        return arr;
+        return out;
       }
 
       // ==========================
@@ -826,11 +978,11 @@
 
         grid.innerHTML = '';
 
-        const agentsRaw = pick(ssot, 'agents');
-        const normalized = normalizeAgents(agentsRaw);
+        const agentsMap = ssot.agents;
+        const normalized = normalizeAgentsStrict(agentsMap);
 
         if (!normalized.length) {
-          grid.appendChild(el('div', { class: 'vt-emptyState', html: '<p class="vt-emptyTitle">Agents not available</p><p class="vt-emptyText">No canonical agents found in the truth source.</p>' }));
+          grid.appendChild(el('div', { class: 'vt-emptyState', html: '<p class="vt-emptyTitle">Agents not available</p><p class="vt-emptyText">No agents found in SSOT (this should not happen if SSOT validation is strict).</p>' }));
           return { activeCount: 0, totalCount: 0 };
         }
 
@@ -839,23 +991,41 @@
 
         for (const entry of normalized) {
           const agent = entry.agent || {};
-          const state = String(agent?.state || agent?.status || 'UNKNOWN').toUpperCase();
-          const role = textOrDash(agent?.role);
-          const mode = textOrDash(agent?.autonomy_mode || agent?.mode);
+          const stateRaw = agent.state ?? agent.status ?? 'UNKNOWN';
+          const state = String(stateRaw).toUpperCase();
 
+          // "ACTIVE" counts as active; otherwise OK also counts as active if you want stricter semantics:
+          // governance-grade: define it explicitly. We count ACTIVE only to avoid ambiguity.
           if (state === 'ACTIVE') activeCount++;
 
-          const displayName = titleCaseKey(entry.canon);
+          const role = textOrDash(agent.role);
+          const modeVal = agent.autonomy_mode ?? agent.mode;
+          const mode = (modeVal !== undefined && modeVal !== null && String(modeVal).trim() !== '')
+            ? String(modeVal).toUpperCase()
+            : '—';
+
+          // Canonical display name: if SSOT provides name, use it, else title-cased canonical key
+          const ssotName = agent.name;
+          const displayName = (typeof ssotName === 'string' && ssotName.trim())
+            ? ssotName.trim()
+            : titleCaseKey(entry.canon);
 
           const card = el('div', { class: 'vt-agent' }, [
             el('div', {}, [
               el('p', { class: 'vt-agentName', text: displayName }),
-              el('p', { class: 'vt-agentMeta', html: `Role: <strong style="color:rgba(242,245,255,0.86)">${role}</strong> · Mode: <strong style="color:rgba(242,245,255,0.86)">${mode}</strong> · Key: <strong style="color:rgba(242,245,255,0.86)">${entry.canon}</strong>` }),
-              agent?.summary ? el('p', { class: 'vt-agentMeta', text: agent.summary }) : null
+              el('p', {
+                class: 'vt-agentMeta',
+                html: `Role: <strong style="color:rgba(242,245,255,0.86)">${role}</strong> · Mode: <strong style="color:rgba(242,245,255,0.86)">${mode}</strong> · Key: <strong style="color:rgba(242,245,255,0.86)">${entry.canon}</strong>`
+              }),
+              (typeof agent.summary === 'string' && agent.summary.trim())
+                ? el('p', { class: 'vt-agentMeta', text: agent.summary.trim() })
+                : null
             ]),
             el('div', { class: 'vt-agentPills' }, [
               el('span', { class: `vt-miniPill ${pillClassForStatus(state)}` , html: `<strong>${state}</strong>` }),
-              (agent?.autonomy_mode || agent?.mode) ? el('span', { class: `vt-miniPill ${pillClassForStatus(mode)}` , html: `<strong>${String(mode).toUpperCase()}</strong>` }) : null
+              (mode !== '—')
+                ? el('span', { class: `vt-miniPill ${pillClassForStatus(mode)}` , html: `<strong>${mode}</strong>` })
+                : null
             ])
           ]);
 
@@ -872,7 +1042,14 @@
 
         const autonomyPercent = safeNum(pick(ssot, 'autonomy_score.percent'));
         $('#vt-autonomyPercent').textContent = autonomyPercent !== null ? `${autonomyPercent.toFixed(1)}%` : '—';
-        $('#vt-autonomyMode').textContent = textOrDash(pick(ssot, 'system.autonomy_mode') ?? pick(ssot, 'system.autonomyMode') ?? pick(ssot, 'system.autonomy') ?? pick(ssot, 'autonomy'));
+
+        // governance-grade: autonomy mode is validated to be unambiguous
+        const modeA = pick(ssot, 'system.autonomy_mode');
+        const modeB = pick(ssot, 'system.autonomyMode');
+        const modeC = pick(ssot, 'system.autonomy');
+        const modeD = pick(ssot, 'autonomy');
+        const mode = [modeA, modeB, modeC, modeD].find(v => v !== undefined && v !== null && String(v).trim() !== '');
+        $('#vt-autonomyMode').textContent = textOrDash(mode).toUpperCase();
 
         const healthScore = safeNum(pick(ssot, 'health.overall_score')) ?? safeNum(pick(ssot, 'health.score'));
         const healthSignal = textOrDash(pick(ssot, 'health.signal'));
@@ -881,10 +1058,13 @@
 
         const gate = (pick(ssot, 'governance.gate_verdict') ?? pick(ssot, 'governance.gate') ?? pick(ssot, 'governance.verdict') ?? pick(ssot, 'autonomy_score.inputs.gate_verdict'));
         const audit = (pick(ssot, 'governance.audit_trail') ?? pick(ssot, 'governance.auditTrail'));
+
+        const gateUpper = String(gate || '').toUpperCase();
         const govLabel =
-          (String(gate || '').toUpperCase() === 'ALLOW' || String(gate || '').toUpperCase() === 'PASS')
+          (gateUpper === 'ALLOW' || gateUpper === 'PASS')
             ? 'ENFORCED'
-            : textOrDash(gate);
+            : textOrDash(gateUpper);
+
         $('#vt-governanceVerdict').textContent = govLabel;
 
         const overallSignal = String(healthSignal || '').toUpperCase();
@@ -914,15 +1094,20 @@
         reasons.innerHTML = '';
         const list = [];
 
-        if (overallSignal) list.push(`Health signal is <strong>${overallSignal}</strong>`);
+        list.push(`Schema version is <strong>${textOrDash(pick(ssot,'schema_version'))}</strong> (locked)`);
+        list.push(`Generated at <strong>${textOrDash(pick(ssot,'generated_at'))}</strong> (freshness: <strong>${ageLabel}</strong>)`);
+        list.push(`Health signal is <strong>${overallSignal}</strong>`);
         if (healthScore !== null) list.push(`Health score is <strong>${healthScore}</strong>`);
         if (gate) list.push(`Governance gate verdict is <strong>${String(gate).toUpperCase()}</strong>`);
         if (audit) list.push(`Audit trail is <strong>${String(audit).toUpperCase()}</strong>`);
-        if (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace') || pick(ssot,'links.decision_trace')) list.push(`Decision trace is linked (audit trail available)`);
-        if (pick(ssot,'links.gate_result') || pick(ssot,'links.gateResult') || pick(ssot,'links.gate_result')) list.push(`Gate result artifact is linked`);
 
-        if (list.length === 0) reasons.appendChild(el('li', { html: '—' }));
-        else list.forEach(item => reasons.appendChild(el('li', { html: item })));
+        // links are optional but can be referenced if present
+        const linkDecision = pick(ssot,'links.decision_trace') ?? pick(ssot,'links.decisionTrace');
+        const linkGate = pick(ssot,'links.gate_result') ?? pick(ssot,'links.gateResult');
+        if (typeof linkDecision === 'string' && linkDecision.trim()) list.push(`Decision trace is linked (audit trail available)`);
+        if (typeof linkGate === 'string' && linkGate.trim()) list.push(`Gate result artifact is linked`);
+
+        list.forEach(item => reasons.appendChild(el('li', { html: item })));
 
         const guards = $('#vt-guards');
         guards.innerHTML = '';
@@ -930,8 +1115,8 @@
           { label: 'Freshness', value: ageLabel, status: (ageSec !== null && ageSec < 3600) ? 'FRESH' : 'STALE' },
           { label: 'Runtime gate', value: (gate ? String(gate).toUpperCase() : '—'), status: gate ? String(gate).toUpperCase() : '—' },
           { label: 'Audit trail', value: audit ? 'Available' : '—', status: audit ? 'OK' : 'UNKNOWN' },
-          { label: 'Decision trace', value: (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace')) ? 'LINKED' : '—', status: (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace')) ? 'LINKED' : '—' },
-          { label: 'Status agent', value: (ageSec !== null ? `STALE · ${ageLabel}` : '—'), status: (ageSec !== null && ageSec < 3600) ? 'FRESH' : 'STALE' },
+          { label: 'Truth schema', value: REQUIRED_SCHEMA_VERSION, status: 'LOCKED' },
+          { label: 'Identity conflicts', value: 'BLOCK (if any)', status: 'ENFORCED' },
         ];
 
         guardItems.forEach(g => {
@@ -1017,15 +1202,24 @@
         });
       }
 
-      // ==========
-      // Main loader
-      // ==========
+      // ==============
+      // Loader helpers
+      // ==============
       function withCacheBust(url) {
         const u = new URL(url, window.location.href);
         u.searchParams.set('cb', String(Date.now()));
         return u.toString();
       }
 
+      async function loadSsot() {
+        const res = await fetch(withCacheBust(SSOT_PATH), { cache: 'no-store', headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('SSOT fetch failed: ' + res.status);
+        return await res.json();
+      }
+
+      // ==========
+      // Main loader
+      // ==========
       async function load() {
         await injectHeader();
 
@@ -1034,9 +1228,7 @@
 
         let ssot = null;
         try {
-          const res = await fetch(withCacheBust(SSOT_PATH), { cache: 'no-store', headers: { 'Accept': 'application/json' } });
-          if (!res.ok) throw new Error('SSOT fetch failed: ' + res.status);
-          ssot = await res.json();
+          ssot = await loadSsot();
         } catch (e) {
           showTruthMissing(e && e.message ? e.message : 'SSOT fetch error');
           return;
@@ -1044,14 +1236,14 @@
 
         const verdict = validateSsot(ssot);
         if (!verdict.ok) {
-          showTruthMissing('SSOT schema invalid: ' + verdict.errs.join(' | '));
+          showTruthMissing('SSOT invalid (governance-grade): ' + verdict.errs.join(' | '));
           return;
         }
 
-        // From here: truth is present + minimally valid => allow rendering
+        // From here: truth is present + hard-valid => allow rendering
         showDashboard();
 
-        // Agents first, KPIs derived from canonical agent set
+        // Agents first, KPIs derived from canonical agent set (NO dedupe heuristics)
         const counts = renderAgents(ssot);
         renderKPIs(ssot, counts);
 
