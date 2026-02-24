@@ -51,7 +51,7 @@ virtauto.OS is structured into several layers:
      - design & review gates
      - deployment and rollback
    - Status files:
-     - `/status/status.json` — live agent health + pipelines
+     - `/ops/reports/system_status.json` — live agent health + pipelines
      - `/ops/events.jsonl` — activity / event log
      - `/ops/agent_reports.md` — human-readable guardian reports
 
@@ -96,7 +96,7 @@ virtauto.OS is structured into several layers:
 
 - Observability and heartbeat.
 - Maintains:
-  - `/status/status.json` with live counts (OK / issues / unknown),
+  - `/ops/reports/system_status.json` with live counts (OK / issues / unknown),
   - timestamps for latest checks and reports,
   - input for the **Self-Agent Dashboard**.
 - Supports the mini-dashboard on `index.html` and the detailed view on `status/agents.html`.

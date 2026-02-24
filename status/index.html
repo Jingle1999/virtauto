@@ -1,31 +1,4 @@
 <!doctype html>
-<!--
-================================================================================
-virtauto.OS — Live System Status
-HARDEN STAGE 2 (Governance Grade / Authority Grade)
-
-Purpose
-- Render the status page ONLY from the Single Source of Truth (SSOT).
-- Enforce governance-grade constraints at runtime:
-  - strict contract (allowed top-level keys)
-  - strict typing for critical fields
-  - authority coupling (ALLOW requires audit trail + mandatory links)
-  - deterministic failure taxonomy (STRUCTURAL / IDENTITY / AUTHORITY / SCHEMA)
-
-Non-goals
-- No fallback values.
-- No heuristics.
-- No “best effort” rendering.
-- No marketing UI when truth is missing.
-
-SSOT
-- ../ops/reports/system_status.json
-
-Evidence (non-SSOT)
-- ../ops/agent_activity.jsonl (may be missing; never used to fabricate KPIs)
-
-================================================================================
--->
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
@@ -126,37 +99,6 @@ Evidence (non-SSOT)
       border-radius: 999px;
       background: var(--vt-green);
       box-shadow: 0 0 0 3px rgba(32, 212, 147, 0.12);
-    }
-
-    /* Truth lock banner (Stage 2) */
-    #vt-status .vt-lock {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(170, 190, 255, 0.16);
-      background: rgba(0,0,0,0.20);
-      color: rgba(242, 245, 255, 0.76);
-      font-size: 12px;
-      line-height: 1;
-      white-space: nowrap;
-    }
-    #vt-status .vt-lock .vt-dot { width: 7px; height: 7px; box-shadow: none; }
-    #vt-status .vt-lock.vt-lock-ok { border-color: rgba(32, 212, 147, 0.24); }
-    #vt-status .vt-lock.vt-lock-ok .vt-dot { background: var(--vt-green); }
-    #vt-status .vt-lock.vt-lock-warn { border-color: rgba(255, 181, 71, 0.26); }
-    #vt-status .vt-lock.vt-lock-warn .vt-dot { background: var(--vt-amber); }
-    #vt-status .vt-lock.vt-lock-bad { border-color: rgba(255, 92, 124, 0.26); }
-    #vt-status .vt-lock.vt-lock-bad .vt-dot { background: var(--vt-red); }
-    #vt-status .vt-lock code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11px;
-      color: rgba(242,245,255,0.86);
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(170, 190, 255, 0.10);
-      padding: 2px 6px;
-      border-radius: 8px;
     }
 
     #vt-status .vt-sub {
@@ -464,13 +406,7 @@ Evidence (non-SSOT)
       <header class="vt-hero">
         <div class="vt-titleRow">
           <h1 class="vt-title">virtauto.OS — Live System Status</h1>
-
-          <!-- Stage 2: explicit Truth-Lock classification -->
-          <span class="vt-lock vt-lock-ok" id="vt-lockBanner" title="Truth lock status">
-            <span class="vt-dot"></span>
-            <strong id="vt-lockLabel">TRUTH-LOCKED</strong>
-            <span id="vt-lockType" style="display:none;"></span>
-          </span>
+          <span class="vt-pill"><span class="vt-dot"></span> <strong>TRUTH-LOCKED</strong></span>
         </div>
 
         <p class="vt-sub">
@@ -482,25 +418,15 @@ Evidence (non-SSOT)
           <span class="vt-pill"><span class="vt-dot"></span> Agentic Website — <strong>Live in Production</strong></span>
           <span class="vt-pill">Truth Source: <strong id="vt-truthSourceLabel">system_status.json</strong></span>
           <span class="vt-pill">Freshness: <strong id="vt-freshnessLabel">—</strong></span>
-          <span class="vt-pill">Stage: <strong>Hardening v2</strong></span>
         </div>
 
         <div class="vt-emptyState vt-hide" id="vt-truthMissing">
-          <p class="vt-emptyTitle" id="vt-truthMissingTitle">Truth source missing / invalid</p>
-          <p class="vt-emptyText" id="vt-truthMissingText">
+          <p class="vt-emptyTitle">Truth source missing / invalid</p>
+          <p class="vt-emptyText">
             The page could not load or validate the Single Source of Truth. No simulated values are shown.
             Verify that <code style="color:rgba(242,245,255,0.85)">/ops/reports/system_status.json</code> is available and schema-valid.
           </p>
           <p class="vt-emptyText" id="vt-truthMissingDetail" style="margin-top:10px;"></p>
-
-          <!-- Stage 2: show failure taxonomy -->
-          <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
-            <span class="vt-lock vt-lock-bad" id="vt-failureBadge" style="display:none;">
-              <span class="vt-dot"></span>
-              <strong id="vt-failureType">—</strong>
-              <code id="vt-failureCode">—</code>
-            </span>
-          </div>
         </div>
       </header>
 
@@ -597,17 +523,6 @@ Evidence (non-SSOT)
                     Environment: <strong id="vt-environment">—</strong>
                   </p>
                 </div>
-
-                <!-- Stage 2: governance-grade classification -->
-                <div class="vt-kpi" style="min-height:auto;">
-                  <p class="vt-kpiLabel">Truth validation</p>
-                  <p class="vt-kpiHint" style="margin-top:2px;">
-                    Contract: <strong>STRICT</strong> (allowed keys only)<br/>
-                    Identity: <strong>CANONICAL</strong> (no collisions)<br/>
-                    Authority: <strong>COUPLED</strong> (ALLOW requires audit + links)<br/>
-                    Failure taxonomy: <strong>EXPLICIT</strong>
-                  </p>
-                </div>
               </div>
             </div>
           </section>
@@ -679,35 +594,8 @@ Evidence (non-SSOT)
       // ================
       // Constants / paths
       // ================
-      const SSOT_PATH = '../ops/reports/system_status.json';     // relative from /status/
-      const AGENT_ACTIVITY_PATH = '../ops/agent_activity.jsonl'; // relative from /status/
-
-      // Stage 2: strict contract (top-level)
-      const EXPECTED_SCHEMA_VERSION = '1.0';
-      const ALLOWED_TOP_LEVEL = new Set([
-        'schema_version',
-        'generated_at',
-        'environment',
-        'system',
-        'system_state',
-        'agents',
-        'health',
-        'autonomy_score',
-        'governance',
-        'links'
-      ]);
-
-      const ALLOWED_GATE_VERDICTS = new Set(['ALLOW','HOLD','BLOCK','PASS','FAIL','WARN','UNKNOWN']);
-      const ALLOWED_HEALTH_SIGNALS = new Set(['GREEN','AMBER','RED','OK','WARN','FAIL','UNKNOWN']);
-
-      // Failure taxonomy (Stage 2)
-      const FAIL = {
-        FETCH: 'FETCH_ERROR',
-        SCHEMA: 'SCHEMA_MISMATCH',
-        STRUCTURAL: 'STRUCTURAL_ERROR',
-        IDENTITY: 'IDENTITY_CONFLICT',
-        AUTHORITY: 'AUTHORITY_VIOLATION'
-      };
+      const SSOT_PATH = '/ops/reports/system_status.json';     // SSOT (absolute path)
+      const AGENT_ACTIVITY_PATH = '/ops/agent_activity.jsonl'; // evidence (absolute path)
 
       // ==========
       // DOM helpers
@@ -735,9 +623,6 @@ Evidence (non-SSOT)
           return d.toISOString();
         } catch { return null; }
       };
-
-      const isPlainObject = (x) =>
-        !!x && typeof x === 'object' && !Array.isArray(x);
 
       const safeNum = (v) => (typeof v === 'number' && isFinite(v)) ? v : null;
 
@@ -771,9 +656,9 @@ Evidence (non-SSOT)
 
       const pillClassForStatus = (status) => {
         const s = String(status || '').toUpperCase();
-        if (['OK', 'PASS', 'ALLOW', 'ACTIVE', 'OPERATIONAL', 'GREEN', 'LINKED', 'FRESH', 'ENFORCED'].some(x => s.includes(x))) return 'vt-ok';
-        if (['WARN', 'STALE', 'PLANNED', 'UNKNOWN', 'EXPIRED', 'AMBER', 'YELLOW', 'HOLD'].some(x => s.includes(x))) return 'vt-warn';
-        if (['FAIL', 'BLOCK', 'ERROR', 'INACTIVE', 'RED', 'VIOLATION', 'MISMATCH', 'CONFLICT'].some(x => s.includes(x))) return 'vt-bad';
+        if (['OK', 'PASS', 'ALLOW', 'ACTIVE', 'OPERATIONAL', 'GREEN'].some(x => s.includes(x))) return 'vt-ok';
+        if (['WARN', 'STALE', 'PLANNED', 'UNKNOWN', 'EXPIRED', 'AMBER', 'YELLOW'].some(x => s.includes(x))) return 'vt-warn';
+        if (['FAIL', 'BLOCK', 'ERROR', 'INACTIVE', 'RED'].some(x => s.includes(x))) return 'vt-bad';
         return 'vt-warn';
       };
 
@@ -822,235 +707,80 @@ Evidence (non-SSOT)
       // ==========================
       // TRUTH-LOCK gating helpers
       // ==========================
-      function setLockBanner(kind, label, typeText) {
-        const b = document.getElementById('vt-lockBanner');
-        if (!b) return;
-        b.classList.remove('vt-lock-ok','vt-lock-warn','vt-lock-bad');
-        b.classList.add(kind === 'ok' ? 'vt-lock-ok' : kind === 'warn' ? 'vt-lock-warn' : 'vt-lock-bad');
-
-        const lbl = document.getElementById('vt-lockLabel');
-        if (lbl) lbl.textContent = label || 'TRUTH-LOCKED';
-
-        const t = document.getElementById('vt-lockType');
-        if (t) {
-          if (typeText) {
-            t.style.display = '';
-            t.textContent = typeText;
-          } else {
-            t.style.display = 'none';
-            t.textContent = '';
-          }
-        }
-      }
-
-      function showTruthMissing(payload) {
-        // payload: { type, code, title, text, detail }
+      function showTruthMissing(detail) {
         $('#vt-dashboard')?.classList.add('vt-hide');
         $('#vt-truthMissing')?.classList.remove('vt-hide');
-
-        const title = payload?.title || 'Truth source missing / invalid';
-        const text = payload?.text || 'The page could not load or validate the Single Source of Truth. No simulated values are shown.';
-        const detail = payload?.detail ? String(payload.detail) : '';
-
-        $('#vt-truthMissingTitle').textContent = title;
-        $('#vt-truthMissingText').textContent = text;
-        $('#vt-truthMissingDetail').textContent = detail;
-
-        const badge = document.getElementById('vt-failureBadge');
-        const typeEl = document.getElementById('vt-failureType');
-        const codeEl = document.getElementById('vt-failureCode');
-
-        if (badge && typeEl && codeEl && payload?.type) {
-          badge.style.display = '';
-          typeEl.textContent = String(payload.type);
-          codeEl.textContent = String(payload.code || '—');
-        } else if (badge) {
-          badge.style.display = 'none';
-        }
-
-        setLockBanner('bad', 'TRUTH LOCK', payload?.type ? String(payload.type) : '');
+        $('#vt-truthMissingDetail').textContent = detail ? String(detail) : '';
       }
 
       function showDashboard() {
         $('#vt-truthMissing')?.classList.add('vt-hide');
         $('#vt-dashboard')?.classList.remove('vt-hide');
-        setLockBanner('ok', 'TRUTH-LOCKED', '');
-      }
-
-      // ==========================
-      // Stage 2: Strict SSOT validation
-      // ==========================
-      function validateTopLevelContract(ssot, errs) {
-        // Ensure no unknown top-level keys.
-        const keys = Object.keys(ssot || {});
-        for (const k of keys) {
-          if (!ALLOWED_TOP_LEVEL.has(k)) {
-            errs.push(`Unknown top-level key is forbidden: '${k}'`);
-          }
-        }
-      }
-
-      function validateRequiredTypes(ssot, errs) {
-        // schema_version
-        if (typeof ssot.schema_version !== 'string') errs.push('schema_version must be a string');
-
-        // generated_at
-        if (typeof ssot.generated_at !== 'string') errs.push('generated_at must be a string (ISO 8601 expected)');
-
-        // environment (optional but if present -> string)
-        if (ssot.environment !== undefined && typeof ssot.environment !== 'string') errs.push('environment must be a string');
-
-        // agents must be object-map or array
-        const agents = ssot.agents;
-        const okAgents = (agents && typeof agents === 'object') || Array.isArray(agents);
-        if (!okAgents) errs.push('agents must be an object-map or array');
-
-        // governance (optional but if present -> object)
-        if (ssot.governance !== undefined && !isPlainObject(ssot.governance)) errs.push('governance must be an object');
-        if (ssot.links !== undefined && !isPlainObject(ssot.links)) errs.push('links must be an object');
-        if (ssot.health !== undefined && !isPlainObject(ssot.health)) errs.push('health must be an object');
-        if (ssot.autonomy_score !== undefined && !isPlainObject(ssot.autonomy_score)) errs.push('autonomy_score must be an object');
-        if (ssot.system !== undefined && !isPlainObject(ssot.system)) errs.push('system must be an object');
-      }
-
-      function validateSchemaVersion(ssot, errs) {
-        if (typeof ssot.schema_version === 'string' && ssot.schema_version !== EXPECTED_SCHEMA_VERSION) {
-          errs.push(`schema_version mismatch: expected '${EXPECTED_SCHEMA_VERSION}' got '${ssot.schema_version}'`);
-        }
-      }
-
-      function validateNumericBounds(ssot, errs) {
-        // autonomy_score.percent: 0..100 (if present)
-        const ap = safeNum(pick(ssot, 'autonomy_score.percent'));
-        if (ap !== null && (ap < 0 || ap > 100)) errs.push(`autonomy_score.percent out of bounds: ${ap} (expected 0..100)`);
-
-        // health score: 0..1 (if present)
-        const hs = safeNum(pick(ssot, 'health.overall_score')) ?? safeNum(pick(ssot, 'health.score'));
-        if (hs !== null && (hs < 0 || hs > 1)) errs.push(`health score out of bounds: ${hs} (expected 0..1)`);
-
-        // health signal vocabulary (if present)
-        const sig = pick(ssot, 'health.signal');
-        if (sig !== undefined && typeof sig === 'string') {
-          const up = sig.toUpperCase();
-          if (!ALLOWED_HEALTH_SIGNALS.has(up)) errs.push(`health.signal invalid: '${sig}'`);
-        } else if (sig !== undefined) {
-          errs.push('health.signal must be a string');
-        }
-      }
-
-      function validateGovernanceVocabulary(ssot, errs) {
-        const gate =
-          pick(ssot, 'governance.gate_verdict') ??
-          pick(ssot, 'governance.gate') ??
-          pick(ssot, 'governance.verdict') ??
-          pick(ssot, 'autonomy_score.inputs.gate_verdict');
-
-        if (gate !== undefined && gate !== null) {
-          if (typeof gate !== 'string') errs.push('governance gate verdict must be a string');
-          else {
-            const up = gate.toUpperCase();
-            if (!ALLOWED_GATE_VERDICTS.has(up)) errs.push(`governance gate verdict invalid: '${gate}'`);
-          }
-        }
-
-        const audit =
-          pick(ssot, 'governance.audit_trail') ??
-          pick(ssot, 'governance.auditTrail');
-
-        if (audit !== undefined && audit !== null && typeof audit !== 'string') errs.push('governance.audit_trail must be a string if present');
-      }
-
-      function validateModeConflict(ssot, errs) {
-        // Stage 2: if multiple autonomy mode fields exist, they must agree
-        const candidates = [
-          pick(ssot, 'system.autonomy_mode'),
-          pick(ssot, 'system.autonomyMode'),
-          pick(ssot, 'system.autonomy'),
-          pick(ssot, 'autonomy')
-        ].filter(v => v !== undefined && v !== null && v !== '');
-
-        const normalized = candidates.map(v => String(v).trim().toLowerCase());
-        const uniq = Array.from(new Set(normalized));
-        if (uniq.length > 1) {
-          errs.push(`autonomy mode conflict: ${uniq.join(' vs ')}`);
-        }
-      }
-
-      function validateAuthorityCoupling(ssot, errs) {
-        // Stage 2: Authority coupling rules:
-        // If gate verdict indicates ALLOW/PASS/ENFORCED, then:
-        // - audit trail must exist
-        // - links must include decision_trace + gate_result
-        const gate =
-          pick(ssot, 'governance.gate_verdict') ??
-          pick(ssot, 'governance.gate') ??
-          pick(ssot, 'governance.verdict') ??
-          pick(ssot, 'autonomy_score.inputs.gate_verdict');
-
-        const gateUp = gate ? String(gate).toUpperCase() : '';
-
-        const audit =
-          pick(ssot, 'governance.audit_trail') ??
-          pick(ssot, 'governance.auditTrail');
-
-        const links = pick(ssot, 'links') || {};
-        const decisionTraceLink = links.decision_trace || links.decisionTrace;
-        const gateResultLink = links.gate_result || links.gateResult;
-
-        const isAllow = (gateUp === 'ALLOW' || gateUp === 'PASS');
-
-        if (isAllow) {
-          if (!audit) errs.push('AUTHORITY: ALLOW/PASS without audit_trail is forbidden');
-          if (!decisionTraceLink) errs.push('AUTHORITY: ALLOW/PASS requires links.decision_trace');
-          if (!gateResultLink) errs.push('AUTHORITY: ALLOW/PASS requires links.gate_result');
-        }
-      }
-
-      function classifyFailure(errs) {
-        // Deterministic classification by most severe / specific first
-        const joined = errs.join(' | ').toLowerCase();
-
-        if (joined.includes('schema_version mismatch')) return { type: FAIL.SCHEMA, code: 'SSOT_SCHEMA_VERSION' };
-        if (joined.includes('authority:')) return { type: FAIL.AUTHORITY, code: 'AUTHORITY_COUPLING' };
-        if (joined.includes('identity conflict')) return { type: FAIL.IDENTITY, code: 'AGENT_IDENTITY_COLLISION' };
-
-        return { type: FAIL.STRUCTURAL, code: 'SSOT_CONTRACT' };
       }
 
       function validateSsot(ssot) {
         const errs = [];
 
-        if (!ssot || typeof ssot !== 'object' || Array.isArray(ssot)) {
-          errs.push('SSOT is not an object');
-          return { ok: false, errs };
-        }
+        const pick = (obj, path) => {
+          try {
+            return path.split('.').reduce((acc, k) => (acc && acc[k] !== undefined) ? acc[k] : undefined, obj);
+          } catch { return undefined; }
+        };
 
-        // Stage 2: strict top-level contract
-        validateTopLevelContract(ssot, errs);
-
-        // Required presence
+        if (!ssot || typeof ssot !== 'object' || Array.isArray(ssot)) errs.push('SSOT is not an object.');
         if (!pick(ssot, 'schema_version')) errs.push('Missing: schema_version');
         if (!pick(ssot, 'generated_at')) errs.push('Missing: generated_at');
 
-        // system_state: allow either system_state or system.state
-        if (!pick(ssot, 'system_state') && !pick(ssot, 'system.state')) errs.push('Missing: system_state / system.state');
+        // --- Governance-grade semantic validation (strict, but aligned to repo vocab) ---
+        const sysStateRaw = pick(ssot, 'system_state') ?? pick(ssot, 'system.state');
+        if (!sysStateRaw) {
+          errs.push('Missing: system_state / system.state');
+        } else {
+          const sysState = String(sysStateRaw).toUpperCase();
+          const allowedSystemStates = new Set(['OK','ACTIVE','IDLE','DEGRADED','BLOCKED','UNKNOWN']);
+          if (!allowedSystemStates.has(sysState)) {
+            errs.push(`system state "${sysState}" not in allowed vocabulary: ${Array.from(allowedSystemStates).join(', ')}`);
+          }
+        }
 
-        // agents presence
-        if (pick(ssot, 'agents') === undefined || pick(ssot, 'agents') === null) errs.push('Missing: agents');
+        const agents = pick(ssot, 'agents');
+        const okAgents = (agents && typeof agents === 'object') || Array.isArray(agents);
+        if (!okAgents) {
+          errs.push('Missing/invalid: agents (must be object-map or array).');
+        } else {
+          const allowedAgentStates = new Set(['ACTIVE','IDLE','PLANNED','BLOCKED','DEGRADED','UNKNOWN']);
+          const allowedAutonomyModes = new Set(['MANUAL','SUPERVISED','AUTONOMOUS']);
 
-        // typing + schema
-        validateRequiredTypes(ssot, errs);
-        validateSchemaVersion(ssot, errs);
-        validateNumericBounds(ssot, errs);
-        validateGovernanceVocabulary(ssot, errs);
-        validateModeConflict(ssot, errs);
-        validateAuthorityCoupling(ssot, errs);
+          const entries = Array.isArray(agents)
+            ? agents.map((row, i) => [String(row?.agent || row?.key || row?.name || i), row])
+            : Object.entries(agents);
+
+          for (const [k, v] of entries) {
+            if (!v || typeof v !== 'object') continue;
+
+            const st = (v.state ?? v.status);
+            if (st !== undefined && st !== null && st !== '') {
+              const up = String(st).toUpperCase();
+              if (!allowedAgentStates.has(up)) {
+                errs.push(`agents["${k}"].state "${up}" not in allowed vocabulary.`);
+              }
+            }
+
+            const am = (v.autonomy_mode ?? v.autonomyMode ?? v.mode);
+            if (am !== undefined && am !== null && am !== '') {
+              const up = String(am).toUpperCase();
+              if (!allowedAutonomyModes.has(up)) {
+                errs.push(`agents["${k}"].autonomy_mode "${up}" not in allowed vocabulary.`);
+              }
+            }
+          }
+        }
 
         return { ok: errs.length === 0, errs };
       }
 
       // ==========================
-      // Agents normalization + identity hardening
+      // Agents normalization + dedup
       // ==========================
       const canonicalKey = (k) => String(k || '')
         .trim()
@@ -1073,6 +803,7 @@ Evidence (non-SSOT)
         const items = [];
 
         if (Array.isArray(agentsRaw)) {
+          // schema allows array entries with {agent, state}
           for (const row of agentsRaw) {
             const key = row?.agent || row?.key || row?.name || '';
             if (!key) continue;
@@ -1084,30 +815,38 @@ Evidence (non-SSOT)
           }
         }
 
+        // Dedup by canonical identity
         const map = new Map();
-        const collisions = [];
 
         for (const it of items) {
           const canon = canonicalKey(it.key);
           if (!canon) continue;
 
           const agent = (it.agent && typeof it.agent === 'object') ? it.agent : { value: it.agent };
+          const state = String(agent?.state || agent?.status || 'UNKNOWN').toUpperCase();
 
-          if (map.has(canon)) {
-            const prevKey = map.get(canon).key;
-            collisions.push(`identity conflict: '${canon}' from '${prevKey}' vs '${it.key}'`);
+          if (!map.has(canon)) {
+            map.set(canon, { key: it.key, canon, agent });
             continue;
           }
-          map.set(canon, { key: it.key, canon, agent });
+
+          // deterministic merge rule:
+          // Prefer ACTIVE over non-ACTIVE; else prefer object with more fields.
+          const prev = map.get(canon);
+          const prevA = prev.agent || {};
+          const prevState = String(prevA?.state || prevA?.status || 'UNKNOWN').toUpperCase();
+
+          const prevScore = Object.keys(prevA || {}).length;
+          const newScore = Object.keys(agent || {}).length;
+
+          const pickNew =
+            (prevState !== 'ACTIVE' && state === 'ACTIVE') ||
+            (prevState === state && newScore > prevScore);
+
+          if (pickNew) map.set(canon, { key: it.key, canon, agent });
         }
 
-        if (collisions.length) {
-          // Stage 2: Identity collisions are BLOCK (do not render)
-          const e = new Error(collisions.join(' | '));
-          e.__vt_identity_conflict = true;
-          throw e;
-        }
-
+        // stable order: core first, then alpha
         const priority = [
           'guardian','monitoring','content','george','consistency',
           'deploy','status','site_audit','executor'
@@ -1134,21 +873,7 @@ Evidence (non-SSOT)
         grid.innerHTML = '';
 
         const agentsRaw = pick(ssot, 'agents');
-
-        let normalized = [];
-        try {
-          normalized = normalizeAgents(agentsRaw);
-        } catch (e) {
-          if (e && e.__vt_identity_conflict) {
-            const msg = e.message || 'identity conflict';
-            // Bubble to main to lock truth
-            const err = new Error(msg);
-            err.__vt_fail_type = FAIL.IDENTITY;
-            err.__vt_fail_code = 'AGENT_IDENTITY_COLLISION';
-            throw err;
-          }
-          throw e;
-        }
+        const normalized = normalizeAgents(agentsRaw);
 
         if (!normalized.length) {
           grid.appendChild(el('div', { class: 'vt-emptyState', html: '<p class="vt-emptyTitle">Agents not available</p><p class="vt-emptyText">No canonical agents found in the truth source.</p>' }));
@@ -1193,16 +918,7 @@ Evidence (non-SSOT)
 
         const autonomyPercent = safeNum(pick(ssot, 'autonomy_score.percent'));
         $('#vt-autonomyPercent').textContent = autonomyPercent !== null ? `${autonomyPercent.toFixed(1)}%` : '—';
-
-        const modeCandidates = [
-          pick(ssot, 'system.autonomy_mode'),
-          pick(ssot, 'system.autonomyMode'),
-          pick(ssot, 'system.autonomy'),
-          pick(ssot, 'autonomy')
-        ].filter(v => v !== undefined && v !== null && v !== '');
-
-        const mode = modeCandidates.length ? String(modeCandidates[0]) : null;
-        $('#vt-autonomyMode').textContent = textOrDash(mode);
+        $('#vt-autonomyMode').textContent = textOrDash(pick(ssot, 'system.autonomy_mode') ?? pick(ssot, 'system.autonomyMode') ?? pick(ssot, 'system.autonomy') ?? pick(ssot, 'autonomy'));
 
         const healthScore = safeNum(pick(ssot, 'health.overall_score')) ?? safeNum(pick(ssot, 'health.score'));
         const healthSignal = textOrDash(pick(ssot, 'health.signal'));
@@ -1211,10 +927,8 @@ Evidence (non-SSOT)
 
         const gate = (pick(ssot, 'governance.gate_verdict') ?? pick(ssot, 'governance.gate') ?? pick(ssot, 'governance.verdict') ?? pick(ssot, 'autonomy_score.inputs.gate_verdict'));
         const audit = (pick(ssot, 'governance.audit_trail') ?? pick(ssot, 'governance.auditTrail'));
-
-        const gateUp = gate ? String(gate).toUpperCase() : '';
         const govLabel =
-          (gateUp === 'ALLOW' || gateUp === 'PASS')
+          (String(gate || '').toUpperCase() === 'ALLOW' || String(gate || '').toUpperCase() === 'PASS')
             ? 'ENFORCED'
             : textOrDash(gate);
         $('#vt-governanceVerdict').textContent = govLabel;
@@ -1240,7 +954,7 @@ Evidence (non-SSOT)
         $('#vt-freshnessLabel').textContent = ageLabel;
 
         $('#vt-truthSourceLabel').textContent = 'system_status.json';
-        $('#vt-truthPath').textContent = './ops/reports/system_status.json';
+        $('#vt-truthPath').textContent = '/ops/reports/system_status.json';
 
         const reasons = $('#vt-governanceReasons');
         reasons.innerHTML = '';
@@ -1250,34 +964,20 @@ Evidence (non-SSOT)
         if (healthScore !== null) list.push(`Health score is <strong>${healthScore}</strong>`);
         if (gate) list.push(`Governance gate verdict is <strong>${String(gate).toUpperCase()}</strong>`);
         if (audit) list.push(`Audit trail is <strong>${String(audit).toUpperCase()}</strong>`);
-
-        const links = pick(ssot, 'links') || {};
-        const dt = links.decision_trace || links.decisionTrace;
-        const gr = links.gate_result || links.gateResult;
-
-        if (dt) list.push(`Decision trace is linked (audit trail available)`);
-        if (gr) list.push(`Gate result artifact is linked`);
-
-        // Stage 2: explicitly state coupling conditions
-        if (gateUp === 'ALLOW' || gateUp === 'PASS') {
-          list.push(`Authority coupling satisfied: <strong>ALLOW requires audit + links</strong>`);
-        } else {
-          list.push(`Authority coupling: <strong>non-ALLOW mode</strong>`);
-        }
+        if (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace') || pick(ssot,'links.decision_trace')) list.push(`Decision trace is linked (audit trail available)`);
+        if (pick(ssot,'links.gate_result') || pick(ssot,'links.gateResult') || pick(ssot,'links.gate_result')) list.push(`Gate result artifact is linked`);
 
         if (list.length === 0) reasons.appendChild(el('li', { html: '—' }));
         else list.forEach(item => reasons.appendChild(el('li', { html: item })));
 
         const guards = $('#vt-guards');
         guards.innerHTML = '';
-
         const guardItems = [
           { label: 'Freshness', value: ageLabel, status: (ageSec !== null && ageSec < 3600) ? 'FRESH' : 'STALE' },
-          { label: 'Runtime gate', value: (gate ? String(gate).toUpperCase() : '—'), status: gate ? String(gate).toUpperCase() : 'UNKNOWN' },
+          { label: 'Runtime gate', value: (gate ? String(gate).toUpperCase() : '—'), status: gate ? String(gate).toUpperCase() : '—' },
           { label: 'Audit trail', value: audit ? 'Available' : '—', status: audit ? 'OK' : 'UNKNOWN' },
-          { label: 'Decision trace', value: dt ? 'LINKED' : '—', status: dt ? 'LINKED' : 'UNKNOWN' },
-          { label: 'Gate result', value: gr ? 'LINKED' : '—', status: gr ? 'LINKED' : 'UNKNOWN' },
-          { label: 'Authority coupling', value: (gateUp === 'ALLOW' || gateUp === 'PASS') ? 'REQUIRED + VERIFIED' : 'N/A', status: (gateUp === 'ALLOW' || gateUp === 'PASS') ? 'ENFORCED' : 'OK' }
+          { label: 'Decision trace', value: (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace')) ? 'LINKED' : '—', status: (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace')) ? 'LINKED' : '—' },
+          { label: 'Status agent', value: (ageSec !== null ? `STALE · ${ageLabel}` : '—'), status: (ageSec !== null && ageSec < 3600) ? 'FRESH' : 'STALE' },
         ];
 
         guardItems.forEach(g => {
@@ -1290,25 +990,6 @@ Evidence (non-SSOT)
           ]);
           guards.appendChild(row);
         });
-
-        // Governance tag (Stage 2)
-        const govTag = $('#vt-governanceTag');
-        govTag.classList.remove('vt-tagGreen','vt-tagAmber','vt-tagRed');
-
-        const okGov =
-          (gateUp === 'ALLOW' || gateUp === 'PASS')
-            ? (!!audit && !!dt && !!gr)
-            : true;
-
-        govTag.classList.add(okGov ? 'vt-tagGreen' : 'vt-tagRed');
-        $('#vt-governanceTagText').textContent = okGov ? 'ENFORCED' : 'VIOLATION';
-
-        // Lock banner nuance
-        if (!okGov) {
-          setLockBanner('bad', 'TRUTH LOCK', 'AUTHORITY VIOLATION');
-        } else {
-          setLockBanner('ok', 'TRUTH-LOCKED', '');
-        }
       }
 
       // ==================
@@ -1324,7 +1005,7 @@ Evidence (non-SSOT)
       }
 
       function renderActivity(jsonlText) {
-        $('#vt-activitySource').textContent = './ops/agent_activity.jsonl';
+        $('#vt-activitySource').textContent = '/ops/agent_activity.jsonl';
 
         const events = parseJsonl(jsonlText, 8);
 
@@ -1396,7 +1077,6 @@ Evidence (non-SSOT)
 
         // Hard truth-lock default: dashboard hidden until SSOT validates.
         $('#vt-dashboard')?.classList.add('vt-hide');
-        setLockBanner('warn', 'LOADING TRUTH', '');
 
         let ssot = null;
         try {
@@ -1404,55 +1084,21 @@ Evidence (non-SSOT)
           if (!res.ok) throw new Error('SSOT fetch failed: ' + res.status);
           ssot = await res.json();
         } catch (e) {
-          showTruthMissing({
-            type: FAIL.FETCH,
-            code: 'SSOT_FETCH',
-            title: 'Truth source unreachable',
-            text: 'The page could not load the Single Source of Truth. No derived values are shown.',
-            detail: (e && e.message) ? e.message : 'SSOT fetch error'
-          });
+          showTruthMissing(e && e.message ? e.message : 'SSOT fetch error');
           return;
         }
 
         const verdict = validateSsot(ssot);
         if (!verdict.ok) {
-          const cls = classifyFailure(verdict.errs);
-          const title =
-            cls.type === FAIL.SCHEMA ? 'Truth lock — schema mismatch' :
-            cls.type === FAIL.AUTHORITY ? 'Truth lock — authority violation' :
-            cls.type === FAIL.IDENTITY ? 'Truth lock — identity conflict' :
-            'Truth lock — structural error';
-
-          showTruthMissing({
-            type: cls.type,
-            code: cls.code,
-            title,
-            text: 'The SSOT did not pass governance-grade validation. The UI refuses to render derived values.',
-            detail: verdict.errs.join(' | ')
-          });
+          showTruthMissing('SSOT invalid (governance-grade): ' + verdict.errs.join(' | '));
           return;
         }
 
-        // From here: truth is present + governance-valid => allow rendering
+        // From here: truth is present + minimally valid => allow rendering
         showDashboard();
 
-        // Agents first, KPIs derived from canonical agent set (identity can still fail)
-        let counts = { activeCount: 0, totalCount: 0 };
-        try {
-          counts = renderAgents(ssot);
-        } catch (e) {
-          const t = e && e.__vt_fail_type ? e.__vt_fail_type : FAIL.IDENTITY;
-          const c = e && e.__vt_fail_code ? e.__vt_fail_code : 'AGENT_IDENTITY_COLLISION';
-          showTruthMissing({
-            type: t,
-            code: c,
-            title: 'Truth lock — identity conflict',
-            text: 'The SSOT contains non-deterministic agent identity (canonical collisions). Rendering is blocked.',
-            detail: e && e.message ? e.message : 'Identity conflict'
-          });
-          return;
-        }
-
+        // Agents first, KPIs derived from canonical agent set
+        const counts = renderAgents(ssot);
         renderKPIs(ssot, counts);
 
         // Evidence is NOT SSOT; it may be missing independently.

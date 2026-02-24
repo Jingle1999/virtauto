@@ -244,87 +244,85 @@
 
   <!-- Mini-Dashboard + Badge updater -->
   <script>
-    async function updateMiniDashboard() {
-      const box = document.getElementById('mini-dashboard');
-      if (!box) return;
+    
+async function updateMiniDashboard() {
+        try {
+          const [ssotRes, regRes] = await Promise.all([
+            fetch('/ops/reports/system_status.json', { cache: 'no-store' }),
+            fetch('/website/registry.yaml', { cache: 'no-store' }),
+          ]);
 
-      try {
-        const res = await fetch('/status/status.json', { cache: 'no-store' });
-        const data = await res.json();
-        const agents = Array.isArray(data.agents) ? data.agents : [];
+          if (!ssotRes.ok) throw new Error(`SSOT fetch failed: HTTP ${ssotRes.status}`);
 
-        const ok = agents.filter(a => (a.status || '').toLowerCase() === 'ok').length;
-        const issue = agents.filter(a => (a.status || '').toLowerCase() === 'issue').length;
-        const unknown = agents.filter(a => !['ok','issue'].includes((a.status||'').toLowerCase())).length;
+          const ssot = await ssotRes.json();
 
-        box.innerHTML = `
-          <div><strong>${ok}</strong> OK</div>
-          <div class="issue"><strong>${issue}</strong> Issues</div>
-          <div><strong>${unknown}</strong> Unknown</div>
-        `;
-      } catch (err) {
-        box.innerHTML = '<span class="issue">Status unavailable</span>';
-      }
-    }
+          // Registry is optional (UI can still render basic info from SSOT)
+          let reg = { agents: [] };
+          try {
+            const regText = regRes.ok ? await regRes.text() : '';
+            reg = (regText ? (jsyaml.load(regText) || reg) : reg);
+          } catch {}
 
-    (async () => {
-      const badgeEl = document.getElementById('agentic-status');
-      const chipsEl = document.getElementById('agent-chips');
+          const agentsMap = ssot && ssot.agents && typeof ssot.agents === 'object' ? ssot.agents : {};
+          const systemState = String(ssot.system_state || (ssot.system && ssot.system.state) || 'UNKNOWN').toLowerCase();
+          const generatedAt = ssot.generated_at || null;
 
-      if (!badgeEl) return;
+          // Status badge
+          if ($statusBadge) {
+            $statusBadge.className = `status-badge ${systemState}`;
+            $statusBadge.textContent = `System: ${systemState}`;
+          }
 
-      const setBadge = (state, html, title='') => {
-        badgeEl.classList.toggle('ok',    state === 'ok');
-        badgeEl.classList.toggle('issue', state === 'issue');
-        badgeEl.innerHTML = `<span class="dot"></span> ${html}`;
-        if (title) badgeEl.title = title;
-      };
+          // Chips: show registry agents (stable naming) enriched by SSOT (truth)
+          if ($chips) {
+            const canonicalKey = (k) => String(k || '')
+              .trim()
+              .toLowerCase()
+              .replace(/\s+/g, '_')
+              .replace(/-+/g, '_')
+              .replace(/__+/g, '_')
+              .replace(/^_+|_+$/g, '');
 
-      const chip = (agent) => {
-        const st = (agent.status || '').toLowerCase();
-        const cls = ['agent-chip', st || 'unknown'].join(' ');
-        const code = agent.http?.code ? ` (${agent.http.code})` : '';
-        const note = agent.notes ? ` — ${agent.notes}` : '';
-        const href = '/status/agents.html#' + encodeURIComponent(agent.agent || '').toLowerCase();
-        return `<a class="${cls}" href="${href}" title="${agent.agent}: ${agent.status}${code}${note}">
-                  <span class="dot"></span><span>${agent.agent || 'unknown'}</span>
-                </a>`;
-      };
+            const sourceAgents = Array.isArray(reg.agents) && reg.agents.length
+              ? reg.agents
+              : Object.keys(agentsMap).map(k => ({ name: k, status_key: k }));
 
-      try {
-        const r  = await fetch('/status/status.json', { cache: 'no-store' });
-        if (!r.ok) throw new Error('status.json not found');
-        const data    = await r.json();
-        const agents  = Array.isArray(data.agents) ? data.agents : [];
-        const ts      = agents[0]?.timestamp?.replace(' UTC','') || '';
-        const bad     = agents.filter(a => ['issue','error'].includes((a.status||'').toLowerCase()));
-        const prep    = agents.filter(a => (a.status||'').toLowerCase() === 'preparing');
-        const okAll   = bad.length === 0 && agents.every(a => ['ok','preparing'].includes((a.status||'').toLowerCase()));
+            const items = sourceAgents.map(a => {
+              const key = canonicalKey(a.status_key || a.id || a.name);
+              const live =
+                agentsMap[key] ||
+                agentsMap[a.status_key] ||
+                agentsMap[a.id] ||
+                agentsMap[a.name] ||
+                null;
 
-        const details = (bad.length ? bad : agents).map(a => {
-          const code = a.http?.code ? ` (${a.http.code})` : '';
-          const note = a.notes ? ` — ${a.notes}` : '';
-          return `${a.agent}: ${a.status}${code}${note}`;
-        }).join(' • ');
+              const st = (live && (live.state || live.status))
+                ? String(live.state || live.status).toLowerCase()
+                : 'unknown';
 
-        const label = `Agentic Website — last self-check: ${ts || '—'} — ${okAll ? 'OK' : 'ISSUE'}`
-                      + (prep.length ? ` (preparing ${prep.length})` : '');
+              return { name: a.name || a.id || key, status: st };
+            });
 
-        setBadge(okAll ? 'ok' : 'issue', label, details || 'all agents healthy');
+            $chips.innerHTML = items.map(a => {
+              const clean = String(a.status || 'unknown').toLowerCase();
+              return `<span class="status-chip ${clean}">${a.name}: ${clean}</span>`;
+            }).join('');
+          }
 
-        if (chipsEl) {
-          const order = { issue: 0, error: 0, preparing: 1, ok: 2 };
-          agents.sort((a,b) => (order[(a.status||'').toLowerCase()] ?? 3) - (order[(b.status||'').toLowerCase()] ?? 3));
-          chipsEl.innerHTML = agents.map(chip).join('');
+          // Timestamp (optional)
+          const $ts = document.getElementById('status-generated-at');
+          if ($ts) $ts.textContent = generatedAt ? String(generatedAt) : '—';
+
+        } catch (e) {
+          if ($statusBadge) {
+            $statusBadge.className = 'status-badge issue';
+            $statusBadge.textContent = 'System: unknown';
+          }
+          if ($chips) $chips.innerHTML = '<span class="status-chip issue">SSOT unavailable</span>';
         }
-
-      } catch {
-        setBadge('issue', 'Agentic Website — status unavailable');
-        if (chipsEl) chipsEl.innerHTML = '';
       }
-    })();
 
-    updateMiniDashboard();
+updateMiniDashboard();
     setInterval(updateMiniDashboard, 60000);
   </script>
 </body>
