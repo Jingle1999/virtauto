@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "system_state": [
+    "ACTIVE",
+    "DEGRADED",
+    "BLOCKED",
+    "UNKNOWN"
+  ],
+  "agent_state": [
+    "ACTIVE",
+    "PLANNED",
+    "INACTIVE",
+    "ERROR",
+    "UNKNOWN"
+  ],
+  "autonomy_mode": [
+    "AUTONOMOUS",
+    "SUPERVISED",
+    "MANUAL",
+    "DISABLED",
+    "UNKNOWN"
+  ],
+  "health_signal": [
+    "GREEN",
+    "YELLOW",
+    "RED",
+    "UNKNOWN"
+  ]
+}
