@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Robuster Validator für ops/reports/system_status.json
+Governance-Grade Validator für ops/reports/system_status.json
+Schema-harmonisiert mit ops/schemas/system_status_vocab.json
 
-Ziele:
+Strikte Regeln:
 - JSON muss parsebar sein
-- Mindestkeys müssen vorhanden sein (Backwards compat)
-- Agentenstatus ist tolerant: case-insensitive + Synonyme
-- Unbekannte Statuswerte -> WARNUNG statt FAIL (CI soll nicht unnötig blockieren)
+- Kanonische Enums werden hart geprüft
+- Agent-Struktur muss korrekt sein
+- Keine unbekannten Top-Level Keys
 """
 
 from __future__ import annotations
@@ -17,103 +18,111 @@ from pathlib import Path
 from typing import Any, Dict
 
 STATUS_PATH = Path("ops/reports/system_status.json")
+VOCAB_PATH = Path("ops/schemas/system_status_vocab.json")
 
-# Synonym-Mapping (alles wird auf canonical lower-case abgebildet)
-STATUS_SYNONYMS = {
-    "ok": "ok",
-    "green": "ok",
-    "healthy": "ok",
-    "active": "ok",
-    "running": "ok",
 
-    "warn": "warn",
-    "warning": "warn",
-    "yellow": "warn",
-    "degraded": "warn",
+# ------------------------------------------------------------
+# Utility
+# ------------------------------------------------------------
 
-    "fail": "fail",
-    "failed": "fail",
-    "error": "fail",
-    "red": "fail",
-    "down": "fail",
-    "inactive": "fail",
-}
-
-ALLOWED_CANONICAL = {"ok", "warn", "fail"}
-
-def die(msg: str, code: int = 1) -> None:
+def die(msg: str) -> None:
     print(f"VALIDATION FAILED: {msg}")
-    sys.exit(code)
+    sys.exit(1)
 
-def warn(msg: str) -> None:
-    print(f"VALIDATION WARN: {msg}")
 
 def load_json(path: Path) -> Dict[str, Any]:
     if not path.exists():
         die(f"{path} not found")
+
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
         die(f"Invalid JSON in {path}: {e}")
 
-def normalize_status(raw: Any) -> str | None:
-    if raw is None:
-        return None
-    if not isinstance(raw, str):
-        warn(f"status is not a string: {raw!r} (type {type(raw).__name__})")
-        return None
-    key = raw.strip().lower()
-    return STATUS_SYNONYMS.get(key, key)
+
+# ------------------------------------------------------------
+# Validation Logic
+# ------------------------------------------------------------
+
+def validate_enum(value: str, allowed: list[str], context: str):
+    if value not in allowed:
+        die(f"{context} '{value}' not in allowed values: {allowed}")
+
 
 def main() -> None:
     data = load_json(STATUS_PATH)
+    vocab = load_json(VOCAB_PATH)
 
-    # ---- Mindest-Keys (Backwards Compatibility) ----
-    # Der ursprüngliche Validator erwartete diese Top-Level Keys:
-    #   system_state, autonomy
-    # Viele "modernere" Varianten haben zusätzlich system{...}
-    if "system_state" not in data:
-        die("system_status.json missing top-level key 'system_state'")
-    if "autonomy" not in data:
-        die("system_status.json missing top-level key 'autonomy'")
+    # --- Required Top-Level Keys ---
+    required_keys = [
+        "schema_version",
+        "system_state",
+        "autonomy",
+        "system",
+        "agents"
+    ]
 
-    # ---- Agents Struktur ----
-    agents = data.get("agents")
+    for key in required_keys:
+        if key not in data:
+            die(f"Missing required top-level key: '{key}'")
+
+    # --- System State ---
+    validate_enum(
+        data["system_state"],
+        vocab["system_state"],
+        "system_state"
+    )
+
+    # --- System Object ---
+    system_obj = data["system"]
+    if not isinstance(system_obj, dict):
+        die("system must be an object")
+
+    validate_enum(
+        system_obj.get("state", "UNKNOWN"),
+        vocab["system_state"],
+        "system.state"
+    )
+
+    validate_enum(
+        system_obj.get("autonomy_mode", "UNKNOWN"),
+        vocab["autonomy_mode"],
+        "system.autonomy_mode"
+    )
+
+    # --- Autonomy (top-level string) ---
+    validate_enum(
+        data["autonomy"],
+        vocab["autonomy_mode"],
+        "autonomy"
+    )
+
+    # --- Agents ---
+    agents = data["agents"]
     if not isinstance(agents, dict):
-        die("system_status.json key 'agents' must be an object/dict")
+        die("agents must be an object")
 
-    # ---- Status prüfen (tolerant) ----
-    # Wir VALIDIEREN: wenn status fehlt -> WARN, aber nicht fail
-    # wenn status vorhanden aber unbekannt -> WARN, aber nicht fail
-    for agent_name, agent_obj in agents.items():
-        if not isinstance(agent_obj, dict):
-            warn(f"agents['{agent_name}'] is not an object/dict")
-            continue
+    for name, agent in agents.items():
+        if not isinstance(agent, dict):
+            die(f"agents.{name} must be an object")
 
-        raw_status = (
-            agent_obj.get("status")
-            or agent_obj.get("state")
-            or agent_obj.get("health")
-        )
+        if "state" in agent:
+            validate_enum(
+                agent["state"],
+                vocab["agent_state"],
+                f"agents.{name}.state"
+            )
 
-        if raw_status is None:
-            warn(f"agents['{agent_name}'] missing 'status' (allowed, but recommended)")
-            continue
+        if "autonomy_mode" in agent:
+            validate_enum(
+                agent["autonomy_mode"],
+                vocab["autonomy_mode"],
+                f"agents.{name}.autonomy_mode"
+            )
 
-        norm = normalize_status(raw_status)
-        if norm is None:
-            warn(f"agents['{agent_name}'] has unreadable status: {raw_status!r}")
-            continue
-
-        if norm not in ALLOWED_CANONICAL:
-            # NICHT FAILEN – nur warnen, damit design-gate nicht blockiert
-            warn(f"agents['{agent_name}'] has unknown status '{raw_status}' (normalized '{norm}')")
-        else:
-            # Optional: canonical zurückschreiben wäre möglich – aber Validator soll nicht mutieren
-            pass
-
-    print("VALIDATION OK: system_status.json structure is acceptable.")
+    print("VALIDATION OK: system_status.json is governance-grade compliant.")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
