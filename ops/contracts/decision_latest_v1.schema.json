@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.virtauto.de/ops/contracts/decision_latest_v1.schema.json",
+  "title": "virtauto Decision Contract (latest) — v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "decision_id",
+    "created_at",
+    "intent",
+    "state_hash",
+    "constraints_applied",
+    "authority_scope",
+    "risk_class",
+    "economic_kpi_ref",
+    "execution_mode",
+    "escalation_path",
+    "trace_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Contract schema version (frozen)."
+    },
+    "decision_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$",
+      "description": "Stable decision identifier."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp when the contract was created."
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "Human/audit-friendly statement of what is being proposed/executed."
+    },
+    "state_hash": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 256,
+      "pattern": "^[A-Fa-f0-9]+$",
+      "description": "Hash of canonical context snapshot (SSOT-derived)."
+    },
+    "constraints_applied": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      },
+      "description": "Ordered list of constraints that were applied (deterministic order)."
+    },
+    "authority_scope": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "description": "Authority class/scope required for this decision (maps to authority graph)."
+    },
+    "risk_class": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+      "description": "Risk class used for escalation and hard limits."
+    },
+    "economic_kpi_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "description": "Reference key for the economic KPI binding."
+    },
+    "execution_mode": {
+      "type": "string",
+      "enum": ["PROPOSE", "VALIDATE", "EXECUTE"],
+      "description": "Technical separation: agents propose; GEORGE validates; adapters execute."
+    },
+    "escalation_path": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      },
+      "description": "Ordered escalation chain (graph keys), e.g. Supervisor -> LeadController -> GEORGE."
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$",
+      "description": "Trace identifier tying contract to decision_trace.jsonl."
+    },
+
+    "context_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "description": "Optional references (paths/URLs) to input artifacts used for the decision."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "EXECUTED", "ROLLEDBACK"],
+      "description": "Optional lifecycle state for ops visibility."
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 4000,
+      "description": "Optional human/audit notes."
+    }
+  }
+}
