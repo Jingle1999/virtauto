@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.virtauto.de/ops/contracts/decision_trace_record_v1.schema.json",
+  "title": "virtauto Decision Trace Record — v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "timestamp",
+    "trace_id",
+    "decision_id",
+    "actor",
+    "event"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Trace record schema version."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp (append-only log)."
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$",
+      "description": "Trace identifier (must match the contract trace_id)."
+    },
+    "decision_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$",
+      "description": "Decision identifier."
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["AGENT", "HUMAN", "SYSTEM"],
+          "description": "Who produced the record."
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Agent key / username / system component id."
+        },
+        "role": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Optional role label (e.g., orchestrator, validator)."
+        }
+      }
+    },
+    "event": {
+      "type": "string",
+      "enum": [
+        "CONTRACT_CREATED",
+        "CONTRACT_UPDATED",
+        "PROPOSED",
+        "VALIDATED",
+        "APPROVED",
+        "REJECTED",
+        "EXECUTION_REQUESTED",
+        "EXECUTED",
+        "ROLLBACK_REQUESTED",
+        "ROLLEDBACK",
+        "ESCALATED",
+        "BLOCKED"
+      ],
+      "description": "Canonical event type."
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["ALLOW", "BLOCK", "ESCALATE", "UNKNOWN"],
+      "description": "Optional governance-grade verdict for this event."
+    },
+    "contract_ref": {
+      "type": "string",
+      "maxLength": 512,
+      "description": "Optional pointer to the decision contract artifact (path/URL)."
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "description": "Optional pointers to related artifacts (gate_result, reports, diffs)."
+    },
+    "message": {
+      "type": "string",
+      "maxLength": 4000,
+      "description": "Optional human-readable note."
+    }
+  }
+}
