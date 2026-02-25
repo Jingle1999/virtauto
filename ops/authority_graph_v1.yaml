@@ -1,0 +1,143 @@
+version: "1.0"
+status: "FROZEN"
+name: "virtauto Authority Graph v1"
+description: >
+  Directed authority graph defining delegation, escalation, and revocation.
+  Autonomy is defined as enforceable permissions over actions (not marketing).
+  This file is the frozen v1 reference for Phase 10 preparation.
+
+# ------------------------------------------------------------
+# Autonomy Levels (exact, enforceable)
+# ------------------------------------------------------------
+autonomy_levels:
+  MANUAL:
+    description: "No autonomous decisioning; human/operator must approve and execute."
+  SUPERVISED:
+    description: "Agents may PROPOSE; authority must VALIDATE/APPROVE; execution via adapters only."
+  AUTONOMOUS:
+    description: "Allowed only inside a pre-defined envelope; still requires trace + constraints; revocable."
+
+# ------------------------------------------------------------
+# Canonical Actions (enforceable verbs)
+# ------------------------------------------------------------
+actions:
+  - PROPOSE
+  - VALIDATE
+  - APPROVE
+  - EXECUTE
+  - REVOKE
+  - ESCALATE
+  - BLOCK
+  - ROLLBACK
+
+# ------------------------------------------------------------
+# Nodes (authority classes)
+# Keys are stable identifiers used by escalation_path / authority_scope
+# ------------------------------------------------------------
+nodes:
+  operator:
+    label: "Operator"
+    autonomy_level: "MANUAL"
+    allowed_actions: [PROPOSE]
+  supervisor:
+    label: "Supervisor"
+    autonomy_level: "SUPERVISED"
+    allowed_actions: [PROPOSE, VALIDATE, ESCALATE]
+  engineer:
+    label: "Engineer"
+    autonomy_level: "SUPERVISED"
+    allowed_actions: [PROPOSE, VALIDATE, ESCALATE]
+  plant_head:
+    label: "Plant Head"
+    autonomy_level: "SUPERVISED"
+    allowed_actions: [PROPOSE, VALIDATE, APPROVE, ESCALATE]
+  lead_controller:
+    label: "Lead Controller"
+    autonomy_level: "SUPERVISED"
+    allowed_actions: [PROPOSE, VALIDATE, APPROVE, REVOKE, ESCALATE, BLOCK, ROLLBACK]
+  george:
+    label: "GEORGE (System Authority)"
+    autonomy_level: "SUPERVISED"
+    allowed_actions: [VALIDATE, APPROVE, REVOKE, ESCALATE, BLOCK, ROLLBACK]
+
+# ------------------------------------------------------------
+# Edges (directed)
+# type: DELEGATION | ESCALATION | REVOCATION
+# ------------------------------------------------------------
+edges:
+  # Delegation (who may act under whose delegated scope)
+  - from: supervisor
+    to: operator
+    type: DELEGATION
+    scope: "local_ops_only"
+  - from: engineer
+    to: operator
+    type: DELEGATION
+    scope: "engineering_change_proposals_only"
+  - from: plant_head
+    to: supervisor
+    type: DELEGATION
+    scope: "shift_ops"
+  - from: lead_controller
+    to: plant_head
+    type: DELEGATION
+    scope: "plant_operations"
+  - from: george
+    to: lead_controller
+    type: DELEGATION
+    scope: "system_governance_execution_authority"
+
+  # Escalation (fixed path)
+  - from: operator
+    to: supervisor
+    type: ESCALATION
+    reason: "approval_required_or_risk"
+  - from: supervisor
+    to: plant_head
+    type: ESCALATION
+    reason: "risk_medium_or_higher"
+  - from: plant_head
+    to: lead_controller
+    type: ESCALATION
+    reason: "risk_high_or_policy"
+  - from: lead_controller
+    to: george
+    type: ESCALATION
+    reason: "risk_critical_or_system_level_change"
+
+  # Revocation (who can revoke whom)
+  - from: supervisor
+    to: operator
+    type: REVOCATION
+  - from: plant_head
+    to: supervisor
+    type: REVOCATION
+  - from: lead_controller
+    to: plant_head
+    type: REVOCATION
+  - from: george
+    to: lead_controller
+    type: REVOCATION
+
+# ------------------------------------------------------------
+# Formal Rules (deterministic)
+# ------------------------------------------------------------
+rules:
+  - id: "R1_PROPOSE_ONLY_FOR_AGENTS"
+    statement: "Non-authority actors (agents) may only PROPOSE; they cannot EXECUTE."
+  - id: "R2_VALIDATE_BEFORE_EXECUTE"
+    statement: "Every EXECUTE must be preceded by VALIDATE and APPROVE in the trace."
+  - id: "R3_ESCALATION_PATH_FIXED"
+    statement: "Escalation must follow an existing ESCALATION edge chain."
+  - id: "R4_REVOCATION_OVERRIDES"
+    statement: "REVOCATION immediately invalidates delegated permissions until re-granted."
+  - id: "R5_GEORGE_IS_FINAL"
+    statement: "GEORGE can BLOCK/REVOKE any decision; system-level changes require GEORGE approval."
+
+# Convenience defaults for contracts (so Stage 3 validation can be strict)
+defaults:
+  escalation_path_by_risk:
+    LOW:      [supervisor]
+    MEDIUM:   [supervisor, plant_head]
+    HIGH:     [supervisor, plant_head, lead_controller]
+    CRITICAL: [supervisor, plant_head, lead_controller, george]
