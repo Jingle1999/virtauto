@@ -1,0 +1,39 @@
+name: Governance Required Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  simulate_decision_proposal:
+    name: simulate_decision_proposal (pull_request)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run decision proposal simulation (Phase A)
+        env:
+          CI: "1"
+          # In CI we write trace to a temp file to avoid dirtying repo paths
+          VT_TRACE_PATH: "/tmp/decision_trace.simulation.jsonl"
+        run: |
+          set -euo pipefail
+          python3 ops/simulate_decision_proposal_v1.py ops/examples/decision_proposal_example_v1.json
+
+      - name: Upload simulation trace (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: decision_trace_simulation
+          path: /tmp/decision_trace.simulation.jsonl
+          if-no-files-found: ignore
