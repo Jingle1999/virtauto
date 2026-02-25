@@ -418,6 +418,7 @@
           <span class="vt-pill"><span class="vt-dot"></span> Agentic Website — <strong>Live in Production</strong></span>
           <span class="vt-pill">Truth Source: <strong id="vt-truthSourceLabel">system_status.json</strong></span>
           <span class="vt-pill">Freshness: <strong id="vt-freshnessLabel">—</strong></span>
+          <span class="vt-pill">Vocab: <strong id="vt-vocabLabel">—</strong></span>
         </div>
 
         <div class="vt-emptyState vt-hide" id="vt-truthMissing">
@@ -519,6 +520,7 @@
                   <p class="vt-kpiLabel">Truth lock</p>
                   <p class="vt-kpiHint" style="margin-top:2px;">
                     This page reads from <strong id="vt-truthPath">./ops/reports/system_status.json</strong><br/>
+                    Vocab from: <strong id="vt-vocabPath">./ops/schemas/system_status_vocab.json</strong><br/>
                     Generated at: <strong id="vt-generatedAt">—</strong><br/>
                     Environment: <strong id="vt-environment">—</strong>
                   </p>
@@ -591,11 +593,21 @@
     (() => {
       'use strict';
 
-      // ================
+      // =================
       // Constants / paths
-      // ================
-      const SSOT_PATH = '/ops/reports/system_status.json';     // SSOT (absolute path)
-      const AGENT_ACTIVITY_PATH = '/ops/agent_activity.jsonl'; // evidence (absolute path)
+      // =================
+      const SSOT_PATH  = '../ops/reports/system_status.json';          // relative from /status/
+      const VOCAB_PATH = '../ops/schemas/system_status_vocab.json';    // relative from /status/
+      const AGENT_ACTIVITY_PATH = '../ops/agent_activity.jsonl';       // relative from /status/
+
+      // Embedded fallback (keeps UI operational even if vocab file is temporarily unavailable)
+      const DEFAULT_VOCAB = {
+        "version": "1.0",
+        "system_state": ["ACTIVE","DEGRADED","BLOCKED","UNKNOWN"],
+        "agent_state": ["ACTIVE","PLANNED","INACTIVE","ERROR","UNKNOWN"],
+        "autonomy_mode": ["AUTONOMOUS","SUPERVISED","MANUAL","DISABLED","UNKNOWN"],
+        "health_signal": ["GREEN","YELLOW","RED","UNKNOWN"]
+      };
 
       // ==========
       // DOM helpers
@@ -646,6 +658,7 @@
         return `${d} d ago`;
       };
 
+      // Visual tag mapping (UI only)
       const tagClassFor = (signal) => {
         const s = String(signal || '').toUpperCase();
         if (s.includes('GREEN') || s === 'OK' || s === 'ALLOW' || s === 'PASS' || s === 'ACTIVE') return 'vt-tagGreen';
@@ -654,6 +667,7 @@
         return 'vt-tagAmber';
       };
 
+      // Pills for results-like statuses (OK/WARN/FAIL etc.)
       const pillClassForStatus = (status) => {
         const s = String(status || '').toUpperCase();
         if (['OK', 'PASS', 'ALLOW', 'ACTIVE', 'OPERATIONAL', 'GREEN'].some(x => s.includes(x))) return 'vt-ok';
@@ -718,61 +732,96 @@
         $('#vt-dashboard')?.classList.remove('vt-hide');
       }
 
-      function validateSsot(ssot) {
-        const errs = [];
+      // ==========================
+      // Vocab normalization helpers
+      // ==========================
+      function normalizeEnumValue(v) {
+        if (v === undefined || v === null) return null;
+        return String(v).trim().toUpperCase();
+      }
 
-        const pick = (obj, path) => {
-          try {
-            return path.split('.').reduce((acc, k) => (acc && acc[k] !== undefined) ? acc[k] : undefined, obj);
-          } catch { return undefined; }
-        };
+      function ensureVocabShape(v) {
+        const errs = [];
+        const obj = (v && typeof v === 'object' && !Array.isArray(v)) ? v : null;
+        if (!obj) errs.push('Vocab is not an object.');
+
+        const keys = ['system_state','agent_state','autonomy_mode','health_signal'];
+        for (const k of keys) {
+          const arr = obj?.[k];
+          if (!Array.isArray(arr) || arr.some(x => typeof x !== 'string')) errs.push(`Vocab missing/invalid: ${k}`);
+        }
+        return { ok: errs.length === 0, errs };
+      }
+
+      function makeAllowSet(vocab, key) {
+        const arr = Array.isArray(vocab?.[key]) ? vocab[key] : [];
+        return new Set(arr.map(normalizeEnumValue).filter(Boolean));
+      }
+
+      // ==========================
+      // Governance-grade SSOT validation (UI)
+      // ==========================
+      function validateSsotAgainstVocab(ssot, vocab) {
+        const errs = [];
 
         if (!ssot || typeof ssot !== 'object' || Array.isArray(ssot)) errs.push('SSOT is not an object.');
         if (!pick(ssot, 'schema_version')) errs.push('Missing: schema_version');
         if (!pick(ssot, 'generated_at')) errs.push('Missing: generated_at');
+        if (!pick(ssot, 'agents')) errs.push('Missing: agents');
 
-        // --- Governance-grade semantic validation (strict, but aligned to repo vocab) ---
-        const sysStateRaw = pick(ssot, 'system_state') ?? pick(ssot, 'system.state');
-        if (!sysStateRaw) {
-          errs.push('Missing: system_state / system.state');
-        } else {
-          const sysState = String(sysStateRaw).toUpperCase();
-          const allowedSystemStates = new Set(['OK','ACTIVE','IDLE','DEGRADED','BLOCKED','UNKNOWN']);
-          if (!allowedSystemStates.has(sysState)) {
-            errs.push(`system state "${sysState}" not in allowed vocabulary: ${Array.from(allowedSystemStates).join(', ')}`);
-          }
+        // system state location is dual (top-level + nested)
+        const sysStateTop = normalizeEnumValue(pick(ssot, 'system_state') ?? pick(ssot, 'system.state'));
+        if (!sysStateTop) errs.push('Missing: system_state / system.state');
+
+        const vocabVerdict = ensureVocabShape(vocab);
+        if (!vocabVerdict.ok) {
+          // If vocab is malformed, we refuse derived rendering (truth lock stays strict).
+          errs.push('Vocab invalid: ' + vocabVerdict.errs.join(' | '));
+          return { ok: false, errs };
         }
 
-        const agents = pick(ssot, 'agents');
-        const okAgents = (agents && typeof agents === 'object') || Array.isArray(agents);
-        if (!okAgents) {
-          errs.push('Missing/invalid: agents (must be object-map or array).');
+        const allowSystem = makeAllowSet(vocab, 'system_state');
+        const allowAgent  = makeAllowSet(vocab, 'agent_state');
+        const allowAuto   = makeAllowSet(vocab, 'autonomy_mode');
+        const allowHealth = makeAllowSet(vocab, 'health_signal');
+
+        if (sysStateTop && !allowSystem.has(sysStateTop)) {
+          errs.push(`system_state "${sysStateTop}" not in allowed vocabulary: ${Array.from(allowSystem).join(', ')}`);
+        }
+
+        // health.signal (optional but if present must be in vocab)
+        const hs = normalizeEnumValue(pick(ssot, 'health.signal'));
+        if (hs && !allowHealth.has(hs)) {
+          errs.push(`health.signal "${hs}" not in allowed vocabulary: ${Array.from(allowHealth).join(', ')}`);
+        }
+
+        // agents structure can be object-map or array
+        const agentsRaw = pick(ssot, 'agents');
+        let agentEntries = [];
+        if (Array.isArray(agentsRaw)) {
+          agentEntries = agentsRaw.map((row, i) => ({ key: row?.agent || row?.key || row?.name || String(i), agent: row }));
+        } else if (agentsRaw && typeof agentsRaw === 'object') {
+          agentEntries = Object.entries(agentsRaw).map(([k, v]) => ({ key: k, agent: v }));
         } else {
-          const allowedAgentStates = new Set(['ACTIVE','IDLE','PLANNED','BLOCKED','DEGRADED','UNKNOWN']);
-          const allowedAutonomyModes = new Set(['MANUAL','SUPERVISED','AUTONOMOUS']);
+          errs.push('agents invalid (must be object-map or array).');
+          return { ok: false, errs };
+        }
 
-          const entries = Array.isArray(agents)
-            ? agents.map((row, i) => [String(row?.agent || row?.key || row?.name || i), row])
-            : Object.entries(agents);
+        for (const entry of agentEntries) {
+          const a = (entry.agent && typeof entry.agent === 'object') ? entry.agent : {};
+          const st = normalizeEnumValue(a.state ?? a.status);
+          const am = normalizeEnumValue(a.autonomy_mode ?? a.mode);
 
-          for (const [k, v] of entries) {
-            if (!v || typeof v !== 'object') continue;
+          // We require state to be present & allowed (governance-grade)
+          if (!st) {
+            errs.push(`agents["${entry.key}"].state missing`);
+          } else if (!allowAgent.has(st)) {
+            errs.push(`agents["${entry.key}"].state "${st}" not in allowed vocabulary: ${Array.from(allowAgent).join(', ')}`);
+          }
 
-            const st = (v.state ?? v.status);
-            if (st !== undefined && st !== null && st !== '') {
-              const up = String(st).toUpperCase();
-              if (!allowedAgentStates.has(up)) {
-                errs.push(`agents["${k}"].state "${up}" not in allowed vocabulary.`);
-              }
-            }
-
-            const am = (v.autonomy_mode ?? v.autonomyMode ?? v.mode);
-            if (am !== undefined && am !== null && am !== '') {
-              const up = String(am).toUpperCase();
-              if (!allowedAutonomyModes.has(up)) {
-                errs.push(`agents["${k}"].autonomy_mode "${up}" not in allowed vocabulary.`);
-              }
-            }
+          // autonomy_mode is optional, but if present must be allowed
+          if (am && !allowAuto.has(am)) {
+            errs.push(`agents["${entry.key}"].autonomy_mode "${am}" not in allowed vocabulary: ${Array.from(allowAuto).join(', ')}`);
           }
         }
 
@@ -788,8 +837,8 @@
         .replace(/\s+/g, '_')
         .replace(/-+/g, '_')
         .replace(/__+/g, '_')
-        .replace(/_agent$/g, '')         // deploy_agent -> deploy
-        .replace(/\bagent\b/g, '')       // "status agent" -> "status"
+        .replace(/_agent$/g, '')
+        .replace(/\bagent\b/g, '')
         .replace(/__+/g, '_')
         .replace(/^_+|_+$/g, '');
 
@@ -799,11 +848,9 @@
         .replace(/\b\w/g, (m) => m.toUpperCase());
 
       function normalizeAgents(agentsRaw) {
-        // returns: [{ key, canon, agent }]
         const items = [];
 
         if (Array.isArray(agentsRaw)) {
-          // schema allows array entries with {agent, state}
           for (const row of agentsRaw) {
             const key = row?.agent || row?.key || row?.name || '';
             if (!key) continue;
@@ -815,7 +862,6 @@
           }
         }
 
-        // Dedup by canonical identity
         const map = new Map();
 
         for (const it of items) {
@@ -830,8 +876,6 @@
             continue;
           }
 
-          // deterministic merge rule:
-          // Prefer ACTIVE over non-ACTIVE; else prefer object with more fields.
           const prev = map.get(canon);
           const prevA = prev.agent || {};
           const prevState = String(prevA?.state || prevA?.status || 'UNKNOWN').toUpperCase();
@@ -846,7 +890,6 @@
           if (pickNew) map.set(canon, { key: it.key, canon, agent });
         }
 
-        // stable order: core first, then alpha
         const priority = [
           'guardian','monitoring','content','george','consistency',
           'deploy','status','site_audit','executor'
@@ -918,7 +961,13 @@
 
         const autonomyPercent = safeNum(pick(ssot, 'autonomy_score.percent'));
         $('#vt-autonomyPercent').textContent = autonomyPercent !== null ? `${autonomyPercent.toFixed(1)}%` : '—';
-        $('#vt-autonomyMode').textContent = textOrDash(pick(ssot, 'system.autonomy_mode') ?? pick(ssot, 'system.autonomyMode') ?? pick(ssot, 'system.autonomy') ?? pick(ssot, 'autonomy'));
+        $('#vt-autonomyMode').textContent = textOrDash(
+          pick(ssot, 'system.autonomy_mode') ??
+          pick(ssot, 'system.autonomyMode') ??
+          pick(ssot, 'system.autonomy') ??
+          pick(ssot, 'autonomy_model.system_level') ??
+          pick(ssot, 'autonomy')
+        );
 
         const healthScore = safeNum(pick(ssot, 'health.overall_score')) ?? safeNum(pick(ssot, 'health.score'));
         const healthSignal = textOrDash(pick(ssot, 'health.signal'));
@@ -940,10 +989,11 @@
         $('#vt-kpiTagText').textContent = overallSignal || '—';
 
         const sysState = String(pick(ssot, 'system.state') ?? pick(ssot, 'system_state') ?? 'UNKNOWN').toUpperCase();
+        const sysMode = String(pick(ssot, 'system.mode') ?? '—');
         const sysTag = $('#vt-systemTag');
         sysTag.classList.remove('vt-tagGreen','vt-tagAmber','vt-tagRed');
         sysTag.classList.add(tagClassFor(sysState));
-        $('#vt-systemTagText').textContent = `${sysState} · STABILIZATION`;
+        $('#vt-systemTagText').textContent = `${sysState} · ${sysMode}`;
 
         $('#vt-generatedAt').textContent = textOrDash(pick(ssot, 'generated_at'));
         $('#vt-environment').textContent = textOrDash(pick(ssot, 'environment'));
@@ -954,7 +1004,8 @@
         $('#vt-freshnessLabel').textContent = ageLabel;
 
         $('#vt-truthSourceLabel').textContent = 'system_status.json';
-        $('#vt-truthPath').textContent = '/ops/reports/system_status.json';
+        $('#vt-truthPath').textContent = './ops/reports/system_status.json';
+        $('#vt-vocabPath').textContent = './ops/schemas/system_status_vocab.json';
 
         const reasons = $('#vt-governanceReasons');
         reasons.innerHTML = '';
@@ -964,11 +1015,16 @@
         if (healthScore !== null) list.push(`Health score is <strong>${healthScore}</strong>`);
         if (gate) list.push(`Governance gate verdict is <strong>${String(gate).toUpperCase()}</strong>`);
         if (audit) list.push(`Audit trail is <strong>${String(audit).toUpperCase()}</strong>`);
-        if (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace') || pick(ssot,'links.decision_trace')) list.push(`Decision trace is linked (audit trail available)`);
+        if (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace')) list.push(`Decision trace is linked (audit trail available)`);
         if (pick(ssot,'links.gate_result') || pick(ssot,'links.gateResult') || pick(ssot,'links.gate_result')) list.push(`Gate result artifact is linked`);
 
         if (list.length === 0) reasons.appendChild(el('li', { html: '—' }));
         else list.forEach(item => reasons.appendChild(el('li', { html: item })));
+
+        const govTag = $('#vt-governanceTag');
+        govTag.classList.remove('vt-tagGreen','vt-tagAmber','vt-tagRed');
+        govTag.classList.add(tagClassFor(String(gate || 'ALLOW').toUpperCase()));
+        $('#vt-governanceTagText').textContent = gate ? String(gate).toUpperCase() : 'ALLOW';
 
         const guards = $('#vt-guards');
         guards.innerHTML = '';
@@ -1005,7 +1061,7 @@
       }
 
       function renderActivity(jsonlText) {
-        $('#vt-activitySource').textContent = '/ops/agent_activity.jsonl';
+        $('#vt-activitySource').textContent = './ops/agent_activity.jsonl';
 
         const events = parseJsonl(jsonlText, 8);
 
@@ -1072,29 +1128,50 @@
         return u.toString();
       }
 
+      async function loadJson(url, label) {
+        const res = await fetch(withCacheBust(url), { cache: 'no-store', headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error(`${label} fetch failed: ${res.status}`);
+        return await res.json();
+      }
+
       async function load() {
         await injectHeader();
 
         // Hard truth-lock default: dashboard hidden until SSOT validates.
         $('#vt-dashboard')?.classList.add('vt-hide');
 
+        // Load vocab (strict if present, but has embedded fallback)
+        let vocab = DEFAULT_VOCAB;
+        try {
+          const v = await loadJson(VOCAB_PATH, 'Vocab');
+          const vv = ensureVocabShape(v);
+          if (vv.ok) {
+            vocab = v;
+            $('#vt-vocabLabel').textContent = `loaded v${textOrDash(v.version)}`;
+          } else {
+            $('#vt-vocabLabel').textContent = 'fallback (invalid vocab)';
+          }
+        } catch {
+          $('#vt-vocabLabel').textContent = 'fallback (unavailable)';
+        }
+
+        // Load SSOT
         let ssot = null;
         try {
-          const res = await fetch(withCacheBust(SSOT_PATH), { cache: 'no-store', headers: { 'Accept': 'application/json' } });
-          if (!res.ok) throw new Error('SSOT fetch failed: ' + res.status);
-          ssot = await res.json();
+          ssot = await loadJson(SSOT_PATH, 'SSOT');
         } catch (e) {
           showTruthMissing(e && e.message ? e.message : 'SSOT fetch error');
           return;
         }
 
-        const verdict = validateSsot(ssot);
+        // Validate SSOT against vocab (Stage 3)
+        const verdict = validateSsotAgainstVocab(ssot, vocab);
         if (!verdict.ok) {
-          showTruthMissing('SSOT invalid (governance-grade): ' + verdict.errs.join(' | '));
+          showTruthMissing('SSOT invalid (vocab-synced): ' + verdict.errs.join(' | '));
           return;
         }
 
-        // From here: truth is present + minimally valid => allow rendering
+        // From here: truth is present + governance-grade vocab-valid => allow rendering
         showDashboard();
 
         // Agents first, KPIs derived from canonical agent set
@@ -1102,7 +1179,6 @@
         renderKPIs(ssot, counts);
 
         // Evidence is NOT SSOT; it may be missing independently.
-        // That is fine: we still show the evidence panel as "unavailable" without inventing numbers.
         try {
           const res = await fetch(withCacheBust(AGENT_ACTIVITY_PATH), { cache: 'no-store' });
           if (!res.ok) throw new Error('activity fetch failed: ' + res.status);
