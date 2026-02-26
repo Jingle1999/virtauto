@@ -14,6 +14,10 @@ permissions:
 
 jobs:
   checks:
+    
+    name: review-gate
+    runs-on: ubuntu-latest
+  
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
