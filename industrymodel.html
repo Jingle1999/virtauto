@@ -236,19 +236,20 @@
 
         <strong>Stage 1.1 (bounded use case extension)</strong>
         <p class="muted" style="margin:.45rem 0 0">
-          The first “real” use case we attach to the model is <strong>Energy Optimization</strong> — not as autonomous execution,
+          The first “real” use case we attach to the model is <strong>Energy Cost Minimization</strong> — not as autonomous execution,
           but as a <strong>bounded advisory layer</strong> that must still obey the same governance discipline
           (explicit inputs, evidence posture, versioned rulesets, traceability).
         </p>
         <div class="pill-row" aria-label="Use case tags">
           <span class="pill"><span class="dot"></span>Advisory-only</span>
           <span class="pill"><span class="dot"></span>Same domain context</span>
-          <span class="pill red"><span class="dot"></span>Conservative defaults</span>
+          <span class="pill red"><span class="dot"></span>Default to Non-Action</span>
           <span class="pill"><span class="dot"></span>Traceable recommendations</span>
+          <span class="pill"><span class="dot"></span>5-minute canonical window</span>
         </div>
 
         <p class="muted" style="margin-top:.65rem">
-          Jump to: <a href="#decision-space">Decision Space</a> · <a href="#production-process">Production Process</a> · <a href="#use-case-energy">Use Case</a>
+          Jump to: <a href="#decision-space">Decision Space</a> · <a href="#production-process">Production Process</a> · <a href="#use-case-energy">Use Case</a> · <a href="#data-determinism">Data & Determinism</a>
         </p>
 
         <div class="anchors" aria-label="Jump links">
@@ -256,6 +257,7 @@
           <a href="#intent">Intent</a>
           <a href="#production-process">Production Process (Stages 1–6)</a>
           <a href="#use-case-energy">Use Case</a>
+          <a href="#data-determinism">Data & Determinism</a>
           <a href="#world-model">World Model</a>
           <a href="#decision-graph">Decision Graph</a>
           <a href="#governance">Governance</a>
@@ -278,7 +280,7 @@
       </p>
 
       <div class="card">
-        <strong>Active decision classes (Options 1–3)</strong>
+        <strong>Active decision classes (Options 1–2)</strong>
 
         <div class="table-wrap" style="margin-top:12px;">
           <table class="table" style="width:100%;">
@@ -308,30 +310,16 @@
 
               <!-- OPTION 2 -->
               <tr>
-                <td><code>energy_output_stability_advisory</code> <span class="pill" style="margin-left:.35rem">Option 2</span></td>
+                <td><code>energy_cost_minimization_advisory_v1</code> <span class="pill" style="margin-left:.35rem">Option 2</span></td>
                 <td><span class="pill">Advisory-only</span></td>
-                <td>BIW Doorline · Door Model 2</td>
+                <td>BIW Doorline · TVL/TVOL Line Window (5 min)</td>
                 <td>
-                  <code>governance/contracts/energy-output-stability-advisory-v1.md</code><br/>
-                  <code>governance/rulesets/biw-door-energy-v1.json</code><br/>
-                  <code>ops/examples/energy_output_stability_advisory_*.json</code><br/>
+                  <code>governance/contracts/energy-cost-minimization-advisory-v1.md</code><br/>
+                  <code>governance/rulesets/biw-door-energy-cost-v1.json</code><br/>
+                  <code>ops/examples/energy_cost_minimization_advisory_*.json</code><br/>
                   <code>decision_traces/pr-&lt;PRID&gt;_decision_trace.md</code>
                 </td>
-                <td>Conservative defaults · HOLD/BLOCK on missing evidence</td>
-              </tr>
-
-              <!-- OPTION 3 -->
-              <tr>
-                <td><code>energy_peak_mitigation_advisory</code> <span class="pill" style="margin-left:.35rem">Option 3</span></td>
-                <td><span class="pill">Advisory-only</span></td>
-                <td>BIW Doorline · Door Model 3</td>
-                <td>
-                  <code>governance/contracts/energy-peak-mitigation-advisory-v1.md</code><br/>
-                  <code>governance/rulesets/biw-door-energy-v1.json</code><br/>
-                  <code>ops/examples/energy_peak_mitigation_advisory_*.json</code><br/>
-                  <code>decision_traces/pr-&lt;PRID&gt;_decision_trace.md</code>
-                </td>
-                <td>Quality guardrails · bounded shaping</td>
+                <td>MEASURED-only · HOLD on missing/stale evidence</td>
               </tr>
             </tbody>
           </table>
@@ -341,6 +329,20 @@
           Advisory-only means: recommendations may be produced, but no autonomous execution happens on the shopfloor.
           The model stays governance-first: explicit inputs, explicit evidence posture, explicit traceability.
         </p>
+
+        <div class="card callout warn" style="margin-top:12px">
+          <strong>Non-claim (explicit)</strong>
+          <p class="muted" style="margin:.5rem 0 0">
+            This spec does not claim any direct PLC/MES write-back. It does not claim database-level integration into live production systems.
+            It assumes read-only interfaces, governed snapshots, and advisory outputs with trace.
+          </p>
+          <div class="pill-row">
+            <span class="pill amb"><span class="dot"></span>No PLC write access</span>
+            <span class="pill amb"><span class="dot"></span>No direct production DB querying</span>
+            <span class="pill"><span class="dot"></span>Read-only collector</span>
+            <span class="pill"><span class="dot"></span>Advisory outputs</span>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -610,15 +612,16 @@
       </div>
 
       <div class="card" style="margin-top:16px">
-        <strong>Energy overlays (Options 2–3) mapped to stages</strong>
+        <strong>Energy overlays (Option 2) mapped to stages</strong>
         <p class="muted" style="margin:.5rem 0 0">
-          Energy optimization must connect to where energy is actually consumed:
+          Energy cost minimization must connect to where energy is actually consumed and where loads are shiftable:
           joining and hemming (Stages 2 &amp; 4), sealing/conditioning (Stage 3), and shiftable loads like metrology (Stage 6).
-          Options 2–3 remain advisory-only and must never bypass quality constraints.
+          Option 2 is advisory-only and must never bypass quality constraints.
         </p>
         <div class="pill-row">
-          <span class="pill"><span class="dot"></span>Option 2 → stabilize energy output (Stages 2/3/4)</span>
-          <span class="pill"><span class="dot"></span>Option 3 → mitigate peaks (Stages 2/4/6)</span>
+          <span class="pill"><span class="dot"></span>Metrology job scheduling (Stage 6)</span>
+          <span class="pill"><span class="dot"></span>Avoid simultaneous high-draw operations (Scheduling)</span>
+          <span class="pill"><span class="dot"></span>Start/stop sequencing during pauses (Resequencing with logistics)</span>
           <span class="pill red"><span class="dot"></span>Quality guardrails always apply</span>
         </div>
       </div>
@@ -628,7 +631,7 @@
   <!-- USE CASE: ENERGY -->
   <section class="section" id="use-case-energy">
     <div class="container">
-      <h2>1.1) Use Case — Energy Optimization (bounded advisory)</h2>
+      <h2>1.1) Use Case — Energy Cost Minimization (bounded advisory)</h2>
       <p class="muted">
         This use case is intentionally <strong>not</strong> “AI optimizes the factory”.
         It is a <strong>governed advisory extension</strong> inside the same bounded world model:
@@ -636,17 +639,16 @@
       </p>
 
       <div class="card callout">
-        <strong>Why it belongs here</strong>
+        <strong>What is optimized (and what is not)</strong>
         <p class="muted" style="margin:.5rem 0 0">
-          Energy optimization becomes credible only when it is anchored in the same discipline as quality gating:
-          you can’t “optimize” what you can’t <strong>measure</strong>, <strong>attribute</strong>, and <strong>govern</strong>.
-          Therefore Options 2–3 are advisory layers that reuse the same constraints: conservative defaults, no silent execution, traceable outputs.
+          The objective is <strong>€/door</strong> (energy cost per produced door) at a <strong>5-minute window</strong> resolution.
+          The system must never trade cost reductions against quality, scrap, rework, takt time, or OEE. If evidence is missing or stale, the system must degrade to <strong>HOLD / no recommendation</strong>.
         </p>
         <div class="pill-row">
-          <span class="pill"><span class="dot"></span>Measurement-first</span>
-          <span class="pill"><span class="dot"></span>Attribution</span>
-          <span class="pill red"><span class="dot"></span>No silent action</span>
-          <span class="pill"><span class="dot"></span>Traceable recommendation</span>
+          <span class="pill"><span class="dot"></span>Objective: €/door</span>
+          <span class="pill"><span class="dot"></span>5-min canonical window</span>
+          <span class="pill red"><span class="dot"></span>No quality trade-off</span>
+          <span class="pill red"><span class="dot"></span>Default to Non-Action</span>
         </div>
       </div>
 
@@ -672,49 +674,162 @@
 
         <!-- Option 2 -->
         <div class="card">
-          <h3>Option 2 — Output stability advisory (Door Model 2)</h3>
+          <h3>Option 2 — Energy cost minimization advisory (v1)</h3>
           <p class="muted" style="margin:.35rem 0 0">
-            Advisory recommendations to stabilize energy output (reduce variance / avoid oscillations),
-            bounded by quality and process constraints. If required evidence is missing, the result must degrade conservatively.
+            Advisory recommendations that reduce energy cost per door while obeying hard quality and production constraints.
+            Recommendations are only admissible when the required evidence set is complete and fresh.
           </p>
           <hr class="mini-hr">
           <ul class="list-tight muted">
-            <li>Decision: <code>energy_output_stability_advisory</code></li>
-            <li>Output: recommended setpoints / sequence suggestions</li>
-            <li>Mode: advisory-only (no execution)</li>
+            <li>Decision: <code>energy_cost_minimization_advisory_v1</code></li>
+            <li>Outputs: scheduling &amp; sequencing recommendations (no execution)</li>
+            <li>Mode: advisory-only (no write-back)</li>
           </ul>
           <div class="pill-row">
-            <span class="pill"><span class="dot"></span>Advisory-only</span>
-            <span class="pill amb"><span class="dot"></span>Conservative defaults</span>
+            <span class="pill"><span class="dot"></span>Metrology job scheduling</span>
+            <span class="pill"><span class="dot"></span>High-draw avoidance</span>
+            <span class="pill"><span class="dot"></span>Pause resequencing</span>
           </div>
         </div>
 
-        <!-- Option 3 -->
+        <!-- Option 2 boundary -->
         <div class="card">
-          <h3>Option 3 — Peak mitigation advisory (Door Model 3)</h3>
+          <h3>Common boundary (v1)</h3>
           <p class="muted" style="margin:.35rem 0 0">
-            Advisory recommendations to mitigate energy peaks (shift loads, avoid simultaneous high-draw actions),
-            while staying inside quality guardrails and cycle-time boundaries.
+            This is a governance product, not an optimizer demo. If the system cannot prove admissibility via governed artifacts, it must not recommend.
           </p>
           <hr class="mini-hr">
           <ul class="list-tight muted">
-            <li>Decision: <code>energy_peak_mitigation_advisory</code></li>
-            <li>Output: peak-avoidance schedule / bounded shaping</li>
-            <li>Mode: advisory-only (no execution)</li>
+            <li><strong>Evidence posture</strong>: MEASURED-only (no estimated recommendations in v1)</li>
+            <li><strong>Failure posture</strong>: missing/stale required inputs → HOLD</li>
+            <li><strong>Authority</strong>: Production Lead is owner; Quality has veto</li>
           </ul>
           <div class="pill-row">
-            <span class="pill"><span class="dot"></span>Advisory-only</span>
-            <span class="pill"><span class="dot"></span>Quality guardrails</span>
+            <span class="pill red"><span class="dot"></span>No silent action</span>
+            <span class="pill"><span class="dot"></span>Traceable recommendation</span>
+            <span class="pill"><span class="dot"></span>Veto-capable governance</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card" style="margin-top:16px">
+          <strong>Required inputs (normative, v1)</strong>
+          <p class="muted" style="margin:.5rem 0 0">
+            A recommendation is only admissible if all required inputs are present and within freshness bounds.
+          </p>
+          <ul class="list-tight muted">
+            <li><code>energy_meter_ref</code> (line/cell metered)</li>
+            <li><code>throughput_ref</code> (units within 5-min window)</li>
+            <li><code>quality_gate_ok_ref</code> (quality OK evidence)</li>
+            <li><code>cycle_time_ok_ref</code> (takt/cycle OK evidence)</li>
+            <li><code>oee_ok_ref</code> (OEE OK evidence)</li>
+            <li><code>variant_mix_ref</code> (baseline comparability)</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill red"><span class="dot"></span>Missing required input → HOLD</span>
+            <span class="pill red"><span class="dot"></span>Stale required input → HOLD</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <strong>Freshness bounds (v1)</strong>
+          <p class="muted" style="margin:.5rem 0 0">
+            Freshness is defined to preserve €/door validity at a 5-minute canonical window resolution.
+          </p>
+          <ul class="list-tight muted">
+            <li><code>energy_meter_ref</code>: max 10 min stale</li>
+            <li><code>throughput_ref</code>: max 10 min stale</li>
+            <li><code>cycle_time_ok_ref</code>: max 10 min stale</li>
+            <li><code>oee_ok_ref</code>: max 15 min stale</li>
+            <li><code>quality_gate_ok_ref</code>: max 1 shift stale</li>
+            <li><code>variant_mix_ref</code>: max 1 day stale</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>5-min window</span>
+            <span class="pill"><span class="dot"></span>Conservative</span>
+            <span class="pill red"><span class="dot"></span>Fail-safe</span>
           </div>
         </div>
       </div>
 
       <div class="card" style="margin-top:16px">
-        <strong>Common boundary for Options 2–3</strong>
+        <strong>Hard constraints (v1)</strong>
         <p class="muted" style="margin:.5rem 0 0">
-          Recommendations are only “valid” if they can be backed by governed artifacts:
-          contract + versioned ruleset + example inputs + decision trace.
-          If any required evidence is missing, the advisory result must become <strong>HOLD / no-recommendation</strong> (fail-safe posture).
+          If any hard constraint is violated, the advisory must not recommend. Hard constraint violation yields <strong>BLOCK</strong> (unsafe to recommend) or <strong>HOLD</strong> (insufficient evidence) depending on the failure mode.
+        </p>
+        <div class="pill-row">
+          <span class="pill red"><span class="dot"></span>quality_gate_ok == true</span>
+          <span class="pill red"><span class="dot"></span>cycle_time_ok == true</span>
+          <span class="pill red"><span class="dot"></span>oee_ok == true</span>
+          <span class="pill red"><span class="dot"></span>scrap_rate ≤ threshold_hard</span>
+          <span class="pill red"><span class="dot"></span>rework_rate ≤ threshold_hard</span>
+        </div>
+        <p class="muted" style="margin-top:.7rem">
+          Soft constraints (warnings) may exist, but do not override hard constraints. v1 uses conservative defaults: missing/uncertain context yields HOLD.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEW: DATA & DETERMINISM (EDGE) -->
+  <section class="section" id="data-determinism">
+    <div class="container">
+      <h2>1.12) Data Interfaces & Determinism Envelope (Edge)</h2>
+      <p class="muted">
+        In industrial environments, governance that stops at the agent layer governs intent but not outcome.
+        Therefore this model defines an explicit <strong>determinism envelope</strong> for where data is acquired and where advisory inference runs.
+      </p>
+
+      <div class="three-col">
+        <div class="card">
+          <h3>Read path (normative)</h3>
+          <ul class="list-tight muted">
+            <li><strong>Read-only edge collector</strong> (OPC UA / EMS API / MES API)</li>
+            <li><strong>Canonical snapshot</strong> (5-minute windows, hashable)</li>
+            <li><strong>Website</strong> reads governed snapshots, not live production DBs</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Read-only</span>
+            <span class="pill"><span class="dot"></span>Replicated</span>
+            <span class="pill red"><span class="dot"></span>No direct DB coupling</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Compute placement (v1)</h3>
+          <ul class="list-tight muted">
+            <li><strong>Inference/decision evaluation runs on the edge</strong></li>
+            <li>Cloud may aggregate/report, but must not be required for admissibility checks</li>
+            <li>Data residency is respected by design</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Edge-first</span>
+            <span class="pill"><span class="dot"></span>Deterministic checks</span>
+            <span class="pill red"><span class="dot"></span>No cloud dependency for safety</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Failure posture (v1)</h3>
+          <ul class="list-tight muted">
+            <li>Network/collector failure → <strong>HOLD</strong> (no recommendation)</li>
+            <li>Forecasting may continue as <strong>ESTIMATED</strong> telemetry (informational only)</li>
+            <li>No “best effort” recommendations under uncertainty</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill red"><span class="dot"></span>Default to Non-Action</span>
+            <span class="pill"><span class="dot"></span>Estimated telemetry allowed</span>
+            <span class="pill red"><span class="dot"></span>No estimated recommendations</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card callout warn" style="margin-top:16px">
+        <strong>Important boundary</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          The website is a governance surface and audit viewer. It is not the runtime that controls shopfloor equipment.
+          v1 produces advisory recommendations and governed traces; execution is organizational (Phase B) or out of scope.
         </p>
       </div>
     </div>
@@ -736,6 +851,7 @@
             <li><strong>Door</strong> (Door ID, variant, route)</li>
             <li><strong>Stations</strong> (S1–S6)</li>
             <li><strong>Evidence artifacts</strong> (scan IDs, parameter logs)</li>
+            <li><strong>Energy window</strong> (5-minute canonical snapshot)</li>
             <li><strong>Ruleset</strong> (versioned)</li>
           </ul>
         </div>
@@ -747,6 +863,8 @@
             <li><code>quality.geometry</code>: pass/fail (+ deltas)</li>
             <li><code>quality.surface</code>: pass/fail (+ tags)</li>
             <li><code>evidence.chain_complete</code>: true/false</li>
+            <li><code>energy.window.cost_per_door_eur</code>: number</li>
+            <li><code>energy.window.kwh_per_door</code>: number</li>
           </ul>
         </div>
 
@@ -755,6 +873,7 @@
           <ul class="list-tight muted">
             <li><strong>Hard invariant</strong>: no RELEASE without evidence chain</li>
             <li><strong>Fail-safe</strong>: missing signal → HOLD/BLOCK</li>
+            <li><strong>Energy advisory invariant</strong>: no recommendation without required measured inputs</li>
             <li><strong>Governance</strong>: decision requires trace + authority</li>
           </ul>
         </div>
@@ -772,6 +891,8 @@
           <span class="pill"><span class="dot"></span>Line scan / surface vision (defects)</span>
           <span class="pill"><span class="dot"></span>Gap/flush measurement system</span>
           <span class="pill"><span class="dot"></span>Weld/Clinch monitoring (I/V/t)</span>
+          <span class="pill"><span class="dot"></span>Energy meter (line/cell)</span>
+          <span class="pill"><span class="dot"></span>Throughput counter (units/window)</span>
         </div>
       </div>
     </div>
@@ -790,7 +911,7 @@
         <div class="card">
           <h3>Nodes & outcomes</h3>
           <ul class="list-tight muted">
-            <li><strong>PROPOSE</strong> — a release proposal is created (Door ID + ruleset version)</li>
+            <li><strong>PROPOSE</strong> — a proposal is created (Door ID + ruleset version)</li>
             <li><strong>CHECK</strong> — deterministic checks over evidence + constraints</li>
             <li><strong>GOVERN</strong> — authority + policy enforcement (GEORGE / Guardian)</li>
             <li><strong>VERDICT</strong> —
@@ -807,7 +928,7 @@
         </div>
 
         <div class="card">
-          <h3>Minimal deterministic checks (Stage 5 Gate)</h3>
+          <h3>Minimal deterministic checks (Stage 6 Gate)</h3>
           <ul class="list-tight muted">
             <li><strong>Evidence present</strong>: geometry scan, surface scan, gap/flush measurement</li>
             <li><strong>Ruleset version</strong>: must be declared (<code>biw-door-qg-v1.x</code>)</li>
@@ -815,6 +936,19 @@
             <li><strong>Classification</strong>: PASS/PASS/PASS → ALLOW; otherwise HOLD/BLOCK</li>
           </ul>
         </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h3>Energy advisory decision graph (Option 2)</h3>
+        <p class="muted" style="margin:.35rem 0 0">
+          Advisory uses the same discipline: proposal → checks → governance → verdict. “ALLOW” means a recommendation is admissible, not executable.
+        </p>
+        <ul class="list-tight muted">
+          <li><strong>Required measured inputs</strong> present + fresh → eligible</li>
+          <li>Hard constraints OK (quality/cycle/OEE/scrap/rework) → eligible</li>
+          <li>Authority: Production Lead owner; Quality veto path available</li>
+          <li>Missing/stale evidence → HOLD (no recommendation)</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -836,6 +970,8 @@
             <li><strong>Orchestrator</strong>: creates proposal, sequences checks</li>
             <li><strong>GEORGE</strong>: enforces contracts & policy gates</li>
             <li><strong>Guardian</strong>: blocks if invariants are violated</li>
+            <li><strong>Production Lead</strong>: decision owner for advisory adoption</li>
+            <li><strong>Quality</strong>: veto authority (must be traceable)</li>
           </ul>
         </div>
 
@@ -852,9 +988,9 @@
         <div class="card">
           <h3>Decision Contract (Stage 1)</h3>
           <ul class="list-tight muted">
-            <li>Input: Door ID, proposal, evidence refs, ruleset</li>
+            <li>Input: explicit refs, evidence, ruleset version</li>
             <li>Output: verdict (ALLOW/HOLD/BLOCK) + reasons</li>
-            <li>Artifacts: decision trace + gate result + system status</li>
+            <li>Artifacts: decision trace + gate/advisory result + system status</li>
           </ul>
         </div>
       </div>
@@ -921,6 +1057,11 @@
               <span class="pill"><span class="dot"></span>CR</span>
               <span class="pill"><span class="dot"></span>Approval</span>
             </div>
+            <hr class="mini-hr">
+            <p class="muted" style="margin:.35rem 0 0">
+              For Energy Advisory (Option 2), Phase B means: create an <strong>advisory ticket</strong> addressed to Production Lead,
+              with a trace link, expected €/door impact, and explicit constraints. Quality veto is always available and traceable.
+            </p>
           </div>
 
           <div class="card callout warn" style="margin:0">
@@ -963,7 +1104,8 @@
             Defines inputs/outputs, allowed outcomes, authority requirements, and what must be traced.
           </div>
           <div class="mono" style="margin-top:.4rem">
-            <code>governance/contracts/pp-door-release-v1.md</code>
+            <code>governance/contracts/pp-door-release-v1.md</code><br/>
+            <code>governance/contracts/energy-cost-minimization-advisory-v1.md</code>
           </div>
         </div>
 
@@ -978,12 +1120,13 @@
         </div>
 
         <div class="row">
-          <strong>Gate Result (what governance decided)</strong>
+          <strong>Gate / Advisory Result (what governance decided)</strong>
           <div class="muted" style="margin-top:.25rem">
-            The merge-blocking governance decision: PASS / FAIL, and why.
+            The governance outcome: PASS / FAIL for gates, and ALLOW/HOLD/BLOCK for advisory admissibility.
           </div>
           <div class="mono" style="margin-top:.4rem">
-            <code>ops/decisions/gate_result.json</code>
+            <code>ops/decisions/gate_result.json</code><br/>
+            <code>ops/decisions/advisory_result.json</code>
           </div>
         </div>
 
@@ -1001,7 +1144,7 @@
       <div class="card callout ok" style="margin-top:16px">
         <strong>Normative rule</strong>
         <p class="muted" style="margin:.5rem 0 0">
-          If it is not expressed in governed artifacts (<code>contract</code>, <code>trace</code>, <code>gate_result</code>, <code>status</code>),
+          If it is not expressed in governed artifacts (<code>contract</code>, <code>trace</code>, <code>gate_result</code>/<code>advisory_result</code>, <code>status</code>),
           it is not part of the system.
         </p>
       </div>
@@ -1017,7 +1160,7 @@
       </p>
 
       <div class="card">
-        <strong>Example audit record (Stage 5 classification)</strong>
+        <strong>Example audit record (Stage 6 classification)</strong>
         <pre class="codeblock mono" aria-label="Example audit record JSON">{
   "decision_id": "qg:TVL-2026-02-09-0001284",
   "domain": "biw_doorline_tvl",
@@ -1061,6 +1204,118 @@
         <p class="muted" style="margin:.75rem 0 0">
           Key point: the record references concrete evidence IDs and a ruleset version — not free-form narratives.
         </p>
+      </div>
+
+      <div class="two-col">
+        <div class="card" style="margin-top:16px">
+          <strong>Energy advisory audit record (ALLOW = recommendation admissible)</strong>
+          <pre class="codeblock mono" aria-label="Energy advisory ALLOW JSON">{
+  "decision_id": "energy:TVL:2026-02-09T09:00Z:win5m",
+  "domain": "biw_doorline_tvl",
+  "decision_class": "energy_cost_minimization_advisory_v1",
+  "timestamp_utc": "2026-02-09T09:00:12.103Z",
+  "window": {
+    "start_utc": "2026-02-09T08:55:00Z",
+    "end_utc": "2026-02-09T09:00:00Z",
+    "resolution": "5m"
+  },
+  "inputs": {
+    "energy_meter_ref": "meter:biw:tvl:line:0a91",
+    "throughput_ref": "mes:biw:tvl:units:win:8f12",
+    "quality_gate_ok_ref": "qg:biw:tvl:last_shift:ok:1c0b",
+    "cycle_time_ok_ref": "mes:biw:tvl:cycle_ok:win:7a10",
+    "oee_ok_ref": "oee:biw:tvl:ok:win:3f21",
+    "variant_mix_ref": "mix:biw:tvl:week:2026-W06:97p"
+  },
+  "freshness": {
+    "energy_meter_ref_stale_sec": 45,
+    "throughput_ref_stale_sec": 90,
+    "cycle_time_ok_ref_stale_sec": 75,
+    "oee_ok_ref_stale_sec": 120,
+    "quality_gate_ok_ref_stale_sec": 7200
+  },
+  "checks": [
+    {"check":"required_inputs_present","result":"PASS"},
+    {"check":"freshness_bounds","result":"PASS"},
+    {"check":"quality_gate_ok","result":"PASS"},
+    {"check":"cycle_time_ok","result":"PASS"},
+    {"check":"oee_ok","result":"PASS"}
+  ],
+  "objective": {
+    "metric": "eur_per_door",
+    "mode": "minimize"
+  },
+  "recommendations": [
+    {
+      "type": "METROLOGY_SCHEDULE_SHIFT",
+      "target_stage": "S6",
+      "action": "shift_metrology_jobs_within_window",
+      "parameters": {"max_delay_sec": 600},
+      "expected_impact": {
+        "eur_per_door_delta": -0.07,
+        "eur_per_shift_delta": -120.0,
+        "kwh_delta": -38.0
+      }
+    },
+    {
+      "type": "HIGH_DRAW_AVOIDANCE",
+      "action": "avoid_simultaneous_high_draw_ops",
+      "parameters": {"grouping_rule": "no_overlap:hemming_and_metrology"},
+      "expected_impact": {
+        "eur_per_door_delta": -0.03,
+        "eur_per_shift_delta": -55.0
+      }
+    }
+  ],
+  "governance": {
+    "evidence_posture": "MEASURED",
+    "authority_owner": "PRODUCTION_LEAD",
+    "quality_veto": "AVAILABLE",
+    "guardian_check": "PASS",
+    "policy": "advisory_only_no_writeback_v1"
+  },
+  "verdict": "ALLOW"
+}</pre>
+          <p class="muted" style="margin:.75rem 0 0">
+            “ALLOW” means the recommendation is admissible under governance. It does not execute.
+          </p>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <strong>Energy advisory audit record (HOLD = no recommendation)</strong>
+          <pre class="codeblock mono" aria-label="Energy advisory HOLD JSON">{
+  "decision_id": "energy:TVL:2026-02-09T09:05Z:win5m",
+  "domain": "biw_doorline_tvl",
+  "decision_class": "energy_cost_minimization_advisory_v1",
+  "timestamp_utc": "2026-02-09T09:05:11.004Z",
+  "window": {
+    "start_utc": "2026-02-09T09:00:00Z",
+    "end_utc": "2026-02-09T09:05:00Z",
+    "resolution": "5m"
+  },
+  "inputs": {
+    "energy_meter_ref": "meter:biw:tvl:line:0a91",
+    "throughput_ref": "MISSING",
+    "quality_gate_ok_ref": "qg:biw:tvl:last_shift:ok:1c0b",
+    "cycle_time_ok_ref": "mes:biw:tvl:cycle_ok:win:7a10",
+    "oee_ok_ref": "oee:biw:tvl:ok:win:3f21",
+    "variant_mix_ref": "mix:biw:tvl:week:2026-W06:97p"
+  },
+  "checks": [
+    {"check":"required_inputs_present","result":"FAIL","reason":"missing_required_input:throughput_ref"}
+  ],
+  "governance": {
+    "evidence_posture": "MEASURED",
+    "guardian_check": "FAIL",
+    "policy": "missing_required_inputs_yields_hold"
+  },
+  "verdict": "HOLD",
+  "recommendations": []
+}</pre>
+          <p class="muted" style="margin:.75rem 0 0">
+            HOLD is the correct outcome: missing required evidence → no recommendation.
+          </p>
+        </div>
       </div>
     </div>
   </section>
