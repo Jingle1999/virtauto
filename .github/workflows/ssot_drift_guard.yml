@@ -1,0 +1,121 @@
+name: SSOT Drift Guard (Production vs Repo)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  drift-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch production SSOT
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci_tmp
+          curl -fsSL --retry 3 --retry-delay 1 \
+            -H "Accept: application/json" \
+            "https://www.virtauto.de/ops/reports/system_status.json?cb=$(date +%s)" \
+            -o .ci_tmp/ssot_prod.json
+
+      - name: Ensure repo SSOT exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f ops/reports/system_status.json
+
+      - name: Compare (drift check)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python - << 'PY'
+          import json, sys
+
+          REPO_PATH = "ops/reports/system_status.json"
+          PROD_PATH = ".ci_tmp/ssot_prod.json"
+
+          # Only compare "governance grade" stable fields.
+          FIELDS = [
+            ("schema_version",),
+            ("environment",),
+            ("system_state",),
+            ("system","state"),
+            ("system","autonomy_mode"),
+            ("system","mode"),
+            ("autonomy_score","value"),
+            ("autonomy_score","percent"),
+            ("autonomy_score","mode"),
+            ("autonomy",),
+            ("health","signal"),
+            ("health","overall_score"),
+            ("links","decision_trace"),
+            ("links","gate_result"),
+            ("links","latest_decision"),
+          ]
+
+          def load(p):
+            with open(p, "r", encoding="utf-8") as f:
+              return json.load(f)
+
+          def pick(obj, path):
+            cur = obj
+            for k in path:
+              if not isinstance(cur, dict) or k not in cur:
+                return None, False
+              cur = cur[k]
+            return cur, True
+
+          repo = load(REPO_PATH)
+          prod = load(PROD_PATH)
+
+          mismatches = []
+          missing = []
+
+          for path in FIELDS:
+            rv, rok = pick(repo, path)
+            pv, pok = pick(prod, path)
+
+            # If the field is missing in either, that's a failure (governance-grade).
+            if not rok or not pok:
+              missing.append({
+                "path": ".".join(path),
+                "repo_present": rok,
+                "prod_present": pok
+              })
+              continue
+
+            # Normalize strings to avoid case-only drift.
+            if isinstance(rv, str) and isinstance(pv, str):
+              rnv = rv.strip()
+              pnv = pv.strip()
+              if rnv != pnv:
+                mismatches.append({"path": ".".join(path), "repo": rnv, "prod": pnv})
+              continue
+
+            # Numeric comparison (strict)
+            if rv != pv:
+              mismatches.append({"path": ".".join(path), "repo": rv, "prod": pv})
+
+          if missing or mismatches:
+            print("❌ SSOT DRIFT DETECTED")
+            if missing:
+              print("\nMissing fields:")
+              for m in missing:
+                print(f' - {m["path"]}: repo_present={m["repo_present"]}, prod_present={m["prod_present"]}')
+            if mismatches:
+              print("\nMismatched fields:")
+              for mm in mismatches:
+                print(f' - {mm["path"]}: repo={mm["repo"]}  prod={mm["prod"]}')
+            sys.exit(1)
+
+          print("✅ No drift detected (production matches repo for enforced fields).")
+          PY
