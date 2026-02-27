@@ -249,7 +249,12 @@
         </div>
 
         <p class="muted" style="margin-top:.65rem">
-          Jump to: <a href="#decision-space">Decision Space</a> · <a href="#production-process">Production Process</a> · <a href="#use-case-energy">Use Case</a> · <a href="#data-determinism">Data & Determinism</a>
+          Jump to:
+          <a href="#decision-space">Decision Space</a> ·
+          <a href="#production-process">Production Process</a> ·
+          <a href="#use-case-energy">Use Case</a> ·
+          <a href="#data-determinism">Data & Determinism</a> ·
+          <a href="#structured-knowledge">Structured Knowledge</a>
         </p>
 
         <div class="anchors" aria-label="Jump links">
@@ -258,6 +263,7 @@
           <a href="#production-process">Production Process (Stages 1–6)</a>
           <a href="#use-case-energy">Use Case</a>
           <a href="#data-determinism">Data & Determinism</a>
+          <a href="#structured-knowledge">Structured Knowledge</a>
           <a href="#world-model">World Model</a>
           <a href="#decision-graph">Decision Graph</a>
           <a href="#governance">Governance</a>
@@ -835,6 +841,147 @@
     </div>
   </section>
 
+  <!-- NEW: STRUCTURED INDUSTRIAL KNOWLEDGE LAYER -->
+  <section class="section" id="structured-knowledge">
+    <div class="container">
+      <h2>1.13) Structured Industrial Knowledge Layer (normative schema)</h2>
+      <p class="muted">
+        Industrial decision-making requires more than raw signals. It requires a shared structural understanding of entities, states,
+        relationships, and constraint categories. This layer provides that structure — <strong>without replacing governance</strong>.
+      </p>
+
+      <div class="card callout">
+        <strong>Purpose</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          The Structured Industrial Knowledge Layer defines canonical entity types, signal taxonomies, cross-domain relationships,
+          and constraint categories. It does not execute decisions. It does not optimize. It does not override governance.
+          It provides the structural reference against which all signals are normalized before entering the decision layer.
+        </p>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Schema-first</span>
+          <span class="pill"><span class="dot"></span>Normalization</span>
+          <span class="pill red"><span class="dot"></span>No decision authority</span>
+          <span class="pill"><span class="dot"></span>Versioned reference</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <strong>Position in the architecture</strong>
+        <div class="path" aria-label="Knowledge layer position">
+          <span class="node"><span class="n">1</span> Operational systems</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">2</span> Canonical snapshots (5m)</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">3</span> Structured knowledge (schema)</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">4</span> Contracts &amp; rulesets</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">5</span> Governed verdict</span>
+        </div>
+        <p class="muted" style="margin-top:.75rem">
+          Key point: this layer strengthens consistency and scaling. It does not introduce a new authority path.
+        </p>
+      </div>
+
+      <div class="three-col">
+        <div class="card">
+          <h3>Canonical entity definitions</h3>
+          <p class="muted" style="margin:.35rem 0 0">
+            Examples (normative types):
+          </p>
+          <ul class="list-tight muted">
+            <li><code>ProductionAsset</code></li>
+            <li><code>EnergyConsumer</code></li>
+            <li><code>OperationalWindow</code></li>
+            <li><code>EnergyCostWindow</code></li>
+            <li><code>QualityOutcome</code></li>
+            <li><code>VariantMixProfile</code></li>
+          </ul>
+          <p class="muted" style="margin-top:.65rem">
+            Each type carries: explicit attributes, units, temporal resolution, and validation requirements.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Cross-domain relationships (descriptive)</h3>
+          <p class="muted" style="margin:.35rem 0 0">
+            Encoded relationships are descriptive — they inform rulesets, but do not decide:
+          </p>
+          <ul class="list-tight muted">
+            <li>Stage → energy load profile</li>
+            <li>Variant mix → expected throughput band</li>
+            <li>Cycle stability → quality drift risk</li>
+            <li>Energy peaks → scheduling sensitivity</li>
+            <li>Metrology load → deferrable window candidate</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Constraint taxonomy (structural)</h3>
+          <p class="muted" style="margin:.35rem 0 0">
+            Constraints are categorized so rulesets remain modular and auditable:
+          </p>
+          <ul class="list-tight muted">
+            <li><strong>Safety invariants</strong></li>
+            <li><strong>Quality invariants</strong></li>
+            <li><strong>Operational stability invariants</strong></li>
+            <li><strong>Economic objectives</strong></li>
+            <li><strong>Advisory opportunities</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card" style="margin-top:16px">
+          <strong>Snapshot normalization (normative)</strong>
+          <p class="muted" style="margin:.5rem 0 0">
+            All signals map into canonical 5-minute snapshots that are hashable, auditable, and carry staleness metadata.
+            This layer enforces structural consistency before decision evaluation.
+          </p>
+          <pre class="codeblock mono" aria-label="Canonical snapshot example JSON">{
+  "window_id": "tvl:2026-02-09T09:00Z:win5m",
+  "resolution": "5m",
+  "energy_profile": {"kwh": 128.4, "eur": 42.1, "meter_ref":"meter:biw:tvl:0a91"},
+  "throughput_profile": {"units": 62, "throughput_ref":"mes:biw:tvl:units:8f12"},
+  "quality_profile": {"quality_gate_ok": true, "ref":"qg:biw:tvl:last_shift:ok:1c0b"},
+  "stability_profile": {"cycle_time_ok": true, "oee_ok": true},
+  "variant_mix_profile": {"week":"2026-W06", "ref":"mix:biw:tvl:week:97p"},
+  "staleness_sec": {"meter":45, "throughput":90, "cycle":75, "oee":120, "quality":7200}
+}</pre>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <strong>Determinism guarantee (hard boundary)</strong>
+          <p class="muted" style="margin:.5rem 0 0">
+            This layer may classify, normalize, validate structure, and suggest rule categories.
+            It may not issue verdicts, override constraints, or generate autonomous actions.
+          </p>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>May: normalize</span>
+            <span class="pill"><span class="dot"></span>May: validate</span>
+            <span class="pill"><span class="dot"></span>May: map signals</span>
+            <span class="pill red"><span class="dot"></span>Must not: decide</span>
+            <span class="pill red"><span class="dot"></span>Must not: override</span>
+            <span class="pill red"><span class="dot"></span>Must not: act</span>
+          </div>
+          <hr class="mini-hr">
+          <p class="muted">
+            All decisions remain governed by explicit decision contracts, versioned rulesets, authority paths, and Guardian enforcement.
+          </p>
+        </div>
+      </div>
+
+      <div class="card callout warn" style="margin-top:16px">
+        <strong>Boundary statement (normative)</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          The Structured Industrial Knowledge Layer enhances consistency and cross-domain reasoning.
+          It does not introduce autonomous inference authority.
+          If required evidence is missing or stale, the system must degrade to HOLD / no recommendation.
+        </p>
+      </div>
+    </div>
+  </section>
+
   <!-- WORLD MODEL -->
   <section class="section" id="world-model">
     <div class="container">
@@ -842,6 +989,7 @@
       <p class="muted">
         A minimal, explicit representation of entities, state, constraints/policies, tools, and evidence —
         sufficient to govern a single decision class for Doorline TVL, plus bounded advisory extensions.
+        The structured knowledge layer provides the normative schema for mapping signals into comparable, auditable snapshots.
       </p>
 
       <div class="three-col">
