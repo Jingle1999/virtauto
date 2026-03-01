@@ -125,3 +125,26 @@ jobs:
         shell: bash
         run: |
           echo "No merge-base; skipping validate_pr_decision_trace."
+
+  validate_artifacts:
+    name: Mandatory Artifact Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Run artifact gate
+        run: python ops/validate_artifacts.py
+
+    validate_autonomy_score:
+      name: Autonomy Score Repro Check
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v5
+          with:
+            python-version: '3.x'
+        - name: Validate autonomy score reproducibility
+        run: python ops/validate_autonomy_score.py
+    
