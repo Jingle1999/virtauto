@@ -13,19 +13,19 @@
 
   <!-- SEO -->
   <link rel="canonical" href="https://www.virtauto.de/industrymodel.html">
-  <meta name="description" content="Industry Model (AEO Stage 1): the normative reference point (Proof Object) for how an industrial system thinks, decides, and blocks — bounded decision space, audit-first, block-capable, PR-driven.">
+  <meta name="description" content="Industry Model (AEO Stage 1): normative proof object for governed industrial decision-making. Includes bounded advisory energy orchestration (€/door) for TVL/TVOL via CWD orchestration, audit-first, block-capable, PR-driven.">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="virtauto Industry Model — AEO Stage 1 (Normative Proof Object)">
-  <meta property="og:description" content="Not a showcase: a normative world-model spec and proof object. One bounded decision class with explicit authority, governance, and an explainable BLOCK path — PR-driven, audit-first.">
+  <meta property="og:description" content="Not a showcase: a normative world-model spec and proof object. One bounded decision class with explicit authority, governance, and an explainable BLOCK path — PR-driven, audit-first. Includes governed energy orchestration advisory.">
   <meta property="og:url" content="https://www.virtauto.de/industrymodel.html">
   <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="virtauto Industry Model — AEO Stage 1 (Normative Proof Object)">
-  <meta name="twitter:description" content="A normative world-model spec: how a doorline thinks, decides, and blocks — decision-first, audit-first, PR-driven, explainable BLOCK.">
+  <meta name="twitter:description" content="A normative world-model spec: how a doorline thinks, decides, and blocks — decision-first, audit-first, PR-driven, explainable BLOCK. Includes governed energy orchestration advisory.">
   <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <link rel="stylesheet" href="assets/styles.css"/>
@@ -123,7 +123,7 @@
     }
     .repo .row code{ font-size:.9rem; }
 
-    /* NEW: Production process (Stages 1–6) helpers */
+    /* Production process (Stages 1–6) helpers */
     .stage-head{
       display:flex; align-items:center; justify-content:space-between; gap:.75rem;
       margin-bottom:.35rem;
@@ -142,8 +142,22 @@
     .stage-badge.ok  { border-color: rgba(34,197,94,.25); }
     .stage-badge.amb { border-color: rgba(251,191,36,.35); }
 
+    /* NEW: CWD orchestration helpers */
+    .cwd-grid{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; margin-top:1rem; }
+    .cwd-card-title{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin:0 0 .35rem; }
+    .cwd-tag{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.2rem .5rem; border-radius:999px;
+      border:1px solid #243255; background:#0b1220; color:#dbe7ff; font-size:.75rem; white-space:nowrap;
+    }
+    .cwd-tag .n{
+      width:18px; height:18px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:.72rem; border:1px solid #2a3a5e;
+    }
+
     @media (max-width: 900px) {
-      .two-col, .three-col { grid-template-columns: 1fr; }
+      .two-col, .three-col, .cwd-grid { grid-template-columns: 1fr; }
       .kpi{ min-width: unset; width:100%; }
     }
   </style>
@@ -246,6 +260,8 @@
           <span class="pill red"><span class="dot"></span>Default to Non-Action</span>
           <span class="pill"><span class="dot"></span>Traceable recommendations</span>
           <span class="pill"><span class="dot"></span>5-minute canonical window</span>
+          <span class="pill"><span class="dot"></span>CWD Orchestration</span>
+          <span class="pill"><span class="dot"></span>Knowledge Layer</span>
         </div>
 
         <p class="muted" style="margin-top:.65rem">
@@ -254,7 +270,9 @@
           <a href="#production-process">Production Process</a> ·
           <a href="#use-case-energy">Use Case</a> ·
           <a href="#data-determinism">Data & Determinism</a> ·
-          <a href="#structured-knowledge">Structured Knowledge</a>
+          <a href="#structured-knowledge">Structured Knowledge</a> ·
+          <a href="#knowledge-layer-ifm">Knowledge Layer & IFM</a> ·
+          <a href="#cwd-orchestration">CWD Orchestration</a>
         </p>
 
         <div class="anchors" aria-label="Jump links">
@@ -264,8 +282,10 @@
           <a href="#use-case-energy">Use Case</a>
           <a href="#data-determinism">Data & Determinism</a>
           <a href="#structured-knowledge">Structured Knowledge</a>
+          <a href="#knowledge-layer-ifm">Knowledge Layer & IFM Alignment</a>
           <a href="#world-model">World Model</a>
           <a href="#decision-graph">Decision Graph</a>
+          <a href="#cwd-orchestration">CWD Orchestration</a>
           <a href="#governance">Governance</a>
           <a href="#execution-control">Execution Control Layer</a>
           <a href="#artifacts">Artifacts</a>
@@ -286,7 +306,7 @@
       </p>
 
       <div class="card">
-        <strong>Active decision classes (Options 1–2)</strong>
+        <strong>Active decision classes (Options 1–3)</strong>
 
         <div class="table-wrap" style="margin-top:12px;">
           <table class="table" style="width:100%;">
@@ -327,6 +347,21 @@
                 </td>
                 <td>MEASURED-only · HOLD on missing/stale evidence</td>
               </tr>
+
+              <!-- OPTION 3 -->
+              <tr>
+                <td><code>energy_orchestration_cwd_v1</code> <span class="pill" style="margin-left:.35rem">Option 3</span></td>
+                <td><span class="pill">Internal orchestration</span> <span class="pill amb">Still advisory-only</span></td>
+                <td>Edge advisory runtime · CWD workflow for Option 2</td>
+                <td>
+                  <code>governance/contracts/energy-orchestration-cwd-v1.md</code><br/>
+                  <code>ops/runs/cwd/run_*.json</code><br/>
+                  <code>ops/runs/cwd/workers/*.json</code><br/>
+                  <code>ops/runs/cwd/bundle_*.json</code><br/>
+                  <code>ops/decisions/advisory_result.json</code>
+                </td>
+                <td>MEASURED-only · deterministic gating before any recommendation</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -347,6 +382,7 @@
             <span class="pill amb"><span class="dot"></span>No direct production DB querying</span>
             <span class="pill"><span class="dot"></span>Read-only collector</span>
             <span class="pill"><span class="dot"></span>Advisory outputs</span>
+            <span class="pill red"><span class="dot"></span>No silent action</span>
           </div>
         </div>
       </div>
@@ -444,7 +480,7 @@
     </div>
   </section>
 
-  <!-- NEW: PRODUCTION PROCESS (Stages 1–6) -->
+  <!-- PRODUCTION PROCESS (Stages 1–6) -->
   <section class="section" id="production-process">
     <div class="container">
       <h2>1.05) Production Process (Doorline Stages 1–6)</h2>
@@ -778,7 +814,7 @@
     </div>
   </section>
 
-  <!-- NEW: DATA & DETERMINISM (EDGE) -->
+  <!-- DATA & DETERMINISM (EDGE) -->
   <section class="section" id="data-determinism">
     <div class="container">
       <h2>1.12) Data Interfaces & Determinism Envelope (Edge)</h2>
@@ -841,7 +877,7 @@
     </div>
   </section>
 
-  <!-- NEW: STRUCTURED INDUSTRIAL KNOWLEDGE LAYER -->
+  <!-- STRUCTURED INDUSTRIAL KNOWLEDGE LAYER -->
   <section class="section" id="structured-knowledge">
     <div class="container">
       <h2>1.13) Structured Industrial Knowledge Layer (normative schema)</h2>
@@ -982,6 +1018,119 @@
     </div>
   </section>
 
+  <!-- NEW: KNOWLEDGE LAYER & IFM ALIGNMENT -->
+  <section class="section" id="knowledge-layer-ifm">
+    <div class="container">
+      <h2>1.14) Knowledge Layer & “Industrial Foundation Models” — Reality Check (aligned)</h2>
+      <p class="muted">
+        This section explicitly aligns virtauto’s model with pragmatic “IFM” principles:
+        in industry, success depends on <strong>stable representations</strong>, <strong>semantic control</strong>,
+        and <strong>verification loops</strong> — not on “bigger black-box models”.
+        The agent layer is the <strong>orchestrator</strong> above a structured stack; it is not the industrial brain.
+      </p>
+
+      <div class="card callout">
+        <strong>Normative stance (v1)</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          virtauto implements the architecture that works in practice:
+          <strong>Semantics (knowledge) → deterministic truth/verifiers → agentic orchestration → optional targeted foundation accelerators</strong>.
+          In v1, we focus on <strong>Path B</strong>: agent + structured systems–centric, because it delivers production value without betting on a monolithic IFM.
+        </p>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Semantic alignment first</span>
+          <span class="pill"><span class="dot"></span>Deterministic verifiers</span>
+          <span class="pill"><span class="dot"></span>Orchestration (CWD)</span>
+          <span class="pill"><span class="dot"></span>Optional accelerators</span>
+          <span class="pill red"><span class="dot"></span>No monolithic “factory brain” claim</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <strong>Four-layer stack (normative mapping)</strong>
+        <div class="path" aria-label="Structured stack mapping">
+          <span class="node"><span class="n">1</span> Data access</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">2</span> Semantics / knowledge</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">3</span> Deterministic engines</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">4</span> Agent orchestration</span>
+        </div>
+
+        <div class="three-col" style="margin-top:12px">
+          <div class="card" style="margin:0">
+            <h3>1) Data access (plumbing)</h3>
+            <ul class="list-tight muted">
+              <li>Read-only OT/IT collectors (OPC UA / EMS / MES)</li>
+              <li>Canonical 5-minute windows</li>
+              <li>Hashable snapshots (audit stability)</li>
+            </ul>
+            <div class="pill-row">
+              <span class="pill"><span class="dot"></span>Access ≠ intelligence</span>
+              <span class="pill"><span class="dot"></span>Snapshot discipline</span>
+            </div>
+          </div>
+
+          <div class="card" style="margin:0">
+            <h3>2) Semantics / knowledge (meaning)</h3>
+            <ul class="list-tight muted">
+              <li>Asset identity and naming normalization</li>
+              <li>Units and timestamps alignment</li>
+              <li>Domain schema: stages, constraints, evidence</li>
+            </ul>
+            <div class="pill-row">
+              <span class="pill"><span class="dot"></span>Tag chaos containment</span>
+              <span class="pill"><span class="dot"></span>Identity backbone</span>
+            </div>
+          </div>
+
+          <div class="card" style="margin:0">
+            <h3>3) Deterministic engines (truth & verification)</h3>
+            <ul class="list-tight muted">
+              <li>Hard invariants (quality/cycle/OEE/scrap/rework)</li>
+              <li>Freshness bounds and admissibility checks</li>
+              <li>Rulesets as versioned truth objects</li>
+            </ul>
+            <div class="pill-row">
+              <span class="pill"><span class="dot"></span>Verifiers over vibes</span>
+              <span class="pill red"><span class="dot"></span>Fail-safe HOLD/BLOCK</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin-top:0">4) Agent layer (orchestrator)</h3>
+          <p class="muted" style="margin:.35rem 0 0">
+            The agent layer plans workflows, calls tools/APIs, queries semantics, invokes verifiers,
+            uses optional representation models only when justified — and always emits audit trails.
+            In this spec, CWD is the concrete internal orchestration pattern for Option 2.
+          </p>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Planner</span>
+            <span class="pill"><span class="dot"></span>Tool caller</span>
+            <span class="pill"><span class="dot"></span>Verifier invoker</span>
+            <span class="pill"><span class="dot"></span>Explains + traces</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card callout warn" style="margin-top:16px">
+        <strong>Optional targeted “foundation” components (out of scope for v1 authority)</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          v1 may integrate targeted learned components only as <strong>advisory signals</strong> and never as authority:
+          e.g., surrogate estimators for expensive computations, multimodal grounding (inspection ↔ history),
+          or fleet priors. Any such output is classified as <strong>ESTIMATED</strong> and cannot unlock recommendations.
+        </p>
+        <div class="pill-row">
+          <span class="pill amb"><span class="dot"></span>Optional accelerators</span>
+          <span class="pill amb"><span class="dot"></span>ESTIMATED outputs</span>
+          <span class="pill red"><span class="dot"></span>No authority transfer</span>
+          <span class="pill red"><span class="dot"></span>No estimated recommendations in v1</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- WORLD MODEL -->
   <section class="section" id="world-model">
     <div class="container">
@@ -1001,6 +1150,7 @@
             <li><strong>Evidence artifacts</strong> (scan IDs, parameter logs)</li>
             <li><strong>Energy window</strong> (5-minute canonical snapshot)</li>
             <li><strong>Ruleset</strong> (versioned)</li>
+            <li><strong>CWD run</strong> (coordinator/workers/delegator outputs)</li>
           </ul>
         </div>
 
@@ -1013,6 +1163,7 @@
             <li><code>evidence.chain_complete</code>: true/false</li>
             <li><code>energy.window.cost_per_door_eur</code>: number</li>
             <li><code>energy.window.kwh_per_door</code>: number</li>
+            <li><code>cwd.run.status</code>: STARTED / COMPLETE / FAILED</li>
           </ul>
         </div>
 
@@ -1023,6 +1174,7 @@
             <li><strong>Fail-safe</strong>: missing signal → HOLD/BLOCK</li>
             <li><strong>Energy advisory invariant</strong>: no recommendation without required measured inputs</li>
             <li><strong>Governance</strong>: decision requires trace + authority</li>
+            <li><strong>Orchestration boundary</strong>: CWD structures computation, not authority</li>
           </ul>
         </div>
       </div>
@@ -1097,6 +1249,199 @@
           <li>Authority: Production Lead owner; Quality veto path available</li>
           <li>Missing/stale evidence → HOLD (no recommendation)</li>
         </ul>
+      </div>
+
+      <div class="card callout" style="margin-top:16px">
+        <strong>Where CWD fits</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          CWD is the internal compute structure that produces a <em>recommendation bundle</em> candidate.
+          Governance still decides admissibility. If governance fails → bundle is discarded.
+        </p>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Compute structure</span>
+          <span class="pill"><span class="dot"></span>Bundle candidate</span>
+          <span class="pill red"><span class="dot"></span>Not authority</span>
+          <span class="pill red"><span class="dot"></span>Discard on HOLD/BLOCK</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEW: CWD ORCHESTRATION -->
+  <section class="section" id="cwd-orchestration">
+    <div class="container">
+      <h2>3.1) Coordinator–Worker–Delegator (CWD) Orchestration (normative)</h2>
+      <p class="muted">
+        CWD is the <strong>internal orchestration pattern</strong> used to produce energy advisory recommendations
+        under strict governance. It improves modularity, auditability, and conflict handling.
+        It does <strong>not</strong> grant decision authority.
+      </p>
+
+      <div class="card callout warn">
+        <strong>Hard rule</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          CWD may generate proposals. It may not decide admissibility.
+          If required inputs are missing/stale, or invariants fail → <strong>HOLD</strong> and <strong>no recommendation</strong>.
+        </p>
+        <div class="pill-row">
+          <span class="pill red"><span class="dot"></span>Default to Non-Action</span>
+          <span class="pill red"><span class="dot"></span>No estimated recommendations (v1)</span>
+          <span class="pill"><span class="dot"></span>Trace everything</span>
+        </div>
+      </div>
+
+      <div class="cwd-grid">
+        <div class="card">
+          <div class="cwd-card-title">
+            <h3 style="margin:0">Coordinator</h3>
+            <span class="cwd-tag"><span class="n">C</span> Orchestrate</span>
+          </div>
+          <ul class="list-tight muted">
+            <li>Loads canonical 5-minute snapshot</li>
+            <li>Validates required measured inputs</li>
+            <li>Evaluates freshness bounds</li>
+            <li>Spawns Workers with scoped tasks</li>
+            <li>Collects worker outputs (typed)</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Snapshot-in</span>
+            <span class="pill"><span class="dot"></span>Gating-first</span>
+            <span class="pill red"><span class="dot"></span>HOLD on missing data</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cwd-card-title">
+            <h3 style="margin:0">Workers</h3>
+            <span class="cwd-tag"><span class="n">W</span> Specialized</span>
+          </div>
+          <ul class="list-tight muted">
+            <li><strong>Load Profile Worker</strong> (peak detection, stage energy profile)</li>
+            <li><strong>Metrology Scheduling Worker</strong> (Stage 6 shiftable loads)</li>
+            <li><strong>High-Draw Avoidance Worker</strong> (no-overlap constraints)</li>
+            <li><strong>Pause Sequencing Worker</strong> (restart sequencing advisories)</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Typed outputs</span>
+            <span class="pill"><span class="dot"></span>No authority</span>
+            <span class="pill"><span class="dot"></span>Deterministic checks preferred</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cwd-card-title">
+            <h3 style="margin:0">Delegator</h3>
+            <span class="cwd-tag"><span class="n">D</span> Bundle</span>
+          </div>
+          <ul class="list-tight muted">
+            <li>Aggregates worker proposals</li>
+            <li>Detects conflicts (mutual exclusion)</li>
+            <li>Ranks by expected €/door impact</li>
+            <li>Creates recommendation bundle candidate</li>
+            <li>Emits bundle as artifact (pre-governance)</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Conflict checks</span>
+            <span class="pill"><span class="dot"></span>Bundle candidate</span>
+            <span class="pill red"><span class="dot"></span>Discard if governance fails</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <strong>Normative CWD run trace (append-only artifact)</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          The run trace captures: input snapshot hash, worker outputs, conflicts, and the final bundle candidate.
+          Governance then evaluates admissibility (ALLOW/HOLD/BLOCK). The bundle is only shown if ALLOW.
+        </p>
+
+        <pre class="codeblock mono" aria-label="CWD run trace JSON">{
+  "run_id": "cwd:energy:TVL:2026-02-09T09:00Z:win5m",
+  "decision_class": "energy_orchestration_cwd_v1",
+  "timestamp_utc": "2026-02-09T09:00:07.210Z",
+  "input_snapshot": {
+    "window_id": "tvl:2026-02-09T09:00Z:win5m",
+    "hash": "sha256:8a1c...9f0b",
+    "refs": {
+      "energy_meter_ref": "meter:biw:tvl:line:0a91",
+      "throughput_ref": "mes:biw:tvl:units:win:8f12",
+      "quality_gate_ok_ref": "qg:biw:tvl:last_shift:ok:1c0b",
+      "cycle_time_ok_ref": "mes:biw:tvl:cycle_ok:win:7a10",
+      "oee_ok_ref": "oee:biw:tvl:ok:win:3f21",
+      "variant_mix_ref": "mix:biw:tvl:week:2026-W06:97p"
+    },
+    "freshness_sec": {"meter":45, "throughput":90, "cycle":75, "oee":120, "quality":7200}
+  },
+  "coordinator_gates": [
+    {"check":"required_inputs_present","result":"PASS"},
+    {"check":"freshness_bounds","result":"PASS"},
+    {"check":"hard_constraints_precheck","result":"PASS"}
+  ],
+  "workers": [
+    {
+      "worker": "load_profile_worker_v1",
+      "status": "OK",
+      "output_ref": "ops/runs/cwd/workers/load_profile_8f12.json",
+      "proposals": [
+        {"type":"PEAK_WINDOW_CLASSIFICATION","peak_level":"HIGH","notes":"avoid new simultaneous high draw"}
+      ]
+    },
+    {
+      "worker": "metrology_scheduling_worker_v1",
+      "status": "OK",
+      "output_ref": "ops/runs/cwd/workers/metrology_shift_8f12.json",
+      "proposals": [
+        {
+          "type": "METROLOGY_SCHEDULE_SHIFT",
+          "target_stage": "S6",
+          "parameters": {"max_delay_sec": 600},
+          "expected_impact": {"eur_per_door_delta": -0.07, "kwh_delta": -38.0}
+        }
+      ]
+    },
+    {
+      "worker": "high_draw_avoidance_worker_v1",
+      "status": "OK",
+      "output_ref": "ops/runs/cwd/workers/high_draw_avoid_8f12.json",
+      "proposals": [
+        {
+          "type": "HIGH_DRAW_AVOIDANCE",
+          "parameters": {"rule":"no_overlap:hemming_and_metrology"},
+          "expected_impact": {"eur_per_door_delta": -0.03}
+        }
+      ]
+    },
+    {
+      "worker": "pause_sequencing_worker_v1",
+      "status": "SKIPPED",
+      "reason": "no_pause_detected_in_window"
+    }
+  ],
+  "delegator": {
+    "conflicts": [],
+    "bundle_candidate": {
+      "bundle_id": "bundle:energy:TVL:2026-02-09T09:00Z:win5m",
+      "recommendations": [
+        {"type":"METROLOGY_SCHEDULE_SHIFT","expected_delta_eur_per_door":-0.07},
+        {"type":"HIGH_DRAW_AVOIDANCE","expected_delta_eur_per_door":-0.03}
+      ],
+      "expected_total": {"eur_per_door_delta": -0.10, "kwh_delta": -38.0}
+    },
+    "bundle_ref": "ops/runs/cwd/bundle_2026-02-09T09-00Z.json"
+  },
+  "handoff_to_governance": {
+    "decision_class": "energy_cost_minimization_advisory_v1",
+    "policy": "advisory_only_no_writeback_v1",
+    "verdict_ref": "ops/decisions/advisory_result.json"
+  }
+}</pre>
+
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>run trace</span>
+          <span class="pill"><span class="dot"></span>worker outputs</span>
+          <span class="pill"><span class="dot"></span>bundle candidate</span>
+          <span class="pill red"><span class="dot"></span>governance decides</span>
+        </div>
       </div>
     </div>
   </section>
@@ -1253,7 +1598,8 @@
           </div>
           <div class="mono" style="margin-top:.4rem">
             <code>governance/contracts/pp-door-release-v1.md</code><br/>
-            <code>governance/contracts/energy-cost-minimization-advisory-v1.md</code>
+            <code>governance/contracts/energy-cost-minimization-advisory-v1.md</code><br/>
+            <code>governance/contracts/energy-orchestration-cwd-v1.md</code>
           </div>
         </div>
 
@@ -1264,6 +1610,18 @@
           </div>
           <div class="mono" style="margin-top:.4rem">
             <code>ops/reports/decision_trace.jsonl</code>
+          </div>
+        </div>
+
+        <div class="row">
+          <strong>CWD Run Traces (internal orchestration evidence)</strong>
+          <div class="muted" style="margin-top:.25rem">
+            Every orchestration run is captured: snapshot hash, worker outputs, delegator bundle candidate, handoff to governance.
+          </div>
+          <div class="mono" style="margin-top:.4rem">
+            <code>ops/runs/cwd/run_*.json</code><br/>
+            <code>ops/runs/cwd/workers/*.json</code><br/>
+            <code>ops/runs/cwd/bundle_*.json</code>
           </div>
         </div>
 
@@ -1292,7 +1650,7 @@
       <div class="card callout ok" style="margin-top:16px">
         <strong>Normative rule</strong>
         <p class="muted" style="margin:.5rem 0 0">
-          If it is not expressed in governed artifacts (<code>contract</code>, <code>trace</code>, <code>gate_result</code>/<code>advisory_result</code>, <code>status</code>),
+          If it is not expressed in governed artifacts (<code>contract</code>, <code>trace</code>, <code>run</code>, <code>gate_result</code>/<code>advisory_result</code>, <code>status</code>),
           it is not part of the system.
         </p>
       </div>
