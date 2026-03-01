@@ -3,44 +3,43 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Industry Model · Spec v1 · virtauto®</title>
+  <title>Industry Model · Energy Orchestration + Knowledge Layer Spec v3 · virtauto®</title>
+
+  <!-- SEO -->
+  <meta name="description" content="How to reduce energy cost per door (€/door) on a BIW doorline (TVOL) without risking quality, takt time or OEE: governed orchestration (CWD) on top of a stable Industrial Knowledge Layer (semantics + deterministic verifiers + optional learned accelerators).">
+  <link rel="canonical" href="https://www.virtauto.de/industrymodel.html">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="virtauto Industry Model — Energy Orchestration + Knowledge Layer (Spec v3)">
+  <meta property="og:description" content="Governed energy orchestration (€/door) for TVOL: CWD agent layer on top of stable semantics and deterministic verifiers — optional learned accelerators, no blackbox execution.">
+  <meta property="og:url" content="https://www.virtauto.de/industrymodel.html">
+  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <!-- virtauto Spec Metadata -->
   <meta name="virtauto:document_type" content="spec">
   <meta name="virtauto:spec_name" content="industrymodel">
-  <meta name="virtauto:spec_version" content="1.0">
-  <meta name="virtauto:spec_status" content="v1">
-
-  <!-- SEO -->
-  <link rel="canonical" href="https://www.virtauto.de/industrymodel.html">
-  <meta name="description" content="Industry Model (AEO Stage 1): the normative reference point (Proof Object) for how an industrial system thinks, decides, and blocks — bounded decision space, audit-first, block-capable, PR-driven.">
-
-  <!-- Open Graph -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="virtauto Industry Model — AEO Stage 1 (Normative Proof Object)">
-  <meta property="og:description" content="Not a showcase: a normative world-model spec and proof object. One bounded decision class with explicit authority, governance, and an explainable BLOCK path — PR-driven, audit-first.">
-  <meta property="og:url" content="https://www.virtauto.de/industrymodel.html">
-  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
-
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="virtauto Industry Model — AEO Stage 1 (Normative Proof Object)">
-  <meta name="twitter:description" content="A normative world-model spec: how a doorline thinks, decides, and blocks — decision-first, audit-first, PR-driven, explainable BLOCK.">
-  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
+  <meta name="virtauto:spec_version" content="3.0">
+  <meta name="virtauto:spec_status" content="v3">
+  <meta name="virtauto:scope" content="TVOL_BIW_doorline_energy_orchestration">
+  <meta name="virtauto:decision_class" content="energy_cost_minimization_advisory_v3">
 
   <link rel="stylesheet" href="assets/styles.css"/>
   <link rel="stylesheet" href="assets/styles_unify.css"/>
   <script defer src="assets/site.js"></script>
   <script defer src="assets/agent-status.js"></script>
 
-  <!-- Page-local styling (minimal + aligned with theme) -->
   <style>
-    .pill-row { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem; }
+    .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem;}
+    .three-col{ display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:1rem;}
+    .four-col{ display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:1rem;}
+    .pill-row{ display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem; }
     .pill{
       display:inline-flex; align-items:center; gap:.4rem;
       padding:.25rem .55rem; border-radius:999px;
-      border:1px solid #2a3a5e; background:#0f1629; color:#dbe7ff;
+      border:1px solid #243255; background:#0f1629; color:#dbe7ff;
       font-size:.82rem; line-height:1.2;
+      margin:.05rem 0;
     }
     .pill .dot{ width:8px; height:8px; border-radius:999px; display:inline-block; background: rgba(125,211,252,.95); }
     .pill.red  { border-color: rgba(248,113,113,.35); background: rgba(127,29,29,.12); }
@@ -50,59 +49,15 @@
     .pill.ok   { border-color: rgba(34,197,94,.25); background: rgba(20,83,45,.10); }
     .pill.ok .dot{ background: rgba(34,197,94,.95); }
 
-    .anchors{ display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.8rem; }
-    .anchors a{ border:1px solid #243255; border-radius:999px; padding:.28rem .6rem; background:#0f1629; color:#dbe7ff; }
-    .anchors a:hover{ border-color:#3c5080; }
-
-    .list-tight{ margin:.4rem 0 0; padding-left:1.1rem; }
-    .list-tight li{ margin:.18rem 0; }
-
-    .two-col{ display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-top:1rem; }
-    .three-col{ display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-top:1rem; }
-
-    .mono{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size:.88rem; line-height:1.5;
-    }
-    .codeblock{
-      background:#0a0f1b; border:1px solid #243255; border-radius:.8rem;
-      padding:.85rem; overflow:auto; color:#dbe7ff;
-    }
-
     .callout{
-      background: linear-gradient(135deg, rgba(125,211,252,.12), rgba(34,211,238,.06));
-      border: 1px solid rgba(125,211,252,.25);
+      border:1px solid rgba(125,211,252,.30);
+      background:rgba(125,211,252,.08);
+      padding:1rem; border-radius:.8rem;
     }
-    .callout.warn{
-      background: linear-gradient(135deg, rgba(251,191,36,.10), rgba(248,113,113,.06));
-      border: 1px solid rgba(251,191,36,.30);
-    }
-    .callout.ok{
-      background: linear-gradient(135deg, rgba(34,197,94,.10), rgba(125,211,252,.05));
-      border: 1px solid rgba(34,197,94,.24);
-    }
-
-    .badge2{
-      display:inline-flex; align-items:center; gap:.45rem;
-      padding:.22rem .55rem; border-radius:999px;
-      border:1px solid #243255; background:#0b1220; color:#dbe7ff;
-      font-size:.78rem;
-    }
-    .badge2 .dot{ width:8px; height:8px; border-radius:999px; display:inline-block; background: rgba(125,211,252,.95); }
-    .badge2.ok   { border-color: rgba(34,197,94,.25); }
-    .badge2.ok .dot{ background: rgba(34,197,94,.95); }
-    .badge2.hold { border-color: rgba(251,191,36,.35); }
-    .badge2.hold .dot{ background: rgba(251,191,36,.95); }
-    .badge2.block{ border-color: rgba(248,113,113,.35); }
-    .badge2.block .dot{ background: rgba(248,113,113,.95); }
-
-    .kpi-row{ display:flex; flex-wrap:wrap; gap:.7rem; margin-top:.75rem; }
-    .kpi{ padding:.55rem .7rem; border:1px solid #243255; border-radius:.7rem; background:#0f1526; min-width: 240px; }
-    .kpi strong{ display:block; font-size:1.05rem; }
-    .kpi .muted{ display:block; margin-top:.15rem; }
-
+    .warn{ border:1px solid rgba(248,113,113,.40); background:rgba(248,113,113,.08); }
+    .ok{ border:1px solid rgba(34,197,94,.30); background:rgba(34,197,94,.08); }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:.86rem; line-height:1.5; }
     .mini-hr{ border:0; height:1px; background: #162034; margin: 16px 0; }
-
     .path{
       display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.6rem;
       align-items:center;
@@ -112,40 +67,25 @@
       background:#0f1629; color:#dbe7ff; font-size:.82rem;
       display:inline-flex; gap:.4rem; align-items:center;
     }
-    .node .n{ width:18px; height:18px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; font-size:.72rem; border:1px solid #2a3a5e; }
-    .arrow{ opacity:.7; }
-
-    .repo{
-      display:grid; grid-template-columns: 1fr; gap:.7rem; margin-top:.8rem;
-    }
-    .repo .row{
-      border:1px solid #243255; border-radius:.8rem; padding:.75rem; background:#0f1526;
-    }
-    .repo .row code{ font-size:.9rem; }
-
-    /* NEW: Production process (Stages 1–6) helpers */
-    .stage-head{
-      display:flex; align-items:center; justify-content:space-between; gap:.75rem;
-      margin-bottom:.35rem;
-    }
-    .stage-badge{
-      display:inline-flex; align-items:center; gap:.45rem;
-      padding:.22rem .55rem; border-radius:999px;
-      border:1px solid #243255; background:#0b1220; color:#dbe7ff;
-      font-size:.78rem; white-space:nowrap;
-    }
-    .stage-badge .n{
+    .node .n{
       width:18px; height:18px; border-radius:999px;
       display:inline-flex; align-items:center; justify-content:center;
       font-size:.72rem; border:1px solid #2a3a5e;
     }
-    .stage-badge.ok  { border-color: rgba(34,197,94,.25); }
-    .stage-badge.amb { border-color: rgba(251,191,36,.35); }
+    .arrow{ opacity:.7; }
+    .table-wrap{ overflow:auto; border-radius:.8rem; border:1px solid #243255; }
+    table{ width:100%; border-collapse:collapse; }
+    th,td{ padding:.7rem .7rem; border-bottom:1px solid #1a2332; vertical-align:top; }
+    th{ text-align:left; font-size:.85rem; color:#cfe0ff; background:#0b1220; position:sticky; top:0; }
+    tr:hover td{ background: rgba(125,211,252,.04); }
+    .muted{ opacity:.82; }
+    .kpi-row{ display:flex; flex-wrap:wrap; gap:.7rem; margin-top:.75rem; }
+    .kpi{ padding:.55rem .7rem; border:1px solid #243255; border-radius:.7rem; background:#0f1526; min-width: 240px; }
+    .kpi strong{ display:block; font-size:1.05rem; }
+    .kpi .muted{ display:block; margin-top:.15rem; }
 
-    @media (max-width: 900px) {
-      .two-col, .three-col { grid-template-columns: 1fr; }
-      .kpi{ min-width: unset; width:100%; }
-    }
+    @media(max-width:1100px){ .four-col{ grid-template-columns:1fr 1fr; } }
+    @media(max-width:900px){ .two-col,.three-col,.four-col{grid-template-columns:1fr;} .kpi{ min-width: unset; width:100%; } }
   </style>
 </head>
 
@@ -156,12 +96,10 @@
 
     <nav class="menu" id="menu">
       <a href="index.html">Home</a>
-      <a href="agents.html">Agents</a>
-      <a href="architecture.html">Architecture</a>
       <a class="active" href="industrymodel.html">Industry Model</a>
+      <a href="solutions.html#george">Meet GEORGE</a>
       <a href="/status/">Status</a>
       <a href="contact.html">Contact</a>
-      <a class="cta" href="solutions.html#george">Meet GEORGE</a>
     </nav>
 
     <div id="agent-chips" class="agent-chips" aria-label="Agent health"></div>
@@ -173,1388 +111,583 @@
 </header>
 
 <main>
-  <!-- HERO -->
-  <section class="hero">
-    <div class="container">
-      <div class="kicker">Industry Model · AEO Stage 1</div>
 
-      <h1>Industry Model <span class="spec-badge">Spec v1</span></h1>
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="kicker">Industry Model · Energy Orchestration + Knowledge Layer</div>
 
-      <section class="spec-banner" aria-label="Specification banner">
-        <div class="spec-banner__inner">
-          <div class="spec-banner__title">Spec v1 (normative)</div>
-          <div class="spec-banner__meta">
-            <span>Document type: Specification</span>
-            <span>·</span>
-            <span>Status: v1</span>
-            <span>·</span>
-            <span>Rule: If UI/implementation contradicts this spec, the spec wins.</span>
-          </div>
+    <h1>Energy Orchestration Model <span class="spec-badge">Spec v3</span></h1>
+
+    <p class="lead">
+      This page answers one concrete question (TVOL, BIW doorline):
+      <strong>How can we reduce energy cost per door (€/door) — without risking quality, takt time, or OEE?</strong>
+      <br/>
+      We do it with <strong>governed orchestration</strong> (CWD agent structure) on top of a <strong>stable Industrial Knowledge Layer</strong>
+      (semantics + deterministic verifiers + optional learned accelerators).
+    </p>
+
+    <section class="spec-banner" aria-label="Specification banner">
+      <div class="spec-banner__inner">
+        <div class="spec-banner__title">Spec v3 (normative)</div>
+        <div class="spec-banner__meta">
+          <span>Document type: Specification</span><span>·</span>
+          <span>Status: v3</span><span>·</span>
+          <span>Rule: If UI/implementation contradicts this spec, the spec wins.</span>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <p class="lead">
-        <strong>industrymodel.html</strong> is not a marketing showcase.
-        It is a <strong>normative reference point</strong> — a <strong>Proof Object</strong> that demonstrates:
-        <em>how a real industrial system thinks, decides, and blocks</em>.
-        Everything we build later can point back here:
-        <strong>“So decides a doorline. So decides virtauto.”</strong>
-      </p>
+    <div class="card callout" style="margin-top:16px">
+      <strong>Executive framing (CFO / Plant Manager)</strong>
+      <ul class="muted" style="margin:.6rem 0 0; padding-left:1.2rem;">
+        <li><strong>Energy is cost pressure</strong> → we attack €/door.</li>
+        <li><strong>Quality is non-negotiable</strong> → no trade-offs.</li>
+        <li><strong>Stability matters</strong> → takt/OEE guardrails stay hard.</li>
+        <li><strong>Recommendations must be traceable</strong> → veto-capable governance.</li>
+        <li><strong>No “big-model religion”</strong> → stable semantics & verifiers first; ML only where it clearly pays.</li>
+      </ul>
 
-      <div class="card callout" style="margin-top:16px">
-        <strong>Stage 1 definition (bounded decision space)</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          AEO Stage 1 means: <strong>one domain</strong>, <strong>one decision class</strong>, <strong>one authority path</strong>,
-          and an explicit, explainable <strong>BLOCK</strong> case.
-          This page is decision-first and audit-first — <strong>PR-driven</strong>, not UI-driven.
-        </p>
+      <div class="pill-row" aria-label="Normative tags">
+        <span class="pill ok"><span class="dot"></span>Orchestration-first</span>
+        <span class="pill"><span class="dot"></span>Audit-first</span>
+        <span class="pill red"><span class="dot"></span>No quality trade-off</span>
+        <span class="pill red"><span class="dot"></span>Default to HOLD</span>
+        <span class="pill"><span class="dot"></span>Semantics + verifiers</span>
+        <span class="pill"><span class="dot"></span>Optional learned accelerators</span>
+      </div>
 
-        <div class="kpi-row">
-          <div class="kpi">
-            <strong>Domain</strong>
-            <span class="muted">Bodyshop — Doorline Front Left (TVL)</span>
-          </div>
-          <div class="kpi">
-            <strong>Core decision class (Option 1)</strong>
-            <span class="muted">May this door be released / handed over?</span>
-          </div>
-          <div class="kpi">
-            <strong>Outcome space</strong>
-            <span class="muted">ALLOW · HOLD · BLOCK</span>
-          </div>
+      <hr class="mini-hr">
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <strong>Domain</strong>
+          <span class="muted">BIW Doorline · TVOL</span>
         </div>
-
-        <div class="pill-row" aria-label="Normative tags">
-          <span class="pill ok"><span class="dot"></span>Normative reference</span>
-          <span class="pill"><span class="dot"></span>Decision-first</span>
-          <span class="pill"><span class="dot"></span>Audit-first</span>
-          <span class="pill red"><span class="dot"></span>Block-capable</span>
-          <span class="pill"><span class="dot"></span>PR-driven</span>
+        <div class="kpi">
+          <strong>Decision class</strong>
+          <span class="muted"><code>energy_cost_minimization_advisory_v3</code> (advisory-only)</span>
         </div>
-
-        <hr class="mini-hr">
-
-        <strong>Stage 1.1 (bounded use case extension)</strong>
-        <p class="muted" style="margin:.45rem 0 0">
-          The first “real” use case we attach to the model is <strong>Energy Cost Minimization</strong> — not as autonomous execution,
-          but as a <strong>bounded advisory layer</strong> that must still obey the same governance discipline
-          (explicit inputs, evidence posture, versioned rulesets, traceability).
-        </p>
-        <div class="pill-row" aria-label="Use case tags">
-          <span class="pill"><span class="dot"></span>Advisory-only</span>
-          <span class="pill"><span class="dot"></span>Same domain context</span>
-          <span class="pill red"><span class="dot"></span>Default to Non-Action</span>
-          <span class="pill"><span class="dot"></span>Traceable recommendations</span>
-          <span class="pill"><span class="dot"></span>5-minute canonical window</span>
-        </div>
-
-        <p class="muted" style="margin-top:.65rem">
-          Jump to:
-          <a href="#decision-space">Decision Space</a> ·
-          <a href="#production-process">Production Process</a> ·
-          <a href="#use-case-energy">Use Case</a> ·
-          <a href="#data-determinism">Data & Determinism</a> ·
-          <a href="#structured-knowledge">Structured Knowledge</a>
-        </p>
-
-        <div class="anchors" aria-label="Jump links">
-          <a href="#proof">Proof Object</a>
-          <a href="#intent">Intent</a>
-          <a href="#production-process">Production Process (Stages 1–6)</a>
-          <a href="#use-case-energy">Use Case</a>
-          <a href="#data-determinism">Data & Determinism</a>
-          <a href="#structured-knowledge">Structured Knowledge</a>
-          <a href="#world-model">World Model</a>
-          <a href="#decision-graph">Decision Graph</a>
-          <a href="#governance">Governance</a>
-          <a href="#execution-control">Execution Control Layer</a>
-          <a href="#artifacts">Artifacts</a>
-          <a href="#audit">Audit</a>
-          <a href="#block">BLOCK (explicit trace)</a>
+        <div class="kpi">
+          <strong>Outcome space</strong>
+          <span class="muted">ALLOW (recommendation admissible) · HOLD (no recommendation)</span>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- DECISION SPACE -->
-  <section class="section" id="decision-space">
-    <div class="container">
-      <h2>Decision Space (governed)</h2>
-      <p class="muted">
-        This page only claims capabilities that exist as governed artifacts (contract, ruleset, examples, trace).
-        No artifact, no capability.
-      </p>
+<!-- 1. CORE PROBLEM -->
+<section class="section" id="core-problem">
+  <div class="container">
+    <h2>1) The Core Problem</h2>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Objective</h3>
+        <p><strong>Minimize €/door</strong> within canonical <strong>5-minute windows</strong>.</p>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Metric = Energy Cost / Produced Units</span>
+          <span class="pill"><span class="dot"></span>Resolution = 5m snapshot</span>
+        </div>
+        <p class="muted" style="margin-top:.65rem;">
+          We do not “optimize the factory”. We produce <strong>bounded, auditable recommendations</strong> that remain safe under industrial reality.
+        </p>
+      </div>
 
       <div class="card">
-        <strong>Active decision classes (Options 1–2)</strong>
-
-        <div class="table-wrap" style="margin-top:12px;">
-          <table class="table" style="width:100%;">
-            <thead>
-              <tr>
-                <th>Decision class</th>
-                <th>Authority / Mode</th>
-                <th>Scope</th>
-                <th>Artifacts (repo)</th>
-                <th>Evidence posture</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- OPTION 1 -->
-              <tr>
-                <td><code>pp_door_release</code> <span class="pill" style="margin-left:.35rem">Option 1</span></td>
-                <td><span class="pill">Gate-blocking</span></td>
-                <td>BIW Doorline · Door (TVL)</td>
-                <td>
-                  <code>governance/contracts/pp-door-release-v1.md</code><br/>
-                  <code>ops/reports/decision_trace.jsonl</code><br/>
-                  <code>ops/decisions/gate_result.json</code><br/>
-                  <code>ops/reports/system_status.json</code>
-                </td>
-                <td>BLOCK-capable · trace required</td>
-              </tr>
-
-              <!-- OPTION 2 -->
-              <tr>
-                <td><code>energy_cost_minimization_advisory_v1</code> <span class="pill" style="margin-left:.35rem">Option 2</span></td>
-                <td><span class="pill">Advisory-only</span></td>
-                <td>BIW Doorline · TVL/TVOL Line Window (5 min)</td>
-                <td>
-                  <code>governance/contracts/energy-cost-minimization-advisory-v1.md</code><br/>
-                  <code>governance/rulesets/biw-door-energy-cost-v1.json</code><br/>
-                  <code>ops/examples/energy_cost_minimization_advisory_*.json</code><br/>
-                  <code>decision_traces/pr-&lt;PRID&gt;_decision_trace.md</code>
-                </td>
-                <td>MEASURED-only · HOLD on missing/stale evidence</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <p class="muted" style="margin-top:12px;">
-          Advisory-only means: recommendations may be produced, but no autonomous execution happens on the shopfloor.
-          The model stays governance-first: explicit inputs, explicit evidence posture, explicit traceability.
-        </p>
-
-        <div class="card callout warn" style="margin-top:12px">
-          <strong>Non-claim (explicit)</strong>
-          <p class="muted" style="margin:.5rem 0 0">
-            This spec does not claim any direct PLC/MES write-back. It does not claim database-level integration into live production systems.
-            It assumes read-only interfaces, governed snapshots, and advisory outputs with trace.
-          </p>
-          <div class="pill-row">
-            <span class="pill amb"><span class="dot"></span>No PLC write access</span>
-            <span class="pill amb"><span class="dot"></span>No direct production DB querying</span>
-            <span class="pill"><span class="dot"></span>Read-only collector</span>
-            <span class="pill"><span class="dot"></span>Advisory outputs</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PROOF OBJECT -->
-  <section class="section" id="proof">
-    <div class="container">
-      <h2>0) Why this page exists (Proof Object)</h2>
-      <p class="muted">
-        This is the first <strong>World-Model Spec</strong> you can point to.
-        Its purpose is to prove one thing under real constraints:
-        <strong>autonomy can fail correctly</strong>.
-      </p>
-
-      <div class="two-col">
-        <div class="card">
-          <h3>What this proves</h3>
-          <ul class="list-tight muted">
-            <li>An industrial decision can be <strong>bounded</strong> (domain + decision class)</li>
-            <li>Decisions have <strong>explicit authority</strong> and <strong>enforced constraints</strong></li>
-            <li>Every decision is <strong>auditable</strong> (append-only trace, evidence refs, ruleset)</li>
-            <li>BLOCK is legitimate: <strong>explainable</strong> and <strong>stable</strong>, not “AI error”</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>What this prevents</h3>
-          <ul class="list-tight muted">
-            <li>“Smart agent did something” without accountability</li>
-            <li>Silent execution (state changes without trace)</li>
-            <li>UI storytelling without governed artifacts</li>
-            <li>“Autonomy first” without governance proof</li>
-          </ul>
-          <div class="pill-row" aria-label="Non-negotiables">
-            <span class="pill red"><span class="dot"></span>No decision without trace</span>
-            <span class="pill red"><span class="dot"></span>No bypassing Guardian</span>
-            <span class="pill"><span class="dot"></span>PR-only governed change</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card callout" style="margin-top:16px">
-        <strong>Operational reality</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          We run our own website like we want industrial agents to run:
-          <strong>PR-only</strong>, no direct writes, no silent actions, governed artifacts, required checks.
-          The website is not a demo playground — it is our controlled test field for governance.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- INTENT -->
-  <section class="section" id="intent">
-    <div class="container">
-      <h2>1) Intent</h2>
-      <p class="muted">
-        The model is complete in terms of <strong>decision authority</strong>, not geometry.
-        It defines when a door may proceed — and when it must not.
-      </p>
-
-      <div class="two-col">
-        <div class="card">
-          <h3>Decision intent (Option 1)</h3>
-          <ul class="list-tight muted">
-            <li>Produce Door <code>TVL</code> for variant <code>FrontLeft_BIW</code></li>
-            <li>Only release if audit-grade evidence is complete</li>
-            <li>Enforce policy: <strong>No silent autonomy</strong> (no execution without trace)</li>
-          </ul>
-          <div class="pill-row" aria-label="Intent tags">
-            <span class="pill"><span class="dot"></span>Decision-first</span>
-            <span class="pill"><span class="dot"></span>Audit-first</span>
-            <span class="pill red"><span class="dot"></span>Block-capable</span>
-            <span class="pill"><span class="dot"></span>PR-driven</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>What this is not</h3>
-          <ul class="list-tight muted">
-            <li>Not a “Digital Twin” marketing demo</li>
-            <li>Not a simulator or optimizer</li>
-            <li>Not “AI plans production”</li>
-            <li>Not a framework showcase</li>
-          </ul>
-          <div class="pill-row" aria-label="Non-claims">
-            <span class="pill amb"><span class="dot"></span>No learning claims</span>
-            <span class="pill amb"><span class="dot"></span>No heuristics</span>
-            <span class="pill amb"><span class="dot"></span>No vendor lock-in</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- NEW: PRODUCTION PROCESS (Stages 1–6) -->
-  <section class="section" id="production-process">
-    <div class="container">
-      <h2>1.05) Production Process (Doorline Stages 1–6)</h2>
-      <p class="muted">
-        These are <strong>production stages</strong> (work groups), not governance stages.
-        They anchor the spec in a plausible BIW doorline route: inner build → outer prep → hemming → finishing → quality gate.
-        The goal is to make clear: this model could run on a real line because it has
-        <strong>explicit evidence points</strong> and a <strong>credible release gate</strong>.
-      </p>
-
-      <div class="card callout">
-        <strong>How this maps to the decision model</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          The core decision class (<code>pp_door_release</code>) is evaluated at <strong>Stage 6</strong>.
-          Stages 1–5 generate the evidence artifacts that must be resolvable for ALLOW.
-          If evidence is missing or inconsistent, the model must degrade conservatively to HOLD/BLOCK.
-        </p>
+        <h3>Non-Negotiables (hard constraints)</h3>
+        <ul class="muted" style="margin:.55rem 0 0; padding-left:1.2rem;">
+          <li>Quality gate OK (geometry / surface / gap&flush)</li>
+          <li>Scrap ≤ hard threshold</li>
+          <li>Rework ≤ hard threshold</li>
+          <li>Takt / cycle time OK</li>
+          <li>OEE OK</li>
+        </ul>
         <div class="pill-row">
-          <span class="pill"><span class="dot"></span>Evidence chain</span>
-          <span class="pill"><span class="dot"></span>Attribution</span>
-          <span class="pill red"><span class="dot"></span>Fail-safe</span>
-          <span class="pill"><span class="dot"></span>Audit-grade</span>
-        </div>
-      </div>
-
-      <div class="three-col">
-        <!-- Stage 1 -->
-        <div class="card">
-          <div class="stage-head">
-            <h3 style="margin:0">Stage 1 — Parts & Preparation</h3>
-            <span class="stage-badge amb"><span class="n">1</span> Work group</span>
-          </div>
-          <p class="muted" style="margin:.35rem 0 0">
-            Inner/outer panels and reinforcements are provided per Door ID + variant. Variant mismatch must be prevented.
-          </p>
-          <hr class="mini-hr">
-          <strong>Typical operations</strong>
-          <ul class="list-tight muted">
-            <li>Barcode/RFID identification (Door ID, variant)</li>
-            <li>Material handling (KLT/pallet), fixture loading</li>
-            <li>Basic preparation (cleaning, edge trim) if required</li>
-          </ul>
-          <div class="pill-row" aria-label="Actors">
-            <span class="pill"><span class="dot"></span>Werker</span>
-            <span class="pill"><span class="dot"></span>Handling</span>
-            <span class="pill"><span class="dot"></span>Poka-Yoke</span>
-          </div>
-          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>door_id</code>, <code>variant</code>, <code>part_batch_id</code>, <code>fixture_id</code></p>
-        </div>
-
-        <!-- Stage 2 -->
-        <div class="card">
-          <div class="stage-head">
-            <h3 style="margin:0">Stage 2 — Door Inner Build</h3>
-            <span class="stage-badge amb"><span class="n">2</span> Work group</span>
-          </div>
-          <p class="muted" style="margin:.35rem 0 0">
-            Inner panel is assembled with reinforcements. Joining must remain inside defined process windows.
-          </p>
-          <hr class="mini-hr">
-          <strong>Typical operations</strong>
-          <ul class="list-tight muted">
-            <li>Load inner panel into fixture, clamp verification</li>
-            <li>Add reinforcements (hinge/lock/crash areas)</li>
-            <li>Join: spot welding / clinching / riveting (concept-dependent)</li>
-          </ul>
-          <div class="pill-row" aria-label="Actors">
-            <span class="pill"><span class="dot"></span>Robots</span>
-            <span class="pill"><span class="dot"></span>Joining</span>
-            <span class="pill"><span class="dot"></span>Werker support</span>
-          </div>
-          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>weld_program_id</code>, <code>spot_count_ok</code>, <code>process_curve_ref</code>, <code>clamp_ok</code></p>
-        </div>
-
-        <!-- Stage 3 -->
-        <div class="card">
-          <div class="stage-head">
-            <h3 style="margin:0">Stage 3 — Door Outer Prep / Sealing</h3>
-            <span class="stage-badge amb"><span class="n">3</span> Work group</span>
-          </div>
-          <p class="muted" style="margin:.35rem 0 0">
-            Outer panel is prepared for hemming. If adhesive/sealer is used, bead geometry and material window must be controlled.
-          </p>
-          <hr class="mini-hr">
-          <strong>Typical operations</strong>
-          <ul class="list-tight muted">
-            <li>Load outer panel into hemming carrier / frame</li>
-            <li>Optional adhesive/sealer bead application</li>
-            <li>Temperature / viscosity window checks (if applicable)</li>
-          </ul>
-          <div class="pill-row" aria-label="Actors">
-            <span class="pill"><span class="dot"></span>Robots</span>
-            <span class="pill"><span class="dot"></span>Sealer</span>
-            <span class="pill"><span class="dot"></span>Vision check</span>
-          </div>
-          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>sealer_batch</code>, <code>bead_geometry_ref</code>, <code>temp_ok</code></p>
-        </div>
-
-        <!-- Stage 4 -->
-        <div class="card">
-          <div class="stage-head">
-            <h3 style="margin:0">Stage 4 — Hemming (Inner + Outer Marriage)</h3>
-            <span class="stage-badge amb"><span class="n">4</span> Work group</span>
-          </div>
-          <p class="muted" style="margin:.35rem 0 0">
-            Inner and outer panels are joined by hemming. Tool condition and recipe stability drive quality and repeatability.
-          </p>
-          <hr class="mini-hr">
-          <strong>Typical operations</strong>
-          <ul class="list-tight muted">
-            <li>Pre-hem → intermediate hem → final hem (roll/press hemming)</li>
-            <li>Force/displacement monitoring, path control</li>
-            <li>Tool condition tracking (roll wear, setup)</li>
-          </ul>
-          <div class="pill-row" aria-label="Actors">
-            <span class="pill"><span class="dot"></span>Hemming cell</span>
-            <span class="pill"><span class="dot"></span>Process window</span>
-            <span class="pill"><span class="dot"></span>Maintenance</span>
-          </div>
-          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>hemming_recipe_id</code>, <code>force_disp_ref</code>, <code>path_ok</code></p>
-        </div>
-
-        <!-- Stage 5 -->
-        <div class="card">
-          <div class="stage-head">
-            <h3 style="margin:0">Stage 5 — Finish / Calibration / Rework (bounded)</h3>
-            <span class="stage-badge amb"><span class="n">5</span> Work group</span>
-          </div>
-          <p class="muted" style="margin:.35rem 0 0">
-            Controlled finishing steps. Rework must be explicit and recorded (no silent repair).
-          </p>
-          <hr class="mini-hr">
-          <strong>Typical operations</strong>
-          <ul class="list-tight muted">
-            <li>Remaining join points (concept-dependent)</li>
-            <li>Calibration fixture / controlled straightening</li>
-            <li>Rework station with explicit counters and reasons</li>
-          </ul>
-          <div class="pill-row" aria-label="Actors">
-            <span class="pill"><span class="dot"></span>Mixed</span>
-            <span class="pill"><span class="dot"></span>Calibration</span>
-            <span class="pill red"><span class="dot"></span>No silent rework</span>
-          </div>
-          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>rework_count</code>, <code>rework_reason</code>, <code>cal_fixture_id</code>, <code>delta_geo_ref</code></p>
-        </div>
-
-        <!-- Stage 6 -->
-        <div class="card">
-          <div class="stage-head">
-            <h3 style="margin:0">Stage 6 — Quality Gate & Release Decision</h3>
-            <span class="stage-badge ok"><span class="n">6</span> Gate</span>
-          </div>
-          <p class="muted" style="margin:.35rem 0 0">
-            Audit-grade checks determine whether the door may proceed. This is where <code>pp_door_release</code> is evaluated:
-            ALLOW / HOLD / BLOCK with explicit reasons and evidence references.
-          </p>
-          <hr class="mini-hr">
-          <strong>Typical checks</strong>
-          <ul class="list-tight muted">
-            <li>Geometry (3D scan / structured light)</li>
-            <li>Surface (line scan / vision tags)</li>
-            <li>Gap/flush (measurement system or surrogate reference)</li>
-          </ul>
-          <div class="pill-row" aria-label="Actors">
-            <span class="pill"><span class="dot"></span>Metrology</span>
-            <span class="pill"><span class="dot"></span>Quality</span>
-            <span class="pill red"><span class="dot"></span>BLOCK-capable</span>
-          </div>
-          <p class="muted" style="margin-top:.65rem"><strong>Evidence</strong>: <code>scan3d_ref</code>, <code>surface_ref</code>, <code>gap_flush_ref</code>, <code>evidence_chain_complete</code></p>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <strong>Energy overlays (Option 2) mapped to stages</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          Energy cost minimization must connect to where energy is actually consumed and where loads are shiftable:
-          joining and hemming (Stages 2 &amp; 4), sealing/conditioning (Stage 3), and shiftable loads like metrology (Stage 6).
-          Option 2 is advisory-only and must never bypass quality constraints.
-        </p>
-        <div class="pill-row">
-          <span class="pill"><span class="dot"></span>Metrology job scheduling (Stage 6)</span>
-          <span class="pill"><span class="dot"></span>Avoid simultaneous high-draw operations (Scheduling)</span>
-          <span class="pill"><span class="dot"></span>Start/stop sequencing during pauses (Resequencing with logistics)</span>
-          <span class="pill red"><span class="dot"></span>Quality guardrails always apply</span>
+          <span class="pill red"><span class="dot"></span>No trade-off policy</span>
+          <span class="pill red"><span class="dot"></span>Violation → HOLD</span>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- USE CASE: ENERGY -->
-  <section class="section" id="use-case-energy">
-    <div class="container">
-      <h2>1.1) Use Case — Energy Cost Minimization (bounded advisory)</h2>
-      <p class="muted">
-        This use case is intentionally <strong>not</strong> “AI optimizes the factory”.
-        It is a <strong>governed advisory extension</strong> inside the same bounded world model:
-        inputs are explicit, evidence posture is explicit, rulesets are versioned, and the result is traceable.
+    <div class="card callout warn" style="margin-top:1rem;">
+      <strong>Fail-safe posture (normative)</strong><br/>
+      <span class="muted">
+        Missing required measured input → <strong>HOLD</strong> (no recommendation).<br/>
+        Unclear semantics (tag identity, unit mismatch, time misalignment) → <strong>HOLD</strong> until normalized.<br/>
+        Constraints violated → <strong>HOLD</strong>. No silent execution.
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- 2. INDUSTRIAL MODEL STACK (KNOWLEDGE LAYER) -->
+<section class="section" id="industrial-model-stack">
+  <div class="container">
+    <h2>2) Industrial Model Stack (Knowledge Layer)</h2>
+
+    <div class="card callout">
+      <strong>Principle</strong>
+      <p class="muted" style="margin:.55rem 0 0;">
+        In industry, “understanding” is not reading text. It is <strong>structure + constraints + context + lifecycle</strong>.
+        Therefore, the stable core is a Knowledge Layer (semantics + deterministic verifiers). Agents orchestrate on top.
       </p>
-
-      <div class="card callout">
-        <strong>What is optimized (and what is not)</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          The objective is <strong>€/door</strong> (energy cost per produced door) at a <strong>5-minute window</strong> resolution.
-          The system must never trade cost reductions against quality, scrap, rework, takt time, or OEE. If evidence is missing or stale, the system must degrade to <strong>HOLD / no recommendation</strong>.
-        </p>
-        <div class="pill-row">
-          <span class="pill"><span class="dot"></span>Objective: €/door</span>
-          <span class="pill"><span class="dot"></span>5-min canonical window</span>
-          <span class="pill red"><span class="dot"></span>No quality trade-off</span>
-          <span class="pill red"><span class="dot"></span>Default to Non-Action</span>
-        </div>
-      </div>
-
-      <div class="three-col">
-        <!-- Option 1 -->
-        <div class="card">
-          <h3>Option 1 — Door release gate</h3>
-          <p class="muted" style="margin:.35rem 0 0">
-            Baseline decision class that proves the system can <strong>ALLOW/HOLD/BLOCK</strong> deterministically.
-            Energy is not optimized here — this is the governance spine that makes all later optimization safe.
-          </p>
-          <hr class="mini-hr">
-          <ul class="list-tight muted">
-            <li>Decision: <code>pp_door_release</code></li>
-            <li>Outcome: ALLOW/HOLD/BLOCK</li>
-            <li>Requires: evidence chain + trace</li>
-          </ul>
-          <div class="pill-row">
-            <span class="pill ok"><span class="dot"></span>Gate-blocking</span>
-            <span class="pill red"><span class="dot"></span>BLOCK-capable</span>
-          </div>
-        </div>
-
-        <!-- Option 2 -->
-        <div class="card">
-          <h3>Option 2 — Energy cost minimization advisory (v1)</h3>
-          <p class="muted" style="margin:.35rem 0 0">
-            Advisory recommendations that reduce energy cost per door while obeying hard quality and production constraints.
-            Recommendations are only admissible when the required evidence set is complete and fresh.
-          </p>
-          <hr class="mini-hr">
-          <ul class="list-tight muted">
-            <li>Decision: <code>energy_cost_minimization_advisory_v1</code></li>
-            <li>Outputs: scheduling &amp; sequencing recommendations (no execution)</li>
-            <li>Mode: advisory-only (no write-back)</li>
-          </ul>
-          <div class="pill-row">
-            <span class="pill"><span class="dot"></span>Metrology job scheduling</span>
-            <span class="pill"><span class="dot"></span>High-draw avoidance</span>
-            <span class="pill"><span class="dot"></span>Pause resequencing</span>
-          </div>
-        </div>
-
-        <!-- Option 2 boundary -->
-        <div class="card">
-          <h3>Common boundary (v1)</h3>
-          <p class="muted" style="margin:.35rem 0 0">
-            This is a governance product, not an optimizer demo. If the system cannot prove admissibility via governed artifacts, it must not recommend.
-          </p>
-          <hr class="mini-hr">
-          <ul class="list-tight muted">
-            <li><strong>Evidence posture</strong>: MEASURED-only (no estimated recommendations in v1)</li>
-            <li><strong>Failure posture</strong>: missing/stale required inputs → HOLD</li>
-            <li><strong>Authority</strong>: Production Lead is owner; Quality has veto</li>
-          </ul>
-          <div class="pill-row">
-            <span class="pill red"><span class="dot"></span>No silent action</span>
-            <span class="pill"><span class="dot"></span>Traceable recommendation</span>
-            <span class="pill"><span class="dot"></span>Veto-capable governance</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="two-col">
-        <div class="card" style="margin-top:16px">
-          <strong>Required inputs (normative, v1)</strong>
-          <p class="muted" style="margin:.5rem 0 0">
-            A recommendation is only admissible if all required inputs are present and within freshness bounds.
-          </p>
-          <ul class="list-tight muted">
-            <li><code>energy_meter_ref</code> (line/cell metered)</li>
-            <li><code>throughput_ref</code> (units within 5-min window)</li>
-            <li><code>quality_gate_ok_ref</code> (quality OK evidence)</li>
-            <li><code>cycle_time_ok_ref</code> (takt/cycle OK evidence)</li>
-            <li><code>oee_ok_ref</code> (OEE OK evidence)</li>
-            <li><code>variant_mix_ref</code> (baseline comparability)</li>
-          </ul>
-          <div class="pill-row">
-            <span class="pill red"><span class="dot"></span>Missing required input → HOLD</span>
-            <span class="pill red"><span class="dot"></span>Stale required input → HOLD</span>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:16px">
-          <strong>Freshness bounds (v1)</strong>
-          <p class="muted" style="margin:.5rem 0 0">
-            Freshness is defined to preserve €/door validity at a 5-minute canonical window resolution.
-          </p>
-          <ul class="list-tight muted">
-            <li><code>energy_meter_ref</code>: max 10 min stale</li>
-            <li><code>throughput_ref</code>: max 10 min stale</li>
-            <li><code>cycle_time_ok_ref</code>: max 10 min stale</li>
-            <li><code>oee_ok_ref</code>: max 15 min stale</li>
-            <li><code>quality_gate_ok_ref</code>: max 1 shift stale</li>
-            <li><code>variant_mix_ref</code>: max 1 day stale</li>
-          </ul>
-          <div class="pill-row">
-            <span class="pill"><span class="dot"></span>5-min window</span>
-            <span class="pill"><span class="dot"></span>Conservative</span>
-            <span class="pill red"><span class="dot"></span>Fail-safe</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <strong>Hard constraints (v1)</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          If any hard constraint is violated, the advisory must not recommend. Hard constraint violation yields <strong>BLOCK</strong> (unsafe to recommend) or <strong>HOLD</strong> (insufficient evidence) depending on the failure mode.
-        </p>
-        <div class="pill-row">
-          <span class="pill red"><span class="dot"></span>quality_gate_ok == true</span>
-          <span class="pill red"><span class="dot"></span>cycle_time_ok == true</span>
-          <span class="pill red"><span class="dot"></span>oee_ok == true</span>
-          <span class="pill red"><span class="dot"></span>scrap_rate ≤ threshold_hard</span>
-          <span class="pill red"><span class="dot"></span>rework_rate ≤ threshold_hard</span>
-        </div>
-        <p class="muted" style="margin-top:.7rem">
-          Soft constraints (warnings) may exist, but do not override hard constraints. v1 uses conservative defaults: missing/uncertain context yields HOLD.
-        </p>
+      <div class="pill-row">
+        <span class="pill"><span class="dot"></span>Stable representation</span>
+        <span class="pill"><span class="dot"></span>Semantic alignment</span>
+        <span class="pill"><span class="dot"></span>Deterministic truth</span>
+        <span class="pill"><span class="dot"></span>Optional learned accelerators</span>
+        <span class="pill red"><span class="dot"></span>LLM ≠ industrial brain</span>
       </div>
     </div>
-  </section>
 
-  <!-- NEW: DATA & DETERMINISM (EDGE) -->
-  <section class="section" id="data-determinism">
-    <div class="container">
-      <h2>1.12) Data Interfaces & Determinism Envelope (Edge)</h2>
-      <p class="muted">
-        In industrial environments, governance that stops at the agent layer governs intent but not outcome.
-        Therefore this model defines an explicit <strong>determinism envelope</strong> for where data is acquired and where advisory inference runs.
-      </p>
+    <div class="card" style="margin-top:1rem;">
+      <strong>Layered architecture (normative)</strong>
+      <div class="path" aria-label="Layered architecture">
+        <span class="node"><span class="n">0</span> Data access</span>
+        <span class="arrow">→</span>
+        <span class="node"><span class="n">1</span> Semantics</span>
+        <span class="arrow">→</span>
+        <span class="node"><span class="n">2</span> Deterministic verifiers</span>
+        <span class="arrow">→</span>
+        <span class="node"><span class="n">3</span> Optional learned models</span>
+        <span class="arrow">→</span>
+        <span class="node"><span class="n">4</span> Agent orchestration (CWD)</span>
+        <span class="arrow">→</span>
+        <span class="node"><span class="n">5</span> Governance (GEORGE/Guardian)</span>
+      </div>
 
-      <div class="three-col">
-        <div class="card">
-          <h3>Read path (normative)</h3>
-          <ul class="list-tight muted">
-            <li><strong>Read-only edge collector</strong> (OPC UA / EMS API / MES API)</li>
-            <li><strong>Canonical snapshot</strong> (5-minute windows, hashable)</li>
-            <li><strong>Website</strong> reads governed snapshots, not live production DBs</li>
+      <hr class="mini-hr">
+
+      <div class="four-col">
+        <div class="card" style="margin:0;">
+          <h3>0) Data access (plumbing)</h3>
+          <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+            <li>OT/IT streams (energy meters, PLC tags via OPC UA)</li>
+            <li>MES throughput & cycle</li>
+            <li>Quality results / genealogy</li>
+            <li>Maintenance events (optional)</li>
           </ul>
           <div class="pill-row">
             <span class="pill"><span class="dot"></span>Read-only</span>
-            <span class="pill"><span class="dot"></span>Replicated</span>
-            <span class="pill red"><span class="dot"></span>No direct DB coupling</span>
+            <span class="pill red"><span class="dot"></span>No PLC writeback</span>
           </div>
         </div>
 
-        <div class="card">
-          <h3>Compute placement (v1)</h3>
-          <ul class="list-tight muted">
-            <li><strong>Inference/decision evaluation runs on the edge</strong></li>
-            <li>Cloud may aggregate/report, but must not be required for admissibility checks</li>
-            <li>Data residency is respected by design</li>
+        <div class="card" style="margin:0;">
+          <h3>1) Semantics (meaning & identity)</h3>
+          <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+            <li>Asset identity (line/cell/stage)</li>
+            <li>Tag normalization (names, units, timestamps)</li>
+            <li>Windowing (canonical 5m snapshots)</li>
+            <li>Variant mix comparability</li>
           </ul>
           <div class="pill-row">
-            <span class="pill"><span class="dot"></span>Edge-first</span>
-            <span class="pill"><span class="dot"></span>Deterministic checks</span>
-            <span class="pill red"><span class="dot"></span>No cloud dependency for safety</span>
+            <span class="pill"><span class="dot"></span>Ontology-lite</span>
+            <span class="pill"><span class="dot"></span>Digital thread hooks</span>
           </div>
         </div>
 
-        <div class="card">
-          <h3>Failure posture (v1)</h3>
-          <ul class="list-tight muted">
-            <li>Network/collector failure → <strong>HOLD</strong> (no recommendation)</li>
-            <li>Forecasting may continue as <strong>ESTIMATED</strong> telemetry (informational only)</li>
-            <li>No “best effort” recommendations under uncertainty</li>
+        <div class="card" style="margin:0;">
+          <h3>2) Deterministic verifiers (truth & checks)</h3>
+          <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+            <li>Required inputs present?</li>
+            <li>Freshness bounds OK?</li>
+            <li>Hard constraints OK? (quality/takt/OEE)</li>
+            <li>Conflict checks (no unsafe overlaps)</li>
           </ul>
           <div class="pill-row">
-            <span class="pill red"><span class="dot"></span>Default to Non-Action</span>
-            <span class="pill"><span class="dot"></span>Estimated telemetry allowed</span>
-            <span class="pill red"><span class="dot"></span>No estimated recommendations</span>
+            <span class="pill ok"><span class="dot"></span>Explains HOLD</span>
+            <span class="pill"><span class="dot"></span>Machine-checkable</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin:0;">
+          <h3>3) Optional learned models (accelerators)</h3>
+          <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+            <li>Surrogates (fast approximations where solvers are too slow)</li>
+            <li>Regime / anomaly encoders (rare events)</li>
+            <li>Forecast helpers (informational, not decisive)</li>
+          </ul>
+          <div class="pill-row">
+            <span class="pill amb"><span class="dot"></span>Only if it pays</span>
+            <span class="pill red"><span class="dot"></span>No bypassing verifiers</span>
           </div>
         </div>
       </div>
 
-      <div class="card callout warn" style="margin-top:16px">
-        <strong>Important boundary</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          The website is a governance surface and audit viewer. It is not the runtime that controls shopfloor equipment.
-          v1 produces advisory recommendations and governed traces; execution is organizational (Phase B) or out of scope.
-        </p>
+      <div class="card callout warn" style="margin-top:1rem;">
+        <strong>Normative rule</strong><br/>
+        <span class="muted">
+          If semantics are not stable (unit mismatch, tag identity unclear, timestamps misaligned), the system must not recommend.
+          It must degrade to <strong>HOLD</strong>.
+        </span>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- NEW: STRUCTURED INDUSTRIAL KNOWLEDGE LAYER -->
-  <section class="section" id="structured-knowledge">
-    <div class="container">
-      <h2>1.13) Structured Industrial Knowledge Layer (normative schema)</h2>
-      <p class="muted">
-        Industrial decision-making requires more than raw signals. It requires a shared structural understanding of entities, states,
-        relationships, and constraint categories. This layer provides that structure — <strong>without replacing governance</strong>.
-      </p>
+<!-- 3. SYSTEM ARCHITECTURE (AEO Stage 1.1) -->
+<section class="section" id="system-architecture">
+  <div class="container">
+    <h2>3) System Architecture (AEO Stage 1.1)</h2>
 
-      <div class="card callout">
-        <strong>Purpose</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          The Structured Industrial Knowledge Layer defines canonical entity types, signal taxonomies, cross-domain relationships,
-          and constraint categories. It does not execute decisions. It does not optimize. It does not override governance.
-          It provides the structural reference against which all signals are normalized before entering the decision layer.
+    <div class="three-col">
+      <div class="card">
+        <h3>Canonical Snapshot (5m)</h3>
+        <p class="muted" style="margin:.35rem 0 0;">
+          Everything starts from a hashable, comparable window.
+        </p>
+        <hr class="mini-hr">
+        <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+          <li><code>energy_meter_ref</code> (+ unit normalization)</li>
+          <li><code>throughput_ref</code> (units / window)</li>
+          <li><code>quality_gate_ok_ref</code></li>
+          <li><code>cycle_time_ok_ref</code></li>
+          <li><code>oee_ok_ref</code></li>
+          <li><code>variant_mix_ref</code></li>
+        </ul>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Snapshot carries staleness</span>
+          <span class="pill"><span class="dot"></span>Audit-friendly</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Agent Orchestration (CWD)</h3>
+        <p class="muted" style="margin:.35rem 0 0;">
+          Agents do not “own truth”. They <strong>compose workflows</strong>:
+          query semantics, run verifiers, propose safe levers.
+        </p>
+        <hr class="mini-hr">
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Coordinator</span>
+          <span class="pill"><span class="dot"></span>Workers</span>
+          <span class="pill"><span class="dot"></span>Delegator</span>
+        </div>
+        <p class="muted" style="margin-top:.65rem;">
+          Output is a <strong>recommendation bundle</strong> with expected impact + constraints + evidence refs.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>Governance Layer</h3>
+        <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+          <li><strong>GEORGE</strong> enforces contract & policy</li>
+          <li><strong>Guardian</strong> enforces invariants (fail-safe)</li>
+          <li><strong>Quality veto</strong> is always available</li>
+        </ul>
+        <div class="pill-row">
+          <span class="pill ok"><span class="dot"></span>ALLOW = admissible</span>
+          <span class="pill red"><span class="dot"></span>HOLD = no rec</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card callout" style="margin-top:1rem;">
+      <strong>Important boundary (v3)</strong><br/>
+      <span class="muted">
+        The website is a governance surface + audit viewer. Runtime evaluation happens on the edge (or governed backend).
+        This spec does not claim PLC write access or autonomous execution.
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- 4. CWD MODEL -->
+<section class="section" id="cwd">
+  <div class="container">
+    <h2>4) Coordinator–Worker–Delegator (CWD)</h2>
+
+    <div class="card callout">
+      <strong>Normative statement</strong><br/>
+      <span class="muted">
+        CWD does <strong>not</strong> decide what is true. It structures computation and proposals.
+        Final admissibility is decided by Governance (GEORGE/Guardian) against the Knowledge Layer verifiers.
+      </span>
+    </div>
+
+    <div class="three-col">
+      <div class="card">
+        <h3>Coordinator</h3>
+        <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+          <li>Loads canonical snapshot</li>
+          <li>Checks semantic validity (units/time alignment)</li>
+          <li>Runs required-input & freshness verifiers</li>
+          <li>Triggers Workers with bounded tasks</li>
+        </ul>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Creates run_id</span>
+          <span class="pill"><span class="dot"></span>Trace anchors</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Worker Agents (energy levers)</h3>
+        <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+          <li><strong>Load Profile Worker</strong> (where is energy going?)</li>
+          <li><strong>Metrology Scheduling Worker</strong> (shift deferrable jobs)</li>
+          <li><strong>High-Draw Avoidance Worker</strong> (no unsafe overlaps)</li>
+          <li><strong>Pause Sequencing Worker</strong> (restart order / ramp)</li>
+        </ul>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Bounded outputs</span>
+          <span class="pill red"><span class="dot"></span>No actuator calls</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Delegator</h3>
+        <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+          <li>Aggregates worker proposals</li>
+          <li>Checks conflicts & constraint risk</li>
+          <li>Builds recommendation bundle</li>
+          <li>Hands to Governance for admissibility verdict</li>
+        </ul>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Bundle = structured</span>
+          <span class="pill"><span class="dot"></span>Impact + evidence</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. CONCRETE ENERGY LEVERS -->
+<section class="section" id="energy-levers">
+  <div class="container">
+    <h2>5) Concrete Energy Levers (TVOL)</h2>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Metrology load shifting (Stage 6)</h3>
+        <p class="muted" style="margin:.35rem 0 0;">
+          Move deferrable inspection jobs inside the window when (a) grid cost is lower or (b) peak demand overlap is avoided.
         </p>
         <div class="pill-row">
-          <span class="pill"><span class="dot"></span>Schema-first</span>
-          <span class="pill"><span class="dot"></span>Normalization</span>
-          <span class="pill red"><span class="dot"></span>No decision authority</span>
-          <span class="pill"><span class="dot"></span>Versioned reference</span>
+          <span class="pill"><span class="dot"></span>Within bounded delay</span>
+          <span class="pill"><span class="dot"></span>Quality guardrail stays hard</span>
         </div>
       </div>
-
-      <div class="card" style="margin-top:16px">
-        <strong>Position in the architecture</strong>
-        <div class="path" aria-label="Knowledge layer position">
-          <span class="node"><span class="n">1</span> Operational systems</span>
-          <span class="arrow">→</span>
-          <span class="node"><span class="n">2</span> Canonical snapshots (5m)</span>
-          <span class="arrow">→</span>
-          <span class="node"><span class="n">3</span> Structured knowledge (schema)</span>
-          <span class="arrow">→</span>
-          <span class="node"><span class="n">4</span> Contracts &amp; rulesets</span>
-          <span class="arrow">→</span>
-          <span class="node"><span class="n">5</span> Governed verdict</span>
-        </div>
-        <p class="muted" style="margin-top:.75rem">
-          Key point: this layer strengthens consistency and scaling. It does not introduce a new authority path.
-        </p>
-      </div>
-
-      <div class="three-col">
-        <div class="card">
-          <h3>Canonical entity definitions</h3>
-          <p class="muted" style="margin:.35rem 0 0">
-            Examples (normative types):
-          </p>
-          <ul class="list-tight muted">
-            <li><code>ProductionAsset</code></li>
-            <li><code>EnergyConsumer</code></li>
-            <li><code>OperationalWindow</code></li>
-            <li><code>EnergyCostWindow</code></li>
-            <li><code>QualityOutcome</code></li>
-            <li><code>VariantMixProfile</code></li>
-          </ul>
-          <p class="muted" style="margin-top:.65rem">
-            Each type carries: explicit attributes, units, temporal resolution, and validation requirements.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>Cross-domain relationships (descriptive)</h3>
-          <p class="muted" style="margin:.35rem 0 0">
-            Encoded relationships are descriptive — they inform rulesets, but do not decide:
-          </p>
-          <ul class="list-tight muted">
-            <li>Stage → energy load profile</li>
-            <li>Variant mix → expected throughput band</li>
-            <li>Cycle stability → quality drift risk</li>
-            <li>Energy peaks → scheduling sensitivity</li>
-            <li>Metrology load → deferrable window candidate</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>Constraint taxonomy (structural)</h3>
-          <p class="muted" style="margin:.35rem 0 0">
-            Constraints are categorized so rulesets remain modular and auditable:
-          </p>
-          <ul class="list-tight muted">
-            <li><strong>Safety invariants</strong></li>
-            <li><strong>Quality invariants</strong></li>
-            <li><strong>Operational stability invariants</strong></li>
-            <li><strong>Economic objectives</strong></li>
-            <li><strong>Advisory opportunities</strong></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="two-col">
-        <div class="card" style="margin-top:16px">
-          <strong>Snapshot normalization (normative)</strong>
-          <p class="muted" style="margin:.5rem 0 0">
-            All signals map into canonical 5-minute snapshots that are hashable, auditable, and carry staleness metadata.
-            This layer enforces structural consistency before decision evaluation.
-          </p>
-          <pre class="codeblock mono" aria-label="Canonical snapshot example JSON">{
-  "window_id": "tvl:2026-02-09T09:00Z:win5m",
-  "resolution": "5m",
-  "energy_profile": {"kwh": 128.4, "eur": 42.1, "meter_ref":"meter:biw:tvl:0a91"},
-  "throughput_profile": {"units": 62, "throughput_ref":"mes:biw:tvl:units:8f12"},
-  "quality_profile": {"quality_gate_ok": true, "ref":"qg:biw:tvl:last_shift:ok:1c0b"},
-  "stability_profile": {"cycle_time_ok": true, "oee_ok": true},
-  "variant_mix_profile": {"week":"2026-W06", "ref":"mix:biw:tvl:week:97p"},
-  "staleness_sec": {"meter":45, "throughput":90, "cycle":75, "oee":120, "quality":7200}
-}</pre>
-        </div>
-
-        <div class="card" style="margin-top:16px">
-          <strong>Determinism guarantee (hard boundary)</strong>
-          <p class="muted" style="margin:.5rem 0 0">
-            This layer may classify, normalize, validate structure, and suggest rule categories.
-            It may not issue verdicts, override constraints, or generate autonomous actions.
-          </p>
-          <div class="pill-row">
-            <span class="pill"><span class="dot"></span>May: normalize</span>
-            <span class="pill"><span class="dot"></span>May: validate</span>
-            <span class="pill"><span class="dot"></span>May: map signals</span>
-            <span class="pill red"><span class="dot"></span>Must not: decide</span>
-            <span class="pill red"><span class="dot"></span>Must not: override</span>
-            <span class="pill red"><span class="dot"></span>Must not: act</span>
-          </div>
-          <hr class="mini-hr">
-          <p class="muted">
-            All decisions remain governed by explicit decision contracts, versioned rulesets, authority paths, and Guardian enforcement.
-          </p>
-        </div>
-      </div>
-
-      <div class="card callout warn" style="margin-top:16px">
-        <strong>Boundary statement (normative)</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          The Structured Industrial Knowledge Layer enhances consistency and cross-domain reasoning.
-          It does not introduce autonomous inference authority.
-          If required evidence is missing or stale, the system must degrade to HOLD / no recommendation.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- WORLD MODEL -->
-  <section class="section" id="world-model">
-    <div class="container">
-      <h2>2) World Model (bounded)</h2>
-      <p class="muted">
-        A minimal, explicit representation of entities, state, constraints/policies, tools, and evidence —
-        sufficient to govern a single decision class for Doorline TVL, plus bounded advisory extensions.
-        The structured knowledge layer provides the normative schema for mapping signals into comparable, auditable snapshots.
-      </p>
-
-      <div class="three-col">
-        <div class="card">
-          <h3>Entities</h3>
-          <ul class="list-tight muted">
-            <li><strong>Door</strong> (Door ID, variant, route)</li>
-            <li><strong>Stations</strong> (S1–S6)</li>
-            <li><strong>Evidence artifacts</strong> (scan IDs, parameter logs)</li>
-            <li><strong>Energy window</strong> (5-minute canonical snapshot)</li>
-            <li><strong>Ruleset</strong> (versioned)</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>State (examples)</h3>
-          <ul class="list-tight muted">
-            <li><code>door.state</code>: IN_PROGRESS / HOLD / RELEASED</li>
-            <li><code>quality.geometry</code>: pass/fail (+ deltas)</li>
-            <li><code>quality.surface</code>: pass/fail (+ tags)</li>
-            <li><code>evidence.chain_complete</code>: true/false</li>
-            <li><code>energy.window.cost_per_door_eur</code>: number</li>
-            <li><code>energy.window.kwh_per_door</code>: number</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>Constraints & policies</h3>
-          <ul class="list-tight muted">
-            <li><strong>Hard invariant</strong>: no RELEASE without evidence chain</li>
-            <li><strong>Fail-safe</strong>: missing signal → HOLD/BLOCK</li>
-            <li><strong>Energy advisory invariant</strong>: no recommendation without required measured inputs</li>
-            <li><strong>Governance</strong>: decision requires trace + authority</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <h3>Explicit sensors / scanners</h3>
-        <p class="muted" style="margin:.35rem 0 0">
-          Vendor-neutral, but specific enough for audit credibility.
-        </p>
-
-        <div class="pill-row" aria-label="Sensors">
-          <span class="pill"><span class="dot"></span>Barcode/QR or RFID (Door ID + variant)</span>
-          <span class="pill"><span class="dot"></span>Structured light / 3D scanner (geometry)</span>
-          <span class="pill"><span class="dot"></span>Line scan / surface vision (defects)</span>
-          <span class="pill"><span class="dot"></span>Gap/flush measurement system</span>
-          <span class="pill"><span class="dot"></span>Weld/Clinch monitoring (I/V/t)</span>
-          <span class="pill"><span class="dot"></span>Energy meter (line/cell)</span>
-          <span class="pill"><span class="dot"></span>Throughput counter (units/window)</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- DECISION GRAPH -->
-  <section class="section" id="decision-graph">
-    <div class="container">
-      <h2>3) Decision Graph</h2>
-      <p class="muted">
-        A decision graph is a governed path from <em>proposal</em> to <em>verdict</em> with explicit checks and deterministic outcomes.
-        This is the backbone for explainability: <strong>why allowed</strong>, <strong>why held</strong>, <strong>why blocked</strong>.
-      </p>
-
-      <div class="two-col">
-        <div class="card">
-          <h3>Nodes & outcomes</h3>
-          <ul class="list-tight muted">
-            <li><strong>PROPOSE</strong> — a proposal is created (Door ID + ruleset version)</li>
-            <li><strong>CHECK</strong> — deterministic checks over evidence + constraints</li>
-            <li><strong>GOVERN</strong> — authority + policy enforcement (GEORGE / Guardian)</li>
-            <li><strong>VERDICT</strong> —
-              <span class="badge2 ok"><span class="dot"></span>ALLOW</span>
-              <span class="badge2 hold"><span class="dot"></span>HOLD</span>
-              <span class="badge2 block"><span class="dot"></span>BLOCK</span>
-            </li>
-          </ul>
-          <hr class="mini-hr">
-          <p class="muted">
-            The goal is not “best decision”.
-            The goal is: <strong>no wrong decision can execute silently</strong>.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>Minimal deterministic checks (Stage 6 Gate)</h3>
-          <ul class="list-tight muted">
-            <li><strong>Evidence present</strong>: geometry scan, surface scan, gap/flush measurement</li>
-            <li><strong>Ruleset version</strong>: must be declared (<code>biw-door-qg-v1.x</code>)</li>
-            <li><strong>Completeness</strong>: all required evidence refs resolvable</li>
-            <li><strong>Classification</strong>: PASS/PASS/PASS → ALLOW; otherwise HOLD/BLOCK</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <h3>Energy advisory decision graph (Option 2)</h3>
-        <p class="muted" style="margin:.35rem 0 0">
-          Advisory uses the same discipline: proposal → checks → governance → verdict. “ALLOW” means a recommendation is admissible, not executable.
-        </p>
-        <ul class="list-tight muted">
-          <li><strong>Required measured inputs</strong> present + fresh → eligible</li>
-          <li>Hard constraints OK (quality/cycle/OEE/scrap/rework) → eligible</li>
-          <li>Authority: Production Lead owner; Quality veto path available</li>
-          <li>Missing/stale evidence → HOLD (no recommendation)</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- GOVERNANCE -->
-  <section class="section" id="governance">
-    <div class="container">
-      <h2>4) Governance</h2>
-      <p class="muted">
-        Governance binds decisions to authority and makes blocking legitimate.
-        A decision is only admissible when the required authority and required evidence are present.
-      </p>
-
-      <div class="three-col">
-        <div class="card">
-          <h3>Authority path</h3>
-          <ul class="list-tight muted">
-            <li><strong>Edge</strong>: produces signals / measurements (no policy authority)</li>
-            <li><strong>Orchestrator</strong>: creates proposal, sequences checks</li>
-            <li><strong>GEORGE</strong>: enforces contracts & policy gates</li>
-            <li><strong>Guardian</strong>: blocks if invariants are violated</li>
-            <li><strong>Production Lead</strong>: decision owner for advisory adoption</li>
-            <li><strong>Quality</strong>: veto authority (must be traceable)</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>Non-negotiables</h3>
-          <ul class="list-tight muted">
-            <li>Change state → leave evidence</li>
-            <li>No decision without trace</li>
-            <li>No bypassing Guardian</li>
-            <li>PR-only changes for governed artifacts</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>Decision Contract (Stage 1)</h3>
-          <ul class="list-tight muted">
-            <li>Input: explicit refs, evidence, ruleset version</li>
-            <li>Output: verdict (ALLOW/HOLD/BLOCK) + reasons</li>
-            <li>Artifacts: decision trace + gate/advisory result + system status</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="card callout" style="margin-top:16px">
-        <strong>Website as Real-Conditions Test Field</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          We treat our own platform like a governed industrial system:
-          <strong>PR-only</strong>, <strong>no direct writes</strong>, <strong>no silent actions</strong>.
-          Required checks enforce the same discipline we later demand from industrial agents.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- EXECUTION CONTROL LAYER -->
-  <section class="section" id="execution-control">
-    <div class="container">
-      <h2>5) Execution Control Layer </h2>
-      <p class="muted">
-        virtauto is not “the AI that acts”.
-        virtauto is the system that states: <strong>this decision is allowed</strong>, <strong>this is not</strong>,
-        <strong>this only with approval</strong>, <strong>this never</strong>.
-        Autonomy is built <strong>from inside to outside</strong>: first thinking, then deciding, then acting.
-      </p>
 
       <div class="card">
-        <h3>Three phases — from inside to outside</h3>
-
-        <div class="path" aria-label="Execution phases">
-          <span class="node"><span class="n">A</span> Decision logic (no operational risk)</span>
-          <span class="arrow">→</span>
-          <span class="node"><span class="n">B</span> Effect without actuator (org as actuator)</span>
-          <span class="arrow">→</span>
-          <span class="node"><span class="n">C</span> Physical effect (hard gates + rollback)</span>
-        </div>
-
-        <hr class="mini-hr">
-
-        <div class="three-col">
-          <div class="card callout" style="margin:0">
-            <h3 style="margin-top:0">Phase A</h3>
-            <p class="muted" style="margin:.35rem 0 0">
-              Deterministic decision logic: simulation, blocking, escalation, audit.
-              This page lives here — it must prove <strong>BLOCK</strong> works and is explainable.
-            </p>
-            <div class="pill-row">
-              <span class="pill"><span class="dot"></span>Simulate</span>
-              <span class="pill red"><span class="dot"></span>Block</span>
-              <span class="pill"><span class="dot"></span>Eskalate</span>
-              <span class="pill"><span class="dot"></span>Audit</span>
-            </div>
-          </div>
-
-          <div class="card callout" style="margin:0">
-            <h3 style="margin-top:0">Phase B</h3>
-            <p class="muted" style="margin:.35rem 0 0">
-              Create <strong>tickets</strong>, <strong>work orders</strong>, <strong>change requests</strong>.
-              The organization becomes the actuator — controlled, reversible, governed.
-            </p>
-            <div class="pill-row">
-              <span class="pill"><span class="dot"></span>Ticket</span>
-              <span class="pill"><span class="dot"></span>Work Order</span>
-              <span class="pill"><span class="dot"></span>CR</span>
-              <span class="pill"><span class="dot"></span>Approval</span>
-            </div>
-            <hr class="mini-hr">
-            <p class="muted" style="margin:.35rem 0 0">
-              For Energy Advisory (Option 2), Phase B means: create an <strong>advisory ticket</strong> addressed to Production Lead,
-              with a trace link, expected €/door impact, and explicit constraints. Quality veto is always available and traceable.
-            </p>
-          </div>
-
-          <div class="card callout warn" style="margin:0">
-            <h3 style="margin-top:0">Phase C</h3>
-            <p class="muted" style="margin:.35rem 0 0">
-              Physical actions only after proof:
-              <strong>hard safety gates</strong>, <strong>release conditions</strong>, <strong>rollback</strong>.
-              “Autonomy” without safety and rollback is not autonomy — it’s liability.
-            </p>
-            <div class="pill-row">
-              <span class="pill red"><span class="dot"></span>Hard Gate</span>
-              <span class="pill red"><span class="dot"></span>Safety</span>
-              <span class="pill"><span class="dot"></span>Release Conditions</span>
-              <span class="pill"><span class="dot"></span>Rollback</span>
-            </div>
-          </div>
-        </div>
-
-        <p class="muted" style="margin-top:.9rem">
-          Key point: we don’t build autonomy “from bottom to top”.
-          We build it <strong>from inside to outside</strong>: first bounded thinking and governed decision-making, then controlled effects, then physical action.
+        <h3>Avoid simultaneous high draw</h3>
+        <p class="muted" style="margin:.35rem 0 0;">
+          No overlap of high-draw operations (e.g., hemming peaks + high-energy inspection peaks).
         </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ARTIFACTS -->
-  <section class="section" id="artifacts">
-    <div class="container">
-      <h2>6) Artifacts (repo pointers)</h2>
-      <p class="muted">
-        This model is only credible if its governed artifacts are explicit and machine-checkable.
-        These files are the “Git commits” of industrial decision-making.
-      </p>
-
-      <div class="repo" aria-label="Artifact pointers">
-        <div class="row">
-          <strong>Decision Contract (normative)</strong>
-          <div class="muted" style="margin-top:.25rem">
-            Defines inputs/outputs, allowed outcomes, authority requirements, and what must be traced.
-          </div>
-          <div class="mono" style="margin-top:.4rem">
-            <code>governance/contracts/pp-door-release-v1.md</code><br/>
-            <code>governance/contracts/energy-cost-minimization-advisory-v1.md</code>
-          </div>
-        </div>
-
-        <div class="row">
-          <strong>Decision Trace (append-only, machine-validated)</strong>
-          <div class="muted" style="margin-top:.25rem">
-            The audit spine: each decision (and each BLOCK) becomes an immutable record. This is what your checks enforce.
-          </div>
-          <div class="mono" style="margin-top:.4rem">
-            <code>ops/reports/decision_trace.jsonl</code>
-          </div>
-        </div>
-
-        <div class="row">
-          <strong>Gate / Advisory Result (what governance decided)</strong>
-          <div class="muted" style="margin-top:.25rem">
-            The governance outcome: PASS / FAIL for gates, and ALLOW/HOLD/BLOCK for advisory admissibility.
-          </div>
-          <div class="mono" style="margin-top:.4rem">
-            <code>ops/decisions/gate_result.json</code><br/>
-            <code>ops/decisions/advisory_result.json</code>
-          </div>
-        </div>
-
-        <div class="row">
-          <strong>System Status (single source of truth)</strong>
-          <div class="muted" style="margin-top:.25rem">
-            The website must display reality from governed status artifacts — not “marketing fallback”.
-          </div>
-          <div class="mono" style="margin-top:.4rem">
-            <code>ops/reports/system_status.json</code>
-          </div>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Conflict verifier</span>
+          <span class="pill red"><span class="dot"></span>Risk → HOLD</span>
         </div>
       </div>
-
-      <div class="card callout ok" style="margin-top:16px">
-        <strong>Normative rule</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          If it is not expressed in governed artifacts (<code>contract</code>, <code>trace</code>, <code>gate_result</code>/<code>advisory_result</code>, <code>status</code>),
-          it is not part of the system.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- AUDIT -->
-  <section class="section" id="audit">
-    <div class="container">
-      <h2>7) Audit (append-only)</h2>
-      <p class="muted">
-        Every verdict is backed by a machine-readable audit record: evidence references, ruleset version, and governance outcome.
-      </p>
 
       <div class="card">
-        <strong>Example audit record (Stage 6 classification)</strong>
-        <pre class="codeblock mono" aria-label="Example audit record JSON">{
-  "decision_id": "qg:TVL-2026-02-09-0001284",
-  "domain": "biw_doorline_tvl",
-  "decision_class": "door_release_gate",
-  "timestamp_utc": "2026-02-09T08:58:12.483Z",
-  "door_id": "TVL-2026-02-09-0001284",
-  "variant": "FrontLeft_BIW",
-  "ruleset_version": "biw-door-qg-v1.0",
-  "checks": [
-    {
-      "check": "geometry",
-      "sensor": "inline_structured_light_scanner_sub_mm",
-      "result": "PASS",
-      "evidence_ref": "scan:3d:TVL-0001284:geom:8f2c"
-    },
-    {
-      "check": "gap_flush",
-      "sensor": "gap_flush_measurement_system",
-      "result": "PASS",
-      "evidence_ref": "scan:gf:TVL-0001284:3c19"
-    },
-    {
-      "check": "surface",
-      "sensor": "industrial_surface_vision_line_scan",
-      "result": "PASS",
-      "evidence_ref": "scan:surface:TVL-0001284:1a77"
-    }
-  ],
-  "governance": {
-    "guardian_check": "PASS",
-    "policy": "release_requires_complete_evidence_chain",
-    "approval": "auto_allowed_under_policy"
-  },
-  "verdict": "ALLOW",
-  "state_update": {
-    "quality.geometry": "pass",
-    "quality.surface": "pass",
-    "door.state": "RELEASED"
-  }
-}</pre>
-        <p class="muted" style="margin:.75rem 0 0">
-          Key point: the record references concrete evidence IDs and a ruleset version — not free-form narratives.
+        <h3>Pause sequencing</h3>
+        <p class="muted" style="margin:.35rem 0 0;">
+          Controlled restart logic after breaks (ramp-up order, avoiding simultaneous ramp peaks).
         </p>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Bounded playbook</span>
+          <span class="pill"><span class="dot"></span>Ticket-based adoption</span>
+        </div>
       </div>
 
-      <div class="two-col">
-        <div class="card" style="margin-top:16px">
-          <strong>Energy advisory audit record (ALLOW = recommendation admissible)</strong>
-          <pre class="codeblock mono" aria-label="Energy advisory ALLOW JSON">{
-  "decision_id": "energy:TVL:2026-02-09T09:00Z:win5m",
-  "domain": "biw_doorline_tvl",
-  "decision_class": "energy_cost_minimization_advisory_v1",
-  "timestamp_utc": "2026-02-09T09:00:12.103Z",
-  "window": {
-    "start_utc": "2026-02-09T08:55:00Z",
-    "end_utc": "2026-02-09T09:00:00Z",
-    "resolution": "5m"
-  },
+      <div class="card">
+        <h3>Variant mix normalization</h3>
+        <p class="muted" style="margin:.35rem 0 0;">
+          Ensure €/door comparisons are structurally valid: same variant band or normalized baseline.
+        </p>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Semantic layer</span>
+          <span class="pill red"><span class="dot"></span>Unclear mix → HOLD</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card callout warn" style="margin-top:1rem;">
+      <strong>Hard boundary</strong><br/>
+      <span class="muted">
+        Recommendations must never require “guessing” missing production truth.
+        If energy/throughput/quality/cycle/OEE evidence is missing or stale → HOLD.
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- 6. GOVERNANCE & VETO -->
+<section class="section" id="governance">
+  <div class="container">
+    <h2>6) Governance & Veto</h2>
+
+    <div class="three-col">
+      <div class="card">
+        <h3>Production Lead</h3>
+        <p class="muted" style="margin:.35rem 0 0;">Owner of advisory adoption (Phase B: org as actuator).</p>
+      </div>
+
+      <div class="card">
+        <h3>Quality</h3>
+        <p class="muted" style="margin:.35rem 0 0;">Full veto authority — must be traceable.</p>
+      </div>
+
+      <div class="card">
+        <h3>Guardian</h3>
+        <p class="muted" style="margin:.35rem 0 0;">Fail-safe enforcement: constraint risk → HOLD.</p>
+      </div>
+    </div>
+
+    <div class="card callout warn" style="margin-top:1rem;">
+      <strong>Normative outcomes</strong><br/>
+      <span class="muted">
+        Missing required measured input → <strong>HOLD</strong><br/>
+        Semantic uncertainty → <strong>HOLD</strong><br/>
+        Constraint violation → <strong>HOLD</strong><br/>
+        Otherwise → <strong>ALLOW</strong> (recommendation admissible, not executable)
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- 7. AUDIT EXAMPLE -->
+<section class="section" id="audit">
+  <div class="container">
+    <h2>7) Audit Example (Advisory ALLOW)</h2>
+
+    <p class="muted">
+      “ALLOW” means: recommendation bundle is admissible under governance and verifiers.
+      It still requires human adoption (ticket/work order). No silent execution.
+    </p>
+
+<pre class="mono" aria-label="Advisory ALLOW example">
+{
+  "decision_class": "energy_cost_minimization_advisory_v3",
+  "domain": "biw_doorline_tvol",
+  "window": {"resolution":"5m","start_utc":"2026-02-09T09:00:00Z","end_utc":"2026-02-09T09:05:00Z"},
   "inputs": {
-    "energy_meter_ref": "meter:biw:tvl:line:0a91",
-    "throughput_ref": "mes:biw:tvl:units:win:8f12",
-    "quality_gate_ok_ref": "qg:biw:tvl:last_shift:ok:1c0b",
-    "cycle_time_ok_ref": "mes:biw:tvl:cycle_ok:win:7a10",
-    "oee_ok_ref": "oee:biw:tvl:ok:win:3f21",
-    "variant_mix_ref": "mix:biw:tvl:week:2026-W06:97p"
+    "energy_meter_ref":"meter:biw:tvol:line:0a91",
+    "throughput_ref":"mes:biw:tvol:units:win:8f12",
+    "quality_gate_ok_ref":"qg:biw:tvol:last_shift:ok:1c0b",
+    "cycle_time_ok_ref":"mes:biw:tvol:cycle_ok:win:7a10",
+    "oee_ok_ref":"oee:biw:tvol:ok:win:3f21",
+    "variant_mix_ref":"mix:biw:tvol:week:2026-W06:97p"
   },
-  "freshness": {
-    "energy_meter_ref_stale_sec": 45,
-    "throughput_ref_stale_sec": 90,
-    "cycle_time_ok_ref_stale_sec": 75,
-    "oee_ok_ref_stale_sec": 120,
-    "quality_gate_ok_ref_stale_sec": 7200
-  },
-  "checks": [
-    {"check":"required_inputs_present","result":"PASS"},
-    {"check":"freshness_bounds","result":"PASS"},
-    {"check":"quality_gate_ok","result":"PASS"},
-    {"check":"cycle_time_ok","result":"PASS"},
-    {"check":"oee_ok","result":"PASS"}
-  ],
-  "objective": {
-    "metric": "eur_per_door",
-    "mode": "minimize"
+  "verifiers": {
+    "semantic_alignment":"PASS",
+    "required_inputs_present":"PASS",
+    "freshness_bounds":"PASS",
+    "hard_constraints_ok":"PASS",
+    "conflict_checks":"PASS"
   },
   "recommendations": [
     {
-      "type": "METROLOGY_SCHEDULE_SHIFT",
-      "target_stage": "S6",
-      "action": "shift_metrology_jobs_within_window",
-      "parameters": {"max_delay_sec": 600},
-      "expected_impact": {
-        "eur_per_door_delta": -0.07,
-        "eur_per_shift_delta": -120.0,
-        "kwh_delta": -38.0
-      }
+      "type":"METROLOGY_SCHEDULE_SHIFT",
+      "target":"S6",
+      "bounded_delay_sec":600,
+      "expected_impact":{"eur_per_door_delta":-0.05}
     },
     {
-      "type": "HIGH_DRAW_AVOIDANCE",
-      "action": "avoid_simultaneous_high_draw_ops",
-      "parameters": {"grouping_rule": "no_overlap:hemming_and_metrology"},
-      "expected_impact": {
-        "eur_per_door_delta": -0.03,
-        "eur_per_shift_delta": -55.0
-      }
+      "type":"HIGH_DRAW_AVOIDANCE",
+      "rule":"no_overlap:hemming_and_metrology",
+      "expected_impact":{"eur_per_door_delta":-0.02}
     }
   ],
   "governance": {
-    "evidence_posture": "MEASURED",
-    "authority_owner": "PRODUCTION_LEAD",
-    "quality_veto": "AVAILABLE",
-    "guardian_check": "PASS",
-    "policy": "advisory_only_no_writeback_v1"
+    "authority_owner":"PRODUCTION_LEAD",
+    "quality_veto":"AVAILABLE",
+    "policy":"advisory_only_no_writeback",
+    "guardian_check":"PASS"
   },
-  "verdict": "ALLOW"
-}</pre>
-          <p class="muted" style="margin:.75rem 0 0">
-            “ALLOW” means the recommendation is admissible under governance. It does not execute.
-          </p>
-        </div>
+  "governance_verdict":"ALLOW"
+}
+</pre>
 
-        <div class="card" style="margin-top:16px">
-          <strong>Energy advisory audit record (HOLD = no recommendation)</strong>
-          <pre class="codeblock mono" aria-label="Energy advisory HOLD JSON">{
-  "decision_id": "energy:TVL:2026-02-09T09:05Z:win5m",
-  "domain": "biw_doorline_tvl",
-  "decision_class": "energy_cost_minimization_advisory_v1",
-  "timestamp_utc": "2026-02-09T09:05:11.004Z",
-  "window": {
-    "start_utc": "2026-02-09T09:00:00Z",
-    "end_utc": "2026-02-09T09:05:00Z",
-    "resolution": "5m"
-  },
-  "inputs": {
-    "energy_meter_ref": "meter:biw:tvl:line:0a91",
-    "throughput_ref": "MISSING",
-    "quality_gate_ok_ref": "qg:biw:tvl:last_shift:ok:1c0b",
-    "cycle_time_ok_ref": "mes:biw:tvl:cycle_ok:win:7a10",
-    "oee_ok_ref": "oee:biw:tvl:ok:win:3f21",
-    "variant_mix_ref": "mix:biw:tvl:week:2026-W06:97p"
-  },
-  "checks": [
-    {"check":"required_inputs_present","result":"FAIL","reason":"missing_required_input:throughput_ref"}
-  ],
-  "governance": {
-    "evidence_posture": "MEASURED",
-    "guardian_check": "FAIL",
-    "policy": "missing_required_inputs_yields_hold"
-  },
-  "verdict": "HOLD",
-  "recommendations": []
-}</pre>
-          <p class="muted" style="margin:.75rem 0 0">
-            HOLD is the correct outcome: missing required evidence → no recommendation.
-          </p>
+  </div>
+</section>
+
+<!-- 8. REALITY CHECK + DECISION RULES -->
+<section class="section" id="reality-check">
+  <div class="container">
+    <h2>8) Reality Check (Why this holds up in practice)</h2>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Three problems we do NOT mix</h3>
+        <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+          <li><strong>Data access</strong> (plumbing)</li>
+          <li><strong>Semantic alignment</strong> (meaning + identity)</li>
+          <li><strong>Representation learning</strong> (optional ML accelerators)</li>
+        </ul>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Semantics before ML</span>
+          <span class="pill red"><span class="dot"></span>No “train on chaos”</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Pragmatic decision rules</h3>
+        <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+          <li>If tags/units/time are inconsistent → fix semantics; do not “IFM” it.</li>
+          <li>If verification is missing → add deterministic verifiers first.</li>
+          <li>If a solver is too slow → use a surrogate (optional) but always verify.</li>
+          <li>If benefit is unclear → don’t add ML. Keep it governed and simple.</li>
+        </ul>
+        <div class="pill-row">
+          <span class="pill ok"><span class="dot"></span>Agents on structured stack win</span>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- THE BLOCK CASE -->
-  <section class="section" id="block">
-    <div class="container">
-      <h2>8) BLOCK (explicit trace) — what “success” looks like</h2>
-      <p class="muted">
-        Success is achieved when the model blocks a real production decision — and the responsible human is grateful.
-        BLOCK is not an error; it is the system doing its job.
-        The important part: <strong>BLOCK must be explicitly traceable</strong>.
-      </p>
+    <div class="card callout ok" style="margin-top:1rem;">
+      <strong>Bottom line</strong><br/>
+      <span class="muted">
+        We industrialize energy optimization by making it <strong>admissible</strong>:
+        stable semantics + deterministic truth + orchestrated proposals + governance/veto + audit.
+      </span>
+    </div>
+  </div>
+</section>
 
-      <div class="two-col">
-        <div class="card callout warn">
-          <h3>Scenario: missing evidence</h3>
-          <p class="muted" style="margin:.35rem 0 0">
-            The release proposal exists, but one required evidence artifact is missing or unverifiable (e.g., surface scan ref can’t be resolved).
-            Under a fail-safe policy, this must not degrade into “best effort”.
-          </p>
-          <div class="pill-row" aria-label="Block signals">
-            <span class="pill red"><span class="dot"></span>evidence.chain_complete = false</span>
-            <span class="pill red"><span class="dot"></span>guardian_check = FAIL</span>
-            <span class="pill red"><span class="dot"></span>verdict = BLOCK</span>
-          </div>
-          <hr class="mini-hr">
-          <strong>Operational meaning</strong>
-          <ul class="list-tight muted">
-            <li>Door is diverted to HOLD/inspection buffer</li>
-            <li>Root cause is attributable (missing evidence ref)</li>
-            <li>Recovery is governed (no silent override)</li>
-          </ul>
-        </div>
+<!-- 9. WHAT THIS IS NOT -->
+<section class="section" id="non-claims">
+  <div class="container">
+    <h2>9) What This Is Not</h2>
 
-        <div class="card">
-          <h3>Example BLOCK record (normative)</h3>
-          <pre class="codeblock mono" aria-label="Example BLOCK trace JSON">{
-  "decision_id": "qg:TVL-2026-02-09-0001284",
-  "timestamp_utc": "2026-02-09T09:02:41.120Z",
-  "decision_class": "door_release_gate",
-  "door_id": "TVL-2026-02-09-0001284",
-  "ruleset_version": "biw-door-qg-v1.0",
-  "checks": [
-    {"check":"geometry","result":"PASS","evidence_ref":"scan:3d:TVL-0001284:geom:8f2c"},
-    {"check":"gap_flush","result":"PASS","evidence_ref":"scan:gf:TVL-0001284:3c19"},
-    {"check":"surface","result":"MISSING","evidence_ref":"scan:surface:TVL-0001284:1a77"}
-  ],
-  "governance": {
-    "guardian_check": "FAIL",
-    "policy": "release_requires_complete_evidence_chain",
-    "reason": "missing_required_evidence:surface"
-  },
-  "verdict": "BLOCK",
-  "state_update": {
-    "door.state": "HOLD"
-  }
-}</pre>
-          <p class="muted" style="margin:.75rem 0 0">
-            This is the differentiator: a BLOCK is explicit, explainable, and produces a stable audit object.
-          </p>
-        </div>
+    <div class="two-col">
+      <div class="card">
+        <ul class="muted" style="padding-left:1.2rem; margin:.55rem 0 0;">
+          <li>No PLC write access</li>
+          <li>No autonomous physical execution</li>
+          <li>No ERP/MES replacement</li>
+          <li>No blackbox AI that “just decides”</li>
+        </ul>
       </div>
-
-      <div class="card" style="margin-top:16px">
-        <strong>Minimum requirement</strong>
-        <p class="muted" style="margin:.5rem 0 0">
-          A BLOCK must create:
-          (1) a trace entry in <code>ops/reports/decision_trace.jsonl</code>,
-          (2) a gate outcome (<code>ops/decisions/gate_result.json</code>),
-          and (3) a reflected system status (<code>ops/reports/system_status.json</code>).
-          Otherwise, the system has no right to claim it blocked.
-        </p>
-      </div>
-
-      <div class="actions" style="margin-top:16px">
-        <a class="btn" href="/status/">Open Live Status</a>
-        <a class="btn ghost" href="contact.html">Request a demo</a>
+      <div class="card callout warn">
+        <strong>Non-claim (explicit)</strong><br/>
+        <span class="muted">
+          This spec does not claim model “understanding” via a single monolithic foundation model.
+          It claims an architecture that remains reliable under industrial reality: messy data, drift, and governance constraints.
+        </span>
       </div>
     </div>
-  </section>
+
+    <div class="actions" style="margin-top:16px">
+      <a class="btn" href="/status/">Open Live Status</a>
+      <a class="btn ghost" href="contact.html">Request a walkthrough</a>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <footer class="footer">
   <div class="container cols">
     <div>
       <strong>virtauto®</strong><br/>
-      <small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small>
+      <small>Governed Industrial Autonomy — Orchestrate decisions, verify constraints, trace everything.</small>
     </div>
     <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
-    <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+    <div class="right"><small>© 2026 virtauto®. All rights reserved.</small></div>
   </div>
 
   <div style="margin-top:24px;padding:12px 0;border-top:1px solid #1a2332;">
@@ -1565,5 +698,6 @@
     </a>
   </div>
 </footer>
+
 </body>
 </html>
