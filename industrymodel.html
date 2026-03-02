@@ -3,29 +3,29 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Industry Model · Spec v1 · virtauto®</title>
+  <title>Industry Model · Spec v1.1 · virtauto®</title>
 
   <!-- virtauto Spec Metadata -->
   <meta name="virtauto:document_type" content="spec">
   <meta name="virtauto:spec_name" content="industrymodel">
-  <meta name="virtauto:spec_version" content="1.0">
-  <meta name="virtauto:spec_status" content="v1">
+  <meta name="virtauto:spec_version" content="1.1">
+  <meta name="virtauto:spec_status" content="v1.1">
 
   <!-- SEO -->
   <link rel="canonical" href="https://www.virtauto.de/industrymodel.html">
-  <meta name="description" content="Industry Model (AEO Stage 1): normative proof object for governed industrial decision-making. Infrastructure-first: Data Access → Knowledge Layer → Deterministic Verifiers → Orchestration. Includes bounded advisory energy optimization (€/door) using CWD. Audit-first, block-capable, PR-driven.">
+  <meta name="description" content="Industry Model (AEO Stage 1): normative proof object for governed industrial decision-making. Infrastructure-first: Data Access → Knowledge Layer → Deterministic Verifiers → Orchestration. Includes bounded advisory energy optimization (€/door) using CWD and enterprise Resource Orchestrator (holarchic scaling). Audit-first, block-capable, PR-driven.">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="virtauto Industry Model — AEO Stage 1 (Normative Proof Object)">
-  <meta property="og:description" content="Not a showcase: a normative infrastructure-first world-model spec and proof object. One bounded decision class with explicit authority and an explainable BLOCK path — PR-driven, audit-first. Includes governed energy optimization advisory via CWD + Knowledge Layer.">
+  <meta property="og:description" content="Not a showcase: a normative infrastructure-first world-model spec and proof object. One bounded decision class with explicit authority and an explainable BLOCK path — PR-driven, audit-first. Includes governed energy optimization advisory via CWD + Resource Orchestrator.">
   <meta property="og:url" content="https://www.virtauto.de/industrymodel.html">
   <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="virtauto Industry Model — AEO Stage 1 (Normative Proof Object)">
-  <meta name="twitter:description" content="A normative infrastructure-first world-model spec: how a doorline thinks, decides, and blocks — decision-first, audit-first, PR-driven, explainable BLOCK. Includes governed energy optimization advisory via CWD + Knowledge Layer.">
+  <meta name="twitter:description" content="A normative infrastructure-first world-model spec: how a doorline thinks, decides, and blocks — decision-first, audit-first, PR-driven, explainable BLOCK. Includes governed energy optimization via CWD + enterprise Resource Orchestrator (holarchic scaling).">
   <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
 
   <link rel="stylesheet" href="assets/styles.css"/>
@@ -156,8 +156,22 @@
       font-size:.72rem; border:1px solid #2a3a5e;
     }
 
+    /* Resource Orchestrator helpers */
+    .ro-grid{ display:grid; grid-template-columns: 1.15fr .85fr; gap:1rem; margin-top:1rem; }
+    .ro-badge{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.22rem .55rem; border-radius:999px;
+      border:1px solid #243255; background:#0b1220; color:#dbe7ff;
+      font-size:.78rem; white-space:nowrap;
+    }
+    .ro-badge .n{
+      width:18px; height:18px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:.72rem; border:1px solid #2a3a5e;
+    }
+
     @media (max-width: 900px) {
-      .two-col, .three-col, .cwd-grid { grid-template-columns: 1fr; }
+      .two-col, .three-col, .cwd-grid, .ro-grid { grid-template-columns: 1fr; }
       .kpi{ min-width: unset; width:100%; }
     }
   </style>
@@ -192,15 +206,15 @@
     <div class="container">
       <div class="kicker">Industry Model · AEO Stage 1</div>
 
-      <h1>Industry Model <span class="spec-badge">Spec v1</span></h1>
+      <h1>Industry Model <span class="spec-badge">Spec v1.1</span></h1>
 
       <section class="spec-banner" aria-label="Specification banner">
         <div class="spec-banner__inner">
-          <div class="spec-banner__title">Spec v1 (normative)</div>
+          <div class="spec-banner__title">Spec v1.1 (normative)</div>
           <div class="spec-banner__meta">
             <span>Document type: Specification</span>
             <span>·</span>
-            <span>Status: v1</span>
+            <span>Status: v1.1</span>
             <span>·</span>
             <span>Rule: If UI/implementation contradicts this spec, the spec wins.</span>
           </div>
@@ -245,6 +259,7 @@
           <span class="pill"><span class="dot"></span>Audit-first</span>
           <span class="pill red"><span class="dot"></span>Block-capable</span>
           <span class="pill"><span class="dot"></span>PR-driven</span>
+          <span class="pill"><span class="dot"></span>Holarchic scaling</span>
         </div>
 
         <hr class="mini-hr">
@@ -252,8 +267,8 @@
         <strong>Principle: Infrastructure → Decision Products (not “Use Case first”)</strong>
         <p class="muted" style="margin:.45rem 0 0">
           The model is structured as an infrastructure stack (Data Access → Knowledge Layer → Deterministic Verifiers → Orchestration),
-          and only then exposes decision products on top. Energy optimization is presented as a <strong>bounded advisory decision product</strong>,
-          not as the starting point.
+          and only then exposes decision products on top. Energy optimization is a <strong>bounded advisory decision product</strong>.
+          In v1.1, enterprise scaling adds a <strong>Resource Orchestrator</strong> to prevent cross-line conflicts.
         </p>
 
         <div class="pill-row">
@@ -262,6 +277,7 @@
           <span class="pill"><span class="dot"></span>Deterministic Verifiers</span>
           <span class="pill"><span class="dot"></span>Agent Orchestration</span>
           <span class="pill"><span class="dot"></span>CWD pattern</span>
+          <span class="pill"><span class="dot"></span>Resource Orchestrator</span>
         </div>
 
         <p class="muted" style="margin-top:.65rem">
@@ -271,6 +287,7 @@
           <a href="#production-process">Production Process</a> ·
           <a href="#energy-optimization">Energy Optimization</a> ·
           <a href="#cwd-orchestration">CWD Orchestration</a> ·
+          <a href="#resource-orchestration">Resource Orchestrator</a> ·
           <a href="#governance">Governance</a> ·
           <a href="#audit">Audit</a> ·
           <a href="#block">BLOCK</a>
@@ -286,6 +303,7 @@
           <a href="#production-process">Production Process (Stages 1–6)</a>
           <a href="#energy-optimization">Energy Optimization (advisory)</a>
           <a href="#cwd-orchestration">CWD Orchestration</a>
+          <a href="#resource-orchestration">Resource Orchestrator</a>
           <a href="#decision-graph">Decision Graph</a>
           <a href="#artifacts">Artifacts</a>
           <a href="#audit">Audit</a>
@@ -313,6 +331,7 @@
             <li>Decisions have <strong>explicit authority</strong> and <strong>enforced constraints</strong></li>
             <li>Every decision is <strong>auditable</strong> (append-only trace, evidence refs, ruleset)</li>
             <li>BLOCK is legitimate: <strong>explainable</strong> and <strong>stable</strong>, not “AI error”</li>
+            <li>Scaling requires explicit handling of <strong>shared resources</strong> (v1.1 Resource Orchestrator)</li>
           </ul>
         </div>
 
@@ -322,7 +341,7 @@
             <li>“Smart agent did something” without accountability</li>
             <li>Silent execution (state changes without trace)</li>
             <li>UI storytelling without governed artifacts</li>
-            <li>“Autonomy first” without governance proof</li>
+            <li>Local optimization that creates enterprise-level energy conflicts</li>
           </ul>
           <div class="pill-row" aria-label="Non-negotiables">
             <span class="pill red"><span class="dot"></span>No decision without trace</span>
@@ -353,7 +372,7 @@
       </p>
 
       <div class="card callout">
-        <strong>Four-layer infrastructure (v1)</strong>
+        <strong>Four-layer infrastructure (v1.1)</strong>
         <div class="path" aria-label="Infrastructure layers">
           <span class="node"><span class="n">1</span> Data Access</span>
           <span class="arrow">→</span>
@@ -368,6 +387,7 @@
           <span class="pill"><span class="dot"></span>Verifiers over vibes</span>
           <span class="pill red"><span class="dot"></span>Fail-safe default</span>
           <span class="pill"><span class="dot"></span>Audit stability</span>
+          <span class="pill"><span class="dot"></span>Holarchic orchestration</span>
         </div>
       </div>
 
@@ -426,13 +446,16 @@
       <div class="card" id="orchestration" style="margin-top:16px">
         <h3>1.4 Orchestration Layer (agentic workflows, not authority)</h3>
         <p class="muted" style="margin:.35rem 0 0">
-          The orchestration layer sequences tools, queries the knowledge layer, invokes verifiers, and composes proposals.
-          <strong>It does not decide admissibility</strong>. In v1, orchestration for energy advisory uses the <strong>CWD pattern</strong>.
+          Orchestration sequences tools, queries the knowledge layer, invokes verifiers, and composes proposals.
+          <strong>It does not decide admissibility</strong>.
+          In v1.1, energy advisory runs line-level <strong>CWD</strong> and then hands bundle candidates to a plant-level
+          <strong>Resource Orchestrator</strong> that arbitrates shared resources across multiple Coordinators.
         </p>
         <div class="pill-row">
           <span class="pill"><span class="dot"></span>Planner</span>
           <span class="pill"><span class="dot"></span>Tool caller</span>
           <span class="pill"><span class="dot"></span>Verifier invoker</span>
+          <span class="pill"><span class="dot"></span>Holarchic: line → plant</span>
           <span class="pill red"><span class="dot"></span>No authority transfer</span>
         </div>
       </div>
@@ -449,7 +472,7 @@
       </p>
 
       <div class="card">
-        <strong>Active decision products (A–C)</strong>
+        <strong>Active decision products (A–D)</strong>
 
         <div class="table-wrap" style="margin-top:12px;">
           <table class="table" style="width:100%;">
@@ -495,7 +518,7 @@
               <tr>
                 <td><code>energy_orchestration_cwd_v1</code> <span class="pill" style="margin-left:.35rem">Product C</span></td>
                 <td><span class="pill">Internal orchestration</span> <span class="pill amb">Still advisory-only</span></td>
-                <td>Edge advisory runtime · CWD workflow for Product B</td>
+                <td>Line-level runtime · CWD workflow for Product B</td>
                 <td>
                   <code>governance/contracts/energy-orchestration-cwd-v1.md</code><br/>
                   <code>ops/runs/cwd/run_*.json</code><br/>
@@ -504,6 +527,20 @@
                   <code>ops/decisions/advisory_result.json</code>
                 </td>
                 <td>MEASURED-only · deterministic gating before any recommendation</td>
+              </tr>
+
+              <!-- D -->
+              <tr>
+                <td><code>resource_orchestration_meta_v1</code> <span class="pill" style="margin-left:.35rem">Product D</span></td>
+                <td><span class="pill">Plant-level arbitration</span> <span class="pill amb">Advisory-first</span></td>
+                <td>Cross-line shared resources (energy peaks, utilities, takt corridors)</td>
+                <td>
+                  <code>governance/contracts/resource-orchestration-meta-v1.md</code><br/>
+                  <code>governance/rulesets/plant-shared-resources-v1.json</code><br/>
+                  <code>ops/runs/resource_orchestrator/run_*.json</code><br/>
+                  <code>ops/decisions/resource_arbitration_result.json</code>
+                </td>
+                <td>MEASURED-only · no cross-line recommendation without arbitration trace</td>
               </tr>
             </tbody>
           </table>
@@ -519,9 +556,10 @@
           <p class="muted" style="margin:.5rem 0 0">
             This spec does not claim any direct PLC/MES write-back. It does not claim database-level integration into live production systems.
             It assumes read-only interfaces, governed snapshots, and advisory outputs with trace.
+            <strong>Phase C enablement is a roadmap posture</strong> and requires additional safety gates, rollback, and formally governed actuator permissions.
           </p>
           <div class="pill-row">
-            <span class="pill amb"><span class="dot"></span>No PLC write access</span>
+            <span class="pill amb"><span class="dot"></span>No PLC write access (v1.1)</span>
             <span class="pill amb"><span class="dot"></span>No direct production DB querying</span>
             <span class="pill"><span class="dot"></span>Read-only collector</span>
             <span class="pill"><span class="dot"></span>Advisory outputs</span>
@@ -563,7 +601,7 @@
             <li>Not a “Digital Twin” marketing demo</li>
             <li>Not a simulator or optimizer demo</li>
             <li>Not “AI plans production”</li>
-            <li>Not a framework showcase</li>
+            <li>Not “local optimization equals plant optimization”</li>
           </ul>
           <div class="pill-row" aria-label="Non-claims">
             <span class="pill amb"><span class="dot"></span>No learning claims</span>
@@ -729,11 +767,13 @@
           Energy optimization connects to where energy is actually consumed and where loads are shiftable:
           joining and hemming (Stages 2 &amp; 4), sealing/conditioning (Stage 3), and shiftable loads like metrology (Stage 6).
           Product B is advisory-only and must never bypass quality constraints.
+          In v1.1, a <strong>Resource Orchestrator</strong> arbitrates shared resources across multiple Coordinators (line-to-plant holarchy).
         </p>
         <div class="pill-row">
           <span class="pill"><span class="dot"></span>Metrology job scheduling (Stage 6)</span>
           <span class="pill"><span class="dot"></span>Avoid simultaneous high-draw operations</span>
           <span class="pill"><span class="dot"></span>Pause resequencing advisories</span>
+          <span class="pill"><span class="dot"></span>Cross-line peak arbitration</span>
           <span class="pill red"><span class="dot"></span>Quality guardrails always apply</span>
         </div>
       </div>
@@ -748,6 +788,7 @@
         This is intentionally <strong>not</strong> “AI optimizes the factory”.
         It is a <strong>governed advisory decision product</strong> built on the infrastructure stack:
         inputs are explicit, evidence posture is explicit, rulesets are versioned, and the result is traceable.
+        In v1.1, the model adds plant-level <strong>shared resource arbitration</strong> to prevent local optimization conflicts.
       </p>
 
       <div class="card callout">
@@ -756,10 +797,12 @@
           The objective is <strong>€/door</strong> at a <strong>5-minute window</strong> resolution.
           The system must never trade cost reductions against quality, scrap, rework, takt time, or OEE.
           If evidence is missing or stale, the system must degrade to <strong>HOLD / no recommendation</strong>.
+          If a recommendation creates a plant-level shared-resource conflict, it must be <strong>re-ranked, deferred, or discarded</strong> by the Resource Orchestrator.
         </p>
         <div class="pill-row">
           <span class="pill"><span class="dot"></span>Objective: €/door</span>
           <span class="pill"><span class="dot"></span>5-min canonical window</span>
+          <span class="pill"><span class="dot"></span>Plant-level arbitration</span>
           <span class="pill red"><span class="dot"></span>No quality trade-off</span>
           <span class="pill red"><span class="dot"></span>Default to Non-Action</span>
         </div>
@@ -767,7 +810,7 @@
 
       <div class="two-col">
         <div class="card" style="margin-top:16px">
-          <strong>Required inputs (normative, v1)</strong>
+          <strong>Required inputs (normative, v1.1)</strong>
           <p class="muted" style="margin:.5rem 0 0">
             A recommendation is only admissible if all required inputs are present and within freshness bounds.
           </p>
@@ -786,7 +829,7 @@
         </div>
 
         <div class="card" style="margin-top:16px">
-          <strong>Freshness bounds (v1)</strong>
+          <strong>Freshness bounds (v1.1)</strong>
           <p class="muted" style="margin:.5rem 0 0">
             Freshness is defined to preserve €/door validity at a 5-minute canonical window resolution.
           </p>
@@ -806,10 +849,11 @@
       </div>
 
       <div class="card" style="margin-top:16px">
-        <strong>Hard constraints (v1)</strong>
+        <strong>Hard constraints (v1.1)</strong>
         <p class="muted" style="margin:.5rem 0 0">
           If any hard constraint is violated, the advisory must not recommend.
           Hard constraint violation yields <strong>BLOCK</strong> (unsafe to recommend) or <strong>HOLD</strong> (insufficient evidence) depending on the failure mode.
+          Shared-resource conflicts yield <strong>DEFER/DISCARD</strong> at orchestration level and must be traced as arbitration outcomes.
         </p>
         <div class="pill-row">
           <span class="pill red"><span class="dot"></span>quality_gate_ok == true</span>
@@ -817,9 +861,10 @@
           <span class="pill red"><span class="dot"></span>oee_ok == true</span>
           <span class="pill red"><span class="dot"></span>scrap_rate ≤ threshold_hard</span>
           <span class="pill red"><span class="dot"></span>rework_rate ≤ threshold_hard</span>
+          <span class="pill"><span class="dot"></span>shared_resource_budget_ok == true</span>
         </div>
         <p class="muted" style="margin-top:.7rem">
-          Soft constraints may exist, but do not override hard constraints. v1 uses conservative defaults: missing/uncertain context yields HOLD.
+          Soft constraints may exist, but do not override hard constraints. v1.1 uses conservative defaults: missing/uncertain context yields HOLD.
         </p>
       </div>
     </div>
@@ -877,6 +922,7 @@
             <li><code>EnergyCostWindow</code></li>
             <li><code>QualityOutcome</code></li>
             <li><code>VariantMixProfile</code></li>
+            <li><code>SharedResourceBudget</code> (plant-level)</li>
           </ul>
           <p class="muted" style="margin-top:.65rem">
             Each type carries: explicit attributes, units, temporal resolution, and validation requirements.
@@ -891,6 +937,7 @@
             <li>Cycle stability → quality drift risk</li>
             <li>Energy peaks → scheduling sensitivity</li>
             <li>Metrology load → deferrable window candidate</li>
+            <li>Line load → plant peak budget (shared resource)</li>
           </ul>
           <p class="muted" style="margin-top:.65rem">
             Relationships inform rulesets. They do not decide.
@@ -905,6 +952,7 @@
             <li><strong>Operational stability invariants</strong></li>
             <li><strong>Economic objectives</strong></li>
             <li><strong>Advisory opportunities</strong></li>
+            <li><strong>Shared resource invariants</strong> (plant-level)</li>
           </ul>
           <p class="muted" style="margin-top:.65rem">
             Categorization keeps rules modular and auditable.
@@ -923,7 +971,12 @@
   "quality_profile": {"quality_gate_ok": true, "ref":"qg:biw:tvl:last_shift:ok:1c0b"},
   "stability_profile": {"cycle_time_ok": true, "oee_ok": true},
   "variant_mix_profile": {"week":"2026-W06", "ref":"mix:biw:tvl:week:97p"},
-  "staleness_sec": {"meter":45, "throughput":90, "cycle":75, "oee":120, "quality":7200}
+  "plant_shared_resources": {
+    "peak_power_budget_kw": 9500,
+    "peak_budget_ref": "ems:plant:peak_budget:2026-02-09:aa21",
+    "utilities_budget_ref": "ems:plant:utilities_budget:2026-02-09:bb19"
+  },
+  "staleness_sec": {"meter":45, "throughput":90, "cycle":75, "oee":120, "quality":7200, "peak_budget":120}
 }</pre>
         </div>
 
@@ -998,11 +1051,13 @@
       <div class="card" style="margin-top:16px">
         <h3>Energy advisory decision graph (Product B)</h3>
         <p class="muted" style="margin:.35rem 0 0">
-          Advisory uses the same discipline: proposal → checks → governance → verdict. “ALLOW” means a recommendation is admissible, not executable.
+          Advisory uses the same discipline: proposal → checks → orchestration → governance → verdict.
+          “ALLOW” means a recommendation is admissible, not executable.
         </p>
         <ul class="list-tight muted">
           <li><strong>Required measured inputs</strong> present + fresh → eligible</li>
           <li>Hard constraints OK (quality/cycle/OEE/scrap/rework) → eligible</li>
+          <li><strong>Resource Orchestrator arbitration</strong> (shared resources OK) → eligible</li>
           <li>Authority: Production Lead owner; Quality veto path available</li>
           <li>Missing/stale evidence → HOLD (no recommendation)</li>
         </ul>
@@ -1011,12 +1066,14 @@
       <div class="card callout" style="margin-top:16px">
         <strong>Where CWD fits</strong>
         <p class="muted" style="margin:.5rem 0 0">
-          CWD is the internal compute structure that produces a <em>recommendation bundle</em> candidate.
+          CWD is the line-level compute structure that produces a <em>recommendation bundle</em> candidate.
+          In v1.1, a plant-level <strong>Resource Orchestrator</strong> arbitrates cross-line conflicts before governance.
           Governance still decides admissibility. If governance fails → bundle is discarded.
         </p>
         <div class="pill-row">
           <span class="pill"><span class="dot"></span>Compute structure</span>
           <span class="pill"><span class="dot"></span>Bundle candidate</span>
+          <span class="pill"><span class="dot"></span>Plant arbitration</span>
           <span class="pill red"><span class="dot"></span>Not authority</span>
           <span class="pill red"><span class="dot"></span>Discard on HOLD/BLOCK</span>
         </div>
@@ -1029,7 +1086,7 @@
     <div class="container">
       <h2>5.1) Coordinator–Worker–Delegator (CWD) Orchestration (normative)</h2>
       <p class="muted">
-        CWD is the <strong>internal orchestration pattern</strong> used to produce energy advisory recommendations
+        CWD is the <strong>line-level orchestration pattern</strong> used to produce energy advisory recommendations
         under strict governance. It improves modularity, auditability, and conflict handling.
         It does <strong>not</strong> grant decision authority.
       </p>
@@ -1042,7 +1099,7 @@
         </p>
         <div class="pill-row">
           <span class="pill red"><span class="dot"></span>Default to Non-Action</span>
-          <span class="pill red"><span class="dot"></span>No estimated recommendations (v1)</span>
+          <span class="pill red"><span class="dot"></span>No estimated recommendations (v1.x)</span>
           <span class="pill"><span class="dot"></span>Trace everything</span>
         </div>
       </div>
@@ -1093,15 +1150,15 @@
           </div>
           <ul class="list-tight muted">
             <li>Aggregates worker proposals</li>
-            <li>Detects conflicts (mutual exclusion)</li>
+            <li>Detects local conflicts (mutual exclusion)</li>
             <li>Ranks by expected €/door impact</li>
             <li>Creates recommendation bundle candidate</li>
-            <li>Emits bundle as artifact (pre-governance)</li>
+            <li>Emits bundle as artifact (pre-arbitration)</li>
           </ul>
           <div class="pill-row">
-            <span class="pill"><span class="dot"></span>Conflict checks</span>
+            <span class="pill"><span class="dot"></span>Local conflict checks</span>
             <span class="pill"><span class="dot"></span>Bundle candidate</span>
-            <span class="pill red"><span class="dot"></span>Discard if governance fails</span>
+            <span class="pill red"><span class="dot"></span>Not final across lines</span>
           </div>
         </div>
       </div>
@@ -1110,6 +1167,7 @@
         <strong>Normative CWD run trace (append-only artifact)</strong>
         <p class="muted" style="margin:.5rem 0 0">
           The run trace captures: input snapshot hash, worker outputs, conflicts, and the final bundle candidate.
+          In v1.1, the bundle candidate is handed to the <strong>Resource Orchestrator</strong> for cross-line arbitration.
           Governance then evaluates admissibility (ALLOW/HOLD/BLOCK). The bundle is only shown if ALLOW.
         </p>
 
@@ -1126,9 +1184,10 @@
       "quality_gate_ok_ref": "qg:biw:tvl:last_shift:ok:1c0b",
       "cycle_time_ok_ref": "mes:biw:tvl:cycle_ok:win:7a10",
       "oee_ok_ref": "oee:biw:tvl:ok:win:3f21",
-      "variant_mix_ref": "mix:biw:tvl:week:2026-W06:97p"
+      "variant_mix_ref": "mix:biw:tvl:week:2026-W06:97p",
+      "plant_peak_budget_ref": "ems:plant:peak_budget:2026-02-09:aa21"
     },
-    "freshness_sec": {"meter":45, "throughput":90, "cycle":75, "oee":120, "quality":7200}
+    "freshness_sec": {"meter":45, "throughput":90, "cycle":75, "oee":120, "quality":7200, "peak_budget":120}
   },
   "coordinator_gates": [
     {"check":"required_inputs_present","result":"PASS"},
@@ -1188,6 +1247,13 @@
     },
     "bundle_ref": "ops/runs/cwd/bundle_2026-02-09T09-00Z.json"
   },
+  "handoff_to_resource_orchestrator": {
+    "decision_class": "resource_orchestration_meta_v1",
+    "resource_policy": "plant_shared_resources_v1",
+    "input_bundle_ref": "ops/runs/cwd/bundle_2026-02-09T09-00Z.json",
+    "arbitration_ref": "ops/runs/resource_orchestrator/run_2026-02-09T09-00Z.json",
+    "arbitration_result_ref": "ops/decisions/resource_arbitration_result.json"
+  },
   "handoff_to_governance": {
     "decision_class": "energy_cost_minimization_advisory_v1",
     "policy": "advisory_only_no_writeback_v1",
@@ -1199,8 +1265,144 @@
           <span class="pill"><span class="dot"></span>run trace</span>
           <span class="pill"><span class="dot"></span>worker outputs</span>
           <span class="pill"><span class="dot"></span>bundle candidate</span>
+          <span class="pill"><span class="dot"></span>resource arbitration</span>
           <span class="pill red"><span class="dot"></span>governance decides</span>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESOURCE ORCHESTRATOR -->
+  <section class="section" id="resource-orchestration">
+    <div class="container">
+      <h2>5.2) Resource Orchestrator (holarchic scaling within Orchestration)</h2>
+      <p class="muted">
+        At enterprise scale, multiple line-level Coordinators will compete for <strong>shared resources</strong>.
+        Without a plant-level arbitration layer, local optimization can create conflicts:
+        peak shifting, utility bottlenecks, takt corridor violations, and contradictory recommendations.
+        The <strong>Resource Orchestrator</strong> is introduced as a <strong>meta-Coordinator</strong> inside the Orchestration layer:
+        it arbitrates shared resources <em>without owning admissibility authority</em>.
+      </p>
+
+      <div class="card callout warn">
+        <strong>Hard boundary (normative)</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          The Resource Orchestrator may reorder, defer, or discard bundles to satisfy shared-resource constraints.
+          It may not override hard constraints (quality/safety/stability), may not bypass verifiers, and may not force ALLOW.
+          Its output is an <strong>arbitration artifact</strong> that governance can accept or reject.
+        </p>
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Arbitrate resources</span>
+          <span class="pill"><span class="dot"></span>Defer / re-rank</span>
+          <span class="pill red"><span class="dot"></span>No admissibility authority</span>
+          <span class="pill red"><span class="dot"></span>No bypassing Guardian</span>
+        </div>
+      </div>
+
+      <div class="ro-grid">
+        <div class="card">
+          <div class="stage-head">
+            <h3 style="margin:0">What it does (plant-level)</h3>
+            <span class="ro-badge"><span class="n">RO</span> Resource Orchestrator</span>
+          </div>
+          <ul class="list-tight muted">
+            <li>Ingests bundle candidates from multiple line-level CWD runs</li>
+            <li>Builds a <strong>shared resource view</strong> (peak power, utilities, takt corridors, buffer capacities)</li>
+            <li>Detects cross-line conflicts (simultaneous high draw, utility spikes, corridor violations)</li>
+            <li>Applies plant-level resource rulesets (versioned)</li>
+            <li>Re-ranks or defers bundles; may discard unsafe-to-recommend bundles</li>
+            <li>Emits <strong>append-only arbitration trace</strong> with explicit reasons</li>
+          </ul>
+
+          <div class="pill-row">
+            <span class="pill"><span class="dot"></span>Cross-line conflict detection</span>
+            <span class="pill"><span class="dot"></span>Shared resource budgets</span>
+            <span class="pill"><span class="dot"></span>Versioned rulesets</span>
+            <span class="pill red"><span class="dot"></span>Trace required</span>
+          </div>
+
+          <hr class="mini-hr">
+
+          <strong>Why it matters</strong>
+          <p class="muted" style="margin:.5rem 0 0">
+            Energy orchestration fails in practice when “smart” local agents shift peaks into each other.
+            The Resource Orchestrator turns energy optimization into an enterprise-grade discipline: no recommendation is “good”
+            unless it is good under shared constraints.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Visual: Holarchic orchestration path</h3>
+          <pre class="codeblock mono" aria-label="Holarchic orchestration diagram">
+Line-level (multiple)
+  CWD Coordinator → Workers → Delegator → Bundle Candidate
+             |                     |
+             +---- append-only ----+
+
+Plant-level
+  Resource Orchestrator (meta-Coordinator)
+     ↳ detects cross-line conflicts
+     ↳ re-ranks / defers / discards
+     ↳ emits arbitration trace artifact
+
+Governance
+  GEORGE / Guardian → ALLOW / HOLD / BLOCK
+          </pre>
+
+          <div class="card callout" style="margin-top:12px">
+            <strong>Phase C posture (explicit)</strong>
+            <p class="muted" style="margin:.5rem 0 0">
+              The Resource Orchestrator is a prerequisite for future Phase C (physical effect) because it provides a stable
+              enterprise-level resource truth. However, Phase C requires additional governed actuator controls:
+              hard safety gates, rollback, and explicitly permissioned write-back contracts.
+              Until then: <strong>advisory-first</strong>, <strong>trace-always</strong>.
+            </p>
+            <div class="pill-row">
+              <span class="pill"><span class="dot"></span>Advisory-first (v1.1)</span>
+              <span class="pill"><span class="dot"></span>Phase C-ready architecture</span>
+              <span class="pill red"><span class="dot"></span>No write-back without contracts</span>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <strong>Example arbitration record (normative)</strong>
+            <pre class="codeblock mono" aria-label="Resource arbitration JSON">{
+  "arbitration_id": "ro:plant:2026-02-09T09:00Z:win5m",
+  "timestamp_utc": "2026-02-09T09:00:10.440Z",
+  "decision_class": "resource_orchestration_meta_v1",
+  "inputs": {
+    "bundles": [
+      {"line":"TVL","bundle_ref":"ops/runs/cwd/bundle_2026-02-09T09-00Z.json"},
+      {"line":"TVOL","bundle_ref":"ops/runs/cwd/bundle_2026-02-09T09-00Z_TVOL.json"}
+    ],
+    "shared_resources": {
+      "peak_budget_ref":"ems:plant:peak_budget:2026-02-09:aa21",
+      "utilities_budget_ref":"ems:plant:utilities_budget:2026-02-09:bb19"
+    }
+  },
+  "checks": [
+    {"check":"shared_peak_budget_kw","result":"PASS"},
+    {"check":"compressed_air_budget","result":"PASS"},
+    {"check":"no_simultaneous_high_draw_groups","result":"FAIL","reason":"tvl+tv0l:hemming_overlap"}
+  ],
+  "outcome": {
+    "action":"DEFER",
+    "deferred_bundle":"TVOL",
+    "reason":"cross_line_conflict:no_simultaneous_high_draw_groups",
+    "effective_window_shift_sec": 300
+  },
+  "trace": {"append_only":true,"ruleset_version":"plant-shared-resources-v1.0"}
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="card callout ok" style="margin-top:16px">
+        <strong>Normative rule (v1.1)</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          No line-level bundle may be presented as admissible if it creates a verified plant-level shared-resource conflict.
+          Arbitration must be explicit, machine-readable, and append-only.
+        </p>
       </div>
     </div>
   </section>
@@ -1221,7 +1423,8 @@
             <li><strong>Edge</strong>: produces signals / measurements (no policy authority)</li>
             <li><strong>Knowledge Layer</strong>: normalizes semantics (no policy authority)</li>
             <li><strong>Verifiers</strong>: deterministic admissibility gates</li>
-            <li><strong>Orchestrator</strong>: creates proposal, sequences checks</li>
+            <li><strong>Orchestrator (line)</strong>: CWD produces bundle candidates (no policy authority)</li>
+            <li><strong>Resource Orchestrator (plant)</strong>: arbitrates shared resources (no policy authority)</li>
             <li><strong>GEORGE</strong>: enforces contracts & policy gates</li>
             <li><strong>Guardian</strong>: blocks if invariants are violated</li>
             <li><strong>Production Lead</strong>: decision owner for advisory adoption</li>
@@ -1236,6 +1439,7 @@
             <li>No decision without trace</li>
             <li>No bypassing Guardian</li>
             <li>PR-only changes for governed artifacts</li>
+            <li>No cross-line recommendation without arbitration trace</li>
           </ul>
         </div>
 
@@ -1245,6 +1449,7 @@
             <li>Input: explicit refs, evidence, ruleset version</li>
             <li>Output: verdict (ALLOW/HOLD/BLOCK) + reasons</li>
             <li>Artifacts: decision trace + gate/advisory result + system status</li>
+            <li>Resource arbitration artifacts required for plant-level consistency (v1.1)</li>
           </ul>
         </div>
       </div>
@@ -1315,6 +1520,7 @@
             <p class="muted" style="margin:.35rem 0 0">
               For Energy Advisory (Product B), Phase B means: create an <strong>advisory ticket</strong> addressed to Production Lead,
               with a trace link, expected €/door impact, and explicit constraints. Quality veto is always available and traceable.
+              Plant-level arbitration ensures the ticket is not locally “good” but globally harmful.
             </p>
           </div>
 
@@ -1331,6 +1537,11 @@
               <span class="pill"><span class="dot"></span>Release Conditions</span>
               <span class="pill"><span class="dot"></span>Rollback</span>
             </div>
+            <hr class="mini-hr">
+            <p class="muted" style="margin:.35rem 0 0">
+              v1.1 architectural posture: introduce Resource Orchestrator as a prerequisite for Phase C at enterprise scale.
+              Phase C remains out-of-scope until actuator contracts, permissions, and rollback are governed artifacts.
+            </p>
           </div>
         </div>
 
@@ -1360,7 +1571,8 @@
           <div class="mono" style="margin-top:.4rem">
             <code>governance/contracts/pp-door-release-v1.md</code><br/>
             <code>governance/contracts/energy-cost-minimization-advisory-v1.md</code><br/>
-            <code>governance/contracts/energy-orchestration-cwd-v1.md</code>
+            <code>governance/contracts/energy-orchestration-cwd-v1.md</code><br/>
+            <code>governance/contracts/resource-orchestration-meta-v1.md</code>
           </div>
         </div>
 
@@ -1375,14 +1587,25 @@
         </div>
 
         <div class="row">
-          <strong>CWD Run Traces (internal orchestration evidence)</strong>
+          <strong>CWD Run Traces (line-level orchestration evidence)</strong>
           <div class="muted" style="margin-top:.25rem">
-            Every orchestration run is captured: snapshot hash, worker outputs, delegator bundle candidate, handoff to governance.
+            Every orchestration run is captured: snapshot hash, worker outputs, delegator bundle candidate, handoff to plant arbitration.
           </div>
           <div class="mono" style="margin-top:.4rem">
             <code>ops/runs/cwd/run_*.json</code><br/>
             <code>ops/runs/cwd/workers/*.json</code><br/>
             <code>ops/runs/cwd/bundle_*.json</code>
+          </div>
+        </div>
+
+        <div class="row">
+          <strong>Resource Orchestrator Runs (plant-level arbitration evidence)</strong>
+          <div class="muted" style="margin-top:.25rem">
+            Cross-line shared resource arbitration: conflicts detected, deferrals, re-ranking, and reasons.
+          </div>
+          <div class="mono" style="margin-top:.4rem">
+            <code>ops/runs/resource_orchestrator/run_*.json</code><br/>
+            <code>ops/decisions/resource_arbitration_result.json</code>
           </div>
         </div>
 
@@ -1411,7 +1634,7 @@
       <div class="card callout ok" style="margin-top:16px">
         <strong>Normative rule</strong>
         <p class="muted" style="margin:.5rem 0 0">
-          If it is not expressed in governed artifacts (<code>contract</code>, <code>trace</code>, <code>run</code>, <code>gate_result</code>/<code>advisory_result</code>, <code>status</code>),
+          If it is not expressed in governed artifacts (<code>contract</code>, <code>trace</code>, <code>run</code>, <code>arbitration</code>, <code>gate_result</code>/<code>advisory_result</code>, <code>status</code>),
           it is not part of the system.
         </p>
       </div>
@@ -1469,7 +1692,8 @@
     "quality_gate_ok_ref":"qg:biw:tvl:last_shift:ok:1c0b",
     "cycle_time_ok_ref":"mes:biw:tvl:cycle_ok:win:7a10",
     "oee_ok_ref":"oee:biw:tvl:ok:win:3f21",
-    "variant_mix_ref":"mix:biw:tvl:week:2026-W06:97p"
+    "variant_mix_ref":"mix:biw:tvl:week:2026-W06:97p",
+    "resource_arbitration_result_ref":"ops/decisions/resource_arbitration_result.json"
   },
   "freshness": {
     "energy_meter_ref_stale_sec":45,
@@ -1483,7 +1707,8 @@
     {"check":"freshness_bounds","result":"PASS"},
     {"check":"quality_gate_ok","result":"PASS"},
     {"check":"cycle_time_ok","result":"PASS"},
-    {"check":"oee_ok","result":"PASS"}
+    {"check":"oee_ok","result":"PASS"},
+    {"check":"shared_resource_arbitration","result":"PASS"}
   ],
   "objective": {"metric":"eur_per_door","mode":"minimize"},
   "recommendations": [
