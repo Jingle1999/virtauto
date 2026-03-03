@@ -3,6 +3,7 @@ name: validate_decision_latest_v1
 on:
   pull_request:
     paths:
+      - ".github/workflows/validate_decision_latest_v1.yml"
       - "ops/decisions/latest.json"
       - "ops/contracts/schemas/decision_latest_v1.schema.json"
   workflow_dispatch: {}
