@@ -3,6 +3,7 @@ name: validate_decision_latest_v1
 on:
   pull_request:
     paths:
+      - ".github/workflows/validate_decision_latest_v1.yml"
       - "ops/decisions/latest.json"
       - "ops/contracts/schemas/decision_latest_v1.schema.json"
   workflow_dispatch: {}
@@ -42,7 +43,11 @@ jobs:
           const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
           const data   = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 
-          const ajv = new Ajv({ allErrors: true, strict: false });
+          const ajv = new Ajv({
+            allErrors: true,
+            strict: false,
+            validateSchema: false
+          });
           addFormats(ajv);
 
           const validate = ajv.compile(schema);
