@@ -1,87 +1,160 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "decision_latest_v1.schema.json",
+  "title": "Decision Latest v1",
   "type": "object",
+  "additionalProperties": false,
+
   "required": [
     "decision_id",
     "decision_class",
     "authority_source",
-    "health_context",
-    "decision_trace",
-    "trace",
-    "signals",
     "timestamp",
     "agent",
     "action",
-    "status"
+    "status",
+    "signals",
+    "trace"
   ],
+
   "properties": {
     "decision_id": { "type": "string", "minLength": 1 },
-    "decision_class": { "type": "string", "enum": ["safety_critical", "operational", "strategic", "deploy"] },
-    "authority_source": { "type": "string" },
+
+    "decision_class": {
+      "type": "string",
+      "enum": ["operational", "governance", "security", "maintenance", "unknown"]
+    },
+
+    "authority_source": { "type": "string", "minLength": 1 },
 
     "health_context": {
-      "type": "object",
-      "required": ["system_health", "guardian_status"],
-      "properties": {
-        "system_health": { "type": "integer", "minimum": 0, "maximum": 100 },
-        "guardian_status": { "type": "string" },
-        "performance_metrics": { "type": "object" }
-      },
+      "type": ["object", "null"],
       "additionalProperties": true
     },
 
     "decision_trace": {
-      "type": "object",
+      "type": ["object", "null"],
+      "additionalProperties": false,
       "required": ["complete", "trace_id", "execution_path"],
       "properties": {
         "complete": { "type": "boolean" },
-        "trace_id": { "type": "string" },
-        "execution_path": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
-      },
-      "additionalProperties": true
+        "trace_id": { "type": "string", "minLength": 1 },
+        "execution_path": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
     },
 
     "trace": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["complete", "id", "trace_id", "path", "execution_path"],
       "properties": {
         "complete": { "type": "boolean" },
-        "id": { "type": "string" },
-        "trace_id": { "type": "string" },
-        "path": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-        "execution_path": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
-      },
-      "additionalProperties": true
+        "id": { "type": "string", "minLength": 1 },
+        "trace_id": { "type": "string", "minLength": 1 },
+        "path": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "execution_path": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
     },
-
-    "execution_context": { "type": "object" },
 
     "signals": {
       "type": "object",
-      "required": ["system_health_score", "guardian_ok", "status_endpoint_ok", "decision_trace_present"],
+      "additionalProperties": true,
+      "required": [
+        "system_health_score",
+        "system_health_percent",
+        "guardian_ok",
+        "status_endpoint_ok",
+        "decision_trace_present"
+      ],
       "properties": {
         "system_health_score": { "type": "number", "minimum": 0, "maximum": 1 },
         "system_health_percent": { "type": "integer", "minimum": 0, "maximum": 100 },
         "guardian_ok": { "type": "boolean" },
         "status_endpoint_ok": { "type": "boolean" },
         "decision_trace_present": { "type": "boolean" }
-      },
-      "additionalProperties": true
+      }
     },
 
-    "timestamp": { "type": "string" },
-    "source_event_id": { "type": ["string", "null"] },
-    "agent": { "type": "string" },
-    "action": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+
+    "agent": { "type": "string", "minLength": 1 },
+
+    "action": { "type": "string", "minLength": 1 },
+
+    "status": {
+      "type": "string",
+      "enum": ["pending", "success", "error", "blocked"]
+    },
+
     "intent": { "type": ["string", "null"] },
-    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
-    "status": { "type": "string", "enum": ["pending", "success", "error", "blocked"] },
+
+    "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+
+    "source_event_id": { "type": ["string", "null"] },
 
     "error_message": { "type": ["string", "null"] },
+
     "guardian_flag": { "type": ["string", "null"] },
+
     "follow_up": { "type": ["string", "null"] },
+
     "result_summary": { "type": ["string", "null"] }
   },
-  "additionalProperties": true
+
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": { "pattern": "^deploy_" }
+        },
+        "required": ["action"]
+      },
+      "then": {
+        "properties": {
+          "status": { "const": "blocked" }
+        },
+        "required": ["status"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": { "pattern": "^delete_" }
+        },
+        "required": ["action"]
+      },
+      "then": {
+        "properties": {
+          "status": { "const": "blocked" }
+        },
+        "required": ["status"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "action": { "pattern": "credential|token|secret" }
+        },
+        "required": ["action"]
+      },
+      "then": {
+        "properties": {
+          "status": { "const": "blocked" }
+        },
+        "required": ["status"]
+      }
+    }
+  ]
 }
