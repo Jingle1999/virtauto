@@ -30,10 +30,7 @@
     },
     "default_mode": {
       "type": "string",
-      "enum": [
-        "HUMAN_GUARDED",
-        "NIGHT_SHIFT"
-      ]
+      "const": "HUMAN_GUARDED"
     },
     "truth_sources": {
       "type": "object",
