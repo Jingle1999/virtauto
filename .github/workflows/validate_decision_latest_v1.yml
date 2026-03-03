@@ -1,0 +1,58 @@
+name: validate_decision_latest_v1
+
+on:
+  pull_request:
+    paths:
+      - "ops/decisions/latest.json"
+      - "ops/contracts/schemas/decision_latest_v1.schema.json"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  validate_decision_latest_v1:
+    name: validate_decision_latest_v1
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install AJV
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm i ajv ajv-formats >/dev/null 2>&1
+
+      - name: AJV validate decision_latest against schema
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const Ajv = require('ajv');
+          const addFormats = require('ajv-formats');
+
+          const schemaPath = 'ops/contracts/schemas/decision_latest_v1.schema.json';
+          const dataPath   = 'ops/decisions/latest.json';
+
+          const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
+          const data   = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+
+          const ajv = new Ajv({ allErrors: true, strict: false });
+          addFormats(ajv);
+
+          const validate = ajv.compile(schema);
+          const ok = validate(data);
+
+          if (!ok) {
+            console.error('❌ decision_latest_v1 validation failed');
+            console.error(JSON.stringify(validate.errors, null, 2));
+            process.exit(1);
+          }
+
+          console.log('✅ decision_latest_v1 validation passed');
+          NODE
