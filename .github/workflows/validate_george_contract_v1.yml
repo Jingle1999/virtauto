@@ -1,0 +1,48 @@
+name: validate_george_contract_v1
+
+on:
+  pull_request:
+    paths:
+      - "ops/contracts/george_contract_v1.json"
+      - "ops/contracts/schemas/george_contract_v1.schema.json"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  validate:
+
+    uses: ./.github/workflows/_governance_template.yml
+
+    with:
+
+      runtime: node
+
+      install: |
+        npm init -y
+        npm install ajv@8 ajv-formats@2
+
+      run: |
+        node <<'NODE'
+        const fs = require('fs')
+        const Ajv = require('ajv')
+        const addFormats = require('ajv-formats')
+
+        const schema = JSON.parse(fs.readFileSync('ops/contracts/schemas/george_contract_v1.schema.json'))
+        const data = JSON.parse(fs.readFileSync('ops/contracts/george_contract_v1.json'))
+
+        const ajv = new Ajv({allErrors:true})
+        addFormats(ajv)
+
+        const validate = ajv.compile(schema)
+
+        if(!validate(data)){
+          console.error(validate.errors)
+          process.exit(1)
+        }
+
+        console.log("george_contract_v1 valid")
+        NODE
