@@ -1,39 +1,48 @@
-name: Governance Required Checks
+name: validate_george_contract_v1
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "ops/contracts/george_contract_v1.json"
+      - "ops/contracts/schemas/george_contract_v1.schema.json"
+
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  simulate_decision_proposal:
-    name: simulate_decision_proposal (pull_request)
-    runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  validate:
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    uses: ./.github/workflows/_governance_template.yml
 
-      - name: Run decision proposal simulation (Phase A)
-        env:
-          CI: "1"
-          # In CI we write trace to a temp file to avoid dirtying repo paths
-          VT_TRACE_PATH: "/tmp/decision_trace.simulation.jsonl"
-        run: |
-          set -euo pipefail
-          python3 ops/simulate_decision_proposal_v1.py ops/examples/decision_proposal_example_v1.json
+    with:
 
-      - name: Upload simulation trace (artifact)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: decision_trace_simulation
-          path: /tmp/decision_trace.simulation.jsonl
-          if-no-files-found: ignore
+      runtime: node
+
+      install: |
+        npm init -y
+        npm install ajv@8 ajv-formats@2
+
+      run: |
+        node <<'NODE'
+        const fs = require('fs')
+        const Ajv = require('ajv')
+        const addFormats = require('ajv-formats')
+
+        const schema = JSON.parse(fs.readFileSync('ops/contracts/schemas/george_contract_v1.schema.json'))
+        const data = JSON.parse(fs.readFileSync('ops/contracts/george_contract_v1.json'))
+
+        const ajv = new Ajv({allErrors:true})
+        addFormats(ajv)
+
+        const validate = ajv.compile(schema)
+
+        if(!validate(data)){
+          console.error(validate.errors)
+          process.exit(1)
+        }
+
+        console.log("george_contract_v1 valid")
+        NODE
