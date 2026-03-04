@@ -19,7 +19,7 @@ jobs:
       mode: "python"
       job_display_name: "validate_contract_v1 (pull_request)"
       runs_on: "ubuntu-24.04"
-      python_version: "3.11.9"
+      python_version: "3.11"
       python_script: "ops/validate_contract_v1.py"
       python_args: ""
       timeout_minutes: 10
@@ -31,8 +31,8 @@ jobs:
       mode: "python"
       job_display_name: "validate_decision_trace (pull_request)"
       runs_on: "ubuntu-24.04"
-      python_version: "3.11.9"
-      python_script: "ops/validate_decision_trace_v1.py"
+      python_version: "3.11"
+      python_script: "ops/validate_decision_trace.py"
       python_args: ""
       timeout_minutes: 10
 
@@ -43,8 +43,8 @@ jobs:
       mode: "python"
       job_display_name: "validate_pr_decision_trace (pull_request)"
       runs_on: "ubuntu-24.04"
-      python_version: "3.11.9"
-      python_script: "ops/validate_pr_decision_trace_v1.py"
+      python_version: "3.11"
+      python_script: "ops/validate_pr_decision_trace.py"
       python_args: ""
       timeout_minutes: 10
 
@@ -55,7 +55,7 @@ jobs:
       mode: "python"
       job_display_name: "validate_status (pull_request)"
       runs_on: "ubuntu-24.04"
-      python_version: "3.11.9"
-      python_script: "ops/validate_status_v1.py"
+      python_version: "3.11"
+      python_script: "ops/validate_status.py"
       python_args: ""
       timeout_minutes: 10
