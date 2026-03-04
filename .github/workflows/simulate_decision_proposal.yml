@@ -1,48 +1,27 @@
-name: validate_george_contract_v1
+name: Governance Required Checks
 
 on:
   pull_request:
-    paths:
-      - "ops/contracts/george_contract_v1.json"
-      - "ops/contracts/schemas/george_contract_v1.schema.json"
-
-  workflow_dispatch:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
 
+concurrency:
+  group: governance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-
-  validate:
-
+  simulate_decision_proposal:
+    name: simulate_decision_proposal (pull_request)
     uses: ./.github/workflows/_governance_template.yml
-
     with:
-
-      runtime: node
-
-      install: |
-        npm init -y
-        npm install ajv@8 ajv-formats@2
-
-      run: |
-        node <<'NODE'
-        const fs = require('fs')
-        const Ajv = require('ajv')
-        const addFormats = require('ajv-formats')
-
-        const schema = JSON.parse(fs.readFileSync('ops/contracts/schemas/george_contract_v1.schema.json'))
-        const data = JSON.parse(fs.readFileSync('ops/contracts/george_contract_v1.json'))
-
-        const ajv = new Ajv({allErrors:true})
-        addFormats(ajv)
-
-        const validate = ajv.compile(schema)
-
-        if(!validate(data)){
-          console.error(validate.errors)
-          process.exit(1)
-        }
-
-        console.log("george_contract_v1 valid")
-        NODE
+      mode: "python"
+      job_display_name: "simulate_decision_proposal (pull_request)"
+      runs_on: "ubuntu-24.04"
+      python_version: "3.11.9"
+      python_script: "ops/simulate_decision_proposal_v1.py"
+      python_args: "ops/examples/decision_proposal_example_v1.json"
+      artifact_name: "decision_trace_simulation"
+      artifact_path: "/tmp/decision_trace.simulation.jsonl"
+      timeout_minutes: 10
