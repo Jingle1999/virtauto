@@ -102,8 +102,7 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
 
-      # Deterministic-ish: pin versions, generate lock, then npm ci
-      # Cache: cache ~/.npm keyed by pinned versions + runner + node
+      # Cache ~/.npm keyed by pinned versions + runner + node
       - name: Restore npm cache
         uses: actions/cache@v4
         with:
@@ -142,7 +141,8 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
-          const Ajv = require(path.resolve('.gov_npm/node_modules/ajv'));
+          // IMPORTANT: Draft 2020-12 support requires Ajv 2020 dialect entrypoint
+          const Ajv2020 = require(path.resolve('.gov_npm/node_modules/ajv/dist/2020'));
           const addFormats = require(path.resolve('.gov_npm/node_modules/ajv-formats'));
 
           const schemaPath = '${{ inputs.schema_path }}';
@@ -151,12 +151,10 @@ jobs:
           const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
           const data   = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 
-          // Ensure draft-2020-12 works even if $schema is present:
-          // - Ajv must be instantiated with 2020 dialect support
-          // - "ajv/dist/2020" is the correct entrypoint
-          // But since we load Ajv via require('ajv') above, enforce meta support by creating Ajv with meta=true
-          // and then addFormats.
-          const ajv = new Ajv({ allErrors: true, strict: false, meta: true });
+          const ajv = new Ajv2020({
+            allErrors: true,
+            strict: false
+          });
           addFormats(ajv);
 
           const validate = ajv.compile(schema);
@@ -187,18 +185,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python_version }}
+          # Built-in pip cache (more reliable than manual cache ordering)
+          cache: "pip"
 
-      - name: Install Python dependencies
+      - name: Install Python dependencies (deterministic-ish)
+        shell: bash
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
-          pip install jsonschema
-     
-      - name: Restore pip cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-py-${{ inputs.python_version }}
+
+          # If the repo provides requirements, install them first
+          if [ -f "requirements.txt" ]; then
+            python -m pip install -r requirements.txt
+          fi
+
+          # Ensure required runtime dep exists (pin for determinism)
+          python -m pip install "jsonschema==4.23.0"
 
       - name: Run python script
         shell: bash
@@ -212,7 +214,7 @@ jobs:
             exit 1
           fi
 
-          python3 ${{ inputs.python_script }} ${{ inputs.python_args }}
+          python "${{ inputs.python_script }}" ${{ inputs.python_args }}
 
       - name: Upload artifact
         if: ${{ always() && inputs.artifact_name != '' && inputs.artifact_path != '' }}
