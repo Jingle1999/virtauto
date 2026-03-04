@@ -102,14 +102,13 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
 
-      # Cache ~/.npm keyed by pinned versions + runner + node
       - name: Restore npm cache
         uses: actions/cache@v4
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-node-${{ inputs.node_version }}-ajv-${{ inputs.ajv_version }}-ajvf-${{ inputs.ajv_formats_version }}
 
-      - name: Prepare deterministic npm lock
+      - name: Prepare deterministic npm install (pinned)
         shell: bash
         run: |
           set -euo pipefail
@@ -119,12 +118,10 @@ jobs:
 
           npm init -y >/dev/null 2>&1
 
-          # Create a lockfile with pinned deps (no install yet)
           npm install --package-lock-only --no-audit --no-fund \
             ajv@${{ inputs.ajv_version }} \
             ajv-formats@${{ inputs.ajv_formats_version }}
 
-          # Deterministic install from lock
           npm ci --no-audit --no-fund
 
       - name: AJV validate data against schema
@@ -141,7 +138,7 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
-          // IMPORTANT: Draft 2020-12 support requires Ajv 2020 dialect entrypoint
+          // Draft 2020-12 support:
           const Ajv2020 = require(path.resolve('.gov_npm/node_modules/ajv/dist/2020'));
           const addFormats = require(path.resolve('.gov_npm/node_modules/ajv-formats'));
 
@@ -151,10 +148,7 @@ jobs:
           const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
           const data   = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 
-          const ajv = new Ajv2020({
-            allErrors: true,
-            strict: false
-          });
+          const ajv = new Ajv2020.default({ allErrors: true, strict: false });
           addFormats(ajv);
 
           const validate = ajv.compile(schema);
@@ -176,31 +170,35 @@ jobs:
     timeout-minutes: ${{ inputs.timeout_minutes }}
 
     steps:
-      - name: Checkout
+      - name: Checkout (full history for git-based validators)
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
+
+      - name: Ensure base branch ref exists (PRs)
+        if: ${{ github.event_name == 'pull_request' && github.base_ref != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "+refs/heads/${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
 
       - name: Setup Python (pinned)
         uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python_version }}
-          # Built-in pip cache (more reliable than manual cache ordering)
-          cache: "pip"
 
-      - name: Install Python dependencies (deterministic-ish)
+      - name: Restore pip cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-py-${{ inputs.python_version }}
+
+      - name: Install Python dependencies (pinned)
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
-
-          # If the repo provides requirements, install them first
-          if [ -f "requirements.txt" ]; then
-            python -m pip install -r requirements.txt
-          fi
-
-          # Ensure required runtime dep exists (pin for determinism)
-          python -m pip install "jsonschema==4.23.0"
+          pip install "jsonschema==4.22.0"
 
       - name: Run python script
         shell: bash
@@ -214,7 +212,7 @@ jobs:
             exit 1
           fi
 
-          python "${{ inputs.python_script }}" ${{ inputs.python_args }}
+          python3 "${{ inputs.python_script }}" ${{ inputs.python_args }}
 
       - name: Upload artifact
         if: ${{ always() && inputs.artifact_name != '' && inputs.artifact_path != '' }}
