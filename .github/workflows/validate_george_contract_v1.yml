@@ -5,44 +5,24 @@ on:
     paths:
       - "ops/contracts/george_contract_v1.json"
       - "ops/contracts/schemas/george_contract_v1.schema.json"
-
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: read
 
+concurrency:
+  group: governance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-
-  validate:
-
+  validate_george_contract_v1:
+    name: validate_george_contract_v1
     uses: ./.github/workflows/_governance_template.yml
-
     with:
-
-      runtime: node
-
-      install: |
-        npm init -y
-        npm install ajv@8 ajv-formats@2
-
-      run: |
-        node <<'NODE'
-        const fs = require('fs')
-        const Ajv = require('ajv')
-        const addFormats = require('ajv-formats')
-
-        const schema = JSON.parse(fs.readFileSync('ops/contracts/schemas/george_contract_v1.schema.json'))
-        const data = JSON.parse(fs.readFileSync('ops/contracts/george_contract_v1.json'))
-
-        const ajv = new Ajv({allErrors:true})
-        addFormats(ajv)
-
-        const validate = ajv.compile(schema)
-
-        if(!validate(data)){
-          console.error(validate.errors)
-          process.exit(1)
-        }
-
-        console.log("george_contract_v1 valid")
-        NODE
+      mode: "ajv"
+      job_display_name: "validate_george_contract_v1"
+      runs_on: "ubuntu-24.04"
+      node_version: "20.11.1"
+      schema_path: "ops/contracts/schemas/george_contract_v1.schema.json"
+      data_path: "ops/contracts/george_contract_v1.json"
+      timeout_minutes: 10
