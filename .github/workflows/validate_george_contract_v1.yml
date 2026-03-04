@@ -1,0 +1,28 @@
+name: validate_george_contract_v1
+
+on:
+  pull_request:
+    paths:
+      - "ops/contracts/george_contract_v1.json"
+      - "ops/contracts/schemas/george_contract_v1.schema.json"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: governance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate_george_contract_v1:
+    name: validate_george_contract_v1
+    uses: ./.github/workflows/_governance_template.yml
+    with:
+      mode: "ajv"
+      job_display_name: "validate_george_contract_v1"
+      runs_on: "ubuntu-24.04"
+      node_version: "20.11.1"
+      schema_path: "ops/contracts/schemas/george_contract_v1.schema.json"
+      data_path: "ops/contracts/george_contract_v1.json"
+      timeout_minutes: 10

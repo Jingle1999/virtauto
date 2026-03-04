@@ -2,126 +2,64 @@ name: Governance Required Checks
 
 on:
   pull_request:
-    branches: [main]
-  workflow_dispatch:
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
 
+concurrency:
+  group: governance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate_contract_v1:
-    name: validate_contract_v1
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install minimal deps (if needed)
-        shell: bash
-        run: |
-          set -euo pipefail
-          python -m pip install --upgrade pip
-          python -m pip install jsonschema
-
-      - name: Run contract validation
-        shell: bash
-        run: |
-          set -euo pipefail
-          python ops/validate_contract_v1.py
-
-  validate_status:
-    name: validate_status
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install minimal deps (if needed)
-        shell: bash
-        run: |
-          set -euo pipefail
-          python -m pip install --upgrade pip
-          python -m pip install jsonschema
-
-      - name: Run status validation
-        shell: bash
-        run: |
-          set -euo pipefail
-          python ops/validate_status.py
+    name: validate_contract_v1 (pull_request)
+    uses: ./.github/workflows/_governance_template.yml
+    with:
+      mode: "python"
+      job_display_name: "validate_contract_v1 (pull_request)"
+      runs_on: "ubuntu-24.04"
+      python_version: "3.11.9"
+      jsonschema_version: "4.23.0"
+      python_script: "ops/validate_contract_v1.py"
+      python_args: ""
+      timeout_minutes: 10
 
   validate_decision_trace:
-    name: validate_decision_trace
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Run decision trace validation
-        shell: bash
-        run: |
-          set -euo pipefail
-          python ops/validate_decision_trace.py
+    name: validate_decision_trace (pull_request)
+    uses: ./.github/workflows/_governance_template.yml
+    with:
+      mode: "python"
+      job_display_name: "validate_decision_trace (pull_request)"
+      runs_on: "ubuntu-24.04"
+      python_version: "3.11.9"
+      jsonschema_version: "4.23.0"
+      python_script: "ops/validate_decision_trace.py"
+      python_args: ""
+      timeout_minutes: 10
 
   validate_pr_decision_trace:
-    name: validate_pr_decision_trace
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout PR head (full history)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
+    name: validate_pr_decision_trace (pull_request)
+    uses: ./.github/workflows/_governance_template.yml
+    with:
+      mode: "python"
+      job_display_name: "validate_pr_decision_trace (pull_request)"
+      runs_on: "ubuntu-24.04"
+      python_version: "3.11.9"
+      jsonschema_version: "4.23.0"
+      python_script: "ops/validate_pr_decision_trace.py"
+      python_args: ""
+      timeout_minutes: 10
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Fetch PR base commit (full)
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch --no-tags origin ${{ github.event.pull_request.base.sha }}
-
-      - name: Detect merge-base
-        id: mb
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: |
-          set -euo pipefail
-          base="${{ github.event.pull_request.base.sha }}"
-          head="${{ github.event.pull_request.head.sha }}"
-          if git merge-base "$base" "$head" >/dev/null 2>&1; then
-            echo "has_merge_base=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_merge_base=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Require decision_trace for PR
-        if: github.event_name == 'pull_request' && steps.mb.outputs.has_merge_base == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          python ops/validate_pr_decision_trace.py
-
-      - name: Skip PR decision trace validation (no merge-base)
-        if: github.event_name == 'pull_request' && steps.mb.outputs.has_merge_base != 'true'
-        shell: bash
-        run: |
-          echo "No merge-base; skipping validate_pr_decision_trace."
+  validate_status:
+    name: validate_status (pull_request)
+    uses: ./.github/workflows/_governance_template.yml
+    with:
+      mode: "python"
+      job_display_name: "validate_status (pull_request)"
+      runs_on: "ubuntu-24.04"
+      python_version: "3.11.9"
+      jsonschema_version: "4.23.0"
+      python_script: "ops/validate_status.py"
+      python_args: ""
+      timeout_minutes: 10
