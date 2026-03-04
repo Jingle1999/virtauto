@@ -1,65 +1,217 @@
-name: governance-template
+name: _governance_template
 
 on:
   workflow_call:
     inputs:
-      runtime:
+      mode:
+        description: "ajv | python"
         required: true
         type: string
-      run:
+
+      # Common
+      job_display_name:
+        description: "Human-friendly job name (shown in checks UI)"
         required: true
         type: string
-      install:
+
+      runs_on:
+        description: "Pinned runner label"
         required: false
+        default: "ubuntu-24.04"
         type: string
-        default: ""
+
+      timeout_minutes:
+        description: "Job timeout"
+        required: false
+        default: 10
+        type: number
+
+      # AJV mode inputs
       node_version:
+        description: "Pinned Node.js version"
+        required: false
+        default: "20.11.1"
+        type: string
+      schema_path:
+        description: "Path to JSON schema"
         required: false
         type: string
-        default: "20"
+      data_path:
+        description: "Path to JSON data to validate"
+        required: false
+        type: string
+      ajv_version:
+        description: "Pinned AJV version"
+        required: false
+        default: "8.12.0"
+        type: string
+      ajv_formats_version:
+        description: "Pinned ajv-formats version"
+        required: false
+        default: "2.1.1"
+        type: string
+
+      # Python mode inputs
       python_version:
+        description: "Pinned Python version"
+        required: false
+        default: "3.11.9"
+        type: string
+      python_script:
+        description: "Python script path to execute"
         required: false
         type: string
-        default: "3.11"
+      python_args:
+        description: "Arguments passed to python script"
+        required: false
+        default: ""
+        type: string
+      artifact_name:
+        description: "Optional artifact name to upload"
+        required: false
+        default: ""
+        type: string
+      artifact_path:
+        description: "Optional artifact path to upload"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: governance-${{ github.workflow }}-${{ github.ref }}
+  group: governance-${{ github.workflow }}-${{ github.ref }}-${{ inputs.job_display_name }}
   cancel-in-progress: true
 
 jobs:
-
-  governance:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 10
+  ajv_validate:
+    if: ${{ inputs.mode == 'ajv' }}
+    name: ${{ inputs.job_display_name }}
+    runs-on: ${{ inputs.runs_on }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-      - name: Setup Node
-        if: inputs.runtime == 'node'
+      - name: Setup Node (pinned)
         uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node_version }}
-          cache: npm
 
-      - name: Setup Python
-        if: inputs.runtime == 'python'
+      # Deterministic-ish: pin versions, generate lock, then npm ci
+      # Cache: cache ~/.npm keyed by pinned versions + runner + node
+      - name: Restore npm cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-node-${{ inputs.node_version }}-ajv-${{ inputs.ajv_version }}-ajvf-${{ inputs.ajv_formats_version }}
+
+      - name: Prepare deterministic npm lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .gov_npm
+          mkdir -p .gov_npm
+          cd .gov_npm
+
+          npm init -y >/dev/null 2>&1
+
+          # Create a lockfile with pinned deps (no install yet)
+          npm install --package-lock-only --no-audit --no-fund \
+            ajv@${{ inputs.ajv_version }} \
+            ajv-formats@${{ inputs.ajv_formats_version }}
+
+          # Deterministic install from lock
+          npm ci --no-audit --no-fund
+
+      - name: AJV validate data against schema
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -z "${{ inputs.schema_path }}" ] || [ -z "${{ inputs.data_path }}" ]; then
+            echo "schema_path and data_path must be provided for mode=ajv" >&2
+            exit 1
+          fi
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const Ajv = require(path.resolve('.gov_npm/node_modules/ajv'));
+          const addFormats = require(path.resolve('.gov_npm/node_modules/ajv-formats'));
+
+          const schemaPath = '${{ inputs.schema_path }}';
+          const dataPath   = '${{ inputs.data_path }}';
+
+          const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
+          const data   = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+
+          // Ensure draft-2020-12 works even if $schema is present:
+          // - Ajv must be instantiated with 2020 dialect support
+          // - "ajv/dist/2020" is the correct entrypoint
+          // But since we load Ajv via require('ajv') above, enforce meta support by creating Ajv with meta=true
+          // and then addFormats.
+          const ajv = new Ajv({ allErrors: true, strict: false, meta: true });
+          addFormats(ajv);
+
+          const validate = ajv.compile(schema);
+          const ok = validate(data);
+
+          if (!ok) {
+            console.error('❌ AJV validation failed');
+            console.error(JSON.stringify(validate.errors, null, 2));
+            process.exit(1);
+          }
+
+          console.log('✅ AJV validation passed');
+          NODE
+
+  python_run:
+    if: ${{ inputs.mode == 'python' }}
+    name: ${{ inputs.job_display_name }}
+    runs-on: ${{ inputs.runs_on }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python (pinned)
         uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python_version }}
 
-      - name: Install
-        if: inputs.install != ''
-        run: |
-          set -euo pipefail
-          ${{ inputs.install }}
+      - name: Restore pip cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-py-${{ inputs.python_version }}
 
-      - name: Run
+      - name: Run python script
+        shell: bash
+        env:
+          CI: "1"
         run: |
           set -euo pipefail
-          ${{ inputs.run }}
+
+          if [ -z "${{ inputs.python_script }}" ]; then
+            echo "python_script must be provided for mode=python" >&2
+            exit 1
+          fi
+
+          python3 ${{ inputs.python_script }} ${{ inputs.python_args }}
+
+      - name: Upload artifact
+        if: ${{ always() && inputs.artifact_name != '' && inputs.artifact_path != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ${{ inputs.artifact_path }}
+          if-no-files-found: ignore
