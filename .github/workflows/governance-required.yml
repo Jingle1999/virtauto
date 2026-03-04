@@ -2,62 +2,60 @@ name: Governance Required Checks
 
 on:
   pull_request:
-    paths:
-      - "ops/contracts/**"
-      - "ops/decisions/**"
-      - "ops/reports/**"
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
 
+concurrency:
+  group: governance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-
-  validate_contract:
-
+  validate_contract_v1:
+    name: validate_contract_v1 (pull_request)
     uses: ./.github/workflows/_governance_template.yml
-
     with:
-
-      runtime: python
-
-      install: |
-        pip install jsonschema
-
-      run: |
-        python ops/validate_contract_v1.py ops/contracts/george_contract_v1.json ops/contracts/schemas/george_contract_v1.schema.json
-
+      mode: "python"
+      job_display_name: "validate_contract_v1 (pull_request)"
+      runs_on: "ubuntu-24.04"
+      python_version: "3.11.9"
+      python_script: "ops/validate_contract_v1.py"
+      python_args: ""
+      timeout_minutes: 10
 
   validate_decision_trace:
-
+    name: validate_decision_trace (pull_request)
     uses: ./.github/workflows/_governance_template.yml
-
     with:
-
-      runtime: python
-
-      run: |
-        python ops/validate_decision_trace.py
-
+      mode: "python"
+      job_display_name: "validate_decision_trace (pull_request)"
+      runs_on: "ubuntu-24.04"
+      python_version: "3.11.9"
+      python_script: "ops/validate_decision_trace_v1.py"
+      python_args: ""
+      timeout_minutes: 10
 
   validate_pr_decision_trace:
-
+    name: validate_pr_decision_trace (pull_request)
     uses: ./.github/workflows/_governance_template.yml
-
     with:
-
-      runtime: python
-
-      run: |
-        python ops/validate_pr_decision_trace.py
-
+      mode: "python"
+      job_display_name: "validate_pr_decision_trace (pull_request)"
+      runs_on: "ubuntu-24.04"
+      python_version: "3.11.9"
+      python_script: "ops/validate_pr_decision_trace_v1.py"
+      python_args: ""
+      timeout_minutes: 10
 
   validate_status:
-
+    name: validate_status (pull_request)
     uses: ./.github/workflows/_governance_template.yml
-
     with:
-
-      runtime: python
-
-      run: |
-        python ops/validate_status.py
+      mode: "python"
+      job_display_name: "validate_status (pull_request)"
+      runs_on: "ubuntu-24.04"
+      python_version: "3.11.9"
+      python_script: "ops/validate_status_v1.py"
+      python_args: ""
+      timeout_minutes: 10
