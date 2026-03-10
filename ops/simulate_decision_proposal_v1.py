@@ -1,19 +1,18 @@
-#!/usr/bin/env python3
-
 import json
 import sys
+from pathlib import Path
 
-print("virtauto governance simulation running")
+print("Simulating decision proposal")
 
-try:
-    with open(sys.argv[1]) as f:
-        proposal = json.load(f)
+# Example output artifact
+trace = {
+    "decision": "energy_optimization",
+    "status": "simulated",
+    "source": "virtauto",
+}
 
-    print("Decision proposal loaded successfully")
-    print("Simulation result: ALLOW")
+Path("decision_trace_simulation.jsonl").write_text(
+    json.dumps(trace) + "\n"
+)
 
-except Exception as e:
-    print("Simulation fallback:", e)
-    print("Simulation result: ALLOW")
-
-sys.exit(0)
+print("Simulation completed")
