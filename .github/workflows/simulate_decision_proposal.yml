@@ -1,4 +1,4 @@
-name: Governance Required Checks
+name: Decision Proposal Simulation
 
 on:
   pull_request:
