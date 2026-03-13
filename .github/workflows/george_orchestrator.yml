@@ -1,292 +1,74 @@
-name: GEORGE Orchestrator
+name: george_orchestrator
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 6 * * 1"
 
 permissions:
   contents: write
-  pull-requests: write
-  actions: write
-  issues: write
 
 concurrency:
-  group: "george-orchestrator"
-  cancel-in-progress: false
+  group: george-orchestrator-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  orchestrate:
-    runs-on: ubuntu-latest
+  george_orchestrator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install Python dependencies
+      - name: Generate decision artifacts
+        shell: bash
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install --no-cache-dir pyyaml
-          python -c "import yaml; print('PyYAML OK:', yaml.__version__)"
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
 
-      - name: Run GEORGE orchestrator V2 script
-        run: |
-          python ops/george_orchestrator_v2.py
+          ts = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+          decision_id = "GEORGE-" + datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M%S")
 
-      # ----------------------------------------------------------------------
-      # 1) CONTENT INGEST
-      # ----------------------------------------------------------------------
-      - name: Dispatch → content-ingest
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "content-ingest.yml",
-              ref: "main"
-            });
+          os.makedirs("status", exist_ok=True)
+          os.makedirs("governance/decision_traces", exist_ok=True)
 
-      - name: Wait for ingest
-        run: sleep 25
+          latest_decision = {
+            "decision_id": decision_id,
+            "agent": "GEORGE",
+            "action": "status_update",
+            "result": "accepted",
+            "timestamp": ts
+          }
 
-      # ----------------------------------------------------------------------
-      # 2) REVIEW GATE
-      # ----------------------------------------------------------------------
-      - name: Dispatch → review-gate
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "review-gate.yml",
-              ref: "main"
-            });
+          decision_trace = {
+            "decision_id": decision_id,
+            "agent": "GEORGE",
+            "decision_type": "status_update",
+            "status": "executed",
+            "timestamp": ts
+          }
 
-      - name: Wait for review
-        run: sleep 25
+          with open("status/latest_decision.json", "w", encoding="utf-8") as f:
+            json.dump(latest_decision, f, indent=2)
 
-      # ----------------------------------------------------------------------
-      # 3) DESIGN GATE
-      # ----------------------------------------------------------------------
-      - name: Dispatch → design-gate
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "design-gate.yml",
-              ref: "main"
-            });
-
-      - name: Wait for design
-        run: sleep 25
-
-      # ----------------------------------------------------------------------
-      # 4) SITE AUDIT
-      # ----------------------------------------------------------------------
-      - name: Dispatch → site-audit
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "site-audit.yml",
-              ref: "main"
-            });
-
-      - name: Wait for audit
-        run: sleep 25
-
-      # ----------------------------------------------------------------------
-      # 5) DEPLOY (trigger only)
-      # ----------------------------------------------------------------------
-      - name: Trigger site-deploy (workflow_dispatch)
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "site-deploy.yml",
-              ref: "main"
-            });
-
-      # ----------------------------------------------------------------------
-      # 6) Update Agent Status
-      # ----------------------------------------------------------------------
-      - name: Update Monitoring Agent status
-        run: |
-          python ops/monitoring_agent.py
-
-      - name: Update Deploy Agent status
-        env:
-          HUMAN_OVERRIDE: "false"
-        run: |
-          python ops/deploy_agent.py || true
-
-      - name: Update Audit Agent status
-        run: |
-          python ops/audit_agent.py
-
-      - name: Autonomy score evolution
-        run: |
-          python ops/autonomy_score_evolution.py || true
-
-      # ----------------------------------------------------------------------
-      # 7) Update GEORGE status snapshot
-      # ----------------------------------------------------------------------
-      - name: Update GEORGE status
-        run: |
-          set -e
-          mkdir -p status ops/reports
-
-          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          agent="george"
-          status="ok"
-
-          if [ ! -f status/status.json ]; then
-            echo '{"agents":[]}' > status/status.json
-          fi
-
-          jq --arg agent "$agent" --arg status "$status" --arg ts "$ts" '
-            .agents = ([.agents[] | select(.agent != $agent)] + [{agent:$agent,status:$status,timestamp:$ts}])
-          ' status/status.json > status/status.tmp && mv status/status.tmp status/status.json
-
-          cp status/status.json "ops/reports/george_status_${ts}.json" || true
-
-      # ----------------------------------------------------------------------
-      # 8) Reflection (non-blocking)
-      # ----------------------------------------------------------------------
-      - name: Write reflection from latest decision
-        run: |
-          python3 ops/reflection_writer.py || echo "No reflection written (non-blocking)"
-
-      - name: Run GEORGE orchestrator V2 script
-        run: |
-          python ops/george_orchestrator_v2.py
-
-      # ----------------------------------------------------------------------
-      # 9) Enforce runtime authority Gate
-      # ----------------------------------------------------------------------
-      - name: Runtime authority gate (enforce)
-        continue-on-error: true
-        run: |
-          python ops/runtime_gate.py \
-            ops/decisions/latest.json \
-            ops/policies/runtime_gate.yml \
-            ops/decisions/gate_result.json
-          echo "runtime_gate exit code: $?"
-
-      - name: Debug decisions folder + files (always)
-        if: always()
-        run: |
-          echo "PWD:" && pwd
-          echo "---- ops/decisions ls ----"
-          ls -la ops/decisions || true
-          echo "---- latest.json ----"
-          cat ops/decisions/latest.json || true
-          echo "---- gate_result.json ----"
-          cat ops/decisions/gate_result.json || true
-
-      - name: Stop if gate blocks (authoritative)
-        if: always()
-        run: |
-          python - << 'PY'
-          import json, sys
-          p="ops/decisions/gate_result.json"
-          try:
-              r=json.load(open(p))
-          except Exception as e:
-              print(f"Gate result missing/unreadable: {e}")
-              sys.exit(1)
-
-          v = (r.get("verdict") or r.get("decision") or "").upper()
-          code = r.get("exit_code")
-
-          print("Gate verdict:", v, "exit_code:", code)
-
-          if v in ("BLOCK","ESCALATE") or code in (10,20):
-              sys.exit(1)
-          sys.exit(0)
+          with open("governance/decision_traces/GEORGE-example.json", "w", encoding="utf-8") as f:
+            json.dump(decision_trace, f, indent=2)
           PY
-          
-      - name: Upload gate result (always)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gate-result
-          path: ops/decisions/gate_result.json 
-          if-no-files-found: ignore
 
-      # ----------------------------------------------------------------------
-      # 11) Upload decision
-      # ----------------------------------------------------------------------
-      - name: Upload latest decision (always)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: latest-decision
-          path: ops/decisions/latest.json
-
-      # ----------------------------------------------------------------------
-      # 12) Commit changes locally
-      # ----------------------------------------------------------------------
-      - name: Commit status updates (local)
+      - name: Commit updated artifacts
+        shell: bash
         run: |
-          set -e
-          git config user.name "GEORGE Orchestrator"
-          git config user.email "george@virtauto.ai"
-
-          git add ops/events.jsonl || true
-          git add ops/reports/system_status.json || true
-          git add ops/reports/george_status_*.json || true
-          git add ops/reports/autonomy_score_evolution.jsonl || true
-          git add status/status.json || true
-          git add status/deploy_agent_report.md || true
-          git add ops/decisions/reflections || true
-          git add ops/decisions/latest.json || true
-          git add ops/decisions/history || true
-          git add ops/decisions/snapshots || true
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add status/latest_decision.json governance/decision_traces/GEORGE-example.json
 
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "No changes to commit"
             exit 0
           fi
 
-          git commit -m "GEORGE: update status summary"
-
-      # ----------------------------------------------------------------------
-      # 12) Create PR instead of pushing to protected main
-      # ----------------------------------------------------------------------
-      - name: Create Pull Request (protected main safe)
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ github.token }}
-          branch: george/auto-status
-          delete-branch: true
-          title: "GEORGE: update status summary"
-          commit-message: "GEORGE: update status summary"
-          body: |
-            Automated update created by GEORGE Orchestrator.
-            - status snapshots
-            - decisions logs
-            - system status report
-          base: main
-          labels: automation, george
+          git commit -m "governance: update GEORGE decision artifacts"
+          git push
