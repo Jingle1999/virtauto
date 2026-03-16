@@ -1,1202 +1,241 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>virtauto.OS — Live System Status</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-  <link rel="canonical" href="https://www.virtauto.de/status/"/>
-  <meta name="description" content="virtauto.OS live system status — truth-locked dashboard rendered exclusively from the Single Source of Truth."/>
+<title>virtauto — Decision Governance Status</title>
 
-  <!-- virtauto theme -->
-  <link rel="stylesheet" href="../assets/styles.css"/>
-  <link rel="stylesheet" href="../assets/styles_unify.css"/>
+<link rel="stylesheet" href="../assets/styles.css"/>
+<link rel="stylesheet" href="../assets/styles_unify.css"/>
 
-  <!-- Page-scoped styles (no global side effects) -->
-  <style>
-    /* ============================================================
-       STATUS PAGE — STRICTLY SCOPED (no side-effects outside #vt-status)
-       ============================================================ */
-    #vt-status {
-      --vt-bg0: #070a12;
-      --vt-bg1: rgba(8, 12, 24, 0.70);
-      --vt-card: rgba(12, 18, 34, 0.65);
-      --vt-card2: rgba(12, 18, 34, 0.35);
-      --vt-stroke: rgba(170, 190, 255, 0.12);
-      --vt-stroke2: rgba(170, 190, 255, 0.18);
-      --vt-text: rgba(242, 245, 255, 0.92);
-      --vt-muted: rgba(242, 245, 255, 0.62);
-      --vt-dim: rgba(242, 245, 255, 0.42);
-      --vt-accent: rgba(124, 92, 255, 0.95);
-      --vt-accent2: rgba(0, 200, 255, 0.95);
+<style>
 
-      --vt-green: rgba(32, 212, 147, 0.95);
-      --vt-amber: rgba(255, 181, 71, 0.95);
-      --vt-red: rgba(255, 92, 124, 0.95);
+body{
+background:#060912;
+color:#e8ecff;
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
+margin:0;
+}
 
-      --vt-r-lg: 18px;
-      --vt-r-md: 14px;
-      --vt-r-sm: 12px;
+.container{
+max-width:1100px;
+margin:auto;
+padding:40px 20px;
+}
 
-      --vt-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
-      --vt-shadow2: 0 12px 40px rgba(0, 0, 0, 0.35);
+h1{
+font-size:26px;
+margin-bottom:6px;
+}
 
-      color: var(--vt-text);
-      background:
-        radial-gradient(1200px 600px at 50% -10%, rgba(124, 92, 255, 0.22), transparent 60%),
-        radial-gradient(900px 500px at 30% 0%, rgba(0, 200, 255, 0.18), transparent 65%),
-        radial-gradient(900px 500px at 80% 30%, rgba(255, 181, 71, 0.08), transparent 65%),
-        linear-gradient(180deg, #060912 0%, #050812 60%, #040714 100%);
-      min-height: 100vh;
-    }
+.subtitle{
+color:#9aa3c7;
+margin-bottom:30px;
+}
 
-    #vt-status a { color: inherit; }
-    #vt-status * { box-sizing: border-box; }
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
 
-    /* Container aligned with virtauto theme */
-    #vt-status .vt-wrap {
-      width: min(1120px, calc(100% - 36px));
-      margin: 0 auto;
-      padding: 28px 0 56px;
-    }
+@media(max-width:800px){
+.grid{grid-template-columns:1fr;}
+}
 
-    #vt-status .vt-hero { padding: 18px 0 10px; }
+.card{
+background:#0c1224;
+border:1px solid #1a2346;
+border-radius:14px;
+padding:20px;
+}
 
-    #vt-status .vt-titleRow {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+.card h2{
+font-size:13px;
+letter-spacing:.12em;
+text-transform:uppercase;
+color:#8f99c2;
+margin-top:0;
+}
 
-    #vt-status .vt-title {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      line-height: 1.2;
-      margin: 0;
-    }
+.value{
+font-size:20px;
+font-weight:700;
+margin:4px 0;
+}
 
-    #vt-status .vt-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--vt-stroke);
-      color: var(--vt-muted);
-      font-size: 12px;
-      line-height: 1;
-      user-select: none;
-      backdrop-filter: blur(10px);
-    }
+.label{
+color:#9aa3c7;
+font-size:12px;
+}
 
-    #vt-status .vt-pill strong { color: var(--vt-text); font-weight: 600; }
-    #vt-status .vt-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--vt-green);
-      box-shadow: 0 0 0 3px rgba(32, 212, 147, 0.12);
-    }
+.status-ok{color:#20d493;}
+.status-warn{color:#ffb547;}
+.status-bad{color:#ff5c7c;}
 
-    #vt-status .vt-sub {
-      margin: 10px 0 0;
-      color: var(--vt-muted);
-      font-size: 13px;
-      line-height: 1.45;
-      max-width: 78ch;
-    }
+.footer{
+margin-top:40px;
+font-size:12px;
+color:#8088b0;
+text-align:center;
+}
 
-    #vt-status .vt-badges {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
+.error{
+background:#2b0c0c;
+border:1px solid #5c2222;
+padding:20px;
+border-radius:12px;
+}
 
-    #vt-status .vt-grid {
-      display: grid;
-      grid-template-columns: 1.6fr 1fr;
-      gap: 18px;
-      margin-top: 18px;
-      align-items: start;
-    }
-
-    @media (max-width: 980px) { #vt-status .vt-grid { grid-template-columns: 1fr; } }
-
-    #vt-status .vt-card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-      border: 1px solid var(--vt-stroke);
-      border-radius: var(--vt-r-lg);
-      box-shadow: var(--vt-shadow2);
-      backdrop-filter: blur(14px);
-      overflow: hidden;
-    }
-
-    #vt-status .vt-cardHeader {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(170, 190, 255, 0.10);
-      background: rgba(0,0,0,0.10);
-    }
-
-    #vt-status .vt-cardTitle {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: rgba(242, 245, 255, 0.68);
-      margin: 0;
-    }
-
-    #vt-status .vt-cardBody { padding: 14px 16px 16px; }
-
-    #vt-status .vt-kpiGrid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    @media (max-width: 520px) { #vt-status .vt-kpiGrid { grid-template-columns: 1fr; } }
-
-    #vt-status .vt-kpi {
-      border: 1px solid rgba(170, 190, 255, 0.10);
-      background: rgba(255,255,255,0.02);
-      border-radius: var(--vt-r-md);
-      padding: 12px 12px 10px;
-      min-height: 78px;
-    }
-
-    #vt-status .vt-kpiLabel {
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(242, 245, 255, 0.55);
-      margin: 0 0 8px;
-    }
-
-    #vt-status .vt-kpiValue {
-      font-size: 20px;
-      font-weight: 800;
-      margin: 0 0 6px;
-      line-height: 1.05;
-      letter-spacing: 0.2px;
-    }
-
-    #vt-status .vt-kpiHint {
-      font-size: 12px;
-      color: rgba(242, 245, 255, 0.55);
-      margin: 0;
-      line-height: 1.25;
-    }
-
-    #vt-status .vt-statusTag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(170, 190, 255, 0.16);
-      background: rgba(0,0,0,0.18);
-      color: rgba(242, 245, 255, 0.75);
-      font-size: 12px;
-      line-height: 1;
-      white-space: nowrap;
-    }
-
-    #vt-status .vt-statusTag .vt-dot { width: 7px; height: 7px; box-shadow: none; }
-    #vt-status .vt-tagGreen .vt-dot { background: var(--vt-green); }
-    #vt-status .vt-tagAmber .vt-dot { background: var(--vt-amber); }
-    #vt-status .vt-tagRed .vt-dot { background: var(--vt-red); }
-
-    /* Agents list */
-    #vt-status .vt-agents {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    @media (max-width: 720px) { #vt-status .vt-agents { grid-template-columns: 1fr; } }
-
-    #vt-status .vt-agent {
-      border: 1px solid rgba(170, 190, 255, 0.10);
-      background: rgba(255,255,255,0.02);
-      border-radius: var(--vt-r-md);
-      padding: 12px 12px 12px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px 10px;
-    }
-
-    #vt-status .vt-agentName {
-      font-size: 14px;
-      font-weight: 750;
-      margin: 0;
-      line-height: 1.15;
-      letter-spacing: 0.2px;
-    }
-
-    #vt-status .vt-agentMeta {
-      margin: 5px 0 0;
-      color: rgba(242, 245, 255, 0.58);
-      font-size: 12px;
-      line-height: 1.35;
-    }
-
-    #vt-status .vt-agentPills {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-    }
-
-    #vt-status .vt-miniPill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(170, 190, 255, 0.12);
-      color: rgba(242, 245, 255, 0.68);
-      font-size: 11px;
-      line-height: 1;
-      white-space: nowrap;
-    }
-    #vt-status .vt-miniPill strong { color: rgba(242, 245, 255, 0.92); font-weight: 700; }
-
-    #vt-status .vt-miniPill.vt-ok { border-color: rgba(32, 212, 147, 0.24); }
-    #vt-status .vt-miniPill.vt-warn { border-color: rgba(255, 181, 71, 0.26); }
-    #vt-status .vt-miniPill.vt-bad { border-color: rgba(255, 92, 124, 0.26); }
-
-    /* Sections */
-    #vt-status .vt-section { margin-top: 14px; display: grid; gap: 12px; }
-
-    #vt-status .vt-list {
-      margin: 0;
-      padding: 0 0 0 16px;
-      color: rgba(242, 245, 255, 0.66);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    #vt-status .vt-list li { margin: 6px 0; }
-
-    /* Evidence panel */
-    #vt-status .vt-evidenceGrid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 10px;
-    }
-    @media (max-width: 720px) { #vt-status .vt-evidenceGrid { grid-template-columns: 1fr; } }
-
-    #vt-status .vt-evidenceBox {
-      border: 1px solid rgba(170, 190, 255, 0.10);
-      background: rgba(255,255,255,0.02);
-      border-radius: var(--vt-r-md);
-      padding: 12px;
-    }
-
-    #vt-status .vt-evidenceLabel {
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(242, 245, 255, 0.55);
-      margin: 0 0 7px;
-    }
-
-    #vt-status .vt-evidenceValue {
-      font-size: 14px;
-      font-weight: 700;
-      margin: 0;
-      color: rgba(242, 245, 255, 0.88);
-      letter-spacing: 0.2px;
-      overflow-wrap: anywhere;
-    }
-
-    #vt-status .vt-feed {
-      margin-top: 10px;
-      border-top: 1px solid rgba(170, 190, 255, 0.10);
-      padding-top: 10px;
-      display: grid;
-      gap: 8px;
-    }
-
-    #vt-status .vt-feedItem {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 10px 10px;
-      border: 1px solid rgba(170, 190, 255, 0.10);
-      background: rgba(255,255,255,0.02);
-      border-radius: var(--vt-r-md);
-    }
-
-    #vt-status .vt-feedLeft { display: grid; gap: 2px; min-width: 0; }
-
-    #vt-status .vt-feedTitle {
-      font-size: 12px;
-      font-weight: 700;
-      color: rgba(242, 245, 255, 0.84);
-      margin: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    #vt-status .vt-feedMeta {
-      font-size: 11px;
-      color: rgba(242, 245, 255, 0.55);
-      margin: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Footer */
-    #vt-status .vt-footer {
-      padding-top: 18px;
-      text-align: center;
-      color: rgba(242, 245, 255, 0.45);
-      font-size: 12px;
-    }
-    #vt-status .vt-footer strong { color: rgba(242, 245, 255, 0.78); font-weight: 700; }
-
-    /* Error / truth lock */
-    #vt-status .vt-emptyState {
-      margin-top: 18px;
-      border-radius: var(--vt-r-lg);
-      border: 1px dashed rgba(170, 190, 255, 0.20);
-      background: rgba(0,0,0,0.18);
-      padding: 16px;
-      color: rgba(242, 245, 255, 0.70);
-    }
-
-    #vt-status .vt-emptyTitle {
-      margin: 0 0 6px;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    #vt-status .vt-emptyText {
-      margin: 0;
-      color: rgba(242, 245, 255, 0.58);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    /* Keep header injection compatible with virtauto scripts */
-    #vt-status .vt-hide { display: none !important; }
-  </style>
+</style>
 </head>
 
 <body>
-  <!-- Header/Nav injection target -->
-  <div id="site-header"></div>
-
-  <main id="vt-status">
-    <div class="vt-wrap">
-      <header class="vt-hero">
-        <div class="vt-titleRow">
-          <h1 class="vt-title">virtauto.OS — Live System Status</h1>
-          <span class="vt-pill"><span class="vt-dot"></span> <strong>TRUTH-LOCKED</strong></span>
-        </div>
-
-        <p class="vt-sub">
-          This dashboard renders exclusively from the Single Source of Truth. If the truth source is missing,
-          the UI refuses to display derived values.
-        </p>
-
-        <div class="vt-badges" id="vt-topBadges">
-          <span class="vt-pill"><span class="vt-dot"></span> Agentic Website — <strong>Live in Production</strong></span>
-          <span class="vt-pill">Truth Source: <strong id="vt-truthSourceLabel">system_status.json</strong></span>
-          <span class="vt-pill">Freshness: <strong id="vt-freshnessLabel">—</strong></span>
-          <span class="vt-pill">Vocab: <strong id="vt-vocabLabel">—</strong></span>
-        </div>
-
-        <div class="vt-emptyState vt-hide" id="vt-truthMissing">
-          <p class="vt-emptyTitle">Truth source missing / invalid</p>
-          <p class="vt-emptyText">
-            The page could not load or validate the Single Source of Truth. No simulated values are shown.
-            Verify that <code style="color:rgba(242,245,255,0.85)">/ops/reports/system_status.json</code> is available and schema-valid.
-          </p>
-          <p class="vt-emptyText" id="vt-truthMissingDetail" style="margin-top:10px;"></p>
-        </div>
-      </header>
-
-      <!-- IMPORTANT: dashboard is hidden until SSOT is loaded + validated -->
-      <section class="vt-grid vt-hide" id="vt-dashboard" aria-label="Status layout">
-        <!-- LEFT COLUMN -->
-        <div class="vt-left">
-          <section class="vt-card" aria-label="Core agents">
-            <div class="vt-cardHeader">
-              <p class="vt-cardTitle">Core Agents & Layers</p>
-              <span class="vt-statusTag vt-tagGreen" id="vt-systemTag"><span class="vt-dot"></span><span id="vt-systemTagText">—</span></span>
-            </div>
-            <div class="vt-cardBody">
-              <div class="vt-agents" id="vt-agentsGrid"></div>
-            </div>
-          </section>
-
-          <section class="vt-card" aria-label="Status agent evidence" style="margin-top: 16px;">
-            <div class="vt-cardHeader">
-              <p class="vt-cardTitle">Status Agent (Evidence)</p>
-              <span class="vt-statusTag vt-tagGreen" id="vt-evidenceTag"><span class="vt-dot"></span><span id="vt-evidenceTagText">—</span></span>
-            </div>
-            <div class="vt-cardBody">
-              <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                <span class="vt-pill" style="background:rgba(255,255,255,0.02);">
-                  Source: <strong id="vt-activitySource">./ops/agent_activity.jsonl</strong>
-                </span>
-              </div>
-
-              <div class="vt-evidenceGrid">
-                <div class="vt-evidenceBox">
-                  <p class="vt-evidenceLabel">Last run (UTC)</p>
-                  <p class="vt-evidenceValue" id="vt-lastRunUtc">—</p>
-                </div>
-                <div class="vt-evidenceBox">
-                  <p class="vt-evidenceLabel">Freshness</p>
-                  <p class="vt-evidenceValue" id="vt-activityFreshness">—</p>
-                </div>
-                <div class="vt-evidenceBox">
-                  <p class="vt-evidenceLabel">Last result</p>
-                  <p class="vt-evidenceValue" id="vt-lastResult">—</p>
-                </div>
-                <div class="vt-evidenceBox">
-                  <p class="vt-evidenceLabel">Total runs</p>
-                  <p class="vt-evidenceValue" id="vt-totalRuns">—</p>
-                </div>
-              </div>
-
-              <div class="vt-feed" id="vt-activityFeed"></div>
-            </div>
-          </section>
-        </div>
-
-        <!-- RIGHT COLUMN -->
-        <aside class="vt-right">
-          <section class="vt-card" aria-label="System KPIs">
-            <div class="vt-cardHeader">
-              <p class="vt-cardTitle">System KPIs</p>
-              <span class="vt-statusTag vt-tagGreen" id="vt-kpiTag"><span class="vt-dot"></span><span id="vt-kpiTagText">—</span></span>
-            </div>
-            <div class="vt-cardBody">
-              <div class="vt-kpiGrid">
-                <div class="vt-kpi">
-                  <p class="vt-kpiLabel">Agent Health</p>
-                  <p class="vt-kpiValue" id="vt-agentHealth">—</p>
-                  <p class="vt-kpiHint">Active agents / total agents (canonical, deduped)</p>
-                </div>
-
-                <div class="vt-kpi">
-                  <p class="vt-kpiLabel">Autonomy (Confirmed)</p>
-                  <p class="vt-kpiValue" id="vt-autonomyPercent">—</p>
-                  <p class="vt-kpiHint">Mode: <span id="vt-autonomyMode">—</span></p>
-                </div>
-
-                <div class="vt-kpi">
-                  <p class="vt-kpiLabel">Health Score</p>
-                  <p class="vt-kpiValue" id="vt-healthScore">—</p>
-                  <p class="vt-kpiHint">Signal: <span id="vt-healthSignal">—</span></p>
-                </div>
-
-                <div class="vt-kpi">
-                  <p class="vt-kpiLabel">Governance</p>
-                  <p class="vt-kpiValue" id="vt-governanceVerdict">—</p>
-                  <p class="vt-kpiHint">Gate + Audit trail</p>
-                </div>
-              </div>
-
-              <div class="vt-section">
-                <div class="vt-kpi" style="min-height:auto;">
-                  <p class="vt-kpiLabel">Truth lock</p>
-                  <p class="vt-kpiHint" style="margin-top:2px;">
-                    This page reads from <strong id="vt-truthPath">./ops/reports/system_status.json</strong><br/>
-                    Vocab from: <strong id="vt-vocabPath">./ops/schemas/system_status_vocab.json</strong><br/>
-                    Generated at: <strong id="vt-generatedAt">—</strong><br/>
-                    Environment: <strong id="vt-environment">—</strong>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="vt-card" aria-label="Governance explanation" style="margin-top: 16px;">
-            <div class="vt-cardHeader">
-              <p class="vt-cardTitle">Governance Explanation</p>
-              <span class="vt-statusTag vt-tagGreen" id="vt-governanceTag"><span class="vt-dot"></span><span id="vt-governanceTagText">—</span></span>
-            </div>
-            <div class="vt-cardBody">
-              <p style="margin:0 0 10px;color:rgba(242,245,255,0.72);font-size:12px;">
-                Why is the current state allowed?
-              </p>
-              <ul class="vt-list" id="vt-governanceReasons"></ul>
-              <p style="margin:10px 0 0;color:rgba(242,245,255,0.52);font-size:12px;">
-                Governance is active even when nothing breaks.
-              </p>
-            </div>
-          </section>
-
-          <section class="vt-card" aria-label="Self-healing capability" style="margin-top: 16px;">
-            <div class="vt-cardHeader">
-              <p class="vt-cardTitle">Self-Healing Capability</p>
-              <span class="vt-statusTag vt-tagAmber" id="vt-healTag"><span class="vt-dot" style="background:var(--vt-amber)"></span><span id="vt-healTagText">GOVERNED</span></span>
-            </div>
-            <div class="vt-cardBody">
-              <p style="margin:0 0 10px;color:rgba(242,245,255,0.72);font-size:12px;">
-                Governed by PRs — no silent execution.
-              </p>
-              <ul class="vt-list" id="vt-healList">
-                <li>Health degradation can be detected deterministically</li>
-                <li>Corrective actions are proposed via pull request (never executed silently)</li>
-                <li>All actions require governance approval and a decision trace</li>
-                <li>Production changes without review are explicitly disallowed</li>
-                <li>Controlled autonomy — no autopilot.</li>
-              </ul>
-            </div>
-          </section>
-
-          <section class="vt-card" aria-label="Pipelines and guards" style="margin-top: 16px;">
-            <div class="vt-cardHeader">
-              <p class="vt-cardTitle">Pipelines & Guards</p>
-              <span class="vt-statusTag vt-tagGreen"><span class="vt-dot"></span><span>TRUTH LOCKED</span></span>
-            </div>
-            <div class="vt-cardBody">
-              <div class="vt-section" id="vt-guards"></div>
-              <p style="margin:12px 0 0;color:rgba(242,245,255,0.40);font-size:12px;text-align:center;">
-                Status page generated by <strong>virtauto.OS</strong> — single source of truth.
-              </p>
-            </div>
-          </section>
-        </aside>
-      </section>
-
-      <footer class="vt-footer">
-        <span>© <strong>virtauto</strong> · Truth-locked status view</span>
-      </footer>
-    </div>
-  </main>
-
-  <!-- virtauto site scripts (header injection, menu, etc.) -->
-  <script src="../assets/site.js"></script>
-
-  <!-- Status logic (page-local, no global pollution) -->
-  <script>
-    (() => {
-      'use strict';
-
-      // =================
-      // Constants / paths
-      // =================
-      const SSOT_PATH  = '../ops/reports/system_status.json';          // relative from /status/
-      const VOCAB_PATH = '../ops/schemas/system_status_vocab.json';    // relative from /status/
-      const AGENT_ACTIVITY_PATH = '../ops/agent_activity.jsonl';       // relative from /status/
-
-      // Embedded fallback (keeps UI operational even if vocab file is temporarily unavailable)
-      const DEFAULT_VOCAB = {
-        "version": "1.0",
-        "system_state": ["ACTIVE","DEGRADED","BLOCKED","UNKNOWN"],
-        "agent_state": ["ACTIVE","PLANNED","INACTIVE","ERROR","UNKNOWN"],
-        "autonomy_mode": ["AUTONOMOUS","SUPERVISED","MANUAL","DISABLED","UNKNOWN"],
-        "health_signal": ["GREEN","YELLOW","RED","UNKNOWN"]
-      };
-
-      // ==========
-      // DOM helpers
-      // ==========
-      const $ = (sel, root=document) => root.querySelector(sel);
-      const el = (tag, attrs={}, children=[]) => {
-        const node = document.createElement(tag);
-        Object.entries(attrs).forEach(([k, v]) => {
-          if (k === 'class') node.className = v;
-          else if (k === 'text') node.textContent = v;
-          else if (k === 'html') node.innerHTML = v;
-          else node.setAttribute(k, v);
-        });
-        (Array.isArray(children) ? children : [children]).filter(Boolean).forEach(c => node.appendChild(c));
-        return node;
-      };
-
-      // =====================
-      // Formatting / utilities
-      // =====================
-      const toISO = (v) => {
-        try {
-          const d = new Date(v);
-          if (isNaN(d.getTime())) return null;
-          return d.toISOString();
-        } catch { return null; }
-      };
-
-      const safeNum = (v) => (typeof v === 'number' && isFinite(v)) ? v : null;
-
-      const secondsBetween = (aIso, bDate) => {
-        try {
-          const a = new Date(aIso).getTime();
-          const b = bDate.getTime();
-          if (!isFinite(a) || !isFinite(b)) return null;
-          return Math.floor((b - a) / 1000);
-        } catch { return null; }
-      };
-
-      const formatAge = (sec) => {
-        if (sec === null || sec < 0) return '—';
-        if (sec < 60) return `${sec}s ago`;
-        const min = Math.floor(sec / 60);
-        if (min < 60) return `${min} min ago`;
-        const hr = Math.floor(min / 60);
-        if (hr < 48) return `${hr} h ago`;
-        const d = Math.floor(hr / 24);
-        return `${d} d ago`;
-      };
-
-      // Visual tag mapping (UI only)
-      const tagClassFor = (signal) => {
-        const s = String(signal || '').toUpperCase();
-        if (s.includes('GREEN') || s === 'OK' || s === 'ALLOW' || s === 'PASS' || s === 'ACTIVE') return 'vt-tagGreen';
-        if (s.includes('AMBER') || s.includes('YELLOW') || s === 'WARN' || s === 'STALE' || s === 'PLANNED') return 'vt-tagAmber';
-        if (s.includes('RED') || s === 'FAIL' || s === 'BLOCK' || s === 'ERROR' || s === 'INACTIVE') return 'vt-tagRed';
-        return 'vt-tagAmber';
-      };
-
-      // Pills for results-like statuses (OK/WARN/FAIL etc.)
-      const pillClassForStatus = (status) => {
-        const s = String(status || '').toUpperCase();
-        if (['OK', 'PASS', 'ALLOW', 'ACTIVE', 'OPERATIONAL', 'GREEN'].some(x => s.includes(x))) return 'vt-ok';
-        if (['WARN', 'STALE', 'PLANNED', 'UNKNOWN', 'EXPIRED', 'AMBER', 'YELLOW'].some(x => s.includes(x))) return 'vt-warn';
-        if (['FAIL', 'BLOCK', 'ERROR', 'INACTIVE', 'RED'].some(x => s.includes(x))) return 'vt-bad';
-        return 'vt-warn';
-      };
-
-      const textOrDash = (v) => (v === undefined || v === null || v === '') ? '—' : String(v);
-
-      const pick = (obj, path) => {
-        try {
-          return path.split('.').reduce((acc, k) => (acc && acc[k] !== undefined) ? acc[k] : undefined, obj);
-        } catch { return undefined; }
-      };
-
-      // =====================
-      // Header/Nav auto-inject
-      // =====================
-      async function injectHeader() {
-        const target = document.getElementById('site-header');
-        if (!target) return;
-
-        try {
-          if (window.virtauto && typeof window.virtauto.injectHeader === 'function') {
-            await window.virtauto.injectHeader(target);
-            return;
-          }
-        } catch {}
-
-        const candidates = [
-          '../partials/header.html',
-          '../templates/header.html',
-          '../partials/nav.html',
-          '../templates/nav.html'
-        ];
-
-        for (const url of candidates) {
-          try {
-            const res = await fetch(url, { cache: 'no-store' });
-            if (!res.ok) continue;
-            const html = await res.text();
-            if (html && html.trim().length > 10) {
-              target.innerHTML = html;
-              return;
-            }
-          } catch {}
-        }
-      }
-
-      // ==========================
-      // TRUTH-LOCK gating helpers
-      // ==========================
-      function showTruthMissing(detail) {
-        $('#vt-dashboard')?.classList.add('vt-hide');
-        $('#vt-truthMissing')?.classList.remove('vt-hide');
-        $('#vt-truthMissingDetail').textContent = detail ? String(detail) : '';
-      }
-
-      function showDashboard() {
-        $('#vt-truthMissing')?.classList.add('vt-hide');
-        $('#vt-dashboard')?.classList.remove('vt-hide');
-      }
-
-      // ==========================
-      // Vocab normalization helpers
-      // ==========================
-      function normalizeEnumValue(v) {
-        if (v === undefined || v === null) return null;
-        return String(v).trim().toUpperCase();
-      }
-
-      function ensureVocabShape(v) {
-        const errs = [];
-        const obj = (v && typeof v === 'object' && !Array.isArray(v)) ? v : null;
-        if (!obj) errs.push('Vocab is not an object.');
-
-        const keys = ['system_state','agent_state','autonomy_mode','health_signal'];
-        for (const k of keys) {
-          const arr = obj?.[k];
-          if (!Array.isArray(arr) || arr.some(x => typeof x !== 'string')) errs.push(`Vocab missing/invalid: ${k}`);
-        }
-        return { ok: errs.length === 0, errs };
-      }
-
-      function makeAllowSet(vocab, key) {
-        const arr = Array.isArray(vocab?.[key]) ? vocab[key] : [];
-        return new Set(arr.map(normalizeEnumValue).filter(Boolean));
-      }
-
-      // ==========================
-      // Governance-grade SSOT validation (UI)
-      // ==========================
-      function validateSsotAgainstVocab(ssot, vocab) {
-        const errs = [];
-
-        if (!ssot || typeof ssot !== 'object' || Array.isArray(ssot)) errs.push('SSOT is not an object.');
-        if (!pick(ssot, 'schema_version')) errs.push('Missing: schema_version');
-        if (!pick(ssot, 'generated_at')) errs.push('Missing: generated_at');
-        if (!pick(ssot, 'agents')) errs.push('Missing: agents');
-
-        // system state location is dual (top-level + nested)
-        const sysStateTop = normalizeEnumValue(pick(ssot, 'system_state') ?? pick(ssot, 'system.state'));
-        if (!sysStateTop) errs.push('Missing: system_state / system.state');
-
-        const vocabVerdict = ensureVocabShape(vocab);
-        if (!vocabVerdict.ok) {
-          // If vocab is malformed, we refuse derived rendering (truth lock stays strict).
-          errs.push('Vocab invalid: ' + vocabVerdict.errs.join(' | '));
-          return { ok: false, errs };
-        }
-
-        const allowSystem = makeAllowSet(vocab, 'system_state');
-        const allowAgent  = makeAllowSet(vocab, 'agent_state');
-        const allowAuto   = makeAllowSet(vocab, 'autonomy_mode');
-        const allowHealth = makeAllowSet(vocab, 'health_signal');
-
-        if (sysStateTop && !allowSystem.has(sysStateTop)) {
-          errs.push(`system_state "${sysStateTop}" not in allowed vocabulary: ${Array.from(allowSystem).join(', ')}`);
-        }
-
-        // health.signal (optional but if present must be in vocab)
-        const hs = normalizeEnumValue(pick(ssot, 'health.signal'));
-        if (hs && !allowHealth.has(hs)) {
-          errs.push(`health.signal "${hs}" not in allowed vocabulary: ${Array.from(allowHealth).join(', ')}`);
-        }
-
-        // agents structure can be object-map or array
-        const agentsRaw = pick(ssot, 'agents');
-        let agentEntries = [];
-        if (Array.isArray(agentsRaw)) {
-          agentEntries = agentsRaw.map((row, i) => ({ key: row?.agent || row?.key || row?.name || String(i), agent: row }));
-        } else if (agentsRaw && typeof agentsRaw === 'object') {
-          agentEntries = Object.entries(agentsRaw).map(([k, v]) => ({ key: k, agent: v }));
-        } else {
-          errs.push('agents invalid (must be object-map or array).');
-          return { ok: false, errs };
-        }
-
-        for (const entry of agentEntries) {
-          const a = (entry.agent && typeof entry.agent === 'object') ? entry.agent : {};
-          const st = normalizeEnumValue(a.state ?? a.status);
-          const am = normalizeEnumValue(a.autonomy_mode ?? a.mode);
-
-          // We require state to be present & allowed (governance-grade)
-          if (!st) {
-            errs.push(`agents["${entry.key}"].state missing`);
-          } else if (!allowAgent.has(st)) {
-            errs.push(`agents["${entry.key}"].state "${st}" not in allowed vocabulary: ${Array.from(allowAgent).join(', ')}`);
-          }
-
-          // autonomy_mode is optional, but if present must be allowed
-          if (am && !allowAuto.has(am)) {
-            errs.push(`agents["${entry.key}"].autonomy_mode "${am}" not in allowed vocabulary: ${Array.from(allowAuto).join(', ')}`);
-          }
-        }
-
-        return { ok: errs.length === 0, errs };
-      }
-
-      // ==========================
-      // Agents normalization + dedup
-      // ==========================
-      const canonicalKey = (k) => String(k || '')
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, '_')
-        .replace(/-+/g, '_')
-        .replace(/__+/g, '_')
-        .replace(/_agent$/g, '')
-        .replace(/\bagent\b/g, '')
-        .replace(/__+/g, '_')
-        .replace(/^_+|_+$/g, '');
-
-      const titleCaseKey = (k) => String(k || '')
-        .replace(/_/g, ' ')
-        .trim()
-        .replace(/\b\w/g, (m) => m.toUpperCase());
-
-      function normalizeAgents(agentsRaw) {
-        const items = [];
-
-        if (Array.isArray(agentsRaw)) {
-          for (const row of agentsRaw) {
-            const key = row?.agent || row?.key || row?.name || '';
-            if (!key) continue;
-            items.push({ key: String(key), agent: row });
-          }
-        } else if (agentsRaw && typeof agentsRaw === 'object') {
-          for (const [k, v] of Object.entries(agentsRaw)) {
-            items.push({ key: String(k), agent: v });
-          }
-        }
-
-        const map = new Map();
-
-        for (const it of items) {
-          const canon = canonicalKey(it.key);
-          if (!canon) continue;
-
-          const agent = (it.agent && typeof it.agent === 'object') ? it.agent : { value: it.agent };
-          const state = String(agent?.state || agent?.status || 'UNKNOWN').toUpperCase();
-
-          if (!map.has(canon)) {
-            map.set(canon, { key: it.key, canon, agent });
-            continue;
-          }
-
-          const prev = map.get(canon);
-          const prevA = prev.agent || {};
-          const prevState = String(prevA?.state || prevA?.status || 'UNKNOWN').toUpperCase();
-
-          const prevScore = Object.keys(prevA || {}).length;
-          const newScore = Object.keys(agent || {}).length;
-
-          const pickNew =
-            (prevState !== 'ACTIVE' && state === 'ACTIVE') ||
-            (prevState === state && newScore > prevScore);
-
-          if (pickNew) map.set(canon, { key: it.key, canon, agent });
-        }
-
-        const priority = [
-          'guardian','monitoring','content','george','consistency',
-          'deploy','status','site_audit','executor'
-        ];
-
-        const arr = Array.from(map.values());
-        arr.sort((a, b) => {
-          const ai = priority.indexOf(a.canon);
-          const bi = priority.indexOf(b.canon);
-          if (ai !== -1 || bi !== -1) return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-          return a.canon.localeCompare(b.canon);
-        });
-
-        return arr;
-      }
-
-      // ==========================
-      // Render: Agents / KPIs / etc
-      // ==========================
-      function renderAgents(ssot) {
-        const grid = $('#vt-agentsGrid');
-        if (!grid) return { activeCount: 0, totalCount: 0 };
-
-        grid.innerHTML = '';
-
-        const agentsRaw = pick(ssot, 'agents');
-        const normalized = normalizeAgents(agentsRaw);
-
-        if (!normalized.length) {
-          grid.appendChild(el('div', { class: 'vt-emptyState', html: '<p class="vt-emptyTitle">Agents not available</p><p class="vt-emptyText">No canonical agents found in the truth source.</p>' }));
-          return { activeCount: 0, totalCount: 0 };
-        }
-
-        let activeCount = 0;
-        const totalCount = normalized.length;
-
-        for (const entry of normalized) {
-          const agent = entry.agent || {};
-          const state = String(agent?.state || agent?.status || 'UNKNOWN').toUpperCase();
-          const role = textOrDash(agent?.role);
-          const mode = textOrDash(agent?.autonomy_mode || agent?.mode);
-
-          if (state === 'ACTIVE') activeCount++;
-
-          const displayName = titleCaseKey(entry.canon);
-
-          const card = el('div', { class: 'vt-agent' }, [
-            el('div', {}, [
-              el('p', { class: 'vt-agentName', text: displayName }),
-              el('p', { class: 'vt-agentMeta', html: `Role: <strong style="color:rgba(242,245,255,0.86)">${role}</strong> · Mode: <strong style="color:rgba(242,245,255,0.86)">${mode}</strong> · Key: <strong style="color:rgba(242,245,255,0.86)">${entry.canon}</strong>` }),
-              agent?.summary ? el('p', { class: 'vt-agentMeta', text: agent.summary }) : null
-            ]),
-            el('div', { class: 'vt-agentPills' }, [
-              el('span', { class: `vt-miniPill ${pillClassForStatus(state)}` , html: `<strong>${state}</strong>` }),
-              (agent?.autonomy_mode || agent?.mode) ? el('span', { class: `vt-miniPill ${pillClassForStatus(mode)}` , html: `<strong>${String(mode).toUpperCase()}</strong>` }) : null
-            ])
-          ]);
-
-          grid.appendChild(card);
-        }
-
-        return { activeCount, totalCount };
-      }
-
-      function renderKPIs(ssot, agentCounts) {
-        const active = agentCounts.activeCount;
-        const total = agentCounts.totalCount;
-        $('#vt-agentHealth').textContent = (total > 0) ? `${active} / ${total}` : '—';
-
-        const autonomyPercent = safeNum(pick(ssot, 'autonomy_score.percent'));
-        $('#vt-autonomyPercent').textContent = autonomyPercent !== null ? `${autonomyPercent.toFixed(1)}%` : '—';
-        $('#vt-autonomyMode').textContent = textOrDash(
-          pick(ssot, 'system.autonomy_mode') ??
-          pick(ssot, 'system.autonomyMode') ??
-          pick(ssot, 'system.autonomy') ??
-          pick(ssot, 'autonomy_model.system_level') ??
-          pick(ssot, 'autonomy')
-        );
-
-        const healthScore = safeNum(pick(ssot, 'health.overall_score')) ?? safeNum(pick(ssot, 'health.score'));
-        const healthSignal = textOrDash(pick(ssot, 'health.signal'));
-        $('#vt-healthScore').textContent = healthScore !== null ? `${(healthScore * 100).toFixed(1)}%` : '—';
-        $('#vt-healthSignal').textContent = healthSignal;
-
-        const gate = (pick(ssot, 'governance.gate_verdict') ?? pick(ssot, 'governance.gate') ?? pick(ssot, 'governance.verdict') ?? pick(ssot, 'autonomy_score.inputs.gate_verdict'));
-        const audit = (pick(ssot, 'governance.audit_trail') ?? pick(ssot, 'governance.auditTrail'));
-        const govLabel =
-          (String(gate || '').toUpperCase() === 'ALLOW' || String(gate || '').toUpperCase() === 'PASS')
-            ? 'ENFORCED'
-            : textOrDash(gate);
-        $('#vt-governanceVerdict').textContent = govLabel;
-
-        const overallSignal = String(healthSignal || '').toUpperCase();
-        const kpiTag = $('#vt-kpiTag');
-        kpiTag.classList.remove('vt-tagGreen','vt-tagAmber','vt-tagRed');
-        kpiTag.classList.add(tagClassFor(overallSignal));
-        $('#vt-kpiTagText').textContent = overallSignal || '—';
-
-        const sysState = String(pick(ssot, 'system.state') ?? pick(ssot, 'system_state') ?? 'UNKNOWN').toUpperCase();
-        const sysMode = String(pick(ssot, 'system.mode') ?? '—');
-        const sysTag = $('#vt-systemTag');
-        sysTag.classList.remove('vt-tagGreen','vt-tagAmber','vt-tagRed');
-        sysTag.classList.add(tagClassFor(sysState));
-        $('#vt-systemTagText').textContent = `${sysState} · ${sysMode}`;
-
-        $('#vt-generatedAt').textContent = textOrDash(pick(ssot, 'generated_at'));
-        $('#vt-environment').textContent = textOrDash(pick(ssot, 'environment'));
-
-        const genIso = toISO(pick(ssot, 'generated_at'));
-        const ageSec = genIso ? secondsBetween(genIso, new Date()) : null;
-        const ageLabel = formatAge(ageSec);
-        $('#vt-freshnessLabel').textContent = ageLabel;
-
-        $('#vt-truthSourceLabel').textContent = 'system_status.json';
-        $('#vt-truthPath').textContent = './ops/reports/system_status.json';
-        $('#vt-vocabPath').textContent = './ops/schemas/system_status_vocab.json';
-
-        const reasons = $('#vt-governanceReasons');
-        reasons.innerHTML = '';
-        const list = [];
-
-        if (overallSignal) list.push(`Health signal is <strong>${overallSignal}</strong>`);
-        if (healthScore !== null) list.push(`Health score is <strong>${healthScore}</strong>`);
-        if (gate) list.push(`Governance gate verdict is <strong>${String(gate).toUpperCase()}</strong>`);
-        if (audit) list.push(`Audit trail is <strong>${String(audit).toUpperCase()}</strong>`);
-        if (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace')) list.push(`Decision trace is linked (audit trail available)`);
-        if (pick(ssot,'links.gate_result') || pick(ssot,'links.gateResult') || pick(ssot,'links.gate_result')) list.push(`Gate result artifact is linked`);
-
-        if (list.length === 0) reasons.appendChild(el('li', { html: '—' }));
-        else list.forEach(item => reasons.appendChild(el('li', { html: item })));
-
-        const govTag = $('#vt-governanceTag');
-        govTag.classList.remove('vt-tagGreen','vt-tagAmber','vt-tagRed');
-        govTag.classList.add(tagClassFor(String(gate || 'ALLOW').toUpperCase()));
-        $('#vt-governanceTagText').textContent = gate ? String(gate).toUpperCase() : 'ALLOW';
-
-        const guards = $('#vt-guards');
-        guards.innerHTML = '';
-        const guardItems = [
-          { label: 'Freshness', value: ageLabel, status: (ageSec !== null && ageSec < 3600) ? 'FRESH' : 'STALE' },
-          { label: 'Runtime gate', value: (gate ? String(gate).toUpperCase() : '—'), status: gate ? String(gate).toUpperCase() : '—' },
-          { label: 'Audit trail', value: audit ? 'Available' : '—', status: audit ? 'OK' : 'UNKNOWN' },
-          { label: 'Decision trace', value: (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace')) ? 'LINKED' : '—', status: (pick(ssot,'links.decision_trace') || pick(ssot,'links.decisionTrace') || pick(ssot,'links.decision_trace')) ? 'LINKED' : '—' },
-          { label: 'Status agent', value: (ageSec !== null ? `STALE · ${ageLabel}` : '—'), status: (ageSec !== null && ageSec < 3600) ? 'FRESH' : 'STALE' },
-        ];
-
-        guardItems.forEach(g => {
-          const row = el('div', { class: 'vt-feedItem' }, [
-            el('div', { class: 'vt-feedLeft' }, [
-              el('p', { class: 'vt-feedTitle', text: g.label }),
-              el('p', { class: 'vt-feedMeta', text: g.value })
-            ]),
-            el('span', { class: `vt-miniPill ${pillClassForStatus(g.status)}`, html: `<strong>${g.status}</strong>` })
-          ]);
-          guards.appendChild(row);
-        });
-      }
-
-      // ==================
-      // Agent activity (UI)
-      // ==================
-      function parseJsonl(text, max=10) {
-        const lines = String(text || '').split('\n').map(l => l.trim()).filter(Boolean);
-        const out = [];
-        for (let i = lines.length - 1; i >= 0 && out.length < max; i--) {
-          try { out.push(JSON.parse(lines[i])); } catch {}
-        }
-        return out.reverse();
-      }
-
-      function renderActivity(jsonlText) {
-        $('#vt-activitySource').textContent = './ops/agent_activity.jsonl';
-
-        const events = parseJsonl(jsonlText, 8);
-
-        let lastTs = null;
-        let lastRes = null;
-        if (events.length) {
-          const last = events[events.length - 1];
-          lastTs = last.timestamp || last.ts || last.time || null;
-          lastRes = last.result || last.status || last.outcome || null;
-        }
-
-        let totalRuns = null;
-        try {
-          const m = String(jsonlText || '').match(/"total_runs"\s*:\s*(\d+)/);
-          if (m) totalRuns = parseInt(m[1], 10);
-        } catch {}
-
-        const lastIso = toISO(lastTs);
-        $('#vt-lastRunUtc').textContent = lastIso ? lastIso.replace('.000Z','Z') : '—';
-
-        const ageSec = lastIso ? secondsBetween(lastIso, new Date()) : null;
-        const ageLabel = formatAge(ageSec);
-        $('#vt-activityFreshness').textContent = ageLabel;
-
-        $('#vt-lastResult').textContent = textOrDash(lastRes).toUpperCase();
-        $('#vt-totalRuns').textContent = (typeof totalRuns === 'number' && isFinite(totalRuns)) ? String(totalRuns) : '—';
-
-        const eTag = $('#vt-evidenceTag');
-        eTag.classList.remove('vt-tagGreen','vt-tagAmber','vt-tagRed');
-        eTag.classList.add(tagClassFor(ageSec !== null && ageSec < 3600 ? 'GREEN' : 'AMBER'));
-        $('#vt-evidenceTagText').textContent = (ageSec !== null && ageSec < 3600) ? 'OPERATIONAL' : 'STALE';
-
-        const feed = $('#vt-activityFeed');
-        feed.innerHTML = '';
-
-        if (!events.length) {
-          feed.appendChild(el('div', { class: 'vt-emptyState', html: '<p class="vt-emptyTitle">No events</p><p class="vt-emptyText">No readable events found in agent_activity.jsonl.</p>' }));
-          return;
-        }
-
-        events.slice(-6).forEach(evt => {
-          const t = toISO(evt.timestamp || evt.ts || evt.time) || '—';
-          const title = String(evt.event || evt.action || evt.type || 'operation');
-          const result = String(evt.result || evt.status || evt.outcome || 'UNKNOWN').toUpperCase();
-          const agent = String(evt.agent || evt.agent_key || evt.key || 'status_agent');
-
-          const left = el('div', { class: 'vt-feedLeft' }, [
-            el('p', { class: 'vt-feedTitle', text: `${result} — ${title}` }),
-            el('p', { class: 'vt-feedMeta', text: `${t}  ·  ${agent}` })
-          ]);
-
-          const pill = el('span', { class: `vt-miniPill ${pillClassForStatus(result)}`, html: `<strong>${result}</strong>` });
-
-          feed.appendChild(el('div', { class: 'vt-feedItem' }, [left, pill]));
-        });
-      }
-
-      // ==========
-      // Main loader
-      // ==========
-      function withCacheBust(url) {
-        const u = new URL(url, window.location.href);
-        u.searchParams.set('cb', String(Date.now()));
-        return u.toString();
-      }
-
-      async function loadJson(url, label) {
-        const res = await fetch(withCacheBust(url), { cache: 'no-store', headers: { 'Accept': 'application/json' } });
-        if (!res.ok) throw new Error(`${label} fetch failed: ${res.status}`);
-        return await res.json();
-      }
-
-      async function load() {
-        await injectHeader();
-
-        // Hard truth-lock default: dashboard hidden until SSOT validates.
-        $('#vt-dashboard')?.classList.add('vt-hide');
-
-        // Load vocab (strict if present, but has embedded fallback)
-        let vocab = DEFAULT_VOCAB;
-        try {
-          const v = await loadJson(VOCAB_PATH, 'Vocab');
-          const vv = ensureVocabShape(v);
-          if (vv.ok) {
-            vocab = v;
-            $('#vt-vocabLabel').textContent = `loaded v${textOrDash(v.version)}`;
-          } else {
-            $('#vt-vocabLabel').textContent = 'fallback (invalid vocab)';
-          }
-        } catch {
-          $('#vt-vocabLabel').textContent = 'fallback (unavailable)';
-        }
-
-        // Load SSOT
-        let ssot = null;
-        try {
-          ssot = await loadJson(SSOT_PATH, 'SSOT');
-        } catch (e) {
-          showTruthMissing(e && e.message ? e.message : 'SSOT fetch error');
-          return;
-        }
-
-        // Validate SSOT against vocab (Stage 3)
-        const verdict = validateSsotAgainstVocab(ssot, vocab);
-        if (!verdict.ok) {
-          showTruthMissing('SSOT invalid (vocab-synced): ' + verdict.errs.join(' | '));
-          return;
-        }
-
-        // From here: truth is present + governance-grade vocab-valid => allow rendering
-        showDashboard();
-
-        // Agents first, KPIs derived from canonical agent set
-        const counts = renderAgents(ssot);
-        renderKPIs(ssot, counts);
-
-        // Evidence is NOT SSOT; it may be missing independently.
-        try {
-          const res = await fetch(withCacheBust(AGENT_ACTIVITY_PATH), { cache: 'no-store' });
-          if (!res.ok) throw new Error('activity fetch failed: ' + res.status);
-          const text = await res.text();
-          renderActivity(text);
-        } catch {
-          $('#vt-lastRunUtc').textContent = '—';
-          $('#vt-activityFreshness').textContent = '—';
-          $('#vt-lastResult').textContent = '—';
-          $('#vt-totalRuns').textContent = '—';
-          const feed = $('#vt-activityFeed');
-          feed.innerHTML = '';
-          feed.appendChild(el('div', { class: 'vt-emptyState', html: '<p class="vt-emptyTitle">Evidence unavailable</p><p class="vt-emptyText">Could not load <code style="color:rgba(242,245,255,0.85)">/ops/agent_activity.jsonl</code>.</p>' }));
-        }
-      }
-
-      load();
-    })();
-  </script>
+
+<div class="container">
+
+<h1>virtauto.OS — Governance Status</h1>
+<p class="subtitle">Decision Layer Proof-of-Concept — rendered from repository governance artifacts</p>
+
+<div id="error" class="error" style="display:none">
+Governance artifacts missing or invalid.
+</div>
+
+<div id="dashboard" class="grid" style="display:none">
+
+<div class="card">
+<h2>System</h2>
+
+<div class="label">Health</div>
+<div id="systemHealth" class="value">—</div>
+
+<div class="label">Agents running</div>
+<div id="agentsRunning" class="value">—</div>
+
+<div class="label">Last update</div>
+<div id="systemUpdated" class="value">—</div>
+
+</div>
+
+<div class="card">
+<h2>Decision</h2>
+
+<div class="label">Decision ID</div>
+<div id="decisionId" class="value">—</div>
+
+<div class="label">Action</div>
+<div id="decisionAction" class="value">—</div>
+
+<div class="label">Result</div>
+<div id="decisionResult" class="value">—</div>
+
+<div class="label">Timestamp</div>
+<div id="decisionTimestamp" class="value">—</div>
+
+</div>
+
+<div class="card">
+<h2>Validation</h2>
+
+<div class="label">Validation ID</div>
+<div id="validationId" class="value">—</div>
+
+<div class="label">Decision ID</div>
+<div id="validationDecision" class="value">—</div>
+
+<div class="label">Result</div>
+<div id="validationResult" class="value">—</div>
+
+<div class="label">Timestamp</div>
+<div id="validationTimestamp" class="value">—</div>
+
+</div>
+
+<div class="card">
+<h2>Audit</h2>
+
+<div class="label">Audit ID</div>
+<div id="auditId" class="value">—</div>
+
+<div class="label">System status</div>
+<div id="auditStatus" class="value">—</div>
+
+<div class="label">Timestamp</div>
+<div id="auditTimestamp" class="value">—</div>
+
+</div>
+
+</div>
+
+<div class="footer">
+virtauto — Decision Governance Layer Proof of Concept
+</div>
+
+</div>
+
+<script>
+
+async function loadJson(path){
+
+const r = await fetch(path+"?t="+Date.now());
+
+if(!r.ok) throw new Error(path+" not found");
+
+return await r.json();
+
+}
+
+async function init(){
+
+try{
+
+const health = await loadJson("./system_health.json");
+const summary = await loadJson("./dashboard_summary.json");
+const decision = await loadJson("./latest_decision.json");
+const audit = await loadJson("../audit/self_audit_report.json");
+
+let validation = null;
+
+try{
+validation = await loadJson("../governance/validation/GUARDIAN-example.json");
+}catch{}
+
+document.getElementById("dashboard").style.display="grid";
+
+document.getElementById("systemHealth").textContent = health.health || "unknown";
+document.getElementById("agentsRunning").textContent = health.agents_running || "—";
+document.getElementById("systemUpdated").textContent = health.last_update || "—";
+
+document.getElementById("decisionId").textContent = decision.decision_id || "—";
+document.getElementById("decisionAction").textContent = decision.action || "—";
+document.getElementById("decisionResult").textContent = decision.result || "—";
+document.getElementById("decisionTimestamp").textContent = decision.timestamp || "—";
+
+if(validation){
+
+document.getElementById("validationId").textContent = validation.validation_id || "—";
+document.getElementById("validationDecision").textContent = validation.decision_id || "—";
+document.getElementById("validationResult").textContent = validation.result || "—";
+document.getElementById("validationTimestamp").textContent = validation.timestamp || "—";
+
+}
+
+document.getElementById("auditId").textContent = audit.audit_id || "—";
+document.getElementById("auditStatus").textContent = audit.system_status || "—";
+document.getElementById("auditTimestamp").textContent = audit.timestamp || "—";
+
+}catch(e){
+
+document.getElementById("error").style.display="block";
+
+}
+
+}
+
+init();
+
+</script>
+
 </body>
 </html>
