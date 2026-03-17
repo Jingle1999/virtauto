@@ -16,12 +16,15 @@ concurrency:
 
 jobs:
   self_audit:
+    name: self_audit
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Generate self audit report
         shell: bash
@@ -32,37 +35,75 @@ jobs:
           import os
           from datetime import datetime, timezone
 
-          ts = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-          audit_id = "AUDIT-" + datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M%S")
-
-          checks = []
-
-          if os.path.exists("status/system_health.json"):
-            checks.append("status_files_present")
-          if os.path.exists("governance/decision_traces/GEORGE-example.json"):
-            checks.append("decision_trace_present")
-          if os.path.exists("governance/validation/GUARDIAN-example.json"):
-            checks.append("validation_present")
-
-          report = {
-            "audit_id": audit_id,
-            "system_status": "OK" if len(checks) == 3 else "PARTIAL",
-            "checks": checks,
-            "timestamp": ts
-          }
+          now = datetime.now(timezone.utc).replace(microsecond=0)
+          ts = now.isoformat().replace("+00:00", "Z")
+          audit_id = "AUDIT-" + now.strftime("%Y-%m-%d-%H%M%S")
 
           os.makedirs("audit", exist_ok=True)
 
+          checks = []
+          missing = []
+
+          if os.path.exists("status/system_health.json"):
+              checks.append("status_files_present")
+          else:
+              missing.append("status/system_health.json")
+
+          if os.path.exists("status/latest_decision.json"):
+              checks.append("latest_decision_present")
+          else:
+              missing.append("status/latest_decision.json")
+
+          if os.path.exists("governance/decision_traces/GEORGE-example.json"):
+              checks.append("decision_trace_present")
+          else:
+              missing.append("governance/decision_traces/GEORGE-example.json")
+
+          if os.path.exists("governance/validation/GUARDIAN-example.json"):
+              checks.append("validation_present")
+          else:
+              missing.append("governance/validation/GUARDIAN-example.json")
+
+          if os.path.exists("status/dashboard_summary.json"):
+              checks.append("dashboard_summary_present")
+          else:
+              missing.append("status/dashboard_summary.json")
+
+          total_expected = 5
+          passed = len(checks)
+
+          if passed == total_expected:
+              system_status = "OK"
+          elif passed >= 3:
+              system_status = "PARTIAL"
+          else:
+              system_status = "DEGRADED"
+
+          report = {
+              "audit_id": audit_id,
+              "agent": "SELF_AUDIT",
+              "audit_scope": "phase1_governance_poc",
+              "system_status": system_status,
+              "checks_passed": passed,
+              "checks_expected": total_expected,
+              "checks": checks,
+              "missing": missing,
+              "timestamp": ts
+          }
+
           with open("audit/self_audit_report.json", "w", encoding="utf-8") as f:
-            json.dump(report, f, indent=2)
+              json.dump(report, f, indent=2, ensure_ascii=False)
+              f.write("\n")
           PY
 
       - name: Commit updated artifacts
         shell: bash
         run: |
           set -euo pipefail
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add audit/self_audit_report.json
 
           if git diff --cached --quiet; then
