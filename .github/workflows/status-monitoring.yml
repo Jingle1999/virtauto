@@ -14,12 +14,15 @@ concurrency:
 
 jobs:
   status_monitoring:
+    name: status_monitoring
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Generate status artifacts
         shell: bash
@@ -30,49 +33,82 @@ jobs:
           import os
           from datetime import datetime, timezone
 
-          ts = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+          now = datetime.now(timezone.utc).replace(microsecond=0)
+          ts = now.isoformat().replace("+00:00", "Z")
 
           os.makedirs("status", exist_ok=True)
 
           latest_decision_id = "GEORGE-unknown"
-          if os.path.exists("status/latest_decision.json"):
-            with open("status/latest_decision.json", "r", encoding="utf-8") as f:
-              latest = json.load(f)
-            latest_decision_id = latest.get("decision_id", latest_decision_id)
+          latest_decision_result = "unknown"
+          latest_decision_action = "unknown"
 
           latest_validation_id = "GUARDIAN-unknown"
+          latest_validation_result = "unknown"
+
+          audit_status = "unknown"
+
+          if os.path.exists("status/latest_decision.json"):
+              with open("status/latest_decision.json", "r", encoding="utf-8") as f:
+                  latest = json.load(f)
+              latest_decision_id = latest.get("decision_id", latest_decision_id)
+              latest_decision_result = latest.get("result", latest_decision_result)
+              latest_decision_action = latest.get("action", latest_decision_action)
+
           if os.path.exists("governance/validation/GUARDIAN-example.json"):
-            with open("governance/validation/GUARDIAN-example.json", "r", encoding="utf-8") as f:
-              validation = json.load(f)
-            latest_validation_id = validation.get("validation_id", latest_validation_id)
+              with open("governance/validation/GUARDIAN-example.json", "r", encoding="utf-8") as f:
+                  validation = json.load(f)
+              latest_validation_id = validation.get("validation_id", latest_validation_id)
+              latest_validation_result = validation.get("result", latest_validation_result)
+
+          if os.path.exists("audit/self_audit_report.json"):
+              with open("audit/self_audit_report.json", "r", encoding="utf-8") as f:
+                  audit = json.load(f)
+              audit_status = audit.get("system_status", audit.get("audit_status", audit_status))
+
+          # Phase-1 POC: simple deterministic aggregation
+          health = "GREEN"
+          if str(latest_validation_result).lower() not in {"approved", "ok", "passed"}:
+              health = "AMBER"
 
           system_health = {
-            "system": "virtauto",
-            "health": "GREEN",
-            "agents_running": 4,
-            "last_update": ts
+              "system": "virtauto",
+              "health": health,
+              "agents_running": 4,
+              "last_update": ts
           }
 
           dashboard_summary = {
-            "system_health": "GREEN",
-            "latest_decision": latest_decision_id,
-            "latest_validation": latest_validation_id,
-            "audit_status": "OK"
+              "system_status": health,
+              "latest_decision": {
+                  "decision_id": latest_decision_id,
+                  "action": latest_decision_action,
+                  "result": latest_decision_result
+              },
+              "latest_validation": {
+                  "validation_id": latest_validation_id,
+                  "result": latest_validation_result
+              },
+              "audit_status": audit_status,
+              "last_update": ts
           }
 
           with open("status/system_health.json", "w", encoding="utf-8") as f:
-            json.dump(system_health, f, indent=2)
+              json.dump(system_health, f, indent=2, ensure_ascii=False)
+              f.write("\n")
 
           with open("status/dashboard_summary.json", "w", encoding="utf-8") as f:
-            json.dump(dashboard_summary, f, indent=2)
+              json.dump(dashboard_summary, f, indent=2, ensure_ascii=False)
+              f.write("\n")
           PY
 
       - name: Commit updated artifacts
         shell: bash
         run: |
           set -euo pipefail
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add status/system_health.json status/dashboard_summary.json
 
           if git diff --cached --quiet; then
