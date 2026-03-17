@@ -12,12 +12,15 @@ concurrency:
 
 jobs:
   george_orchestrator:
+    name: george_orchestrator
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Generate decision artifacts
         shell: bash
@@ -28,8 +31,9 @@ jobs:
           import os
           from datetime import datetime, timezone
 
-          ts = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-          decision_id = "GEORGE-" + datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M%S")
+          now = datetime.now(timezone.utc).replace(microsecond=0)
+          ts = now.isoformat().replace("+00:00", "Z")
+          decision_id = "GEORGE-" + now.strftime("%Y-%m-%d-%H%M%S")
 
           os.makedirs("status", exist_ok=True)
           os.makedirs("governance/decision_traces", exist_ok=True)
@@ -38,31 +42,43 @@ jobs:
             "decision_id": decision_id,
             "agent": "GEORGE",
             "action": "status_update",
+            "context": "phase1_governance_poc",
             "result": "accepted",
             "timestamp": ts
           }
 
           decision_trace = {
+            "trace_id": f"TRACE-{decision_id}",
             "decision_id": decision_id,
             "agent": "GEORGE",
             "decision_type": "status_update",
+            "context": "phase1_governance_poc",
+            "inputs": {
+              "source": "workflow_dispatch",
+              "repository": "virtauto"
+            },
             "status": "executed",
+            "result": "accepted",
             "timestamp": ts
           }
 
           with open("status/latest_decision.json", "w", encoding="utf-8") as f:
-            json.dump(latest_decision, f, indent=2)
+            json.dump(latest_decision, f, indent=2, ensure_ascii=False)
+            f.write("\n")
 
           with open("governance/decision_traces/GEORGE-example.json", "w", encoding="utf-8") as f:
-            json.dump(decision_trace, f, indent=2)
+            json.dump(decision_trace, f, indent=2, ensure_ascii=False)
+            f.write("\n")
           PY
 
       - name: Commit updated artifacts
         shell: bash
         run: |
           set -euo pipefail
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add status/latest_decision.json governance/decision_traces/GEORGE-example.json
 
           if git diff --cached --quiet; then
