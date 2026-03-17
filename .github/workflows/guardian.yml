@@ -16,12 +16,15 @@ concurrency:
 
 jobs:
   guardian:
+    name: guardian
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Generate validation artifact
         shell: bash
@@ -32,37 +35,49 @@ jobs:
           import os
           from datetime import datetime, timezone
 
-          ts = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+          now = datetime.now(timezone.utc).replace(microsecond=0)
+          ts = now.isoformat().replace("+00:00", "Z")
 
           latest_decision_path = "status/latest_decision.json"
-          if os.path.exists(latest_decision_path):
-            with open(latest_decision_path, "r", encoding="utf-8") as f:
-              latest = json.load(f)
-            decision_id = latest.get("decision_id", "GEORGE-UNKNOWN")
-          else:
-            decision_id = "GEORGE-UNKNOWN"
 
-          validation_id = "GUARDIAN-" + datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M%S")
+          if os.path.exists(latest_decision_path):
+              with open(latest_decision_path, "r", encoding="utf-8") as f:
+                  latest = json.load(f)
+              decision_id = latest.get("decision_id", "GEORGE-UNKNOWN")
+              decision_action = latest.get("action", "unknown")
+          else:
+              decision_id = "GEORGE-UNKNOWN"
+              decision_action = "unknown"
+
+          validation_id = "GUARDIAN-" + now.strftime("%Y-%m-%d-%H%M%S")
 
           os.makedirs("governance/validation", exist_ok=True)
 
           validation = {
-            "validation_id": validation_id,
-            "decision_id": decision_id,
-            "result": "approved",
-            "timestamp": ts
+              "validation_id": validation_id,
+              "decision_id": decision_id,
+              "agent": "GUARDIAN",
+              "validation_type": "policy_check",
+              "decision_action": decision_action,
+              "policy": "phase1_basic_governance",
+              "result": "approved",
+              "status": "validated",
+              "timestamp": ts
           }
 
           with open("governance/validation/GUARDIAN-example.json", "w", encoding="utf-8") as f:
-            json.dump(validation, f, indent=2)
+              json.dump(validation, f, indent=2, ensure_ascii=False)
+              f.write("\n")
           PY
 
       - name: Commit updated artifacts
         shell: bash
         run: |
           set -euo pipefail
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add governance/validation/GUARDIAN-example.json
 
           if git diff --cached --quiet; then
