@@ -3,471 +3,271 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Decision Model · The 7th Layer · virtauto®</title>
-
-  <link rel="canonical" href="https://www.virtauto.de/decision-model.html">
-  <meta name="description" content="virtauto Decision Model — the 7th Layer between enterprise planning, AI proposals and operational execution. A governed decision layer that orchestrates agents, validates decisions, enforces constraints and records evidence.">
-
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="virtauto Decision Model — The 7th Layer">
-  <meta property="og:description" content="Not just AI tools: virtauto models decision-making itself as a governed architectural layer between ERP, MES, AI agents and operational execution.">
-  <meta property="og:url" content="https://www.virtauto.de/decision-model.html">
-  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
-
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="virtauto Decision Model — The 7th Layer">
-  <meta name="twitter:description" content="A governed decision layer that orchestrates agents, validates decisions, enforces enterprise constraints and records evidence.">
-  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
+  <title>Decision Model · virtauto®</title>
 
   <link rel="stylesheet" href="assets/styles.css"/>
   <link rel="stylesheet" href="assets/styles_unify.css"/>
   <script defer src="assets/site.js"></script>
-  <script defer src="assets/agent-status.js"></script>
 
   <style>
-    .decision-page .meta-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
-    .decision-page .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid #1a2332;border-radius:999px;background:rgba(255,255,255,0.02);font-size:12px;line-height:1}
-    .decision-page .pill .dot{width:8px;height:8px;border-radius:999px;background:#20d493;display:inline-block}
-    .decision-page .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .decision-page .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-    .decision-page .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-    @media (max-width: 980px){.decision-page .grid-2,.decision-page .grid-3,.decision-page .grid-4{grid-template-columns:1fr}}
-    .decision-page .card{border:1px solid #1a2332;border-radius:16px;background:rgba(255,255,255,0.02);padding:16px}
-    .decision-page .card h3{margin:0 0 8px}
-    .decision-page .card p{margin:0 0 10px}
-    .decision-page .muted{opacity:.82}
-    .decision-page .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:12px}
-    .decision-page .anchor-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
-    .decision-page .anchor-row a{border:1px solid #1a2332;border-radius:12px;padding:8px 10px;display:inline-block;background:rgba(255,255,255,0.02)}
-    .decision-page .callout{border:1px solid rgba(125,211,252,.22);border-radius:16px;padding:16px;background:linear-gradient(135deg,rgba(125,211,252,.10),rgba(34,211,238,.04))}
-    .decision-page .callout.warn{border-color:rgba(251,191,36,.24);background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(248,113,113,.04))}
-    .decision-page .step{border:1px solid #243255;border-radius:14px;padding:14px;background:#0f1526}
-    .decision-page .step .num{display:inline-flex;width:26px;height:26px;border-radius:999px;align-items:center;justify-content:center;border:1px solid #30415f;margin-bottom:10px;font-weight:700;color:#9fdcff}
-    .decision-page .flow{display:grid;gap:12px;margin-top:14px}
-    .decision-page .flow-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:10px;align-items:center}
-    @media (max-width: 980px){.decision-page .flow-row{grid-template-columns:1fr;}}
-    .decision-page .flow-box{border:1px solid #243255;border-radius:16px;padding:16px;background:#0f1526}
-    .decision-page .flow-arrow{font-size:24px;opacity:.7;text-align:center}
-    .decision-page .repo-list{display:grid;gap:10px;margin-top:10px}
-    .decision-page .repo-item{border:1px solid #243255;border-radius:12px;padding:12px;background:#0b1220}
-    .decision-page .repo-item strong{display:block;margin-bottom:6px}
-    .decision-page .kpi{border:1px solid #243255;border-radius:14px;padding:14px;background:#0f1526}
-    .decision-page .kpi strong{display:block;font-size:1.1rem;margin-bottom:6px}
-    .decision-page .principles{display:grid;gap:12px;margin-top:14px}
-    .decision-page .principle{border-left:3px solid #3ea6ff;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:0 12px 12px 0}
-    .decision-page .principle h4{margin:0 0 6px}
-    .decision-page .compare{width:100%;border-collapse:collapse;margin-top:14px}
-    .decision-page .compare th,.decision-page .compare td{border:1px solid #1a2332;padding:12px;vertical-align:top}
-    .decision-page .compare th{text-align:left;background:#0f1526}
-    .decision-page .hero-badge{
-      margin:20px 0;
-      padding:12px 20px;
-      background:linear-gradient(135deg,#0b1220,#0b1220,#121a2b);
-      color:#8aa2c0;
-      border-radius:8px;
-      text-align:center;
-      font-weight:600;
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:980px){.grid-4,.grid-2{grid-template-columns:1fr}}
+
+    .card{
       border:1px solid #1a2332;
+      border-radius:16px;
+      padding:16px;
+      background:rgba(255,255,255,0.02)
+    }
+
+    .card h3{margin:0 0 8px}
+    .card p{margin:0}
+
+    .callout{
+      border:1px solid #2b3a55;
+      border-radius:16px;
+      padding:16px;
+      background:#0f1526;
+      margin-top:16px
+    }
+
+    .compare{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:16px
+    }
+
+    .compare th,.compare td{
+      border:1px solid #1a2332;
+      padding:12px;
+      text-align:left
+    }
+
+    .compare th{
+      background:#0f1526
+    }
+
+    .hub-link{
+      display:block;
+      border:1px solid #243255;
+      border-radius:12px;
+      padding:14px;
+      background:#0b1220;
+      text-decoration:none;
+      color:inherit
+    }
+
+    .hub-link:hover{
+      border-color:#3ea6ff;
     }
   </style>
 </head>
 
 <body>
-  <header class="header">
-    <div class="container nav">
-      <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
 
-      <nav id="menu" class="menu">
-        <a href="index.html">Home</a>
-        <a href="agents.html">Agents</a>
-        <a href="architecture.html">Architecture</a>
-        <a href="industrymodel.html">Industry Model</a>
-        <a class="active" href="decision-model.html">Decision Model</a>
-        <a href="/status/">Status</a>
-        <a href="contact.html">Contact</a>
-        <a class="cta" href="solutions.html#george">Meet GEORGE</a>
-      </nav>
+    <nav class="menu">
+      <a href="index.html">Home</a>
+      <a href="architecture.html">Architecture</a>
+      <a href="industrymodel.html">Industry Model</a>
+      <a class="active" href="decision-model.html">Decision Model</a>
+      <a href="/status/">Status</a>
+    </nav>
+  </div>
+</header>
 
-      <div class="agent-flag" aria-label="Agentic Website">Agentic Website</div>
-      <div id="agent-chips" class="agent-chips" aria-label="Agent health"></div>
+<main>
 
-      <button class="burger" aria-label="Menu" type="button">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </header>
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <h1>Decision Model</h1>
+    <p class="lead">
+      virtauto introduces a dedicated decision layer that orchestrates, validates and governs
+      actions across agents and enterprise systems.
+    </p>
+  </div>
+</section>
 
-  <main class="decision-page">
-    <section class="hero">
-      <div class="container">
-        <div class="kicker">Decision Model</div>
-        <h1>The 7th Layer: Decision &amp; Governance</h1>
-        <p class="lead">
-          virtauto models decision-making itself as a dedicated architectural layer —
-          between enterprise planning, AI proposals and operational execution.
-          This layer does not replace ERP, MES or domain systems.
-          It <strong>orchestrates</strong>, <strong>validates</strong>, <strong>governs</strong> and <strong>records</strong> decisions across them.
-        </p>
+<!-- PROBLEM -->
+<section class="section">
+  <div class="container">
+    <h2>The Missing Layer</h2>
 
-        <div class="hero-badge">
-          virtauto is a dedicated decision layer that orchestrates and governs actions across agents and enterprise systems.
-        </div>
-
-        <div class="meta-row">
-          <span class="pill"><span class="dot"></span> 7th Layer</span>
-          <span class="pill"><span class="dot"></span> Decision-first architecture</span>
-          <span class="pill"><span class="dot"></span> Governance by evidence</span>
-          <span class="pill"><span class="dot"></span> Transformation beyond technology</span>
-        </div>
-
-        <div class="anchor-row">
-          <a href="#problem">Why this layer exists</a>
-          <a href="#model">Decision model</a>
-          <a href="#functions">Core functions</a>
-          <a href="#flow">Decision flow</a>
-          <a href="#repo">Live implementation</a>
-          <a href="#principles">Operating principles</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="problem">
-      <div class="container">
-        <h2>Why this layer exists</h2>
-
-        <div class="callout">
-          <p style="margin:0;">
-            Digital transformation does not fail only because systems are fragmented.
-            It also fails because <strong>decision-making remains structurally unresolved</strong>.
-            ERP systems define constraints. MES systems expose operational reality. AI generates insights and proposals.
-            But without an explicit layer for governed decisions, responsibility gets blurred, trade-offs stay implicit and execution becomes inconsistent.
-          </p>
-        </div>
-
-        <div class="grid-3" style="margin-top:16px;">
-          <div class="card">
-            <h3>ERP / Enterprise Planning</h3>
-            <p>Defines constraints, costs, orders, resources, capacities and policy boundaries.</p>
-            <p class="muted">Strong on planning. Weak on situational orchestration.</p>
-          </div>
-
-          <div class="card">
-            <h3>MES / Operations</h3>
-            <p>Reflects real execution conditions, disturbances, quality signals and plant reality.</p>
-            <p class="muted">Strong on operational truth. Weak on cross-domain governance.</p>
-          </div>
-
-          <div class="card">
-            <h3>AI / Agent Systems</h3>
-            <p>Generate proposals, forecasts, optimizations and alternative action paths.</p>
-            <p class="muted">Strong on analysis. Weak on accountable decision ownership.</p>
-          </div>
-        </div>
-
-        <div class="callout warn" style="margin-top:16px;">
-          <p style="margin:0;">
-            <strong>The missing link:</strong> who turns constraints, signals and proposals into a governed decision —
-            and who records why this decision was acceptable?
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="model">
-      <div class="container">
-        <h2>The Decision Model</h2>
-        <p class="muted">
-          virtauto treats decision-making not as a hidden side effect inside applications, but as an explicit model with inputs, governance, output and evidence.
-        </p>
-
-        <div class="flow">
-          <div class="flow-row">
-            <div class="flow-box">
-              <h3>1. Inputs</h3>
-              <ul>
-                <li>enterprise constraints</li>
-                <li>operational signals</li>
-                <li>AI proposals</li>
-                <li>system state and context</li>
-              </ul>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-box">
-              <h3>2. Decision Layer</h3>
-              <ul>
-                <li>orchestrates agents</li>
-                <li>evaluates options</li>
-                <li>applies governance rules</li>
-                <li>selects an allowed action path</li>
-              </ul>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-box">
-              <h3>3. Outputs</h3>
-              <ul>
-                <li>validated decision</li>
-                <li>execution intent</li>
-                <li>decision trace</li>
-                <li>audit-grade evidence</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid-2" style="margin-top:16px;">
-          <div class="card">
-            <h3>Decision = architectural object</h3>
-            <p>
-              In virtauto, a decision is no longer a hidden consequence inside ERP logic, a prompt output, or a workflow side effect.
-              It becomes an explicit system object with identity, context, validation and evidence.
-            </p>
-          </div>
-          <div class="card">
-            <h3>Governance = runtime capability</h3>
-            <p>
-              Governance is not only documentation. It becomes a runtime capability that decides whether a proposal is allowed,
-              blocked, escalated or routed into review.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="functions">
-      <div class="container">
-        <h2>The four core functions of the Decision Layer</h2>
-
-        <div class="grid-4">
-          <div class="step">
-            <div class="num">1</div>
-            <h3>Orchestrate agents</h3>
-            <p>Coordinate specialized agents and information sources instead of letting them act independently.</p>
-          </div>
-          <div class="step">
-            <div class="num">2</div>
-            <h3>Validate decisions</h3>
-            <p>Check proposals against enterprise constraints, governance rules and operational boundaries.</p>
-          </div>
-          <div class="step">
-            <div class="num">3</div>
-            <h3>Enforce constraints</h3>
-            <p>Ensure that decisions remain inside allowed business, operational and compliance limits.</p>
-          </div>
-          <div class="step">
-            <div class="num">4</div>
-            <h3>Record evidence</h3>
-            <p>Create decision traces, validation artifacts and audit records for reviewable execution.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <h2>Not just more automation — better decision design</h2>
-
-        <table class="compare">
-          <thead>
-            <tr>
-              <th>Traditional digital transformation</th>
-              <th>Decision-layer transformation</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>adds systems, dashboards and automation tools</td>
-              <td>adds an explicit decision architecture between systems</td>
-            </tr>
-            <tr>
-              <td>focuses on process digitization</td>
-              <td>focuses on governed action selection</td>
-            </tr>
-            <tr>
-              <td>assumes better data automatically yields better decisions</td>
-              <td>models how decisions are actually made, validated and owned</td>
-            </tr>
-            <tr>
-              <td>treats governance as ex-post documentation</td>
-              <td>treats governance as part of runtime decision execution</td>
-            </tr>
-            <tr>
-              <td>optimizes separate functions</td>
-              <td>coordinates trade-offs across the enterprise</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="section" id="flow">
-      <div class="container">
-        <h2>Decision flow in virtauto</h2>
-
-        <div class="grid-2">
-          <div class="card">
-            <h3>Conceptual flow</h3>
-            <ol>
-              <li>Signals, constraints and proposals enter the system</li>
-              <li>GEORGE creates a decision intent</li>
-              <li>GUARDIAN validates the decision</li>
-              <li>Status aggregates the system state</li>
-              <li>Self-audit verifies governance completeness</li>
-              <li>The website renders the visible governance surface</li>
-            </ol>
-          </div>
-
-          <div class="card">
-            <h3>Runtime governance loop</h3>
-            <p class="mono">
-              Decision → Validation → Status → Audit → Reviewable system state
-            </p>
-            <p class="muted">
-              This closes the loop between architecture, automation and accountability.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="repo">
-      <div class="container">
-        <h2>How the model is implemented in the current repository</h2>
-        <p class="muted">
-          The current virtauto repository already contains the first operational proof objects for the 7th Layer.
-        </p>
-
-        <div class="repo-list">
-          <div class="repo-item">
-            <strong>Decision</strong>
-            <span class="mono">status/latest_decision.json</span>
-            <p class="muted">Current decision output generated by GEORGE.</p>
-          </div>
-
-          <div class="repo-item">
-            <strong>Decision Trace</strong>
-            <span class="mono">governance/decision_traces/GEORGE-example.json</span>
-            <p class="muted">Evidence that the decision exists as a traceable object.</p>
-          </div>
-
-          <div class="repo-item">
-            <strong>Validation</strong>
-            <span class="mono">governance/validation/GUARDIAN-example.json</span>
-            <p class="muted">Governance proof that the decision has been checked.</p>
-          </div>
-
-          <div class="repo-item">
-            <strong>Status Surface</strong>
-            <span class="mono">status/system_health.json</span><br/>
-            <span class="mono">status/dashboard_summary.json</span>
-            <p class="muted">Aggregated operational view of the governance state.</p>
-          </div>
-
-          <div class="repo-item">
-            <strong>Audit</strong>
-            <span class="mono">audit/self_audit_report.json</span>
-            <p class="muted">Self-verification that the governance chain is present and intact.</p>
-          </div>
-
-          <div class="repo-item">
-            <strong>Live Surface</strong>
-            <span class="mono">/status/</span>
-            <p class="muted">The current website renders governance artifacts as visible operational status.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <h2>What makes this the 7th Layer</h2>
-
-        <div class="grid-3">
-          <div class="kpi">
-            <strong>Beyond data</strong>
-            ERP, MES and AI already produce data, context and proposals.
-            The missing problem is not data access alone — it is governed action selection.
-          </div>
-          <div class="kpi">
-            <strong>Beyond orchestration</strong>
-            Pure orchestration is not enough.
-            The layer must also decide what is allowed, what is blocked and what must be escalated.
-          </div>
-          <div class="kpi">
-            <strong>Beyond reporting</strong>
-            Evidence is not only historical.
-            It becomes a runtime condition for trusted industrial action.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="principles">
-      <div class="container">
-        <h2>Operating principles of the Decision Layer</h2>
-
-        <div class="principles">
-          <div class="principle">
-            <h4>No change without governance evidence</h4>
-            <p>Every meaningful action path must leave behind decision, validation and audit artifacts.</p>
-          </div>
-
-          <div class="principle">
-            <h4>No decision without explicit ownership</h4>
-            <p>Decisions must be attributable to a decision actor, governance step and reviewable context.</p>
-          </div>
-
-          <div class="principle">
-            <h4>No autonomy without boundaries</h4>
-            <p>Agents may propose and orchestrate, but only inside constraints that can be validated and enforced.</p>
-          </div>
-
-          <div class="principle">
-            <h4>No transformation without cultural reset</h4>
-            <p>Digital transformation is also a redesign of who decides, how decisions are governed and how accountability is preserved.</p>
-          </div>
-
-          <div class="principle">
-            <h4>No architecture without observable state</h4>
-            <p>The system must be able to expose its own current condition, recent decision and governance chain transparently.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <h2>Current maturity</h2>
-
-        <div class="callout">
-          <p style="margin:0;">
-            virtauto is currently a <strong>Decision Governance Proof of Concept</strong>.
-            The existing implementation already demonstrates the structural core of the 7th Layer:
-            decision, validation, status, audit and repository-governed evidence.
-            The next phases extend this toward richer agent orchestration, knowledge integration, enterprise connectors and industrial execution paths.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container">
-        <h2>In one sentence</h2>
-        <div class="card">
-          <p style="font-size:1.1rem; margin:0;">
-            <strong>virtauto is not just another AI layer.</strong>
-            It is the missing decision and governance layer that connects enterprise intent, operational reality and agentic action.
-          </p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="section">
-    <div class="container">
-      <p class="muted" style="text-align:center;">
-        virtauto® — Decision Model · The 7th Layer between planning, intelligence and execution
+    <div class="callout">
+      <p>
+        Modern industrial systems generate data, context and AI proposals.
+        But they lack a structured way to decide what is allowed to happen next.
       </p>
     </div>
-  </footer>
+
+    <div class="grid-2" style="margin-top:16px;">
+      <div class="card">
+        <h3>What exists today</h3>
+        <p>
+          ERP defines constraints, MES reflects reality, AI generates proposals.
+          But decisions remain implicit and ungoverned.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>What is missing</h3>
+        <p>
+          A system that explicitly models, validates and governs decisions
+          before execution.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DECISION GRAPH -->
+<section class="section">
+  <div class="container">
+    <h2>Decision Graph as Governing Backbone</h2>
+
+    <div class="callout">
+      <p>
+        virtauto treats decisions as structured objects inside a graph of constraints,
+        authority and outcomes — not as side effects of systems.
+      </p>
+    </div>
+
+    <div class="grid-4" style="margin-top:16px;">
+      <div class="card">
+        <h3>Decision Nodes</h3>
+        <p>Explicit decisions with identity and context.</p>
+      </div>
+
+      <div class="card">
+        <h3>Authority</h3>
+        <p>Defines who is allowed to decide.</p>
+      </div>
+
+      <div class="card">
+        <h3>Constraints</h3>
+        <p>Define allowed and forbidden paths.</p>
+      </div>
+
+      <div class="card">
+        <h3>Outcomes</h3>
+        <p>Approved, blocked or escalated actions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTEXT VS DECISION -->
+<section class="section">
+  <div class="container">
+    <h2>Context vs Decision</h2>
+
+    <table class="compare">
+      <tr>
+        <th>Context Systems</th>
+        <th>Decision Layer</th>
+      </tr>
+      <tr>
+        <td>Describe reality</td>
+        <td>Govern action</td>
+      </tr>
+      <tr>
+        <td>Provide information</td>
+        <td>Define what is allowed</td>
+      </tr>
+      <tr>
+        <td>Generate insights</td>
+        <td>Enable decisions</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- CORE FUNCTIONS -->
+<section class="section">
+  <div class="container">
+    <h2>Core Functions</h2>
+
+    <div class="grid-4">
+      <div class="card">
+        <h3>Orchestrate</h3>
+        <p>Coordinate agents and inputs.</p>
+      </div>
+
+      <div class="card">
+        <h3>Validate</h3>
+        <p>Check decisions against constraints.</p>
+      </div>
+
+      <div class="card">
+        <h3>Enforce</h3>
+        <p>Allow or block actions.</p>
+      </div>
+
+      <div class="card">
+        <h3>Record</h3>
+        <p>Create auditable decision traces.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HUB -->
+<section class="section">
+  <div class="container">
+    <h2>Decision System Components</h2>
+
+    <div class="grid-2">
+
+      <a class="hub-link" href="decisioncontracts.html">
+        <h3>Decision Contracts</h3>
+        <p>Define what can be decided.</p>
+      </a>
+
+      <a class="hub-link" href="authoritygraph.html">
+        <h3>Authority Graph</h3>
+        <p>Define who is allowed to decide.</p>
+      </a>
+
+      <a class="hub-link" href="decision-trace.html">
+        <h3>Decision Trace</h3>
+        <p>Make decisions observable and auditable.</p>
+      </a>
+
+      <a class="hub-link" href="/status/">
+        <h3>Governance Status</h3>
+        <p>View current system state and decisions.</p>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLE -->
+<section class="section">
+  <div class="container">
+    <h2>Operating Principle</h2>
+
+    <div class="callout">
+      <p>
+        No change without governance evidence.
+      </p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="section">
+  <div class="container">
+    <p style="text-align:center;">
+      virtauto — Decision Governance Layer
+    </p>
+  </div>
+</footer>
+
 </body>
 </html>
