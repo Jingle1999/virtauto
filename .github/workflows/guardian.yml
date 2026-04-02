@@ -3,7 +3,7 @@ name: guardian
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["george_orchestrator"]
+    workflows: ["consistency_agent"]
     types:
       - completed
 
@@ -26,7 +26,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Generate validation artifact
+      - name: Generate guardian validation and governed decision artifacts
         shell: bash
         run: |
           set -euo pipefail
@@ -39,19 +39,80 @@ jobs:
           ts = now.isoformat().replace("+00:00", "Z")
 
           latest_decision_path = "status/latest_decision.json"
-
-          if os.path.exists(latest_decision_path):
-              with open(latest_decision_path, "r", encoding="utf-8") as f:
-                  latest = json.load(f)
-              decision_id = latest.get("decision_id", "GEORGE-UNKNOWN")
-              decision_action = latest.get("action", "unknown")
-          else:
-              decision_id = "GEORGE-UNKNOWN"
-              decision_action = "unknown"
-
-          validation_id = "GUARDIAN-" + now.strftime("%Y-%m-%d-%H%M%S")
+          consistency_result_path = "governance/consistency/consistency_result.json"
 
           os.makedirs("governance/validation", exist_ok=True)
+          os.makedirs("status", exist_ok=True)
+
+          decision = {}
+          consistency = {}
+
+          decision_exists = os.path.exists(latest_decision_path)
+          consistency_exists = os.path.exists(consistency_result_path)
+
+          if decision_exists:
+              with open(latest_decision_path, "r", encoding="utf-8") as f:
+                  decision = json.load(f)
+
+          if consistency_exists:
+              with open(consistency_result_path, "r", encoding="utf-8") as f:
+                  consistency = json.load(f)
+
+          decision_id = decision.get("decision_id", "GEORGE-UNKNOWN")
+          decision_action = decision.get("action", "unknown")
+          source_agent = decision.get("agent", "GEORGE")
+
+          consistency_result = consistency.get("result", "missing")
+          consistency_status = consistency.get("status", "missing")
+
+          validation_id = "GUARDIAN-" + now.strftime("%Y-%m-%d-%H%M%S")
+          governed_decision_id = "GD-" + now.strftime("%Y-%m-%d-%H%M%S")
+
+          checks = []
+          issues = []
+
+          if decision_exists:
+              checks.append("latest_decision_present")
+          else:
+              issues.append("latest_decision_missing")
+
+          if consistency_exists:
+              checks.append("consistency_result_present")
+          else:
+              issues.append("consistency_result_missing")
+
+          # Minimal Guardian policy logic for v0.2
+          if not decision_exists or not consistency_exists:
+              guardian_result = "blocked"
+              guardian_status = "blocked"
+              governance_status = "blocked"
+              execution_authorized = False
+              lifecycle_state = "blocked"
+              issues.append("governance_evidence_incomplete")
+
+          elif consistency_result == "approved" and consistency_status == "consistent":
+              checks.append("consistency_gate_passed")
+              guardian_result = "approved"
+              guardian_status = "validated"
+              governance_status = "approved"
+              execution_authorized = True
+              lifecycle_state = "governed"
+
+          elif consistency_result == "rejected":
+              issues.append("consistency_gate_failed")
+              guardian_result = "blocked"
+              guardian_status = "blocked"
+              governance_status = "rejected"
+              execution_authorized = False
+              lifecycle_state = "blocked"
+
+          else:
+              issues.append("consistency_state_unknown")
+              guardian_result = "blocked"
+              guardian_status = "blocked"
+              governance_status = "blocked"
+              execution_authorized = False
+              lifecycle_state = "blocked"
 
           validation = {
               "validation_id": validation_id,
@@ -59,14 +120,35 @@ jobs:
               "agent": "GUARDIAN",
               "validation_type": "policy_check",
               "decision_action": decision_action,
-              "policy": "phase1_basic_governance",
-              "result": "approved",
-              "status": "validated",
+              "policy": "phase2_governed_decision_gate",
+              "result": guardian_result,
+              "status": guardian_status,
+              "checks": checks,
+              "issues": issues,
+              "timestamp": ts,
+              "guardian_version": "0.2"
+          }
+
+          governed_decision = {
+              "governed_decision_id": governed_decision_id,
+              "decision_id": decision_id,
+              "source_agent": source_agent,
+              "action": decision_action,
+              "consistency_result": consistency_result,
+              "guardian_result": guardian_result,
+              "governance_status": governance_status,
+              "execution_authorized": execution_authorized,
+              "audit_required": True,
+              "lifecycle_state": lifecycle_state,
               "timestamp": ts
           }
 
           with open("governance/validation/GUARDIAN-example.json", "w", encoding="utf-8") as f:
               json.dump(validation, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+
+          with open("status/governed_decision.json", "w", encoding="utf-8") as f:
+              json.dump(governed_decision, f, indent=2, ensure_ascii=False)
               f.write("\n")
           PY
 
@@ -78,12 +160,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add governance/validation/GUARDIAN-example.json
+          git add governance/validation/GUARDIAN-example.json status/governed_decision.json
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
-          git commit -m "governance: update GUARDIAN validation artifact"
+          git commit -m "governance: update guardian validation and governed decision artifacts"
           git push
