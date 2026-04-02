@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: george-orchestrator-${{ github.ref }}
@@ -20,7 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Generate decision artifacts
         shell: bash
@@ -42,7 +43,7 @@ jobs:
             "decision_id": decision_id,
             "agent": "GEORGE",
             "action": "status_update",
-            "context": "phase1_governance_poc",
+            "context": "phase2_governance_runtime",
             "result": "accepted",
             "timestamp": ts
           }
@@ -52,7 +53,7 @@ jobs:
             "decision_id": decision_id,
             "agent": "GEORGE",
             "decision_type": "status_update",
-            "context": "phase1_governance_poc",
+            "context": "phase2_governance_runtime",
             "inputs": {
               "source": "workflow_dispatch",
               "repository": "virtauto"
@@ -71,13 +72,16 @@ jobs:
             f.write("\n")
           PY
 
-      - name: Commit updated artifacts
+      - name: Create branch and commit
         shell: bash
         run: |
           set -euo pipefail
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          branch="automation/george-$(date +%s)"
+          git checkout -b "$branch"
 
           git add status/latest_decision.json governance/decision_traces/GEORGE-example.json
 
@@ -87,4 +91,12 @@ jobs:
           fi
 
           git commit -m "governance: update GEORGE decision artifacts"
-          git push
+          git push origin "$branch"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "GEORGE decision update"
+          body: "Automated GEORGE decision runtime update"
+          branch: automation/george-pr
+          delete-branch: true
