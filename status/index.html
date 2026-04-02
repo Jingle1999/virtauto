@@ -4,308 +4,407 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-<title>virtauto — Decision Governance Status</title>
+<title>virtauto — Decision Governance Runtime</title>
 
 <link rel="stylesheet" href="../assets/styles.css"/>
 <link rel="stylesheet" href="../assets/styles_unify.css"/>
 
 <style>
-
 body{
-background:#060912;
-color:#e8ecff;
-font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
-margin:0;
+  background:#060912;
+  color:#e8ecff;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;
+  margin:0;
 }
 
 .container{
-max-width:1100px;
-margin:auto;
-padding:40px 20px;
+  max-width:1120px;
+  margin:auto;
+  padding:36px 20px 48px;
 }
 
 h1{
-font-size:26px;
-margin-bottom:6px;
+  font-size:26px;
+  margin:0 0 8px 0;
 }
 
 .subtitle{
-color:#9aa3c7;
-margin-bottom:30px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:20px;
-}
-
-@media(max-width:800px){
-.grid{grid-template-columns:1fr;}
-}
-
-.card{
-background:#0c1224;
-border:1px solid #1a2346;
-border-radius:14px;
-padding:20px;
-}
-
-.card h2{
-font-size:13px;
-letter-spacing:.12em;
-text-transform:uppercase;
-color:#8f99c2;
-margin-top:0;
-}
-
-.value{
-font-size:20px;
-font-weight:700;
-margin:4px 0;
-word-break:break-word;
-}
-
-.label{
-color:#9aa3c7;
-font-size:12px;
-margin-top:10px;
-}
-
-.status-ok{color:#20d493;}
-.status-warn{color:#ffb547;}
-.status-bad{color:#ff5c7c;}
-
-.footer{
-margin-top:40px;
-font-size:12px;
-color:#8088b0;
-text-align:center;
-}
-
-.error{
-background:#2b0c0c;
-border:1px solid #5c2222;
-padding:20px;
-border-radius:12px;
+  color:#9aa3c7;
+  margin:0 0 28px 0;
+  line-height:1.5;
+  font-size:15px;
 }
 
 .hero{
-background:linear-gradient(180deg,#0d1733 0%, #0b1226 100%);
-border:1px solid #1e2b58;
-border-radius:16px;
-padding:22px;
-margin-bottom:24px;
+  background:
+    radial-gradient(circle at top right, rgba(51,109,255,.18), transparent 30%),
+    linear-gradient(180deg,#0d1733 0%, #091225 100%);
+  border:1px solid #1e2b58;
+  border-radius:18px;
+  padding:24px;
+  margin-bottom:24px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.02) inset;
 }
 
-.hero h2{
-margin:0 0 8px 0;
-font-size:16px;
-letter-spacing:.08em;
-text-transform:uppercase;
-color:#97a6de;
+.hero-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+  flex-wrap:wrap;
 }
 
-.hero .hero-main{
-font-size:28px;
-font-weight:800;
-margin:6px 0 12px 0;
+.hero-kicker{
+  font-size:12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#98a6d8;
+  margin-bottom:10px;
 }
 
-.hero .hero-sub{
-color:#aab4d8;
-font-size:14px;
-line-height:1.5;
+.hero-main{
+  font-size:32px;
+  font-weight:800;
+  line-height:1.15;
+  margin:0 0 10px 0;
 }
 
-.pill{
-display:inline-block;
-padding:6px 10px;
-border-radius:999px;
-font-size:12px;
-font-weight:700;
-letter-spacing:.04em;
-margin-top:10px;
-border:1px solid #22305c;
-background:#0f1730;
-color:#d8e0ff;
+.hero-sub{
+  color:#b3bcdf;
+  font-size:15px;
+  line-height:1.6;
+  max-width:760px;
 }
 
-.pill.ok{
-color:#20d493;
-border-color:#1d5b49;
-background:#0d1d19;
+.hero-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:130px;
+  padding:10px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  border:1px solid #22305c;
+  background:#10182f;
+  color:#dce4ff;
 }
 
-.pill.warn{
-color:#ffb547;
-border-color:#6a4a16;
-background:#241b0c;
+.hero-badge.ok{
+  color:#20d493;
+  background:#0d1d19;
+  border-color:#1d5b49;
 }
 
-.pill.bad{
-color:#ff5c7c;
-border-color:#6e2230;
-background:#241017;
+.hero-badge.warn{
+  color:#ffb547;
+  background:#241b0c;
+  border-color:#6a4a16;
 }
 
-.note{
-margin-top:24px;
-padding:16px 18px;
-border:1px solid #1a2346;
-border-radius:12px;
-background:#0b1020;
-color:#aab4d8;
-font-size:13px;
-line-height:1.6;
+.hero-badge.bad{
+  color:#ff5c7c;
+  background:#241017;
+  border-color:#6e2230;
 }
 
+.hero-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-top:22px;
+}
+
+@media(max-width:900px){
+  .hero-grid{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
+@media(max-width:560px){
+  .hero-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+.hero-stat{
+  background:rgba(255,255,255,.02);
+  border:1px solid #1a2346;
+  border-radius:14px;
+  padding:16px;
+}
+
+.hero-stat .label{
+  margin-top:0;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+@media(max-width:860px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+}
+
+.card{
+  background:#0c1224;
+  border:1px solid #1a2346;
+  border-radius:16px;
+  padding:20px;
+}
+
+.card h2{
+  font-size:13px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#8f99c2;
+  margin:0 0 18px 0;
+}
+
+.label{
+  color:#9aa3c7;
+  font-size:12px;
+  margin-top:12px;
+}
+
+.value{
+  font-size:18px;
+  font-weight:700;
+  margin:4px 0;
+  word-break:break-word;
+  line-height:1.4;
+}
+
+.muted{
+  color:#9aa3c7;
+}
+
+.status-ok{ color:#20d493; }
+.status-warn{ color:#ffb547; }
+.status-bad{ color:#ff5c7c; }
+
+.error{
+  background:#2b0c0c;
+  border:1px solid #5c2222;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+}
+
+.proof{
+  margin-top:24px;
+  background:#0b1020;
+  border:1px solid #1a2346;
+  border-radius:16px;
+  padding:20px;
+}
+
+.proof h2{
+  font-size:13px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#8f99c2;
+  margin:0 0 12px 0;
+}
+
+.proof p{
+  margin:0;
+  color:#b1badb;
+  line-height:1.7;
+  font-size:14px;
+}
+
+.footer{
+  margin-top:34px;
+  font-size:12px;
+  color:#8088b0;
+  text-align:center;
+}
+
+.sep{
+  height:1px;
+  background:#182142;
+  margin:14px 0 2px;
+  border:0;
+}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
-<h1>virtauto.OS — Governance Status</h1>
-<p class="subtitle">Decision Governance Runtime — rendered from repository governance artifacts</p>
+  <h1>virtauto.OS — Governance Runtime</h1>
+  <p class="subtitle">
+    Governed multi-agent decision pipeline rendered from repository governance artifacts.
+  </p>
 
-<div id="hero" class="hero" style="display:none">
-  <h2>Runtime</h2>
-  <div id="heroMain" class="hero-main">—</div>
-  <div id="heroSub" class="hero-sub">—</div>
-  <div id="heroPill" class="pill">Loading</div>
-</div>
+  <div id="error" class="error" style="display:none">
+    Governance artifacts missing or invalid.
+  </div>
 
-<div id="error" class="error" style="display:none">
-Governance artifacts missing or invalid.
-</div>
+  <section id="hero" class="hero" style="display:none">
+    <div class="hero-top">
+      <div>
+        <div class="hero-kicker">Decision Governance Runtime</div>
+        <div id="heroMain" class="hero-main">—</div>
+        <div id="heroSub" class="hero-sub">—</div>
+      </div>
+      <div id="heroBadge" class="hero-badge">Loading</div>
+    </div>
 
-<div id="dashboard" class="grid" style="display:none">
+    <div class="hero-grid">
+      <div class="hero-stat">
+        <div class="label">Governance status</div>
+        <div id="heroGovernance" class="value">—</div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">Execution authorized</div>
+        <div id="heroExecution" class="value">—</div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">Lifecycle state</div>
+        <div id="heroLifecycle" class="value">—</div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">Guardian result</div>
+        <div id="heroGuardian" class="value">—</div>
+      </div>
+    </div>
+  </section>
 
-<div class="card">
-<h2>System</h2>
+  <div id="dashboard" class="grid" style="display:none">
 
-<div class="label">Health</div>
-<div id="systemHealth" class="value">—</div>
+    <div class="card">
+      <h2>System</h2>
 
-<div class="label">Agents running</div>
-<div id="agentsRunning" class="value">—</div>
+      <div class="label">Health</div>
+      <div id="systemHealth" class="value">—</div>
 
-<div class="label">Last update</div>
-<div id="systemUpdated" class="value">—</div>
+      <div class="label">Agents running</div>
+      <div id="agentsRunning" class="value">—</div>
 
-</div>
+      <div class="label">Last update</div>
+      <div id="systemUpdated" class="value">—</div>
+    </div>
 
-<div class="card">
-<h2>Decision</h2>
+    <div class="card">
+      <h2>Decision</h2>
 
-<div class="label">Decision ID</div>
-<div id="decisionId" class="value">—</div>
+      <div class="label">Decision ID</div>
+      <div id="decisionId" class="value">—</div>
 
-<div class="label">Action</div>
-<div id="decisionAction" class="value">—</div>
+      <div class="label">Action</div>
+      <div id="decisionAction" class="value">—</div>
 
-<div class="label">Result</div>
-<div id="decisionResult" class="value">—</div>
+      <div class="label">Result</div>
+      <div id="decisionResult" class="value">—</div>
 
-<div class="label">Timestamp</div>
-<div id="decisionTimestamp" class="value">—</div>
+      <div class="label">Timestamp</div>
+      <div id="decisionTimestamp" class="value">—</div>
+    </div>
 
-</div>
+    <div class="card">
+      <h2>Governed Decision</h2>
 
-<div class="card">
-<h2>Governance</h2>
+      <div class="label">Governed Decision ID</div>
+      <div id="governedDecisionId" class="value">—</div>
 
-<div class="label">Governed Decision ID</div>
-<div id="governedDecisionId" class="value">—</div>
+      <div class="label">Governance status</div>
+      <div id="governanceStatus" class="value">—</div>
 
-<div class="label">Governance status</div>
-<div id="governanceStatus" class="value">—</div>
+      <div class="label">Execution authorized</div>
+      <div id="executionAuthorized" class="value">—</div>
 
-<div class="label">Execution authorized</div>
-<div id="executionAuthorized" class="value">—</div>
+      <div class="label">Lifecycle state</div>
+      <div id="lifecycleState" class="value">—</div>
 
-<div class="label">Lifecycle state</div>
-<div id="lifecycleState" class="value">—</div>
+      <div class="label">Timestamp</div>
+      <div id="governanceTimestamp" class="value">—</div>
+    </div>
 
-<div class="label">Timestamp</div>
-<div id="governanceTimestamp" class="value">—</div>
+    <div class="card">
+      <h2>Validation</h2>
 
-</div>
+      <div class="label">Validation ID</div>
+      <div id="validationId" class="value">—</div>
 
-<div class="card">
-<h2>Validation</h2>
+      <div class="label">Decision ID</div>
+      <div id="validationDecision" class="value">—</div>
 
-<div class="label">Validation ID</div>
-<div id="validationId" class="value">—</div>
+      <div class="label">Result</div>
+      <div id="validationResult" class="value">—</div>
 
-<div class="label">Decision ID</div>
-<div id="validationDecision" class="value">—</div>
+      <div class="label">Timestamp</div>
+      <div id="validationTimestamp" class="value">—</div>
+    </div>
 
-<div class="label">Result</div>
-<div id="validationResult" class="value">—</div>
+    <div class="card">
+      <h2>Audit</h2>
 
-<div class="label">Timestamp</div>
-<div id="validationTimestamp" class="value">—</div>
+      <div class="label">Audit ID</div>
+      <div id="auditId" class="value">—</div>
 
-</div>
+      <div class="label">System status</div>
+      <div id="auditStatus" class="value">—</div>
 
-<div class="card">
-<h2>Audit</h2>
+      <div class="label">Timestamp</div>
+      <div id="auditTimestamp" class="value">—</div>
+    </div>
 
-<div class="label">Audit ID</div>
-<div id="auditId" class="value">—</div>
+    <div class="card">
+      <h2>Runtime Interpretation</h2>
 
-<div class="label">System status</div>
-<div id="auditStatus" class="value">—</div>
+      <div class="label">Decision orchestration</div>
+      <div id="runtimeDecision" class="value">—</div>
 
-<div class="label">Timestamp</div>
-<div id="auditTimestamp" class="value">—</div>
+      <div class="label">Consistency gate</div>
+      <div id="runtimeConsistency" class="value">—</div>
 
-</div>
+      <div class="label">Guardian gate</div>
+      <div id="runtimeGuardian" class="value">—</div>
 
-<div class="card">
-<h2>Runtime Interpretation</h2>
+      <div class="label">Execution control</div>
+      <div id="runtimeExecution" class="value">—</div>
+    </div>
 
-<div class="label">Decision orchestration</div>
-<div id="runtimeDecision" class="value">—</div>
+  </div>
 
-<div class="label">Consistency gate</div>
-<div id="runtimeConsistency" class="value">—</div>
+  <section class="proof">
+    <h2>What this proves</h2>
+    <p>
+      virtauto now operates as a governed multi-agent runtime. GEORGE creates a decision,
+      the Consistency Agent checks governance evidence, Guardian applies policy validation,
+      and the result is converted into a governed runtime state before execution. This page
+      exposes that runtime state directly from machine-readable repository artifacts.
+    </p>
+  </section>
 
-<div class="label">Guardian gate</div>
-<div id="runtimeGuardian" class="value">—</div>
-
-<div class="label">Execution control</div>
-<div id="runtimeExecution" class="value">—</div>
-
-</div>
-
-</div>
-
-<div class="note">
-This page shows the current state of the virtauto Decision Governance Runtime. A decision is created by GEORGE, checked by the Consistency Agent, validated by Guardian, and converted into a governed runtime state before execution.
-</div>
-
-<div class="footer">
-virtauto — Decision Governance Runtime Proof of Concept
-</div>
+  <div class="footer">
+    virtauto — Decision Governance Runtime Proof of Concept
+  </div>
 
 </div>
 
 <script>
-
 async function loadJson(path){
   const r = await fetch(path + "?t=" + Date.now());
   if(!r.ok) throw new Error(path + " not found");
   return await r.json();
 }
 
-function setStatusClass(el, value){
-  if(!el) return;
-  el.classList.remove("status-ok","status-warn","status-bad");
+function textBool(v){
+  if(v === true) return "Yes";
+  if(v === false) return "No";
+  return "—";
+}
 
+function classify(value){
   const v = String(value || "").toLowerCase();
 
   if(
@@ -314,65 +413,67 @@ function setStatusClass(el, value){
     v.includes("healthy") ||
     v === "true" ||
     v === "yes" ||
+    v === "authorized" ||
+    v === "active" ||
+    v.includes("validated") ||
     v === "ok" ||
-    v.includes("validated")
+    v === "green"
   ){
-    el.classList.add("status-ok");
-    return;
+    return "ok";
   }
 
   if(
     v.includes("blocked") ||
     v.includes("rejected") ||
-    v.includes("false") ||
     v.includes("missing") ||
+    v.includes("false") ||
     v.includes("error") ||
     v.includes("bad")
   ){
-    el.classList.add("status-bad");
-    return;
+    return "bad";
   }
 
-  el.classList.add("status-warn");
+  return "warn";
 }
 
-function textBool(v){
-  return v === true ? "Yes" : v === false ? "No" : "—";
+function applyStatusClass(el, value){
+  if(!el) return;
+  el.classList.remove("status-ok","status-warn","status-bad");
+  const c = classify(value);
+  if(c === "ok") el.classList.add("status-ok");
+  if(c === "warn") el.classList.add("status-warn");
+  if(c === "bad") el.classList.add("status-bad");
 }
 
 function renderHero(governed, validation){
-  const hero = document.getElementById("hero");
-  const heroMain = document.getElementById("heroMain");
-  const heroSub = document.getElementById("heroSub");
-  const heroPill = document.getElementById("heroPill");
-
-  hero.style.display = "block";
-
   const governanceStatus = governed?.governance_status || "unknown";
-  const executionAuthorized = governed?.execution_authorized;
+  const executionAuthorized = textBool(governed?.execution_authorized);
   const lifecycleState = governed?.lifecycle_state || "unknown";
-  const validationResult = validation?.result || "unknown";
+  const guardianResult = governed?.guardian_result || validation?.result || "unknown";
 
-  heroMain.textContent = "Decision Governance Runtime Active";
-  heroSub.textContent =
-    "Governed decisions are now generated from GEORGE decisions, consistency checks, and Guardian policy validation. Current runtime state: " +
-    governanceStatus.toUpperCase() +
-    " · Execution authorized: " + textBool(executionAuthorized) +
-    " · Lifecycle: " + lifecycleState.toUpperCase() +
-    " · Guardian: " + validationResult.toUpperCase();
+  document.getElementById("hero").style.display = "block";
 
-  heroPill.textContent = governanceStatus.toUpperCase();
+  document.getElementById("heroMain").textContent = "Governed Decisions are now live";
+  document.getElementById("heroSub").textContent =
+    "virtauto has moved from a decision layer concept to a governed runtime: decisions are orchestrated, validated, policy-gated and converted into a governed execution state.";
 
-  heroPill.classList.remove("ok","warn","bad");
-  const s = String(governanceStatus).toLowerCase();
+  document.getElementById("heroGovernance").textContent = governanceStatus.toUpperCase();
+  document.getElementById("heroExecution").textContent = executionAuthorized.toUpperCase();
+  document.getElementById("heroLifecycle").textContent = String(lifecycleState).toUpperCase();
+  document.getElementById("heroGuardian").textContent = String(guardianResult).toUpperCase();
 
-  if(s.includes("approved") || s.includes("governed")){
-    heroPill.classList.add("ok");
-  }else if(s.includes("blocked") || s.includes("rejected")){
-    heroPill.classList.add("bad");
-  }else{
-    heroPill.classList.add("warn");
-  }
+  const badge = document.getElementById("heroBadge");
+  badge.textContent = governanceStatus.toUpperCase();
+  badge.classList.remove("ok","warn","bad");
+  const badgeClass = classify(governanceStatus);
+  if(badgeClass === "ok") badge.classList.add("ok");
+  if(badgeClass === "warn") badge.classList.add("warn");
+  if(badgeClass === "bad") badge.classList.add("bad");
+
+  applyStatusClass(document.getElementById("heroGovernance"), governanceStatus);
+  applyStatusClass(document.getElementById("heroExecution"), executionAuthorized);
+  applyStatusClass(document.getElementById("heroLifecycle"), lifecycleState);
+  applyStatusClass(document.getElementById("heroGuardian"), guardianResult);
 }
 
 async function init(){
@@ -384,7 +485,6 @@ async function init(){
     const audit = await loadJson("../audit/self_audit_report.json");
 
     let validation = null;
-
     try{
       validation = await loadJson("../governance/validation/GUARDIAN-example.json");
     }catch{}
@@ -424,17 +524,17 @@ async function init(){
     document.getElementById("runtimeGuardian").textContent = governed.guardian_result || validation?.result || "—";
     document.getElementById("runtimeExecution").textContent = governed.execution_authorized === true ? "Authorized" : "Blocked";
 
-    setStatusClass(document.getElementById("systemHealth"), health.health || summary.system_status || "unknown");
-    setStatusClass(document.getElementById("decisionResult"), decision.result || "unknown");
-    setStatusClass(document.getElementById("governanceStatus"), governed.governance_status || "unknown");
-    setStatusClass(document.getElementById("executionAuthorized"), textBool(governed.execution_authorized));
-    setStatusClass(document.getElementById("lifecycleState"), governed.lifecycle_state || "unknown");
-    setStatusClass(document.getElementById("validationResult"), validation?.result || "unknown");
-    setStatusClass(document.getElementById("auditStatus"), audit.system_status || "unknown");
-    setStatusClass(document.getElementById("runtimeDecision"), document.getElementById("runtimeDecision").textContent);
-    setStatusClass(document.getElementById("runtimeConsistency"), governed.consistency_result || "unknown");
-    setStatusClass(document.getElementById("runtimeGuardian"), governed.guardian_result || validation?.result || "unknown");
-    setStatusClass(document.getElementById("runtimeExecution"), document.getElementById("runtimeExecution").textContent);
+    applyStatusClass(document.getElementById("systemHealth"), health.health || summary.system_status || "unknown");
+    applyStatusClass(document.getElementById("decisionResult"), decision.result || "unknown");
+    applyStatusClass(document.getElementById("governanceStatus"), governed.governance_status || "unknown");
+    applyStatusClass(document.getElementById("executionAuthorized"), textBool(governed.execution_authorized));
+    applyStatusClass(document.getElementById("lifecycleState"), governed.lifecycle_state || "unknown");
+    applyStatusClass(document.getElementById("validationResult"), validation?.result || "unknown");
+    applyStatusClass(document.getElementById("auditStatus"), audit.system_status || "unknown");
+    applyStatusClass(document.getElementById("runtimeDecision"), document.getElementById("runtimeDecision").textContent);
+    applyStatusClass(document.getElementById("runtimeConsistency"), governed.consistency_result || "unknown");
+    applyStatusClass(document.getElementById("runtimeGuardian"), governed.guardian_result || validation?.result || "unknown");
+    applyStatusClass(document.getElementById("runtimeExecution"), document.getElementById("runtimeExecution").textContent);
 
   }catch(e){
     document.getElementById("error").style.display = "block";
@@ -442,7 +542,6 @@ async function init(){
 }
 
 init();
-
 </script>
 
 </body>
