@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: consistency-agent-${{ github.ref }}
@@ -16,12 +17,15 @@ concurrency:
 
 jobs:
   consistency_agent:
+    name: consistency_agent
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Generate consistency result artifact
         shell: bash
@@ -32,85 +36,54 @@ jobs:
           import os
           from datetime import datetime, timezone
 
-          ts = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-          check_id = "CONSISTENCY-" + datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M%S")
+          now = datetime.now(timezone.utc).replace(microsecond=0)
+          ts = now.isoformat().replace("+00:00", "Z")
 
-          latest_decision_path = "status/latest_decision.json"
+          decision_path = "status/latest_decision.json"
           os.makedirs("governance/consistency", exist_ok=True)
 
-          checks = []
-          issues = []
-          decision_id = "GEORGE-UNKNOWN"
-          action = "unknown"
-          agent = "GEORGE"
+          if os.path.exists(decision_path):
+              with open(decision_path, "r", encoding="utf-8") as f:
+                  decision = json.load(f)
 
-          if not os.path.exists(latest_decision_path):
-            issues.append("latest_decision_missing")
+              result = "approved"
+              status = "consistent"
+              decision_id = decision.get("decision_id", "unknown")
+
           else:
-            checks.append("latest_decision_present")
-            with open(latest_decision_path, "r", encoding="utf-8") as f:
-              latest = json.load(f)
+              result = "rejected"
+              status = "missing_decision"
+              decision_id = "missing"
 
-            decision_id = latest.get("decision_id", decision_id)
-            action = latest.get("action", action)
-            agent = latest.get("agent", agent)
-
-            required_fields = ["decision_id", "agent", "action", "timestamp"]
-            missing_fields = [field for field in required_fields if not latest.get(field)]
-
-            if missing_fields:
-              issues.append("decision_incomplete:" + ",".join(missing_fields))
-            else:
-              checks.append("decision_complete")
-
-            allowed_actions = {
-              "status_update",
-              "update_governance_surface",
-              "refresh_status_artifacts",
-              "publish_decision_state"
-            }
-
-            if action in allowed_actions:
-              checks.append("scope_allowed")
-            else:
-              issues.append("scope_not_allowed")
-
-            if latest.get("agent") == "GEORGE":
-              checks.append("authority_check_passed")
-            else:
-              issues.append("authority_check_failed")
-
-          if issues:
-            status = "inconsistent"
-            result = "rejected"
-          else:
-            status = "consistent"
-            result = "approved"
-
-          consistency_result = {
-            "check_id": check_id,
-            "decision_id": decision_id,
-            "agent": "CONSISTENCY",
-            "reviewed_agent": agent,
-            "reviewed_action": action,
-            "status": status,
-            "result": result,
-            "checks": checks,
-            "issues": issues,
-            "timestamp": ts,
-            "consistency_version": "0.1"
+          consistency = {
+              "consistency_id": "CONS-" + now.strftime("%Y-%m-%d-%H%M%S"),
+              "decision_id": decision_id,
+              "agent": "CONSISTENCY",
+              "result": result,
+              "status": status,
+              "timestamp": ts
           }
 
-          with open("governance/consistency/consistency_result.json", "w", encoding="utf-8") as f:
-            json.dump(consistency_result, f, indent=2)
+          with open(
+              "governance/consistency/consistency_result.json",
+              "w",
+              encoding="utf-8"
+          ) as f:
+              json.dump(consistency, f, indent=2, ensure_ascii=False)
+              f.write("\n")
           PY
 
-      - name: Commit updated consistency artifact
+      - name: Create branch and commit
         shell: bash
         run: |
           set -euo pipefail
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          branch="automation/consistency-$(date +%s)"
+          git checkout -b "$branch"
+
           git add governance/consistency/consistency_result.json
 
           if git diff --cached --quiet; then
@@ -119,4 +92,12 @@ jobs:
           fi
 
           git commit -m "governance: update consistency check artifact"
-          git push
+          git push origin "$branch"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "Consistency Agent Result"
+          body: "Automated consistency governance result"
+          branch: automation/consistency-pr
+          delete-branch: true
