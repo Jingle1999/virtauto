@@ -152,7 +152,8 @@ jobs:
               f.write("\n")
           PY
 
-      - name: Create branch and commit
+      - name: Create branch, commit and push
+        id: commit_push
         shell: bash
         run: |
           set -euo pipefail
@@ -161,22 +162,47 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           branch="automation/guardian-$(date +%s)"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
           git checkout -b "$branch"
 
           git add governance/validation/GUARDIAN-example.json status/governed_decision.json
 
           if git diff --cached --quiet; then
             echo "No changes to commit"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           git commit -m "governance: update guardian validation and governed decision artifacts"
           git push origin "$branch"
 
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          title: "Guardian validation and governed decision update"
-          body: "Automated guardian governance validation and governed decision update"
-          branch: automation/guardian-pr
-          delete-branch: true
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request
+        if: steps.commit_push.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          branch="${{ steps.commit_push.outputs.branch }}"
+
+          existing_pr="$(gh pr list \
+            --head "$branch" \
+            --base main \
+            --state open \
+            --json number \
+            --jq '.[0].number')"
+
+          if [ -n "${existing_pr:-}" ] && [ "${existing_pr}" != "null" ]; then
+            echo "PR already exists: #$existing_pr"
+            exit 0
+          fi
+
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "Guardian validation and governed decision update" \
+            --body "Automated guardian governance validation and governed decision update."
