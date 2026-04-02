@@ -1,7 +1,14 @@
 {
-  "decision_id": "GEORGE-2026-03-13-001",
+  "trace_id": "TRACE-GEORGE-2026-04-02-182324",
+  "decision_id": "GEORGE-2026-04-02-182324",
   "agent": "GEORGE",
   "decision_type": "status_update",
+  "context": "phase2_governance_runtime",
+  "inputs": {
+    "source": "workflow_dispatch",
+    "repository": "virtauto"
+  },
   "status": "executed",
-  "timestamp": "2026-03-13T12:00:00Z"
+  "result": "accepted",
+  "timestamp": "2026-04-02T18:23:24Z"
 }

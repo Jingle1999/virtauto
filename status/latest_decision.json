@@ -1,7 +1,8 @@
 {
-  "decision_id": "GEORGE-2026-03-13-001",
+  "decision_id": "GEORGE-2026-04-02-182324",
   "agent": "GEORGE",
   "action": "status_update",
+  "context": "phase2_governance_runtime",
   "result": "accepted",
-  "timestamp": "2026-03-13T12:00:00Z"
+  "timestamp": "2026-04-02T18:23:24Z"
 }
