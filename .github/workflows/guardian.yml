@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: guardian-${{ github.ref }}
@@ -24,7 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Generate guardian validation and governed decision artifacts
         shell: bash
@@ -81,7 +82,6 @@ jobs:
           else:
               issues.append("consistency_result_missing")
 
-          # Minimal Guardian policy logic for v0.2
           if not decision_exists or not consistency_exists:
               guardian_result = "blocked"
               guardian_status = "blocked"
@@ -152,13 +152,16 @@ jobs:
               f.write("\n")
           PY
 
-      - name: Commit updated artifacts
+      - name: Create branch and commit
         shell: bash
         run: |
           set -euo pipefail
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          branch="automation/guardian-$(date +%s)"
+          git checkout -b "$branch"
 
           git add governance/validation/GUARDIAN-example.json status/governed_decision.json
 
@@ -168,4 +171,12 @@ jobs:
           fi
 
           git commit -m "governance: update guardian validation and governed decision artifacts"
-          git push
+          git push origin "$branch"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "Guardian validation and governed decision update"
+          body: "Automated guardian governance validation and governed decision update"
+          branch: automation/guardian-pr
+          delete-branch: true
