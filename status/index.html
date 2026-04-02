@@ -63,11 +63,13 @@ margin-top:0;
 font-size:20px;
 font-weight:700;
 margin:4px 0;
+word-break:break-word;
 }
 
 .label{
 color:#9aa3c7;
 font-size:12px;
+margin-top:10px;
 }
 
 .status-ok{color:#20d493;}
@@ -88,6 +90,76 @@ padding:20px;
 border-radius:12px;
 }
 
+.hero{
+background:linear-gradient(180deg,#0d1733 0%, #0b1226 100%);
+border:1px solid #1e2b58;
+border-radius:16px;
+padding:22px;
+margin-bottom:24px;
+}
+
+.hero h2{
+margin:0 0 8px 0;
+font-size:16px;
+letter-spacing:.08em;
+text-transform:uppercase;
+color:#97a6de;
+}
+
+.hero .hero-main{
+font-size:28px;
+font-weight:800;
+margin:6px 0 12px 0;
+}
+
+.hero .hero-sub{
+color:#aab4d8;
+font-size:14px;
+line-height:1.5;
+}
+
+.pill{
+display:inline-block;
+padding:6px 10px;
+border-radius:999px;
+font-size:12px;
+font-weight:700;
+letter-spacing:.04em;
+margin-top:10px;
+border:1px solid #22305c;
+background:#0f1730;
+color:#d8e0ff;
+}
+
+.pill.ok{
+color:#20d493;
+border-color:#1d5b49;
+background:#0d1d19;
+}
+
+.pill.warn{
+color:#ffb547;
+border-color:#6a4a16;
+background:#241b0c;
+}
+
+.pill.bad{
+color:#ff5c7c;
+border-color:#6e2230;
+background:#241017;
+}
+
+.note{
+margin-top:24px;
+padding:16px 18px;
+border:1px solid #1a2346;
+border-radius:12px;
+background:#0b1020;
+color:#aab4d8;
+font-size:13px;
+line-height:1.6;
+}
+
 </style>
 </head>
 
@@ -96,7 +168,14 @@ border-radius:12px;
 <div class="container">
 
 <h1>virtauto.OS — Governance Status</h1>
-<p class="subtitle">Decision Layer Proof-of-Concept — rendered from repository governance artifacts</p>
+<p class="subtitle">Decision Governance Runtime — rendered from repository governance artifacts</p>
+
+<div id="hero" class="hero" style="display:none">
+  <h2>Runtime</h2>
+  <div id="heroMain" class="hero-main">—</div>
+  <div id="heroSub" class="hero-sub">—</div>
+  <div id="heroPill" class="pill">Loading</div>
+</div>
 
 <div id="error" class="error" style="display:none">
 Governance artifacts missing or invalid.
@@ -136,6 +215,26 @@ Governance artifacts missing or invalid.
 </div>
 
 <div class="card">
+<h2>Governance</h2>
+
+<div class="label">Governed Decision ID</div>
+<div id="governedDecisionId" class="value">—</div>
+
+<div class="label">Governance status</div>
+<div id="governanceStatus" class="value">—</div>
+
+<div class="label">Execution authorized</div>
+<div id="executionAuthorized" class="value">—</div>
+
+<div class="label">Lifecycle state</div>
+<div id="lifecycleState" class="value">—</div>
+
+<div class="label">Timestamp</div>
+<div id="governanceTimestamp" class="value">—</div>
+
+</div>
+
+<div class="card">
 <h2>Validation</h2>
 
 <div class="label">Validation ID</div>
@@ -166,10 +265,31 @@ Governance artifacts missing or invalid.
 
 </div>
 
+<div class="card">
+<h2>Runtime Interpretation</h2>
+
+<div class="label">Decision orchestration</div>
+<div id="runtimeDecision" class="value">—</div>
+
+<div class="label">Consistency gate</div>
+<div id="runtimeConsistency" class="value">—</div>
+
+<div class="label">Guardian gate</div>
+<div id="runtimeGuardian" class="value">—</div>
+
+<div class="label">Execution control</div>
+<div id="runtimeExecution" class="value">—</div>
+
+</div>
+
+</div>
+
+<div class="note">
+This page shows the current state of the virtauto Decision Governance Runtime. A decision is created by GEORGE, checked by the Consistency Agent, validated by Guardian, and converted into a governed runtime state before execution.
 </div>
 
 <div class="footer">
-virtauto — Decision Governance Layer Proof of Concept
+virtauto — Decision Governance Runtime Proof of Concept
 </div>
 
 </div>
@@ -177,60 +297,148 @@ virtauto — Decision Governance Layer Proof of Concept
 <script>
 
 async function loadJson(path){
+  const r = await fetch(path + "?t=" + Date.now());
+  if(!r.ok) throw new Error(path + " not found");
+  return await r.json();
+}
 
-const r = await fetch(path+"?t="+Date.now());
+function setStatusClass(el, value){
+  if(!el) return;
+  el.classList.remove("status-ok","status-warn","status-bad");
 
-if(!r.ok) throw new Error(path+" not found");
+  const v = String(value || "").toLowerCase();
 
-return await r.json();
+  if(
+    v.includes("approved") ||
+    v.includes("governed") ||
+    v.includes("healthy") ||
+    v === "true" ||
+    v === "yes" ||
+    v === "ok" ||
+    v.includes("validated")
+  ){
+    el.classList.add("status-ok");
+    return;
+  }
 
+  if(
+    v.includes("blocked") ||
+    v.includes("rejected") ||
+    v.includes("false") ||
+    v.includes("missing") ||
+    v.includes("error") ||
+    v.includes("bad")
+  ){
+    el.classList.add("status-bad");
+    return;
+  }
+
+  el.classList.add("status-warn");
+}
+
+function textBool(v){
+  return v === true ? "Yes" : v === false ? "No" : "—";
+}
+
+function renderHero(governed, validation){
+  const hero = document.getElementById("hero");
+  const heroMain = document.getElementById("heroMain");
+  const heroSub = document.getElementById("heroSub");
+  const heroPill = document.getElementById("heroPill");
+
+  hero.style.display = "block";
+
+  const governanceStatus = governed?.governance_status || "unknown";
+  const executionAuthorized = governed?.execution_authorized;
+  const lifecycleState = governed?.lifecycle_state || "unknown";
+  const validationResult = validation?.result || "unknown";
+
+  heroMain.textContent = "Decision Governance Runtime Active";
+  heroSub.textContent =
+    "Governed decisions are now generated from GEORGE decisions, consistency checks, and Guardian policy validation. Current runtime state: " +
+    governanceStatus.toUpperCase() +
+    " · Execution authorized: " + textBool(executionAuthorized) +
+    " · Lifecycle: " + lifecycleState.toUpperCase() +
+    " · Guardian: " + validationResult.toUpperCase();
+
+  heroPill.textContent = governanceStatus.toUpperCase();
+
+  heroPill.classList.remove("ok","warn","bad");
+  const s = String(governanceStatus).toLowerCase();
+
+  if(s.includes("approved") || s.includes("governed")){
+    heroPill.classList.add("ok");
+  }else if(s.includes("blocked") || s.includes("rejected")){
+    heroPill.classList.add("bad");
+  }else{
+    heroPill.classList.add("warn");
+  }
 }
 
 async function init(){
+  try{
+    const health = await loadJson("./system_health.json");
+    const summary = await loadJson("./dashboard_summary.json");
+    const decision = await loadJson("./latest_decision.json");
+    const governed = await loadJson("./governed_decision.json");
+    const audit = await loadJson("../audit/self_audit_report.json");
 
-try{
+    let validation = null;
 
-const health = await loadJson("./system_health.json");
-const summary = await loadJson("./dashboard_summary.json");
-const decision = await loadJson("./latest_decision.json");
-const audit = await loadJson("../audit/self_audit_report.json");
+    try{
+      validation = await loadJson("../governance/validation/GUARDIAN-example.json");
+    }catch{}
 
-let validation = null;
+    document.getElementById("dashboard").style.display = "grid";
 
-try{
-validation = await loadJson("../governance/validation/GUARDIAN-example.json");
-}catch{}
+    renderHero(governed, validation);
 
-document.getElementById("dashboard").style.display="grid";
+    document.getElementById("systemHealth").textContent = health.health || summary.system_status || "unknown";
+    document.getElementById("agentsRunning").textContent = health.agents_running || "—";
+    document.getElementById("systemUpdated").textContent = health.last_update || summary.last_update || "—";
 
-document.getElementById("systemHealth").textContent = health.health || "unknown";
-document.getElementById("agentsRunning").textContent = health.agents_running || "—";
-document.getElementById("systemUpdated").textContent = health.last_update || "—";
+    document.getElementById("decisionId").textContent = decision.decision_id || "—";
+    document.getElementById("decisionAction").textContent = decision.action || "—";
+    document.getElementById("decisionResult").textContent = decision.result || "—";
+    document.getElementById("decisionTimestamp").textContent = decision.timestamp || "—";
 
-document.getElementById("decisionId").textContent = decision.decision_id || "—";
-document.getElementById("decisionAction").textContent = decision.action || "—";
-document.getElementById("decisionResult").textContent = decision.result || "—";
-document.getElementById("decisionTimestamp").textContent = decision.timestamp || "—";
+    document.getElementById("governedDecisionId").textContent = governed.governed_decision_id || "—";
+    document.getElementById("governanceStatus").textContent = governed.governance_status || "—";
+    document.getElementById("executionAuthorized").textContent = textBool(governed.execution_authorized);
+    document.getElementById("lifecycleState").textContent = governed.lifecycle_state || "—";
+    document.getElementById("governanceTimestamp").textContent = governed.timestamp || "—";
 
-if(validation){
+    if(validation){
+      document.getElementById("validationId").textContent = validation.validation_id || "—";
+      document.getElementById("validationDecision").textContent = validation.decision_id || "—";
+      document.getElementById("validationResult").textContent = validation.result || "—";
+      document.getElementById("validationTimestamp").textContent = validation.timestamp || "—";
+    }
 
-document.getElementById("validationId").textContent = validation.validation_id || "—";
-document.getElementById("validationDecision").textContent = validation.decision_id || "—";
-document.getElementById("validationResult").textContent = validation.result || "—";
-document.getElementById("validationTimestamp").textContent = validation.timestamp || "—";
+    document.getElementById("auditId").textContent = audit.audit_id || "—";
+    document.getElementById("auditStatus").textContent = audit.system_status || "—";
+    document.getElementById("auditTimestamp").textContent = audit.timestamp || "—";
 
-}
+    document.getElementById("runtimeDecision").textContent = decision.decision_id ? "Active" : "Missing";
+    document.getElementById("runtimeConsistency").textContent = governed.consistency_result || "—";
+    document.getElementById("runtimeGuardian").textContent = governed.guardian_result || validation?.result || "—";
+    document.getElementById("runtimeExecution").textContent = governed.execution_authorized === true ? "Authorized" : "Blocked";
 
-document.getElementById("auditId").textContent = audit.audit_id || "—";
-document.getElementById("auditStatus").textContent = audit.system_status || "—";
-document.getElementById("auditTimestamp").textContent = audit.timestamp || "—";
+    setStatusClass(document.getElementById("systemHealth"), health.health || summary.system_status || "unknown");
+    setStatusClass(document.getElementById("decisionResult"), decision.result || "unknown");
+    setStatusClass(document.getElementById("governanceStatus"), governed.governance_status || "unknown");
+    setStatusClass(document.getElementById("executionAuthorized"), textBool(governed.execution_authorized));
+    setStatusClass(document.getElementById("lifecycleState"), governed.lifecycle_state || "unknown");
+    setStatusClass(document.getElementById("validationResult"), validation?.result || "unknown");
+    setStatusClass(document.getElementById("auditStatus"), audit.system_status || "unknown");
+    setStatusClass(document.getElementById("runtimeDecision"), document.getElementById("runtimeDecision").textContent);
+    setStatusClass(document.getElementById("runtimeConsistency"), governed.consistency_result || "unknown");
+    setStatusClass(document.getElementById("runtimeGuardian"), governed.guardian_result || validation?.result || "unknown");
+    setStatusClass(document.getElementById("runtimeExecution"), document.getElementById("runtimeExecution").textContent);
 
-}catch(e){
-
-document.getElementById("error").style.display="block";
-
-}
-
+  }catch(e){
+    document.getElementById("error").style.display = "block";
+  }
 }
 
 init();
