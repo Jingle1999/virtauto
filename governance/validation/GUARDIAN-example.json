@@ -1,6 +1,19 @@
 {
-  "validation_id": "GUARDIAN-2026-03-13-001",
+  "validation_id": "GUARDIAN-2026-04-02-184211",
   "decision_id": "GEORGE-2026-03-13-001",
-  "result": "approved",
-  "timestamp": "2026-03-13T12:00:05Z"
+  "agent": "GUARDIAN",
+  "validation_type": "policy_check",
+  "decision_action": "status_update",
+  "policy": "phase2_governed_decision_gate",
+  "result": "blocked",
+  "status": "blocked",
+  "checks": [
+    "latest_decision_present"
+  ],
+  "issues": [
+    "consistency_result_missing",
+    "governance_evidence_incomplete"
+  ],
+  "timestamp": "2026-04-02T18:42:11Z",
+  "guardian_version": "0.2"
 }
