@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>virtauto — Energy Optimization Showcase</title>
+
+<link rel="stylesheet" href="./assets/styles.css"/>
+<link rel="stylesheet" href="./assets/styles_unify.css"/>
+
+<style>
+:root{
+  --bg:#060912;
+  --panel:#0c1224;
+  --panel-2:#0f1730;
+  --border:#1a2346;
+  --border-strong:#22305c;
+  --text:#e8ecff;
+  --muted:#9aa3c7;
+  --ok:#20d493;
+  --warn:#ffb547;
+  --bad:#ff5c7c;
+  --accent:#6ca7ff;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;
+}
+
+.container{
+  max-width:1180px;
+  margin:auto;
+  padding:36px 20px 56px;
+}
+
+.hero{
+  background:
+    radial-gradient(circle at top right, rgba(108,167,255,.16), transparent 30%),
+    linear-gradient(180deg,#0d1733 0%, #091225 100%);
+  border:1px solid var(--border-strong);
+  border-radius:20px;
+  padding:28px;
+  margin-bottom:24px;
+}
+
+.kicker{
+  font-size:12px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#99a9df;
+  margin-bottom:10px;
+}
+
+h1{
+  margin:0 0 10px 0;
+  font-size:36px;
+  line-height:1.1;
+}
+
+.hero p{
+  margin:0;
+  max-width:840px;
+  color:#b5bedf;
+  font-size:16px;
+  line-height:1.7;
+}
+
+.badges{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:18px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid var(--border-strong);
+  background:#10182f;
+  color:#dce4ff;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.badge.ok{
+  color:var(--ok);
+  background:#0d1d19;
+  border-color:#1d5b49;
+}
+
+.badge.warn{
+  color:var(--warn);
+  background:#241b0c;
+  border-color:#6a4a16;
+}
+
+.badge.bad{
+  color:var(--bad);
+  background:#241017;
+  border-color:#6e2230;
+}
+
+.section{
+  margin-top:26px;
+}
+
+.section-title{
+  margin:0 0 14px 0;
+  font-size:14px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#97a6de;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:20px;
+}
+
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+}
+
+@media(max-width:960px){
+  .grid,.grid-3{grid-template-columns:1fr;}
+  h1{font-size:30px;}
+}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:20px;
+}
+
+.card h3{
+  margin:0 0 14px 0;
+  font-size:13px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#8f99c2;
+}
+
+.muted{
+  color:var(--muted);
+}
+
+.metric-label{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:10px;
+}
+
+.metric-value{
+  font-size:22px;
+  font-weight:800;
+  margin-top:4px;
+  line-height:1.3;
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:1.3fr 1fr 1fr 1fr;
+  gap:14px;
+}
+
+@media(max-width:960px){
+  .controls{grid-template-columns:1fr;}
+}
+
+label{
+  display:block;
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+
+select,
+input[type="range"]{
+  width:100%;
+}
+
+select{
+  appearance:none;
+  background:#10182f;
+  color:var(--text);
+  border:1px solid var(--border-strong);
+  border-radius:12px;
+  padding:12px 14px;
+  font-size:14px;
+}
+
+input[type="range"]{
+  accent-color:var(--accent);
+}
+
+.line-card{
+  background:var(--panel-2);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
+}
+
+.line-name{
+  font-size:18px;
+  font-weight:800;
+}
+
+.status-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-top:8px;
+}
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  padding:5px 10px;
+  border-radius:999px;
+  border:1px solid var(--border-strong);
+  background:#11192f;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.pill.ok{
+  color:var(--ok);
+  border-color:#1d5b49;
+  background:#0d1d19;
+}
+
+.pill.warn{
+  color:var(--warn);
+  border-color:#6a4a16;
+  background:#241b0c;
+}
+
+.pill.bad{
+  color:var(--bad);
+  border-color:#6e2230;
+  background:#241017;
+}
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:8px;
+}
+
+.table th,
+.table td{
+  text-align:left;
+  border-bottom:1px solid var(--border);
+  padding:10px 8px;
+  font-size:14px;
+  vertical-align:top;
+}
+
+.table th{
+  color:var(--muted);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.decision-box{
+  background:
+    radial-gradient(circle at top right, rgba(108,167,255,.10), transparent 30%),
+    linear-gradient(180deg,#0d1733 0%, #0b1226 100%);
+  border:1px solid var(--border-strong);
+  border-radius:18px;
+  padding:22px;
+}
+
+.decision-main{
+  font-size:28px;
+  font-weight:900;
+  line-height:1.2;
+  margin-bottom:10px;
+}
+
+.reason-list,
+.impact-list{
+  margin:10px 0 0 18px;
+  padding:0;
+  color:#c3cae8;
+  line-height:1.7;
+}
+
+.contract-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+@media(max-width:960px){
+  .contract-grid{grid-template-columns:1fr;}
+}
+
+.contract-item{
+  background:#0f1730;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+}
+
+.contract-item .k{
+  color:var(--muted);
+  font-size:12px;
+  margin-bottom:6px;
+}
+
+.contract-item .v{
+  font-weight:800;
+  line-height:1.4;
+}
+
+.arch-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+}
+
+@media(max-width:960px){
+  .arch-grid{grid-template-columns:1fr 1fr;}
+}
+
+@media(max-width:560px){
+  .arch-grid{grid-template-columns:1fr;}
+}
+
+.arch-card{
+  background:#0f1730;
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
+}
+
+.arch-card h4{
+  margin:0 0 8px 0;
+  font-size:13px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#a6b3df;
+}
+
+.small{
+  font-size:13px;
+  color:#b3bcdf;
+  line-height:1.6;
+}
+
+.footer{
+  margin-top:34px;
+  text-align:center;
+  color:#7f88b2;
+  font-size:12px;
+}
+
+.status-ok{color:var(--ok);}
+.status-warn{color:var(--warn);}
+.status-bad{color:var(--bad);}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <section class="hero">
+    <div class="kicker">Industrial Decision Layer Showcase</div>
+    <h1>Energy Optimization in Automotive Production</h1>
+    <p>
+      This virtauto MVP simulates how an industrial decision layer evaluates volatile energy prices,
+      production flexibility, operational constraints and governance rules before recommending an action.
+      The objective is not just visibility — it is governed decision-making in a realistic production context.
+    </p>
+    <div class="badges">
+      <div class="badge">MVP showcase</div>
+      <div class="badge">Automotive use case</div>
+      <div id="heroStatus" class="badge warn">Decision pending</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">Section 1 — Scenario Overview</h2>
+    <div class="grid">
+
+      <div class="card">
+        <h3>Production Environment</h3>
+        <p class="muted small">
+          Simulated automotive production environment with three lines, distinct energy demand profiles,
+          production priorities and flexibility levels. virtauto evaluates whether energy-intensive work
+          should continue, be delayed or remain unchanged.
+        </p>
+
+        <div class="metric-label">Current energy price tier</div>
+        <div id="currentPriceTier" class="metric-value">High</div>
+
+        <div class="metric-label">Active production lines</div>
+        <div id="activeLines" class="metric-value">2</div>
+
+        <div class="metric-label">Total current load</div>
+        <div id="currentLoad" class="metric-value">200 kWh</div>
+      </div>
+
+      <div class="card">
+        <h3>Controls</h3>
+        <div class="controls">
+          <div>
+            <label for="priceRange">Energy price level</label>
+            <input id="priceRange" type="range" min="0" max="2" step="1" value="2"/>
+            <div id="priceLabel" class="metric-value" style="font-size:18px">High (€0.31 / kWh)</div>
+          </div>
+
+          <div>
+            <label for="line1State">Line 1 state</label>
+            <select id="line1State">
+              <option value="running" selected>Running</option>
+              <option value="paused">Paused</option>
+              <option value="idle">Idle</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="line2State">Line 2 state</label>
+            <select id="line2State">
+              <option value="running" selected>Running</option>
+              <option value="paused">Paused</option>
+              <option value="idle">Idle</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="line3State">Line 3 state</label>
+            <select id="line3State">
+              <option value="idle" selected>Idle</option>
+              <option value="running">Running</option>
+              <option value="paused">Paused</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">Section 2 — Simulated Data</h2>
+
+    <div class="grid-3" id="lineCards"></div>
+
+    <div class="card" style="margin-top:20px">
+      <h3>Scenario Data Snapshot</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Production line</th>
+            <th>Consumption</th>
+            <th>Flexibility</th>
+            <th>Priority</th>
+            <th>Constraint</th>
+            <th>Current state</th>
+          </tr>
+        </thead>
+        <tbody id="scenarioTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">Section 3 — virtauto Decision Layer</h2>
+
+    <div class="decision-box">
+      <div class="kicker">Current decision</div>
+      <div id="decisionMain" class="decision-main">Delay Line 1 by 30 minutes</div>
+      <div id="decisionSummary" class="small muted">
+        virtauto recommends a controlled delay for the flexible line while maintaining critical output.
+      </div>
+
+      <div class="grid" style="margin-top:18px">
+        <div>
+          <div class="metric-label">Reasoning</div>
+          <ul id="reasonList" class="reason-list"></ul>
+        </div>
+        <div>
+          <div class="metric-label">Decision memory / context</div>
+          <ul id="memoryList" class="reason-list"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">Section 4 — Governance / Decision Contract</h2>
+    <div class="card">
+      <h3>Decision Contract</h3>
+      <div class="contract-grid" id="contractGrid"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">Section 5 — Expected Impact</h2>
+    <div class="grid">
+
+      <div class="card">
+        <h3>Expected Impact</h3>
+
+        <div class="metric-label">Estimated energy cost reduction</div>
+        <div id="savingsValue" class="metric-value">6–8%</div>
+
+        <div class="metric-label">Estimated operational impact</div>
+        <div id="impactLevel" class="metric-value">Low</div>
+
+        <div class="metric-label">Action confidence</div>
+        <div id="confidenceValue" class="metric-value">84%</div>
+
+        <ul id="impactList" class="impact-list"></ul>
+      </div>
+
+      <div class="card">
+        <h3>Architecture Mapping</h3>
+        <div class="arch-grid">
+
+          <div class="arch-card">
+            <h4>Data Layer</h4>
+            <div class="small">
+              Energy price, line status, kWh consumption, production priority, shift constraints.
+            </div>
+          </div>
+
+          <div class="arch-card">
+            <h4>Decision Layer</h4>
+            <div class="small">
+              virtauto evaluates price pressure, flexibility, operational constraints and expected savings.
+            </div>
+          </div>
+
+          <div class="arch-card">
+            <h4>Governance Layer</h4>
+            <div class="small">
+              Decision contract checks delay windows, criticality, approval requirement and risk level.
+            </div>
+          </div>
+
+          <div class="arch-card">
+            <h4>Output Layer</h4>
+            <div class="small">
+              Recommended action, rationale, savings estimate and execution readiness for operators.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="footer">
+    virtauto — Energy Optimization MVP Showcase · simulated data · no backend required
+  </div>
+
+</div>
+
+<script>
+const priceProfiles = [
+  { tier: "Low", eurPerKwh: 0.12 },
+  { tier: "Medium", eurPerKwh: 0.20 },
+  { tier: "High", eurPerKwh: 0.31 }
+];
+
+const baseLines = [
+  {
+    id: "line1",
+    name: "Line 1",
+    process: "Body components pre-treatment",
+    baseKwh: 120,
+    flexibility: "Flexible",
+    priority: "Medium",
+    constraint: "Can be delayed up to 30 minutes",
+    memory: "Previous shifts showed no throughput loss for short delay windows."
+  },
+  {
+    id: "line2",
+    name: "Line 2",
+    process: "Battery housing sealing",
+    baseKwh: 80,
+    flexibility: "Critical",
+    priority: "High",
+    constraint: "Must remain synchronized with downstream quality gate",
+    memory: "Past interruptions created cascading bottlenecks and rework."
+  },
+  {
+    id: "line3",
+    name: "Line 3",
+    process: "Auxiliary finishing line",
+    baseKwh: 35,
+    flexibility: "Idle-capable",
+    priority: "Low",
+    constraint: "Can remain idle without delivery impact in current scenario",
+    memory: "Often used as balancing capacity outside peak price windows."
+  }
+];
+
+const stateFactors = {
+  running: 1,
+  paused: 0.15,
+  idle: 0
+};
+
+const controls = {
+  priceRange: document.getElementById("priceRange"),
+  line1State: document.getElementById("line1State"),
+  line2State: document.getElementById("line2State"),
+  line3State: document.getElementById("line3State")
+};
+
+function getScenario(){
+  const price = priceProfiles[Number(controls.priceRange.value)];
+  const states = {
+    line1: controls.line1State.value,
+    line2: controls.line2State.value,
+    line3: controls.line3State.value
+  };
+
+  const lines = baseLines.map(line => {
+    const state = states[line.id];
+    const currentKwh = Math.round(line.baseKwh * stateFactors[state]);
+    return { ...line, state, currentKwh };
+  });
+
+  return { price, lines };
+}
+
+function evaluateDecision(scenario){
+  const { price, lines } = scenario;
+  const active = lines.filter(l => l.state === "running");
+  const flexibleRunning = active.find(l => l.flexibility === "Flexible");
+  const criticalRunning = active.find(l => l.flexibility === "Critical");
+  const line3 = lines.find(l => l.id === "line3");
+
+  let decision = {
+    title: "Keep current schedule unchanged",
+    summary: "No delay is recommended in the current scenario.",
+    reasoning: [],
+    memory: [],
+    contract: {},
+    savings: "1–2%",
+    impactLevel: "Low",
+    confidence: "72%",
+    impactNotes: []
+  };
+
+  if(price.tier === "High" && flexibleRunning){
+    const totalLoad = Math.max(1, lines.reduce((a,b) => a + b.currentKwh, 0));
+    const delayedKwh = flexibleRunning.currentKwh;
+    const estimatedPct = Math.min(12, Math.max(6, Math.round((delayedKwh / totalLoad) * 10)));
+
+    decision = {
+      title: `Delay ${flexibleRunning.name} by 30 minutes`,
+      summary: "virtauto shifts the flexible line out of the current peak-price interval while protecting critical output.",
+      reasoning: [
+        "Energy price is currently high.",
+        `${flexibleRunning.name} is classified as flexible.`,
+        "Operational impact is limited because the allowed delay window is short.",
+        criticalRunning
+          ? `${criticalRunning.name} remains active because it is critical for production continuity.`
+          : "No critical line needs to be interrupted."
+      ],
+      memory: [
+        flexibleRunning.memory,
+        "Governance rule: flexible lines may be delayed during peak price windows if delivery risk remains low.",
+        "Decision objective: reduce peak energy spend without creating downstream disruption."
+      ],
+      contract: {
+        decision_type: "delay_production",
+        target_line: flexibleRunning.name,
+        trigger: "high_energy_price",
+        governance_status: "approved_with_guardrails",
+        execution_mode: "operator_confirmed",
+        operational_risk: "low",
+        delay_window: "30 minutes",
+        critical_lines_protected: criticalRunning ? "yes" : "n/a"
+      },
+      savings: `${estimatedPct - 1}–${estimatedPct}%`,
+      impactLevel: "Low",
+      confidence: "84%",
+      impactNotes: [
+        `Estimated peak load reduction: ${delayedKwh} kWh shifted out of expensive window.`,
+        "No immediate quality or synchronization risk expected.",
+        "Recommended execution: supervisor approval with automatic restart after price normalization."
+      ]
+    };
+  } else if(price.tier === "High" && !flexibleRunning && criticalRunning){
+    decision = {
+      title: "Maintain operations and monitor price spike",
+      summary: "virtauto detects high prices but cannot recommend a delay because only critical production is running.",
+      reasoning: [
+        "Energy price is currently high.",
+        "No running line is currently flexible enough for low-risk delay.",
+        `${criticalRunning.name} is protected by operational constraints.`
+      ],
+      memory: [
+        criticalRunning.memory,
+        "Governance rule: critical production may not be delayed without escalation.",
+        "Escalation threshold not reached for hard shutdown or rescheduling."
+      ],
+      contract: {
+        decision_type: "hold_schedule",
+        target_line: criticalRunning.name,
+        trigger: "high_energy_price",
+        governance_status: "blocked_for_delay",
+        execution_mode: "no_automatic_change",
+        operational_risk: "high",
+        delay_window: "0 minutes",
+        critical_lines_protected: "yes"
+      },
+      savings: "0–2%",
+      impactLevel: "High if delayed",
+      confidence: "88%",
+      impactNotes: [
+        "Expected savings are minimal because protected production must continue.",
+        "Recommended action: monitor price trend and reschedule future flexible work orders instead.",
+        "Governance outcome: delay blocked due to criticality."
+      ]
+    };
+  } else if(price.tier === "Medium" && line3 && line3.state === "idle"){
+    decision = {
+      title: "Keep current mix and pre-stage Line 3 for next low-price window",
+      summary: "virtauto recommends preparation rather than intervention: current load is acceptable and spare capacity should be used later.",
+      reasoning: [
+        "Energy price is in the medium range.",
+        "Current running lines do not justify disruption for modest savings.",
+        `${line3.name} can absorb non-critical tasks when prices drop.`
+      ],
+      memory: [
+        line3.memory,
+        "Decision pattern: medium-price window favors staging and sequencing over hard intervention.",
+        "Objective: preserve throughput and prepare for low-price optimization opportunity."
+      ],
+      contract: {
+        decision_type: "pre_stage_capacity",
+        target_line: line3.name,
+        trigger: "medium_energy_price",
+        governance_status: "approved",
+        execution_mode: "planner_action",
+        operational_risk: "low",
+        delay_window: "not_required",
+        critical_lines_protected: "yes"
+      },
+      savings: "3–5%",
+      impactLevel: "Very low",
+      confidence: "78%",
+      impactNotes: [
+        "Expected benefit comes from shifting non-critical work into a lower-price window later.",
+        "No direct interruption of current production required.",
+        "Recommended action: prepare routing and operator assignment for Line 3."
+      ]
+    };
+  } else if(price.tier === "Low"){
+    decision = {
+      title: "Run flexible load now and capture low-price window",
+      summary: "virtauto recommends using the favorable energy window for energy-intensive but flexible work.",
+      reasoning: [
+        "Energy price is currently low.",
+        "This is the preferred window for flexible or deferred tasks.",
+        "Operational constraints do not require additional delay."
+      ],
+      memory: [
+        "Low-price window policy: execute deferred flexible demand when tariff pressure is low.",
+        "Decision objective: maximize low-cost throughput while preserving production commitments."
+      ],
+      contract: {
+        decision_type: "accelerate_flexible_work",
+        target_line: flexibleRunning ? flexibleRunning.name : "Flexible work queue",
+        trigger: "low_energy_price",
+        governance_status: "approved",
+        execution_mode: "automatic_recommendation",
+        operational_risk: "low",
+        delay_window: "not_applicable",
+        critical_lines_protected: "yes"
+      },
+      savings: "8–10% cost avoidance vs. peak window",
+      impactLevel: "Positive",
+      confidence: "81%",
+      impactNotes: [
+        "Best-case scenario for running flexible demand.",
+        "Can reduce later need for expensive peak-window operation.",
+        "Recommended action: pull forward flexible work orders if labor and material are ready."
+      ]
+    };
+  }
+
+  return decision;
+}
+
+function statusClass(value){
+  const v = String(value || "").toLowerCase();
+
+  if(
+    v.includes("approved") ||
+    v.includes("active") ||
+    v.includes("yes") ||
+    v.includes("low") ||
+    v.includes("positive")
+  ) return "ok";
+
+  if(
+    v.includes("blocked") ||
+    v.includes("high") ||
+    v.includes("critical") ||
+    v.includes("no")
+  ) return "bad";
+
+  return "warn";
+}
+
+function render(){
+  const scenario = getScenario();
+  const decision = evaluateDecision(scenario);
+
+  const totalLoad = scenario.lines.reduce((a,b) => a + b.currentKwh, 0);
+  const activeCount = scenario.lines.filter(l => l.state === "running").length;
+
+  document.getElementById("priceLabel").textContent =
+    `${scenario.price.tier} (€${scenario.price.eurPerKwh.toFixed(2)} / kWh)`;
+
+  document.getElementById("currentPriceTier").textContent = scenario.price.tier;
+  document.getElementById("activeLines").textContent = String(activeCount);
+  document.getElementById("currentLoad").textContent = `${totalLoad} kWh`;
+
+  const heroStatus = document.getElementById("heroStatus");
+  heroStatus.textContent = String(decision.contract.governance_status || "pending").replaceAll("_"," ");
+  heroStatus.className = `badge ${statusClass(decision.contract.governance_status || "pending")}`;
+
+  document.getElementById("lineCards").innerHTML = scenario.lines.map(line => `
+    <div class="line-card">
+      <div class="line-name">${line.name}</div>
+      <div class="small muted">${line.process}</div>
+
+      <div class="status-row">
+        <div>
+          <div class="metric-label">Current load</div>
+          <div class="metric-value" style="font-size:22px">${line.currentKwh} kWh</div>
+        </div>
+        <div class="pill ${statusClass(line.state === "running" ? "active" : line.state)}">${line.state}</div>
+      </div>
+
+      <div class="metric-label">Flexibility</div>
+      <div class="metric-value" style="font-size:18px">${line.flexibility}</div>
+
+      <div class="metric-label">Priority</div>
+      <div class="metric-value" style="font-size:18px">${line.priority}</div>
+
+      <div class="metric-label">Constraint</div>
+      <div class="small">${line.constraint}</div>
+    </div>
+  `).join("");
+
+  document.getElementById("scenarioTable").innerHTML = scenario.lines.map(line => `
+    <tr>
+      <td>${line.name}<br><span class="muted small">${line.process}</span></td>
+      <td>${line.currentKwh} kWh</td>
+      <td>${line.flexibility}</td>
+      <td>${line.priority}</td>
+      <td>${line.constraint}</td>
+      <td><span class="pill ${statusClass(line.state === "running" ? "active" : line.state)}">${line.state}</span></td>
+    </tr>
+  `).join("");
+
+  document.getElementById("decisionMain").textContent = decision.title;
+  document.getElementById("decisionSummary").textContent = decision.summary;
+  document.getElementById("reasonList").innerHTML = decision.reasoning.map(r => `<li>${r}</li>`).join("");
+  document.getElementById("memoryList").innerHTML = decision.memory.map(r => `<li>${r}</li>`).join("");
+
+  document.getElementById("contractGrid").innerHTML = Object.entries(decision.contract).map(([k,v]) => `
+    <div class="contract-item">
+      <div class="k">${k.replaceAll("_"," ")}</div>
+      <div class="v status-${statusClass(v)}">${String(v).replaceAll("_"," ")}</div>
+    </div>
+  `).join("");
+
+  document.getElementById("savingsValue").textContent = decision.savings;
+  document.getElementById("impactLevel").textContent = decision.impactLevel;
+  document.getElementById("confidenceValue").textContent = decision.confidence;
+  document.getElementById("impactList").innerHTML = decision.impactNotes.map(i => `<li>${i}</li>`).join("");
+
+  document.getElementById("impactLevel").className = `metric-value status-${statusClass(decision.impactLevel)}`;
+}
+
+Object.values(controls).forEach(el => el.addEventListener("input", render));
+Object.values(controls).forEach(el => el.addEventListener("change", render));
+
+render();
+</script>
+</body>
+</html>
