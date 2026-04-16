@@ -1,0 +1,9 @@
+{
+  "line_id": "TVL",
+  "time_window": "08:30",
+  "energy_price_tier": "high",
+  "buffer_fill_level": 5,
+  "quality_posture": "ok",
+  "oee_posture": "ok",
+  "candidate_shiftable_stages": ["stage_2", "stage_4"]
+}
