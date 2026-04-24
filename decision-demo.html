@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Decision Demo · Energy Peak Mitigation · virtauto®</title>
+  <link rel="canonical" href="https://www.virtauto.de/decision-demo.html">
+  <meta name="description" content="virtauto Decision Runtime Demo: Eine einfache Produktionsentscheidung bei hohem Energiepreis — verständlich für Produktionsleitung, Qualität und Operations.">
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <link rel="stylesheet" href="assets/styles_unify.css"/>
+  <script defer src="assets/site.js"></script>
+  <script defer src="assets/agent-status.js"></script>
+  <style>
+    .demo-page .demo-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px;align-items:start}
+    .demo-page .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+    .demo-page .card{border:1px solid #243255;border-radius:16px;padding:16px;background:#0f1526}
+    .demo-page .card h3,.demo-page .card h4{margin:0 0 8px}
+    .demo-page .card p{margin:0;color:#9fb0c8}
+    .demo-page .traffic{display:inline-flex;align-items:center;gap:10px;border:1px solid #244063;border-radius:999px;padding:8px 12px;background:#0b1220;margin-bottom:14px}
+    .demo-page .traffic .light{width:14px;height:14px;border-radius:50%;background:#20d493;box-shadow:0 0 18px rgba(32,212,147,.55)}
+    .demo-page .decision-box{border:1px solid rgba(32,212,147,.32);border-radius:20px;padding:22px;background:linear-gradient(135deg,rgba(32,212,147,.10),rgba(62,166,255,.05))}
+    .demo-page .story{display:grid;gap:12px;margin-top:16px}
+    .demo-page .step{display:grid;grid-template-columns:42px 1fr;gap:12px;border:1px solid #243255;border-radius:16px;padding:14px;background:#0b1220}
+    .demo-page .num{width:32px;height:32px;border-radius:999px;border:1px solid #3a5276;display:flex;align-items:center;justify-content:center;color:#9fdcff;font-weight:700}
+    .demo-page .checks{display:grid;gap:10px;margin:12px 0 0;padding:0;list-style:none}
+    .demo-page .checks li{border:1px solid #243255;border-radius:12px;padding:10px;background:#0b1220}
+    .demo-page .btnbar{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+    .demo-page button.demo-btn{cursor:pointer;border:1px solid #3ea6ff;border-radius:12px;padding:11px 14px;background:#10223b;color:#eaf4ff;font-weight:700}
+    .demo-page .muted{color:#9fb0c8}
+    .demo-page .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:12px;color:#9fb0c8}
+    @media (max-width:980px){.demo-page .demo-grid,.demo-page .cards{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+      <nav id="menu" class="menu">
+        <a href="index.html">Home</a>
+        <a href="agents.html">Agents</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="industrymodel.html">Industry Model</a>
+        <a href="decision-model.html">Decision Model</a>
+        <a class="active" href="decision-demo.html">Decision Demo</a>
+        <a href="/status/">Status</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <div class="agent-flag" aria-label="Agentic Website">Agentic Website</div>
+      <div id="agent-chips" class="agent-chips" aria-label="Agent health"></div>
+      <button class="burger" aria-label="Menu" type="button"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <main class="demo-page">
+    <section class="hero">
+      <div class="container">
+        <div class="kicker">Industrial Decision Runtime Demo</div>
+        <h1>Soll die Produktion bei hohem Energiepreis kurz verschoben werden?</h1>
+        <p class="lead">Eine einfache, nachvollziehbare Entscheidung für Produktionsleitung, Qualität und Operations. virtauto optimiert nicht selbst — virtauto entscheidet, ob eine Optimierung jetzt zulässig und sinnvoll ist.</p>
+        <div class="btnbar">
+          <button class="demo-btn" type="button" onclick="runDemo()">Entscheidung simulieren</button>
+          <a class="btn ghost" href="decision-model.html">Decision Model öffnen</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container demo-grid">
+        <div>
+          <h2>Ausgangslage</h2>
+          <p class="muted">Linie TVL, Zeitfenster 08:30. Energiepreis hoch. Puffer vorhanden. Qualität und OEE stabil.</p>
+          <div class="cards">
+            <div class="card"><h4>Energiepreis</h4><p>hoch</p></div>
+            <div class="card"><h4>Puffer</h4><p>5</p></div>
+            <div class="card"><h4>Qualität</h4><p>stabil</p></div>
+            <div class="card"><h4>OEE</h4><p>stabil</p></div>
+          </div>
+
+          <h2>Entscheidungsstory</h2>
+          <div class="story">
+            <div class="step"><div class="num">1</div><div><strong>Situation erkennen</strong><br><span class="muted">Hoher Energiepreis trifft auf eine stabile Produktionssituation.</span></div></div>
+            <div class="step"><div class="num">2</div><div><strong>Schutzregeln prüfen</strong><br><span class="muted">Qualität, OEE, Puffer und geschützte Stationen haben Vorrang.</span></div></div>
+            <div class="step"><div class="num">3</div><div><strong>Trade-off bewerten</strong><br><span class="muted">Energiekosten senken, aber nur ohne Risiko für Qualität und Produktionsfluss.</span></div></div>
+            <div class="step"><div class="num">4</div><div><strong>Empfehlung ausgeben</strong><br><span class="muted">Begrenzte Verschiebung als Vorschlag — keine automatische Ausführung.</span></div></div>
+          </div>
+        </div>
+
+        <aside class="decision-box" id="result">
+          <div class="traffic"><span class="light"></span><span>Demo bereit</span></div>
+          <h2>Noch keine Entscheidung simuliert</h2>
+          <p class="muted">Klicke auf „Entscheidung simulieren“, um die Decision Runtime aus Business-Sicht zu sehen.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const demoResponse = {
+      decision: "Verschieben empfohlen",
+      status: "grün",
+      plain_summary: "Die Energiepreise sind hoch, die Linie läuft stabil und der Puffer reicht aus. virtauto empfiehlt deshalb eine begrenzte, nachvollziehbare Maßnahme — ohne automatische Ausführung.",
+      recommended_action: {
+        what: "Stage 2 und Stage 4 bis zu 15 Minuten verschieben",
+        why: "Lastspitze reduzieren, ohne Qualität oder Produktionsstabilität zu gefährden",
+        mode: "Empfehlung, keine automatische Ausführung"
+      },
+      safety_checks: ["Qualität stabil", "OEE stabil", "Puffer ausreichend", "Keine geschützte Station betroffen"],
+      tradeoff: "Energiekosten dürfen reduziert werden, solange Qualität und Produktionsstabilität nicht gefährdet werden.",
+      owner: "Produktionsleitung",
+      veto: "Qualität"
+    };
+
+    function runDemo(){
+      const r = demoResponse;
+      document.getElementById('result').innerHTML = `
+        <div class="traffic"><span class="light"></span><span>Status: ${r.status}</span></div>
+        <h2>${r.decision}</h2>
+        <p>${r.plain_summary}</p>
+        <div class="card" style="margin-top:14px;"><h3>Empfohlene Maßnahme</h3><p><strong>${r.recommended_action.what}</strong></p><p>${r.recommended_action.why}</p><p class="mono">${r.recommended_action.mode}</p></div>
+        <h3 style="margin-top:18px;">Schutzprüfungen</h3>
+        <ul class="checks">${r.safety_checks.map(c => `<li>✓ ${c}</li>`).join('')}</ul>
+        <div class="card" style="margin-top:14px;"><h3>Trade-off</h3><p>${r.tradeoff}</p></div>
+        <p class="mono" style="margin-top:14px;">Owner: ${r.owner} · Veto: ${r.veto}</p>
+      `;
+    }
+  </script>
+</body>
+</html>
