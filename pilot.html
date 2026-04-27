@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>virtauto — Assessment Sprint · Energy Decision Advisory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg:#0a0c0f; --bg-card:#0f1217; --border:#1e2530; --border-hi:#2e3d52;
+      --accent:#00c2ff; --accent-dim:#0077a0; --green:#00e6a0; --amber:#ffb300; --red:#ff4455;
+      --text:#c8d4e0; --text-dim:#7b8a9a; --text-hi:#eaf2ff;
+      --mono:'IBM Plex Mono', monospace; --sans:'IBM Plex Sans', sans-serif;
+    }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body {
+      background:var(--bg); color:var(--text); font-family:var(--sans);
+      font-size:15px; line-height:1.7; -webkit-font-smoothing:antialiased;
+    }
+
+    nav {
+      position:sticky; top:0; z-index:100; height:52px; padding:0 2rem;
+      display:flex; align-items:center; justify-content:space-between;
+      background:rgba(10,12,15,0.92); backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-logo {
+      font-family:var(--mono); font-size:13px; color:var(--accent);
+      text-decoration:none; letter-spacing:.08em;
+    }
+    .nav-logo span { color:var(--text-dim); }
+    .nav-links { display:flex; gap:1.4rem; list-style:none; }
+    .nav-links a {
+      font-family:var(--mono); font-size:11px; color:var(--text-dim);
+      text-decoration:none; text-transform:uppercase; letter-spacing:.06em;
+    }
+    .nav-links a:hover, .nav-links a.active { color:var(--accent); }
+
+    .hero, section, footer {
+      max-width:900px; margin:0 auto; padding-left:2rem; padding-right:2rem;
+    }
+    .hero { padding-top:5rem; padding-bottom:4rem; }
+
+    .hero-tag, .section-label {
+      font-family:var(--mono); font-size:10px; color:var(--accent);
+      letter-spacing:.15em; text-transform:uppercase; margin-bottom:1rem;
+    }
+
+    h1 {
+      font-family:var(--mono); font-size:clamp(1.7rem,4vw,2.7rem);
+      font-weight:500; color:var(--text-hi); line-height:1.25; margin-bottom:1.5rem;
+    }
+    h1 em { font-style:normal; color:var(--accent); }
+
+    h2 {
+      font-family:var(--mono); font-size:1.15rem; font-weight:500;
+      color:var(--text-hi); margin-bottom:1rem;
+    }
+    p { margin-bottom:1rem; max-width:720px; }
+
+    section {
+      padding-top:3rem; padding-bottom:3rem; border-top:1px solid var(--border);
+    }
+
+    .hero-sub { max-width:650px; margin-bottom:2rem; }
+
+    .badges { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1.5rem; }
+    .badge {
+      font-family:var(--mono); font-size:10px; text-transform:uppercase;
+      letter-spacing:.1em; padding:.35rem .7rem; border:1px solid var(--border-hi);
+      color:var(--text-dim);
+    }
+    .badge.green { border-color:var(--green); color:var(--green); }
+    .badge.amber { border-color:var(--amber); color:var(--amber); }
+
+    .grid {
+      display:grid; grid-template-columns:repeat(2,1fr); gap:1px;
+      background:var(--border); border:1px solid var(--border); margin-top:1.5rem;
+    }
+    .card {
+      background:var(--bg-card); padding:1.5rem;
+    }
+    .label {
+      font-family:var(--mono); font-size:9px; color:var(--text-dim);
+      text-transform:uppercase; letter-spacing:.12em; margin-bottom:.5rem;
+    }
+    .card strong { color:var(--text-hi); font-weight:500; }
+
+    .offer-grid {
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:1px; background:var(--border); border:1px solid var(--border); margin-top:1.5rem;
+    }
+    .offer {
+      background:var(--bg-card); padding:1.6rem;
+    }
+    .offer.featured { background:#0d1a24; border-left:2px solid var(--accent); }
+    .offer-num {
+      font-family:var(--mono); font-size:10px; color:var(--text-dim);
+      letter-spacing:.1em; margin-bottom:.4rem;
+    }
+    .offer-title {
+      font-family:var(--mono); font-size:14px; color:var(--text-hi);
+      margin-bottom:.3rem;
+    }
+    .offer-sub {
+      font-family:var(--mono); font-size:10px; color:var(--accent);
+      margin-bottom:1rem;
+    }
+    ul { margin-left:1.1rem; margin-top:.8rem; }
+    li { margin-bottom:.35rem; }
+    .price {
+      margin-top:1.2rem; padding-top:.8rem; border-top:1px solid var(--border-hi);
+      font-family:var(--mono); color:var(--text-hi); font-size:13px;
+    }
+    .price span { color:var(--text-dim); font-size:10px; }
+
+    .timeline { margin-top:1.5rem; }
+    .tl-row {
+      display:grid; grid-template-columns:90px 1fr; gap:1rem;
+      padding:1rem 0; border-bottom:1px solid var(--border);
+    }
+    .tl-week {
+      font-family:var(--mono); font-size:10px; color:var(--accent-dim);
+      text-transform:uppercase;
+    }
+    .tl-focus {
+      font-family:var(--mono); font-size:12px; color:var(--text-hi);
+      margin-bottom:.2rem;
+    }
+    .tl-output { font-size:13px; color:var(--text-dim); }
+
+    .gov-box {
+      margin-top:1.5rem; border:1px solid var(--border-hi);
+      background:var(--bg-card); padding:1.5rem;
+    }
+    .gov-title {
+      font-family:var(--mono); font-size:11px; color:var(--accent);
+      text-transform:uppercase; letter-spacing:.08em; margin-bottom:.8rem;
+    }
+
+    .trace {
+      background:#060809; border:1px solid var(--border);
+      padding:1.2rem; margin-top:1.5rem; overflow-x:auto;
+    }
+    pre {
+      font-family:var(--mono); font-size:11px; line-height:1.7; color:var(--text-dim);
+    }
+
+    .cta {
+      background:#0d1a24; border:1px solid var(--accent-dim);
+      padding:2rem; margin-top:1.5rem;
+    }
+    .cta a {
+      display:inline-block; margin-top:1rem; background:var(--accent); color:#000;
+      font-family:var(--mono); font-size:11px; font-weight:600;
+      text-transform:uppercase; letter-spacing:.1em; text-decoration:none;
+      padding:.8rem 1.4rem;
+    }
+
+    footer {
+      border-top:1px solid var(--border); padding-top:1.5rem; padding-bottom:1.5rem;
+      display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+      font-family:var(--mono); font-size:10px; color:var(--text-dim);
+    }
+    footer a { color:var(--text-dim); text-decoration:none; margin-left:1rem; }
+    footer a:hover { color:var(--accent); }
+
+    @media (max-width:700px) {
+      nav { padding:0 1rem; }
+      .nav-links { gap:.7rem; }
+      .nav-links a { font-size:9px; }
+      .grid { grid-template-columns:1fr; }
+      .hero, section, footer { padding-left:1.4rem; padding-right:1.4rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a class="nav-logo" href="https://www.virtauto.de">virtauto<span>®</span></a>
+    <ul class="nav-links">
+      <li><a href="https://www.virtauto.de/industrymodel.html">Industry</a></li>
+      <li><a href="https://www.virtauto.de/decision-model.html">Decision</a></li>
+      <li><a href="https://www.virtauto.de/energy-optimization.html">Energy</a></li>
+      <li><a class="active" href="#contact">Pilot</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <div class="hero-tag">Pilot Program · Assessment Sprint</div>
+      <h1>Find out where your production line wastes energy — <em>in 10 working days.</em></h1>
+      <p class="hero-sub">
+        virtauto analyzes selected energy windows on one production line and shows when load reduction is operationally safe — and when it is not.
+        Read-only. No IT project. No production intervention.
+      </p>
+      <div class="badges">
+        <span class="badge green">Read-only</span>
+        <span class="badge">BIW · Bodyshop</span>
+        <span class="badge">Decision Trace</span>
+        <span class="badge">Governance-first</span>
+        <span class="badge amber">10 Working Days</span>
+      </div>
+    </div>
+
+    <section>
+      <div class="section-label">§ 1 — Problem</div>
+      <h2>Most factories have energy data. Few have decision logic.</h2>
+      <p>
+        Energy dashboards show consumption. Production systems show cycle status.
+        But they rarely answer the operational question that matters:
+        <strong>Can we reduce load now without risking quality, takt or stability?</strong>
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <div class="label">Visibility problem</div>
+          <strong>Dashboards inform, but do not decide.</strong>
+          <p>They show peaks, but not whether an intervention is admissible.</p>
+        </div>
+        <div class="card">
+          <div class="label">Governance problem</div>
+          <strong>Optimization without boundaries creates risk.</strong>
+          <p>Quality gates, protected stations and responsibility must be explicit.</p>
+        </div>
+        <div class="card">
+          <div class="label">virtauto approach</div>
+          <strong>Signals → admissibility → recommendation.</strong>
+          <p>Every output is bounded, explainable and reviewable.</p>
+        </div>
+        <div class="card">
+          <div class="label">Decision outcome</div>
+          <strong>ALLOW, HOLD or BLOCK.</strong>
+          <p>No recommendation without reasoning and trace.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-label">§ 2 — Offer</div>
+      <h2>The Assessment Sprint</h2>
+      <p>
+        The Assessment Sprint is the smallest useful entry point:
+        one line, one use case, selected energy windows, clear output.
+      </p>
+
+      <div class="offer-grid">
+        <div class="offer featured">
+          <div class="offer-num">01 · Recommended</div>
+          <div class="offer-title">Assessment Sprint</div>
+          <div class="offer-sub">1 line · 1 use case · 10 working days</div>
+          <p>
+            We analyze 2–3 energy windows using existing data and deliver a documented Decision Report.
+          </p>
+          <ul>
+            <li>Use case definition and signal mapping</li>
+            <li>Admissibility check: buffer, cycle, quality</li>
+            <li>Decision Trace: ALLOW / HOLD / BLOCK</li>
+            <li>Estimated savings and CO₂ effect</li>
+            <li>Recommendation: pilot yes/no</li>
+          </ul>
+          <div class="price">€ 4,900 – 7,900 <span>· credited toward pilot</span></div>
+        </div>
+
+        <div class="offer">
+          <div class="offer-num">02</div>
+          <div class="offer-title">6-Week Pilot</div>
+          <div class="offer-sub">Advisory mode · read-only deployment</div>
+          <p>
+            A bounded Decision Layer on one selected production line with weekly advisory output and operator review.
+          </p>
+          <ul>
+            <li>Read-only signal connection</li>
+            <li>Decision logic calibration</li>
+            <li>Weekly advisory reports</li>
+            <li>Governance contract output</li>
+            <li>Rollout recommendation</li>
+          </ul>
+          <div class="price">from € 18,000 <span>· assessment credited</span></div>
+        </div>
+
+        <div class="offer">
+          <div class="offer-num">03</div>
+          <div class="offer-title">Site Rollout</div>
+          <div class="offer-sub">Line family → plant scope</div>
+          <p>
+            Scaling the decision pattern across comparable lines and broader industrial decision products.
+          </p>
+          <ul>
+            <li>Scale by line family</li>
+            <li>Standardize governance patterns</li>
+            <li>Reusable decision layer</li>
+            <li>Management reporting structure</li>
+          </ul>
+          <div class="price">On request <span>· after successful pilot</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-label">§ 3 — Process</div>
+      <h2>10 working days. Clear output. Low risk.</h2>
+
+      <div class="timeline">
+        <div class="tl-row">
+          <div class="tl-week">Days 1–3</div>
+          <div>
+            <div class="tl-focus">Scoping and context mapping</div>
+            <div class="tl-output">Define line, signals, constraints and target decision window.</div>
+          </div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-week">Days 4–5</div>
+          <div>
+            <div class="tl-focus">Data and evidence posture</div>
+            <div class="tl-output">Review energy data, cycle posture, buffer state and quality signals.</div>
+          </div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-week">Days 6–8</div>
+          <div>
+            <div class="tl-focus">Decision analysis</div>
+            <div class="tl-output">Run admissibility checks and identify safe energy reduction windows.</div>
+          </div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-week">Days 9–10</div>
+          <div>
+            <div class="tl-focus">Decision Report</div>
+            <div class="tl-output">Deliver report, trace, savings estimate and pilot recommendation.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-label">§ 4 — Requirements</div>
+      <h2>What we need. What you get.</h2>
+
+      <div class="grid">
+        <div class="card">
+          <div class="label">Input</div>
+          <ul>
+            <li>Energy consumption data</li>
+            <li>Line or cycle status</li>
+            <li>Buffer information</li>
+            <li>Quality gate posture</li>
+            <li>Short context call with production or energy lead</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="label">Output</div>
+          <ul>
+            <li>Advisory Report, 4–6 pages</li>
+            <li>Decision Trace</li>
+            <li>Estimated savings potential</li>
+            <li>Governance logic</li>
+            <li>Pilot recommendation</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="label">What we do not do</div>
+          <ul>
+            <li>No write access</li>
+            <li>No MES or PLC intervention</li>
+            <li>No black-box recommendation</li>
+            <li>No autonomous execution</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="label">What we guarantee</div>
+          <ul>
+            <li>HOLD if evidence is insufficient</li>
+            <li>BLOCK if constraints are violated</li>
+            <li>Every recommendation is reviewable</li>
+            <li>Every output includes reasoning</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-label">§ 5 — Governance</div>
+      <h2>Bounded. Explainable. Safe by default.</h2>
+      <p>
+        virtauto does not optimize blindly. It checks whether optimization is allowed under current operational conditions.
+      </p>
+
+      <div class="gov-box">
+        <div class="gov-title">Decision Contract — Admissibility Rules</div>
+        <ul>
+          <li>Advisory-only. No autonomous execution.</li>
+          <li>Default HOLD when evidence is missing or stale.</li>
+          <li>Protected stations cannot be delayed.</li>
+          <li>Quality and cycle stability take precedence over cost savings.</li>
+          <li>Every recommendation is limited to one line and one time window.</li>
+          <li>Operator or production lead review is required before action.</li>
+        </ul>
+      </div>
+
+      <div class="trace">
+<pre>{
+  "assessment_id": "VA-AS-2026-001",
+  "line": "Doorline-FL · BIW Bodyshop",
+  "window": "02:30 – 06:30",
+  "takt_posture": "OK",
+  "buffer_fill": 5,
+  "quality_gate": "OK",
+  "admissibility": "PASS",
+  "recommendation": "ALLOW",
+  "reasoning": "Buffer adequate · quality gate clear · protected station not affected",
+  "operator_review": "REQUIRED before execution"
+}</pre>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="section-label">§ 6 — Contact</div>
+      <h2>Request an Assessment Sprint.</h2>
+      <p>
+        First conversations take 30 minutes. We jointly assess whether an Assessment Sprint makes sense for your line.
+      </p>
+
+      <div class="cta">
+        <h2>Start with one line, one use case, one decision window.</h2>
+        <p>
+          Send a short request and we will respond with a concrete proposal for an initial conversation.
+        </p>
+        <a href="mailto:contact@virtauto.de?subject=Assessment%20Sprint%20Request%20-%20virtauto">Request Assessment Sprint →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div>virtauto® · Industrial Decision Layer · Braunschweig</div>
+    <div>
+      <a href="https://www.virtauto.de">Home</a>
+      <a href="https://www.virtauto.de/contact.html">Contact</a>
+      <a href="https://www.virtauto.de/imprint.html">Imprint</a>
+    </div>
+  </footer>
+</body>
+</html>
