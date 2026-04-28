@@ -398,6 +398,49 @@ color: var(–accent2);
 border: 1px solid rgba(0,255,136,0.3);
 }
 
+/* DECISION LAYER */
+<div class="section-header">
+  <div class="section-label">// virtauto Decision Layer</div>
+  <div class="section-line"></div>
+</div>
+
+<div class="kpi-grid" id="decisionKpiGrid">
+  <div class="kpi-card">
+    <div class="kpi-label">ALLOW windows</div>
+    <div class="kpi-value green" id="decisionAllow">—</div>
+    <div class="kpi-sub">Admissible optimization windows</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-label">HOLD windows</div>
+    <div class="kpi-value warn" id="decisionHold">—</div>
+    <div class="kpi-sub">Insufficient or non-admissible context</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-label">BLOCK windows</div>
+    <div class="kpi-value hot" id="decisionBlock">—</div>
+    <div class="kpi-sub">Maximum load or hard constraint</div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-label">Estimated savings</div>
+    <div class="kpi-value accent" id="decisionSavings">—</div>
+    <div class="kpi-sub">Based on ALLOW windows only</div>
+  </div>
+</div>
+
+<div class="anomaly-section">
+  <div class="section-header">
+    <div class="section-label">// Sample Decision Trace</div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="trace-box">
+    <pre id="decisionTraceSample">Load dataset to generate a real decision trace.</pre>
+  </div>
+</div>
+  
 /* SECTION LABELS */
 .section-header {
 display: flex;
@@ -1128,6 +1171,237 @@ showLoading('BERECHNE STATISTIKEN...');
 setTimeout(() => {
 parsedData = result.data;
 computeStats();
+
+
+  
+let decisionResults = [];
+
+const REDUCTION_FACTOR = 0.15;
+const ENERGY_PRICE_EUR_PER_KWH = 0.18;
+const CO2_FACTOR_KG_PER_KWH = 0.5;
+
+function num(row, key) {
+  return parseFloat(row[key] ?? row[key + ' '] ?? 0) || 0;
+}
+
+function val(row, key) {
+  return String(row[key] ?? row[key + ' '] ?? '').trim();
+}
+
+function normalizeLoadType(loadType) {
+  return loadType.replace(/\s+/g, '_');
+}
+
+function checkLoadGate(row) {
+  const loadType = normalizeLoadType(val(row, 'Load_Type'));
+  const pf = num(row, 'Lagging_Current_Power_Factor');
+
+  if (loadType === 'Maximum_Load') {
+    return {
+      gate: 'load_gate',
+      result: 'BLOCK',
+      reasoning: 'Maximum load window — no energy shift advisory is admissible.'
+    };
+  }
+
+  if (loadType === 'Medium_Load' && pf <= 75) {
+    return {
+      gate: 'load_gate',
+      result: 'HOLD',
+      reasoning: 'Medium load with insufficient power factor for advisory approval.'
+    };
+  }
+
+  if (loadType === 'Light_Load' || loadType === 'Medium_Load') {
+    return {
+      gate: 'load_gate',
+      result: 'PASS',
+      reasoning: `${loadType} is admissible for further checks.`
+    };
+  }
+
+  return {
+    gate: 'load_gate',
+    result: 'HOLD',
+    reasoning: 'Unknown load type — default HOLD.'
+  };
+}
+
+function checkPowerFactorGate(row) {
+  const pf = num(row, 'Lagging_Current_Power_Factor');
+
+  if (pf < 60) {
+    return {
+      gate: 'power_factor_gate',
+      result: 'HOLD',
+      reasoning: `Lagging power factor too low (${pf.toFixed(1)}%).`
+    };
+  }
+
+  return {
+    gate: 'power_factor_gate',
+    result: 'PASS',
+    reasoning: `Lagging power factor acceptable (${pf.toFixed(1)}%).`
+  };
+}
+
+function checkReactivePowerGate(row) {
+  const usage = num(row, 'Usage_kWh');
+  const reactive = num(row, 'Lagging_Current_Reactive.Power_kVarh');
+
+  if (usage <= 0) {
+    return {
+      gate: 'reactive_power_gate',
+      result: 'HOLD',
+      reasoning: 'Usage value missing or zero — default HOLD.'
+    };
+  }
+
+  if (reactive > 2 * usage) {
+    return {
+      gate: 'reactive_power_gate',
+      result: 'HOLD',
+      reasoning: 'Reactive power is too high relative to active energy usage.'
+    };
+  }
+
+  return {
+    gate: 'reactive_power_gate',
+    result: 'PASS',
+    reasoning: 'Reactive power within admissible bounds.'
+  };
+}
+
+function checkTimeWindowGate(row) {
+  const nsm = num(row, 'NSM');
+
+  if (nsm < 21600) {
+    return {
+      gate: 'time_window_gate',
+      result: 'PASS',
+      reasoning: 'Off-peak window before 06:00.'
+    };
+  }
+
+  if (nsm >= 79200) {
+    return {
+      gate: 'time_window_gate',
+      result: 'PASS',
+      reasoning: 'Late-night window after 22:00.'
+    };
+  }
+
+  return {
+    gate: 'time_window_gate',
+    result: 'HOLD',
+    reasoning: 'On-peak production window — no advisory.'
+  };
+}
+
+function checkWeekendGate(row) {
+  const weekStatus = val(row, 'WeekStatus');
+
+  if (weekStatus === 'Weekend') {
+    return {
+      gate: 'weekend_gate',
+      result: 'HOLD',
+      reasoning: 'Weekend production context requires separate analysis.'
+    };
+  }
+
+  return {
+    gate: 'weekend_gate',
+    result: 'PASS',
+    reasoning: 'Weekday context.'
+  };
+}
+
+function runAdmissibility(row) {
+  const gates = [
+    checkLoadGate(row),
+    checkPowerFactorGate(row),
+    checkReactivePowerGate(row),
+    checkTimeWindowGate(row),
+    checkWeekendGate(row)
+  ];
+
+  let overall = 'PASS';
+
+  if (gates.some(g => g.result === 'BLOCK')) {
+    overall = 'BLOCK';
+  } else if (gates.some(g => g.result === 'HOLD')) {
+    overall = 'HOLD';
+  }
+
+  return { gates, overall };
+}
+
+function computeBusinessCase(row, decision) {
+  if (decision !== 'ALLOW') {
+    return {
+      saving_kwh: 0,
+      saving_eur: 0,
+      saving_co2_kg: 0
+    };
+  }
+
+  const usage = num(row, 'Usage_kWh');
+  const savingKwh = usage * REDUCTION_FACTOR;
+
+  return {
+    saving_kwh: Number(savingKwh.toFixed(3)),
+    saving_eur: Number((savingKwh * ENERGY_PRICE_EUR_PER_KWH).toFixed(3)),
+    saving_co2_kg: Number((savingKwh * CO2_FACTOR_KG_PER_KWH).toFixed(3))
+  };
+}
+
+function runDecisionLayer(row, index) {
+  const admissibility = runAdmissibility(row);
+
+  const decision =
+    admissibility.overall === 'PASS'
+      ? 'ALLOW'
+      : admissibility.overall;
+
+  const businessCase = computeBusinessCase(row, decision);
+
+  const reasoning = admissibility.gates
+    .map(g => `${g.gate}: ${g.result} — ${g.reasoning}`)
+    .join(' | ');
+
+  return {
+    trace_id: `VA-STEEL-2018-${String(index + 1).padStart(5, '0')}`,
+    dataset: 'UCI Steel Industry Energy Consumption (DAEWOO, 2018)',
+    timestamp: val(row, 'date'),
+    signals: {
+      Usage_kWh: num(row, 'Usage_kWh'),
+      Load_Type: normalizeLoadType(val(row, 'Load_Type')),
+      Lagging_Current_Power_Factor: num(row, 'Lagging_Current_Power_Factor'),
+      Lagging_Current_Reactive_Power_kVarh: num(row, 'Lagging_Current_Reactive.Power_kVarh'),
+      CO2_tCO2: num(row, 'CO2(tCO2)'),
+      NSM: num(row, 'NSM'),
+      WeekStatus: val(row, 'WeekStatus')
+    },
+    admissibility: {
+      gates: admissibility.gates,
+      overall: admissibility.overall
+    },
+    decision,
+    reasoning,
+    business_case: businessCase,
+    governance: {
+      mode: 'advisory-only',
+      operator_review_required: true,
+      write_access: false,
+      execution: 'none'
+    }
+  };
+}
+
+function runDecisionLayerForDataset() {
+  decisionResults = parsedData.map((row, index) => runDecisionLayer(row, index));
+}  
+  
 renderDashboard();
 }, 300);
 }
@@ -1290,6 +1564,30 @@ document.getElementById('dashboard').classList.add('active');
 
 markStep(1, true); markStep(2, true); setActiveStep(3);
 
+runDecisionLayerForDataset();
+updateDecisionLayerView();
+
+function updateDecisionLayerView() {
+  const allow = decisionResults.filter(r => r.decision === 'ALLOW');
+  const hold = decisionResults.filter(r => r.decision === 'HOLD');
+  const block = decisionResults.filter(r => r.decision === 'BLOCK');
+
+  const totalSavingEur = allow.reduce((sum, r) => sum + r.business_case.saving_eur, 0);
+
+  document.getElementById('decisionAllow').textContent = allow.length.toLocaleString('en-US');
+  document.getElementById('decisionHold').textContent = hold.length.toLocaleString('en-US');
+  document.getElementById('decisionBlock').textContent = block.length.toLocaleString('en-US');
+  document.getElementById('decisionSavings').textContent = totalSavingEur.toFixed(2) + ' €';
+
+  const sample =
+    allow[0] ||
+    hold[0] ||
+    block[0];
+
+  document.getElementById('decisionTraceSample').textContent =
+    JSON.stringify(sample, null, 2);
+}
+  
 updateKPIs();
 renderCharts();
 renderAnomalyTable();
