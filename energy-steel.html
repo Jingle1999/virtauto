@@ -1,1941 +1,1767 @@
 <!DOCTYPE html>
-
-<html lang="de">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>virtauto.OS — Energy Intelligence PoC</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Barlow:wght@300;400;500;600;700;900&display=swap');
-
-:root {
-–bg: #050a0e;
-–surface: #0a1318;
-–surface2: #0f1e26;
-–border: #1a3040;
-–accent: #00e5ff;
-–accent2: #00ff88;
-–accent3: #ff6b35;
-–warn: #ffd23f;
-–text: #c8dde8;
-–text-dim: #5a7a8a;
-–text-bright: #ffffff;
-}
-
-- { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-background: var(–bg);
-color: var(–text);
-font-family: ‘Barlow’, sans-serif;
-font-weight: 400;
-min-height: 100vh;
-overflow-x: hidden;
-}
-
-/* GRID BACKGROUND */
-body::before {
-content: ‘’;
-position: fixed;
-inset: 0;
-background-image:
-linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-background-size: 40px 40px;
-pointer-events: none;
-z-index: 0;
-}
-
-/* SCANLINE */
-body::after {
-content: ‘’;
-position: fixed;
-inset: 0;
-background: repeating-linear-gradient(
-0deg,
-transparent,
-transparent 2px,
-rgba(0,0,0,0.08) 2px,
-rgba(0,0,0,0.08) 4px
-);
-pointer-events: none;
-z-index: 0;
-}
-
-.wrapper {
-position: relative;
-z-index: 1;
-max-width: 1400px;
-margin: 0 auto;
-padding: 0 24px 60px;
-}
-
-/* HEADER */
-header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 28px 0 24px;
-border-bottom: 1px solid var(–border);
-margin-bottom: 40px;
-}
-
-.logo-block { display: flex; align-items: baseline; gap: 12px; }
-
-.logo {
-font-family: ‘Space Mono’, monospace;
-font-size: 20px;
-font-weight: 700;
-color: var(–accent);
-letter-spacing: -0.5px;
-}
-
-.logo span { color: var(–text-dim); font-weight: 400; }
-
-.module-tag {
-font-family: ‘Space Mono’, monospace;
-font-size: 10px;
-color: var(–accent2);
-border: 1px solid var(–accent2);
-padding: 2px 8px;
-letter-spacing: 2px;
-text-transform: uppercase;
-}
-
-.header-right {
-display: flex;
-align-items: center;
-gap: 20px;
-}
-
-.status-pill {
-display: flex;
-align-items: center;
-gap: 8px;
-font-family: ‘Space Mono’, monospace;
-font-size: 11px;
-color: var(–text-dim);
-}
-
-.status-dot {
-width: 8px; height: 8px;
-border-radius: 50%;
-background: var(–accent2);
-box-shadow: 0 0 8px var(–accent2);
-animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-0%, 100% { opacity: 1; }
-50% { opacity: 0.4; }
-}
-
-/* HERO TITLE */
-.hero {
-margin-bottom: 48px;
-}
-
-.hero-eyebrow {
-font-family: ‘Space Mono’, monospace;
-font-size: 11px;
-color: var(–accent);
-letter-spacing: 3px;
-text-transform: uppercase;
-margin-bottom: 16px;
-display: flex;
-align-items: center;
-gap: 12px;
-}
-
-.hero-eyebrow::before {
-content: ‘’;
-display: block;
-width: 32px;
-height: 1px;
-background: var(–accent);
-}
-
-.hero h1 {
-font-family: ‘Barlow’, sans-serif;
-font-weight: 900;
-font-size: clamp(32px, 5vw, 58px);
-line-height: 1.05;
-color: var(–text-bright);
-letter-spacing: -1px;
-margin-bottom: 16px;
-}
-
-.hero h1 em {
-font-style: normal;
-color: var(–accent);
-}
-
-.hero p {
-font-size: 16px;
-color: var(–text-dim);
-max-width: 600px;
-line-height: 1.7;
-}
-
-/* DATA SOURCE BADGE */
-.datasource {
-display: inline-flex;
-align-items: center;
-gap: 10px;
-background: var(–surface2);
-border: 1px solid var(–border);
-border-left: 3px solid var(–accent);
-padding: 10px 16px;
-margin-top: 20px;
-font-family: ‘Space Mono’, monospace;
-font-size: 11px;
-color: var(–text-dim);
-}
-
-.datasource strong { color: var(–accent); }
-
-/* UPLOAD ZONE */
-.upload-section {
-margin-bottom: 48px;
-}
-
-.upload-zone {
-border: 2px dashed var(–border);
-background: var(–surface);
-padding: 48px;
-text-align: center;
-cursor: pointer;
-transition: all 0.3s;
-position: relative;
-overflow: hidden;
-}
-
-.upload-zone::before {
-content: ‘’;
-position: absolute;
-inset: 0;
-background: linear-gradient(135deg, rgba(0,229,255,0.03) 0%, transparent 60%);
-pointer-events: none;
-}
-
-.upload-zone:hover, .upload-zone.drag-over {
-border-color: var(–accent);
-background: rgba(0,229,255,0.04);
-}
-
-.upload-icon {
-font-size: 40px;
-margin-bottom: 16px;
-display: block;
-}
-
-.upload-zone h3 {
-font-family: ‘Barlow’, sans-serif;
-font-weight: 700;
-font-size: 18px;
-color: var(–text-bright);
-margin-bottom: 8px;
-}
-
-.upload-zone p {
-color: var(–text-dim);
-font-size: 14px;
-margin-bottom: 20px;
-}
-
-#fileInput { display: none; }
-
-.btn-primary {
-display: inline-flex;
-align-items: center;
-gap: 8px;
-background: var(–accent);
-color: var(–bg);
-border: none;
-padding: 12px 28px;
-font-family: ‘Space Mono’, monospace;
-font-size: 12px;
-font-weight: 700;
-letter-spacing: 1px;
-cursor: pointer;
-text-transform: uppercase;
-transition: all 0.2s;
-clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-}
-
-.btn-primary:hover {
-background: var(–accent2);
-transform: translateY(-1px);
-}
-
-.btn-secondary {
-display: inline-flex;
-align-items: center;
-gap: 8px;
-background: transparent;
-color: var(–accent);
-border: 1px solid var(–accent);
-padding: 12px 28px;
-font-family: ‘Space Mono’, monospace;
-font-size: 12px;
-font-weight: 700;
-letter-spacing: 1px;
-cursor: pointer;
-text-transform: uppercase;
-transition: all 0.2s;
-clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-}
-
-.btn-secondary:hover {
-background: rgba(0,229,255,0.1);
-}
-
-/* LOADING */
-.loading-bar {
-display: none;
-margin-top: 20px;
-}
-
-.loading-bar.active { display: block; }
-
-.loading-track {
-height: 2px;
-background: var(–border);
-position: relative;
-overflow: hidden;
-}
-
-.loading-fill {
-height: 100%;
-background: linear-gradient(90deg, var(–accent), var(–accent2));
-animation: loadSweep 1.5s ease-in-out infinite;
-}
-
-@keyframes loadSweep {
-0% { width: 0%; margin-left: 0; }
-50% { width: 60%; margin-left: 20%; }
-100% { width: 0%; margin-left: 100%; }
-}
-
-.loading-text {
-font-family: ‘Space Mono’, monospace;
-font-size: 11px;
-color: var(–accent);
-margin-top: 10px;
-letter-spacing: 1px;
-}
-
-/* KPI GRID */
-.kpi-grid {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-gap: 16px;
-margin-bottom: 40px;
-}
-
-.kpi-card {
-background: var(–surface);
-border: 1px solid var(–border);
-border-top: 2px solid var(–accent);
-padding: 24px 20px;
-position: relative;
-overflow: hidden;
-opacity: 0;
-transform: translateY(20px);
-transition: all 0.5s ease;
-}
-
-.kpi-card.visible {
-opacity: 1;
-transform: translateY(0);
-}
-
-.kpi-card::after {
-content: ‘’;
-position: absolute;
-top: 0; right: 0;
-width: 60px; height: 60px;
-background: radial-gradient(circle at top right, rgba(0,229,255,0.08), transparent);
-}
-
-.kpi-label {
-font-family: ‘Space Mono’, monospace;
-font-size: 10px;
-color: var(–text-dim);
-letter-spacing: 2px;
-text-transform: uppercase;
-margin-bottom: 12px;
-}
-
-.kpi-value {
-font-family: ‘Barlow’, sans-serif;
-font-weight: 900;
-font-size: 36px;
-color: var(–text-bright);
-line-height: 1;
-margin-bottom: 6px;
-}
-
-.kpi-value.accent { color: var(–accent2); }
-.kpi-value.warn { color: var(–warn); }
-.kpi-value.hot { color: var(–accent3); }
-
-.kpi-sub {
-font-size: 12px;
-color: var(–text-dim);
-}
-
-.kpi-badge {
-display: inline-block;
-margin-top: 8px;
-font-family: ‘Space Mono’, monospace;
-font-size: 10px;
-padding: 2px 8px;
-background: rgba(0,255,136,0.1);
-color: var(–accent2);
-border: 1px solid rgba(0,255,136,0.3);
-}
-
-/* DECISION LAYER */
-<div class="section-header">
-  <div class="section-label">// virtauto Decision Layer</div>
-  <div class="section-line"></div>
-</div>
-
-<div class="kpi-grid" id="decisionKpiGrid">
-  <div class="kpi-card">
-    <div class="kpi-label">ALLOW windows</div>
-    <div class="kpi-value green" id="decisionAllow">—</div>
-    <div class="kpi-sub">Admissible optimization windows</div>
-  </div>
-
-  <div class="kpi-card">
-    <div class="kpi-label">HOLD windows</div>
-    <div class="kpi-value warn" id="decisionHold">—</div>
-    <div class="kpi-sub">Insufficient or non-admissible context</div>
-  </div>
-
-  <div class="kpi-card">
-    <div class="kpi-label">BLOCK windows</div>
-    <div class="kpi-value hot" id="decisionBlock">—</div>
-    <div class="kpi-sub">Maximum load or hard constraint</div>
-  </div>
-
-  <div class="kpi-card">
-    <div class="kpi-label">Estimated savings</div>
-    <div class="kpi-value accent" id="decisionSavings">—</div>
-    <div class="kpi-sub">Based on ALLOW windows only</div>
-  </div>
-</div>
-
-<div class="anomaly-section">
-  <div class="section-header">
-    <div class="section-label">// Sample Decision Trace</div>
-    <div class="section-line"></div>
-  </div>
-
-  <div class="trace-box">
-    <pre id="decisionTraceSample">Load dataset to generate a real decision trace.</pre>
-  </div>
-</div>
-  
-/* SECTION LABELS */
-.section-header {
-display: flex;
-align-items: center;
-gap: 16px;
-margin-bottom: 20px;
-}
-
-.section-label {
-font-family: ‘Space Mono’, monospace;
-font-size: 11px;
-color: var(–accent);
-letter-spacing: 2px;
-text-transform: uppercase;
-}
-
-.section-line {
-flex: 1;
-height: 1px;
-background: var(–border);
-}
-
-/* CHARTS */
-.charts-grid {
-display: grid;
-grid-template-columns: 2fr 1fr;
-gap: 20px;
-margin-bottom: 32px;
-}
-
-.charts-grid-3 {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 20px;
-margin-bottom: 40px;
-}
-
-.chart-card {
-background: var(–surface);
-border: 1px solid var(–border);
-padding: 24px;
-opacity: 0;
-transform: translateY(16px);
-transition: all 0.6s ease;
-}
-
-.chart-card.visible {
-opacity: 1;
-transform: translateY(0);
-}
-
-.chart-card h3 {
-font-family: ‘Space Mono’, monospace;
-font-size: 11px;
-color: var(–text-dim);
-letter-spacing: 2px;
-text-transform: uppercase;
-margin-bottom: 20px;
-}
-
-.chart-card canvas { width: 100% !important; }
-
-/* AI ANALYSIS */
-.ai-section {
-margin-bottom: 48px;
-}
-
-.ai-prompt-bar {
-display: flex;
-gap: 12px;
-margin-bottom: 20px;
-align-items: stretch;
-}
-
-.ai-input {
-flex: 1;
-background: var(–surface);
-border: 1px solid var(–border);
-color: var(–text-bright);
-padding: 14px 18px;
-font-family: ‘Barlow’, sans-serif;
-font-size: 14px;
-outline: none;
-transition: border-color 0.2s;
-}
-
-.ai-input:focus { border-color: var(–accent); }
-.ai-input::placeholder { color: var(–text-dim); }
-
-.ai-output {
-background: var(–surface);
-border: 1px solid var(–border);
-border-left: 3px solid var(–accent2);
-padding: 28px;
-min-height: 160px;
-position: relative;
-}
-
-.ai-output-header {
-display: flex;
-align-items: center;
-gap: 10px;
-margin-bottom: 16px;
-}
-
-.ai-badge {
-font-family: ‘Space Mono’, monospace;
-font-size: 10px;
-background: rgba(0,255,136,0.1);
-color: var(–accent2);
-border: 1px solid rgba(0,255,136,0.3);
-padding: 3px 10px;
-letter-spacing: 1px;
-}
-
-.ai-model-tag {
-font-family: ‘Space Mono’, monospace;
-font-size: 10px;
-color: var(–text-dim);
-}
-
-#aiResponse {
-font-size: 15px;
-line-height: 1.8;
-color: var(–text);
-white-space: pre-wrap;
-}
-
-.ai-cursor {
-display: inline-block;
-width: 2px;
-height: 16px;
-background: var(–accent2);
-margin-left: 2px;
-animation: blink 1s infinite;
-vertical-align: middle;
-}
-
-@keyframes blink {
-0%, 100% { opacity: 1; }
-50% { opacity: 0; }
-}
-
-.placeholder-text {
-color: var(–text-dim);
-font-style: italic;
-font-size: 14px;
-}
-
-/* PRESET QUESTIONS */
-.preset-questions {
-display: flex;
-flex-wrap: wrap;
-gap: 8px;
-margin-bottom: 16px;
-}
-
-.preset-btn {
-background: transparent;
-border: 1px solid var(–border);
-color: var(–text-dim);
-padding: 7px 14px;
-font-size: 12px;
-font-family: ‘Barlow’, sans-serif;
-cursor: pointer;
-transition: all 0.2s;
-}
-
-.preset-btn:hover {
-border-color: var(–accent);
-color: var(–accent);
-background: rgba(0,229,255,0.05);
-}
-
-/* ANOMALY TABLE */
-.anomaly-section { margin-bottom: 48px; }
-
-.data-table {
-width: 100%;
-border-collapse: collapse;
-font-size: 13px;
-}
-
-.data-table th {
-font-family: ‘Space Mono’, monospace;
-font-size: 10px;
-color: var(–text-dim);
-letter-spacing: 2px;
-text-transform: uppercase;
-text-align: left;
-padding: 12px 16px;
-border-bottom: 1px solid var(–border);
-background: var(–surface2);
-}
-
-.data-table td {
-padding: 12px 16px;
-border-bottom: 1px solid rgba(26,48,64,0.5);
-color: var(–text);
-font-family: ‘Space Mono’, monospace;
-font-size: 11px;
-}
-
-.data-table tr:hover td { background: rgba(0,229,255,0.02); }
-
-.severity-high {
-color: var(–accent3);
-font-weight: 700;
-}
-.severity-medium { color: var(–warn); }
-.severity-low { color: var(–accent2); }
-
-.tag {
-display: inline-block;
-padding: 2px 8px;
-font-size: 10px;
-font-family: ‘Space Mono’, monospace;
-}
-
-.tag-high { background: rgba(255,107,53,0.15); color: var(–accent3); border: 1px solid rgba(255,107,53,0.3); }
-.tag-medium { background: rgba(255,210,63,0.15); color: var(–warn); border: 1px solid rgba(255,210,63,0.3); }
-.tag-low { background: rgba(0,255,136,0.1); color: var(–accent2); border: 1px solid rgba(0,255,136,0.3); }
-
-/* SAVINGS PROJECTION */
-.savings-section {
-margin-bottom: 48px;
-}
-
-.savings-grid {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 20px;
-}
-
-.savings-card {
-background: var(–surface);
-border: 1px solid var(–border);
-padding: 32px;
-}
-
-.savings-card h3 {
-font-family: ‘Barlow’, sans-serif;
-font-weight: 700;
-font-size: 18px;
-color: var(–text-bright);
-margin-bottom: 24px;
-}
-
-.savings-row {
-display: flex;
-justify-content: space-between;
-align-items: baseline;
-padding: 12px 0;
-border-bottom: 1px solid var(–border);
-}
-
-.savings-row:last-child { border-bottom: none; }
-
-.savings-label { font-size: 14px; color: var(–text-dim); }
-.savings-val {
-font-family: ‘Space Mono’, monospace;
-font-size: 14px;
-color: var(–text-bright);
-}
-
-.savings-val.green { color: var(–accent2); }
-.savings-val.big {
-font-size: 28px;
-font-family: ‘Barlow’, sans-serif;
-font-weight: 900;
-color: var(–accent2);
-}
-
-/* FOOTER */
-footer {
-border-top: 1px solid var(–border);
-padding: 32px 0;
-display: flex;
-justify-content: space-between;
-align-items: center;
-}
-
-.footer-logo {
-font-family: ‘Space Mono’, monospace;
-font-size: 14px;
-color: var(–accent);
-font-weight: 700;
-}
-
-.footer-note {
-font-size: 12px;
-color: var(–text-dim);
-}
-
-/* RESPONSIVE */
-@media (max-width: 900px) {
-.charts-grid { grid-template-columns: 1fr; }
-.charts-grid-3 { grid-template-columns: 1fr; }
-.savings-grid { grid-template-columns: 1fr; }
-}
-
-/* HIDDEN / VISIBLE */
-.dashboard-content { display: none; }
-.dashboard-content.active { display: block; }
-
-/* PROGRESS STEPS */
-.steps {
-display: flex;
-gap: 0;
-margin-bottom: 40px;
-}
-
-.step {
-flex: 1;
-padding: 12px 16px;
-background: var(–surface);
-border: 1px solid var(–border);
-border-right: none;
-font-family: ‘Space Mono’, monospace;
-font-size: 10px;
-color: var(–text-dim);
-letter-spacing: 1px;
-display: flex;
-align-items: center;
-gap: 8px;
-transition: all 0.3s;
-}
-
-.step:last-child { border-right: 1px solid var(–border); }
-.step.active { background: rgba(0,229,255,0.08); border-color: var(–accent); color: var(–accent); }
-.step.done { border-color: var(–accent2); color: var(–accent2); }
-
-.step-num {
-width: 20px; height: 20px;
-border: 1px solid currentColor;
-display: flex; align-items: center; justify-content: center;
-font-size: 10px;
-flex-shrink: 0;
-}
-
-/* SLIDER */
-.slider-group {
-margin-bottom: 16px;
-}
-
-.slider-label {
-display: flex;
-justify-content: space-between;
-font-size: 13px;
-margin-bottom: 8px;
-}
-
-.slider-label span:first-child { color: var(–text-dim); }
-.slider-label span:last-child {
-font-family: ‘Space Mono’, monospace;
-color: var(–accent);
-}
-
-input[type=range] {
-width: 100%;
--webkit-appearance: none;
-height: 2px;
-background: var(–border);
-outline: none;
-}
-
-input[type=range]::-webkit-slider-thumb {
--webkit-appearance: none;
-width: 16px; height: 16px;
-background: var(–accent);
-cursor: pointer;
-clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-}
-
-.demo-note {
-background: rgba(0,229,255,0.05);
-border: 1px solid rgba(0,229,255,0.2);
-border-left: 3px solid var(–accent);
-padding: 14px 18px;
-font-size: 13px;
-color: var(–text-dim);
-margin-bottom: 20px;
-font-family: ‘Space Mono’, monospace;
-}
-
-.demo-note strong { color: var(–accent); }
-</style>
-
-</head>
-<body>
-<div class="wrapper">
-
-<!-- HEADER -->
-
-<header>
-<div class="logo-block">
-<div class="logo">virtauto<span>.OS</span></div>
-<div class="module-tag">Energy Intelligence</div>
-</div>
-<div class="header-right">
-<div class="status-pill">
-<div class="status-dot"></div>
-PROOF OF CONCEPT — v0.1
-</div>
-</div>
-</header>
-
-<!-- HERO -->
-
-<div class="hero">
-<div class="hero-eyebrow">Industrial Energy Intelligence</div>
-<h1>Energieverschwendung<br>ist <em>messbar</em>.<br>Also ist sie <em>behebbar</em>.</h1>
-<p>Dieser Proof of Concept demonstriert, wie virtauto.OS Energieverbrauchsdaten einer Stahlindustrieanlage in Echtzeit analysiert, Anomalien erkennt und quantifizierbare Einsparpotenziale aufdeckt.</p>
-<div class="datasource">
-<strong>DATENSATZ</strong>
-UCI Machine Learning Repository — Steel Industry Energy Consumption
-&nbsp;·&nbsp; DAEWOO Steel Co. Ltd, Gwangyang, South Korea
-&nbsp;·&nbsp; 35.040 Datenpunkte &nbsp;·&nbsp; CC BY 4.0
-</div>
-</div>
-
-<!-- PROGRESS STEPS -->
-
-<div class="steps">
-<div class="step active" id="step1"><div class="step-num">1</div>DATEN LADEN</div>
-<div class="step" id="step2"><div class="step-num">2</div>ANALYSE</div>
-<div class="step" id="step3"><div class="step-num">3</div>KI-INSIGHT</div>
-<div class="step" id="step4"><div class="step-num">4</div>EINSPARPOTENZIAL</div>
-</div>
-
-<!-- UPLOAD -->
-
-<div class="upload-section" id="uploadSection">
-<div class="demo-note">
-<strong>ANLEITUNG:</strong> Laden Sie die CSV-Datei vom UCI Repository herunter:
-<a href="https://archive.ics.uci.edu/static/public/851/steel+industry+energy+consumption.zip"
-style="color:var(--accent)" target="_blank">steel+industry+energy+consumption.zip</a>
-→ entpacken → <strong>Steel_industry_data.csv</strong> hier hochladen.
-</div>
-
-```
-<div class="upload-zone" id="dropZone">
-<span class="upload-icon">⚡</span>
-<h3>Steel_industry_data.csv hochladen</h3>
-<p>Drag & Drop oder Datei auswählen<br>35.040 Zeilen · 9 Features · 2,6 MB</p>
-<input type="file" id="fileInput" accept=".csv">
-<button class="btn-primary" onclick="document.getElementById('fileInput').click()">
-▲ CSV DATEI LADEN
-</button>
-<div style="margin-top:16px">
-<button class="btn-secondary" onclick="loadDemoData()">◈ DEMO-MODUS (Simulierte Daten)</button>
-</div>
-</div>
-
-<div class="loading-bar" id="loadingBar">
-<div class="loading-track"><div class="loading-fill"></div></div>
-<div class="loading-text" id="loadingText">LADE DATENSATZ...</div>
-</div>
-```
-
-</div>
-
-<!-- DASHBOARD -->
-
-<div class="dashboard-content" id="dashboard">
-
-```
-<!-- KPIs -->
-<div class="section-header">
-<div class="section-label">// Übersicht</div>
-<div class="section-line"></div>
-</div>
-
-<div class="kpi-grid" id="kpiGrid">
-<div class="kpi-card" id="kpi1">
-<div class="kpi-label">Datenpunkte analysiert</div>
-<div class="kpi-value" id="kpiDatapoints">—</div>
-<div class="kpi-sub" id="kpiDateRange">Zeitraum wird geladen...</div>
-</div>
-<div class="kpi-card" id="kpi2">
-<div class="kpi-label">Ø Verbrauch / Intervall</div>
-<div class="kpi-value accent" id="kpiAvgKwh">—</div>
-<div class="kpi-sub">kWh pro 15-Minuten-Intervall</div>
-</div>
-<div class="kpi-card" id="kpi3">
-<div class="kpi-label">Peak-Verbrauch identifiziert</div>
-<div class="kpi-value hot" id="kpiPeak">—</div>
-<div class="kpi-sub" id="kpiPeakSub">Maximaler Einzelwert</div>
-</div>
-<div class="kpi-card" id="kpi4">
-<div class="kpi-label">Anomalien erkannt</div>
-<div class="kpi-value warn" id="kpiAnomalies">—</div>
-<div class="kpi-sub">Verbrauch &gt; 2σ über Mittelwert</div>
-<div class="kpi-badge" id="kpiAnomalyPct">—% der Zeitfenster</div>
-</div>
-<div class="kpi-card" id="kpi5">
-<div class="kpi-label">Leerlauf-Perioden (est.)</div>
-<div class="kpi-value accent" id="kpiIdle">—</div>
-<div class="kpi-sub">Verbrauch &lt; 20% des Peaks</div>
-</div>
-<div class="kpi-card" id="kpi6">
-<div class="kpi-label">CO₂-Äquivalent gesamt</div>
-<div class="kpi-value" id="kpiCO2">—</div>
-<div class="kpi-sub">tCO₂ im Messzeitraum</div>
-</div>
-</div>
-
-<!-- CHARTS ROW 1 -->
-<div class="section-header">
-<div class="section-label">// Verbrauchsprofil</div>
-<div class="section-line"></div>
-</div>
-
-<div class="charts-grid" style="margin-bottom:20px">
-<div class="chart-card" id="chart1card">
-<h3>// Energieverbrauch über Zeit (Sample)</h3>
-<canvas id="timeChart" height="220"></canvas>
-</div>
-<div class="chart-card" id="chart2card">
-<h3>// Lasttyp-Verteilung</h3>
-<canvas id="loadChart" height="220"></canvas>
-</div>
-</div>
-
-<div class="charts-grid-3">
-<div class="chart-card" id="chart3card">
-<h3>// Ø Verbrauch nach Wochentag</h3>
-<canvas id="weekdayChart" height="200"></canvas>
-</div>
-<div class="chart-card" id="chart4card">
-<h3>// Leistungsfaktor-Verteilung</h3>
-<canvas id="pfChart" height="200"></canvas>
-</div>
-<div class="chart-card" id="chart5card">
-<h3>// Verbrauch: Werktag vs. Wochenende</h3>
-<canvas id="weekendChart" height="200"></canvas>
-</div>
-</div>
-
-<!-- ANOMALY TABLE -->
-<div class="anomaly-section">
-<div class="section-header">
-<div class="section-label">// Anomalie-Detektion (Top 10)</div>
-<div class="section-line"></div>
-</div>
-<div style="overflow-x:auto">
-<table class="data-table" id="anomalyTable">
-<thead>
-<tr>
-<th>#</th>
-<th>Zeitstempel</th>
-<th>Verbrauch (kWh)</th>
-<th>Z-Score</th>
-<th>Leistungsfaktor</th>
-<th>Lasttyp</th>
-<th>Severity</th>
-</tr>
-</thead>
-<tbody id="anomalyBody"></tbody>
-</table>
-</div>
-</div>
-
-<!-- AI ANALYSIS -->
-<div class="ai-section">
-<div class="section-header">
-<div class="section-label">// KI-Analyse — virtauto Intelligence Engine</div>
-<div class="section-line"></div>
-</div>
-
-<div class="preset-questions">
-<button class="preset-btn" onclick="askPreset(0)">Welche Einsparpotenziale gibt es?</button>
-<button class="preset-btn" onclick="askPreset(1)">Erkläre die Anomalien im Datensatz</button>
-<button class="preset-btn" onclick="askPreset(2)">Wie hoch ist das CO₂-Einsparpotenzial?</button>
-<button class="preset-btn" onclick="askPreset(3)">Welche Maßnahmen haben höchsten ROI?</button>
-<button class="preset-btn" onclick="askPreset(4)">Übertragbarkeit auf BiW-Türfertigung?</button>
-</div>
-
-<div class="ai-prompt-bar">
-<input type="text" class="ai-input" id="aiQuery"
-placeholder="Fragen Sie die virtauto Intelligence Engine zu den Daten...">
-<button class="btn-primary" onclick="runAIAnalysis()" id="aiBtn">◈ ANALYSIEREN</button>
-</div>
-
-<div class="ai-output">
-<div class="ai-output-header">
-<div class="ai-badge">VIRTAUTO.OS INTELLIGENCE</div>
-<div class="ai-model-tag">powered by Claude · Anthropic</div>
-</div>
-<div id="aiResponse">
-<span class="placeholder-text">Laden Sie zunächst den Datensatz, dann können Sie Fragen stellen. Die KI analysiert die realen Verbrauchsdaten und generiert industriespezifische Handlungsempfehlungen.</span>
-</div>
-</div>
-</div>
-
-<!-- SAVINGS PROJECTION -->
-<div class="savings-section">
-<div class="section-header">
-<div class="section-label">// Einsparpotenzial-Kalkulator</div>
-<div class="section-line"></div>
-</div>
-
-<div class="savings-grid">
-<div class="savings-card">
-<h3>Parameter anpassen</h3>
-
-<div class="slider-group">
-<div class="slider-label">
-<span>Installierte Kapazität (kW)</span>
-<span id="capLabel">500 kW</span>
-</div>
-<input type="range" id="capSlider" min="100" max="5000" value="500" step="100" oninput="updateSavings()">
-</div>
-
-<div class="slider-group">
-<div class="slider-label">
-<span>Jährliche Betriebsstunden</span>
-<span id="hoursLabel">6.000 h</span>
-</div>
-<input type="range" id="hoursSlider" min="2000" max="8760" value="6000" step="100" oninput="updateSavings()">
-</div>
-
-<div class="slider-group">
-<div class="slider-label">
-<span>Energiepreis (ct/kWh)</span>
-<span id="priceLabel">12 ct/kWh</span>
-</div>
-<input type="range" id="priceSlider" min="5" max="30" value="12" step="1" oninput="updateSavings()">
-</div>
-
-<div class="slider-group">
-<div class="slider-label">
-<span>Optimierungspotenzial</span>
-<span id="savingLabel">9%</span>
-</div>
-<input type="range" id="savingSlider" min="3" max="20" value="9" step="1" oninput="updateSavings()">
-</div>
-
-<div class="slider-group">
-<div class="slider-label">
-<span>Anzahl Linien / Werke</span>
-<span id="linesLabel">4 Linien</span>
-</div>
-<input type="range" id="linesSlider" min="1" max="100" value="4" step="1" oninput="updateSavings()">
-</div>
-</div>
-
-<div class="savings-card">
-<h3>Hochrechnung Einsparpotenzial</h3>
-<div class="savings-row">
-<span class="savings-label">Jahresverbrauch (gesamt)</span>
-<span class="savings-val" id="savTotalKwh">—</span>
-</div>
-<div class="savings-row">
-<span class="savings-label">Jahreskosten Energie</span>
-<span class="savings-val" id="savTotalCost">—</span>
-</div>
-<div class="savings-row">
-<span class="savings-label">Optimierungspotenzial</span>
-<span class="savings-val" id="savPct">—</span>
-</div>
-<div class="savings-row">
-<span class="savings-label">Einsparung pro Jahr</span>
-<span class="savings-val green" id="savPerYear">—</span>
-</div>
-<div class="savings-row">
-<span class="savings-label">CO₂-Reduktion (est.)</span>
-<span class="savings-val green" id="savCO2">—</span>
-</div>
-<div class="savings-row">
-<span class="savings-label">virtauto ROI-Share (18%)</span>
-<span class="savings-val" id="savShare">—</span>
-</div>
-<div class="savings-row" style="border-top: 2px solid var(--accent2); margin-top:8px; padding-top:16px">
-<span class="savings-label" style="font-weight:700; color:var(--text-bright)">GESAMTEINSPARUNG / JAHR</span>
-<span class="savings-val big" id="savTotal">—</span>
-</div>
-</div>
-</div>
-</div>
-```
-
-</div><!-- /dashboard -->
-
-<!-- FOOTER -->
-
-<footer>
-<div class="footer-logo">virtauto.OS</div>
-<div class="footer-note">
-Proof of Concept · Datensatz: UCI ML Repository, Steel Industry Energy Consumption (CC BY 4.0) ·
-KI: Claude by Anthropic
-</div>
-</footer>
-
-</div><!-- /wrapper -->
-
-<script>
-// ============================================================
-// STATE
-// ============================================================
-let parsedData = [];
-let stats = {};
-let charts = {};
-
-// ============================================================
-// FILE UPLOAD
-// ============================================================
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
-
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', e => {
-e.preventDefault();
-dropZone.classList.remove('drag-over');
-const file = e.dataTransfer.files[0];
-if (file) processFile(file);
-});
-fileInput.addEventListener('change', e => { if (e.target.files[0]) processFile(e.target.files[0]); });
-
-function processFile(file) {
-showLoading('PARSE CSV...');
-Papa.parse(file, {
-header: true,
-skipEmptyLines: true,
-complete: result => {
-showLoading('BERECHNE STATISTIKEN...');
-setTimeout(() => {
-parsedData = result.data;
-computeStats();
-
-
-  
-let decisionResults = [];
-
-const REDUCTION_FACTOR = 0.15;
-const ENERGY_PRICE_EUR_PER_KWH = 0.18;
-const CO2_FACTOR_KG_PER_KWH = 0.5;
-
-function num(row, key) {
-  return parseFloat(row[key] ?? row[key + ' '] ?? 0) || 0;
-}
-
-function val(row, key) {
-  return String(row[key] ?? row[key + ' '] ?? '').trim();
-}
-
-function normalizeLoadType(loadType) {
-  return loadType.replace(/\s+/g, '_');
-}
-
-function checkLoadGate(row) {
-  const loadType = normalizeLoadType(val(row, 'Load_Type'));
-  const pf = num(row, 'Lagging_Current_Power_Factor');
-
-  if (loadType === 'Maximum_Load') {
-    return {
-      gate: 'load_gate',
-      result: 'BLOCK',
-      reasoning: 'Maximum load window — no energy shift advisory is admissible.'
-    };
-  }
-
-  if (loadType === 'Medium_Load' && pf <= 75) {
-    return {
-      gate: 'load_gate',
-      result: 'HOLD',
-      reasoning: 'Medium load with insufficient power factor for advisory approval.'
-    };
-  }
-
-  if (loadType === 'Light_Load' || loadType === 'Medium_Load') {
-    return {
-      gate: 'load_gate',
-      result: 'PASS',
-      reasoning: `${loadType} is admissible for further checks.`
-    };
-  }
-
-  return {
-    gate: 'load_gate',
-    result: 'HOLD',
-    reasoning: 'Unknown load type — default HOLD.'
-  };
-}
-
-function checkPowerFactorGate(row) {
-  const pf = num(row, 'Lagging_Current_Power_Factor');
-
-  if (pf < 60) {
-    return {
-      gate: 'power_factor_gate',
-      result: 'HOLD',
-      reasoning: `Lagging power factor too low (${pf.toFixed(1)}%).`
-    };
-  }
-
-  return {
-    gate: 'power_factor_gate',
-    result: 'PASS',
-    reasoning: `Lagging power factor acceptable (${pf.toFixed(1)}%).`
-  };
-}
-
-function checkReactivePowerGate(row) {
-  const usage = num(row, 'Usage_kWh');
-  const reactive = num(row, 'Lagging_Current_Reactive.Power_kVarh');
-
-  if (usage <= 0) {
-    return {
-      gate: 'reactive_power_gate',
-      result: 'HOLD',
-      reasoning: 'Usage value missing or zero — default HOLD.'
-    };
-  }
-
-  if (reactive > 2 * usage) {
-    return {
-      gate: 'reactive_power_gate',
-      result: 'HOLD',
-      reasoning: 'Reactive power is too high relative to active energy usage.'
-    };
-  }
-
-  return {
-    gate: 'reactive_power_gate',
-    result: 'PASS',
-    reasoning: 'Reactive power within admissible bounds.'
-  };
-}
-
-function checkTimeWindowGate(row) {
-  const nsm = num(row, 'NSM');
-
-  if (nsm < 21600) {
-    return {
-      gate: 'time_window_gate',
-      result: 'PASS',
-      reasoning: 'Off-peak window before 06:00.'
-    };
-  }
-
-  if (nsm >= 79200) {
-    return {
-      gate: 'time_window_gate',
-      result: 'PASS',
-      reasoning: 'Late-night window after 22:00.'
-    };
-  }
-
-  return {
-    gate: 'time_window_gate',
-    result: 'HOLD',
-    reasoning: 'On-peak production window — no advisory.'
-  };
-}
-
-function checkWeekendGate(row) {
-  const weekStatus = val(row, 'WeekStatus');
-
-  if (weekStatus === 'Weekend') {
-    return {
-      gate: 'weekend_gate',
-      result: 'HOLD',
-      reasoning: 'Weekend production context requires separate analysis.'
-    };
-  }
-
-  return {
-    gate: 'weekend_gate',
-    result: 'PASS',
-    reasoning: 'Weekday context.'
-  };
-}
-
-function runAdmissibility(row) {
-  const gates = [
-    checkLoadGate(row),
-    checkPowerFactorGate(row),
-    checkReactivePowerGate(row),
-    checkTimeWindowGate(row),
-    checkWeekendGate(row)
-  ];
-
-  let overall = 'PASS';
-
-  if (gates.some(g => g.result === 'BLOCK')) {
-    overall = 'BLOCK';
-  } else if (gates.some(g => g.result === 'HOLD')) {
-    overall = 'HOLD';
-  }
-
-  return { gates, overall };
-}
-
-function computeBusinessCase(row, decision) {
-  if (decision !== 'ALLOW') {
-    return {
-      saving_kwh: 0,
-      saving_eur: 0,
-      saving_co2_kg: 0
-    };
-  }
-
-  const usage = num(row, 'Usage_kWh');
-  const savingKwh = usage * REDUCTION_FACTOR;
-
-  return {
-    saving_kwh: Number(savingKwh.toFixed(3)),
-    saving_eur: Number((savingKwh * ENERGY_PRICE_EUR_PER_KWH).toFixed(3)),
-    saving_co2_kg: Number((savingKwh * CO2_FACTOR_KG_PER_KWH).toFixed(3))
-  };
-}
-
-function runDecisionLayer(row, index) {
-  const admissibility = runAdmissibility(row);
-
-  const decision =
-    admissibility.overall === 'PASS'
-      ? 'ALLOW'
-      : admissibility.overall;
-
-  const businessCase = computeBusinessCase(row, decision);
-
-  const reasoning = admissibility.gates
-    .map(g => `${g.gate}: ${g.result} — ${g.reasoning}`)
-    .join(' | ');
-
-  return {
-    trace_id: `VA-STEEL-2018-${String(index + 1).padStart(5, '0')}`,
-    dataset: 'UCI Steel Industry Energy Consumption (DAEWOO, 2018)',
-    timestamp: val(row, 'date'),
-    signals: {
-      Usage_kWh: num(row, 'Usage_kWh'),
-      Load_Type: normalizeLoadType(val(row, 'Load_Type')),
-      Lagging_Current_Power_Factor: num(row, 'Lagging_Current_Power_Factor'),
-      Lagging_Current_Reactive_Power_kVarh: num(row, 'Lagging_Current_Reactive.Power_kVarh'),
-      CO2_tCO2: num(row, 'CO2(tCO2)'),
-      NSM: num(row, 'NSM'),
-      WeekStatus: val(row, 'WeekStatus')
-    },
-    admissibility: {
-      gates: admissibility.gates,
-      overall: admissibility.overall
-    },
-    decision,
-    reasoning,
-    business_case: businessCase,
-    governance: {
-      mode: 'advisory-only',
-      operator_review_required: true,
-      write_access: false,
-      execution: 'none'
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Real Data PoC — Steel Energy Decision Layer · virtauto®</title>
+  <link rel="canonical" href="https://www.virtauto.de/energy-steel.html" />
+  <meta name="description" content="virtauto Real Data PoC: real industrial steel energy data processed through a governed Decision Layer with ALLOW, HOLD and BLOCK outputs." />
+
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/styles_unify.css" />
+
+  <script defer src="assets/site.js"></script>
+  <script defer src="assets/agent-status.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Barlow:wght@300;400;500;600;700;900&display=swap');
+
+    :root {
+      --poc-bg: #050a0e;
+      --poc-surface: #0a1318;
+      --poc-surface2: #0f1e26;
+      --poc-border: #1a3040;
+      --poc-accent: #00e5ff;
+      --poc-green: #00ff88;
+      --poc-orange: #ff6b35;
+      --poc-warn: #ffd23f;
+      --poc-text: #c8dde8;
+      --poc-dim: #7f96a5;
+      --poc-bright: #ffffff;
     }
-  };
-}
-
-function runDecisionLayerForDataset() {
-  decisionResults = parsedData.map((row, index) => runDecisionLayer(row, index));
-}  
-  
-renderDashboard();
-}, 300);
-}
-});
-}
-
-// ============================================================
-// DEMO DATA GENERATOR
-// ============================================================
-function loadDemoData() {
-showLoading('GENERIERE DEMO-DATENSATZ...');
-setTimeout(() => {
-parsedData = generateDemoData();
-computeStats();
-renderDashboard();
-}, 800);
-}
-
-function generateDemoData() {
-const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-const loadTypes = ['Light_Load','Medium_Load','Maximum_Load'];
-const data = [];
-const start = new Date('2018-01-01');
-
-for (let i = 0; i < 35040; i++) {
-const d = new Date(start.getTime() + i * 15 * 60000);
-const hour = d.getHours();
-const dayIdx = d.getDay();
-const isWeekend = dayIdx === 0 || dayIdx === 6;
-const dayName = days[dayIdx === 0 ? 6 : dayIdx - 1];
-
-// Realistic energy pattern
-let baseLoad = isWeekend ? 15 : 35;
-let timeMultiplier = 1;
-if (hour >= 6 && hour < 8) timeMultiplier = 1.5;
-else if (hour >= 8 && hour < 18) timeMultiplier = 2.2 + Math.random() * 0.8;
-else if (hour >= 18 && hour < 22) timeMultiplier = 1.4;
-else timeMultiplier = 0.6;
-
-const noise = (Math.random() - 0.5) * 8;
-const spike = Math.random() < 0.02 ? Math.random() * 80 : 0;
-const usage = Math.max(1, baseLoad * timeMultiplier + noise + spike);
-
-const lagPF = 70 + Math.random() * 25;
-const leadPF = 85 + Math.random() * 14;
-const lagReactive = usage * (1 - lagPF/100) * 10;
-const leadReactive = usage * (1 - leadPF/100) * 3;
-
-let loadType;
-if (usage < 25) loadType = 'Light_Load';
-else if (usage < 55) loadType = 'Medium_Load';
-else loadType = 'Maximum_Load';
-
-const month = d.getMonth();
-const co2Factor = 0.0004 + (month >= 10 || month <= 2 ? 0.0001 : 0);
-
-data.push({
-'date': d.toISOString().replace('T', ' ').substring(0, 16),
-'Usage_kWh': usage.toFixed(4),
-'Lagging_Current_Reactive.Power_kVarh': lagReactive.toFixed(4),
-'Leading_Current_Reactive_Power_kVarh': leadReactive.toFixed(4),
-'CO2(tCO2)': (usage * co2Factor).toFixed(4),
-'Lagging_Current_Power_Factor': lagPF.toFixed(4),
-'Leading_Current_Power_Factor': leadPF.toFixed(4),
-'NSM': (hour * 3600 + d.getMinutes() * 60),
-'WeekStatus': isWeekend ? 'Weekend' : 'Weekday',
-'Day_of_week': dayName,
-'Load_Type': loadType
-});
-}
-return data;
-}
-
-// ============================================================
-// STATISTICS
-// ============================================================
-function computeStats() {
-showLoading('ANOMALIE-DETEKTION...');
-const usages = parsedData.map(r => parseFloat(r['Usage_kWh'] || r['Usage_kWh ']) || 0);
-const co2s = parsedData.map(r => parseFloat(r['CO2(tCO2)']) || 0);
-const lagPFs = parsedData.map(r => parseFloat(r['Lagging_Current_Power_Factor']) || 0);
-
-const mean = usages.reduce((a,b)=>a+b,0) / usages.length;
-const variance = usages.reduce((a,b)=>a+Math.pow(b-mean,2),0) / usages.length;
-const std = Math.sqrt(variance);
-const max = Math.max(...usages);
-const totalCO2 = co2s.reduce((a,b)=>a+b,0);
-
-// Anomalies: Z-score > 2
-const anomalies = parsedData
-.map((r,i) => ({ ...r, usage: usages[i], z: (usages[i]-mean)/std, idx: i }))
-.filter(r => r.z > 2)
-.sort((a,b) => b.z - a.z);
-
-// Load type distribution
-const loadDist = { 'Light_Load': 0, 'Medium_Load': 0, 'Maximum_Load': 0 };
-parsedData.forEach(r => {
-const lt = r['Load_Type'] || r['Load_Type '] || '';
-if (loadDist[lt] !== undefined) loadDist[lt]++;
-});
-
-// By weekday
-const dayOrder = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-const dayTotals = {}, dayCounts = {};
-dayOrder.forEach(d => { dayTotals[d] = 0; dayCounts[d] = 0; });
-parsedData.forEach((r,i) => {
-const day = r['Day_of_week'] || '';
-if (dayTotals[day] !== undefined) {
-dayTotals[day] += usages[i];
-dayCounts[day]++;
-}
-});
-const dayAvgs = dayOrder.map(d => dayCounts[d] > 0 ? dayTotals[d]/dayCounts[d] : 0);
-
-// Weekend vs weekday
-let wdTotal=0, wdCount=0, weTotal=0, weCount=0;
-parsedData.forEach((r,i) => {
-if ((r['WeekStatus']||'').trim() === 'Weekday') { wdTotal+=usages[i]; wdCount++; }
-else { weTotal+=usages[i]; weCount++; }
-});
-
-// PF histogram
-const pfBuckets = Array(10).fill(0);
-lagPFs.forEach(pf => {
-const bucket = Math.min(9, Math.floor(pf/10));
-pfBuckets[bucket]++;
-});
-
-// Idle count
-const idleCount = usages.filter(u => u < max * 0.2).length;
-
-stats = {
-count: usages.length,
-mean, std, max, totalCO2,
-anomalies,
-loadDist,
-dayAvgs,
-dayOrder,
-wdAvg: wdCount > 0 ? wdTotal/wdCount : 0,
-weAvg: weCount > 0 ? weTotal/weCount : 0,
-pfBuckets,
-idleCount,
-usages,
-// Time series sample: every 96th point = daily sample
-timeSample: parsedData.filter((_,i) => i % 96 === 0).slice(0, 365),
-usageSample: usages.filter((_,i) => i % 96 === 0).slice(0, 365),
-dates: parsedData.map(r => r['date'] || r['date ']).filter((_,i) => i%96===0).slice(0,365)
-};
-}
-
-// ============================================================
-// RENDER
-// ============================================================
-function renderDashboard() {
-showLoading('VISUALISIERUNG...');
-setTimeout(() => {
-hideLoading();
-document.getElementById('uploadSection').style.display = 'none';
-document.getElementById('dashboard').classList.add('active');
-
-markStep(1, true); markStep(2, true); setActiveStep(3);
-
-runDecisionLayerForDataset();
-updateDecisionLayerView();
-
-function updateDecisionLayerView() {
-  const allow = decisionResults.filter(r => r.decision === 'ALLOW');
-  const hold = decisionResults.filter(r => r.decision === 'HOLD');
-  const block = decisionResults.filter(r => r.decision === 'BLOCK');
-
-  const totalSavingEur = allow.reduce((sum, r) => sum + r.business_case.saving_eur, 0);
-
-  document.getElementById('decisionAllow').textContent = allow.length.toLocaleString('en-US');
-  document.getElementById('decisionHold').textContent = hold.length.toLocaleString('en-US');
-  document.getElementById('decisionBlock').textContent = block.length.toLocaleString('en-US');
-  document.getElementById('decisionSavings').textContent = totalSavingEur.toFixed(2) + ' €';
-
-  const sample =
-    allow[0] ||
-    hold[0] ||
-    block[0];
-
-  document.getElementById('decisionTraceSample').textContent =
-    JSON.stringify(sample, null, 2);
-}
-  
-updateKPIs();
-renderCharts();
-renderAnomalyTable();
-updateSavings();
-
-// Stagger card animations
-document.querySelectorAll('.kpi-card').forEach((c,i) => {
-setTimeout(() => c.classList.add('visible'), i*80);
-});
-document.querySelectorAll('.chart-card').forEach((c,i) => {
-setTimeout(() => c.classList.add('visible'), i*120 + 300);
-});
-}, 400);
-}
-
-function updateKPIs() {
-document.getElementById('kpiDatapoints').textContent = stats.count.toLocaleString('de-DE');
-document.getElementById('kpiAvgKwh').textContent = stats.mean.toFixed(1);
-document.getElementById('kpiPeak').textContent = stats.max.toFixed(1) + ' kWh';
-document.getElementById('kpiAnomalies').textContent = stats.anomalies.length.toLocaleString('de-DE');
-document.getElementById('kpiAnomalyPct').textContent = (stats.anomalies.length/stats.count*100).toFixed(1)+'% der Zeitfenster';
-document.getElementById('kpiIdle').textContent = stats.idleCount.toLocaleString('de-DE');
-document.getElementById('kpiCO2').textContent = stats.totalCO2.toFixed(1) + ' t';
-document.getElementById('kpiDateRange').textContent = (stats.timeSample[0]?.['date'] || '') + ' – ' + (stats.timeSample[stats.timeSample.length-1]?.['date'] || '');
-}
-
-function renderCharts() {
-const ACCENT = '#00e5ff';
-const ACCENT2 = '#00ff88';
-const ACCENT3 = '#ff6b35';
-const WARN = '#ffd23f';
-const GRID = 'rgba(26,48,64,0.8)';
-const LABEL = '#5a7a8a';
-
-Chart.defaults.color = LABEL;
-Chart.defaults.borderColor = GRID;
-
-// TIME SERIES
-if (charts.time) charts.time.destroy();
-charts.time = new Chart(document.getElementById('timeChart'), {
-type: 'line',
-data: {
-labels: stats.dates,
-datasets: [{
-label: 'Verbrauch (kWh)',
-data: stats.usageSample,
-borderColor: ACCENT,
-backgroundColor: 'rgba(0,229,255,0.06)',
-borderWidth: 1.5,
-pointRadius: 0,
-fill: true,
-tension: 0.3
-}]
-},
-options: {
-responsive: true,
-plugins: { legend: { display: false } },
-scales: {
-x: { ticks: { maxTicksLimit: 8, font: { family: 'Space Mono', size: 9 } } },
-y: { ticks: { font: { family: 'Space Mono', size: 9 } } }
-}
-}
-});
-
-// LOAD DISTRIBUTION
-if (charts.load) charts.load.destroy();
-charts.load = new Chart(document.getElementById('loadChart'), {
-type: 'doughnut',
-data: {
-labels: ['Light Load', 'Medium Load', 'Max Load'],
-datasets: [{
-data: [
-stats.loadDist['Light_Load'],
-stats.loadDist['Medium_Load'],
-stats.loadDist['Maximum_Load']
-],
-backgroundColor: [ACCENT2, WARN, ACCENT3],
-borderColor: '#050a0e',
-borderWidth: 3
-}]
-},
-options: {
-responsive: true,
-plugins: {
-legend: { position: 'bottom', labels: { font: { family: 'Space Mono', size: 10 }, padding: 12 } }
-}
-}
-});
-
-// WEEKDAY
-if (charts.weekday) charts.weekday.destroy();
-charts.weekday = new Chart(document.getElementById('weekdayChart'), {
-type: 'bar',
-data: {
-labels: ['Mo','Di','Mi','Do','Fr','Sa','So'],
-datasets: [{
-data: stats.dayAvgs,
-backgroundColor: stats.dayOrder.map((_,i) => i < 5 ? 'rgba(0,229,255,0.7)' : 'rgba(255,107,53,0.7)'),
-borderWidth: 0,
-borderRadius: 2
-}]
-},
-options: {
-responsive: true,
-plugins: { legend: { display: false } },
-scales: {
-x: { ticks: { font: { family: 'Space Mono', size: 9 } } },
-y: { ticks: { font: { family: 'Space Mono', size: 9 } } }
-}
-}
-});
-
-// POWER FACTOR HISTOGRAM
-if (charts.pf) charts.pf.destroy();
-charts.pf = new Chart(document.getElementById('pfChart'), {
-type: 'bar',
-data: {
-labels: ['0-10','10-20','20-30','30-40','40-50','50-60','60-70','70-80','80-90','90-100'],
-datasets: [{
-data: stats.pfBuckets,
-backgroundColor: 'rgba(0,255,136,0.6)',
-borderWidth: 0,
-borderRadius: 2
-}]
-},
-options: {
-responsive: true,
-plugins: { legend: { display: false } },
-scales: {
-x: { ticks: { font: { family: 'Space Mono', size: 8 }, maxRotation: 45 } },
-y: { ticks: { font: { family: 'Space Mono', size: 9 } } }
-}
-}
-});
-
-// WEEKEND vs WEEKDAY
-if (charts.weekend) charts.weekend.destroy();
-charts.weekend = new Chart(document.getElementById('weekendChart'), {
-type: 'bar',
-data: {
-labels: ['Werktag', 'Wochenende'],
-datasets: [{
-data: [stats.wdAvg, stats.weAvg],
-backgroundColor: ['rgba(0,229,255,0.7)', 'rgba(255,107,53,0.7)'],
-borderWidth: 0,
-borderRadius: 4
-}]
-},
-options: {
-responsive: true,
-plugins: { legend: { display: false } },
-scales: {
-x: { ticks: { font: { family: 'Space Mono', size: 10 } } },
-y: {
-ticks: { font: { family: 'Space Mono', size: 9 } },
-title: { display: true, text: 'Ø kWh', font: { family: 'Space Mono', size: 9 }, color: LABEL }
-}
-}
-}
-});
-}
-
-function renderAnomalyTable() {
-const tbody = document.getElementById('anomalyBody');
-tbody.innerHTML = '';
-stats.anomalies.slice(0,10).forEach((r,i) => {
-const z = r.z;
-let severity, tag;
-if (z > 4) { severity = 'severity-high'; tag = '<span class="tag tag-high">KRITISCH</span>'; }
-else if (z > 3) { severity = 'severity-medium'; tag = '<span class="tag tag-medium">HOCH</span>'; }
-else { severity = 'severity-low'; tag = '<span class="tag tag-low">MITTEL</span>'; }
-
-const lt = r['Load_Type'] || r['Load_Type '] || '—';
-const pf = parseFloat(r['Lagging_Current_Power_Factor']||0).toFixed(1);
-
-tbody.innerHTML += `
-<tr>
-<td>${i+1}</td>
-<td>${r['date']||'—'}</td>
-<td class="${severity}">${r.usage.toFixed(2)} kWh</td>
-<td class="${severity}">${z.toFixed(2)}σ</td>
-<td>${pf}%</td>
-<td>${lt.replace('_',' ')}</td>
-<td>${tag}</td>
-</tr>`;
-});
-}
-
-// ============================================================
-// SAVINGS CALCULATOR
-// ============================================================
-function updateSavings() {
-const cap = parseInt(document.getElementById('capSlider').value);
-const hours = parseInt(document.getElementById('hoursSlider').value);
-const price = parseInt(document.getElementById('priceSlider').value);
-const savPct = parseInt(document.getElementById('savingSlider').value);
-const lines = parseInt(document.getElementById('linesSlider').value);
-
-document.getElementById('capLabel').textContent = cap.toLocaleString('de-DE') + ' kW';
-document.getElementById('hoursLabel').textContent = hours.toLocaleString('de-DE') + ' h';
-document.getElementById('priceLabel').textContent = price + ' ct/kWh';
-document.getElementById('savingLabel').textContent = savPct + '%';
-document.getElementById('linesLabel').textContent = lines + (lines === 1 ? ' Linie' : ' Linien');
-
-const totalKwh = cap * hours * lines;
-const totalCost = totalKwh * price / 100;
-const saving = totalCost * savPct / 100;
-const co2Saving = totalKwh * savPct / 100 * 0.000400; // 400g CO2/kWh EU-Mix
-const share = saving * 0.18;
-
-document.getElementById('savTotalKwh').textContent = (totalKwh/1e6).toFixed(2) + ' GWh/a';
-document.getElementById('savTotalCost').textContent = formatEur(totalCost);
-document.getElementById('savPct').textContent = savPct + '%';
-document.getElementById('savPerYear').textContent = formatEur(saving);
-document.getElementById('savCO2').textContent = co2Saving.toFixed(1) + ' tCO₂/a';
-document.getElementById('savShare').textContent = formatEur(share);
-document.getElementById('savTotal').textContent = formatEur(saving);
-}
-
-function formatEur(val) {
-if (val >= 1e6) return (val/1e6).toFixed(2) + ' Mio. €';
-if (val >= 1e3) return (val/1e3).toFixed(1) + ' T€';
-return val.toFixed(0) + ' €';
-}
-
-// ============================================================
-// AI ANALYSIS
-// ============================================================
-const presets = [
-'Analysiere die Energieverbrauchsdaten dieser Stahlanlage und identifiziere die drei wichtigsten Einsparpotenziale mit konkreten Prozentsätzen und Maßnahmen.',
-'Erkläre die Anomalien in diesem Industriedatensatz: Was verursacht typischerweise extreme Lastspitzen (Z-Score > 3) in der Stahlindustrie, und wie kann ein KI-System diese präventiv erkennen?',
-'Berechne das CO₂-Einsparpotenzial dieser Anlage und erkläre, wie virtauto.OS die Ergebnisse für CSRD-Reporting und EU-Taxonomie nutzbar macht.',
-'Welche drei Optimierungsmaßnahmen haben in einer Stahl- bzw. BiW-Fertigung den höchsten ROI bei Energieeinsparung? Nenne konkrete Zahlen.',
-'Erkläre, wie die Erkenntnisse aus diesem Stahlindustrie-Datensatz direkt auf eine BiW-Türfertigung (Bodyshop) eines OEMs übertragen werden können. Was ist ähnlich, was ist anders?'
-];
-
-function askPreset(idx) {
-document.getElementById('aiQuery').value = presets[idx];
-runAIAnalysis();
-}
-
-async function runAIAnalysis() {
-if (!stats.count) {
-document.getElementById('aiResponse').innerHTML = '<span class="placeholder-text">Bitte zuerst Datensatz laden.</span>';
-return;
-}
-
-const query = document.getElementById('aiQuery').value.trim();
-if (!query) return;
-
-markStep(3, true); setActiveStep(4);
-
-const btn = document.getElementById('aiBtn');
-btn.disabled = true;
-btn.textContent = '◈ ANALYSIERE...';
-
-const responseEl = document.getElementById('aiResponse');
-responseEl.innerHTML = '<span class="ai-cursor"></span>';
-
-// Build context summary
-const ctx = `
-Du bist die virtauto.OS Intelligence Engine — ein industrielles KI-System spezialisiert auf Energieoptimierung in der Fertigungsindustrie.
-
-DATENSATZ-KONTEXT:
-- Quelle: UCI ML Repository — Steel Industry Energy Consumption (DAEWOO Steel, Südkorea)
-- Datenpunkte: ${stats.count.toLocaleString('de-DE')} (15-Minuten-Intervalle)
-- Zeitraum: ca. 1 Jahr
-- Durchschnittlicher Verbrauch: ${stats.mean.toFixed(2)} kWh / Intervall
-- Peak-Verbrauch: ${stats.max.toFixed(2)} kWh
-- Anomalien erkannt (Z>2σ): ${stats.anomalies.length} Datenpunkte (${(stats.anomalies.length/stats.count*100).toFixed(1)}%)
-- Lastverteilung: Light=${stats.loadDist['Light_Load']}, Medium=${stats.loadDist['Medium_Load']}, Max=${stats.loadDist['Maximum_Load']}
-- Ø Werktag: ${stats.wdAvg.toFixed(2)} kWh | Ø Wochenende: ${stats.weAvg.toFixed(2)} kWh
-- CO₂ gesamt: ${stats.totalCO2.toFixed(1)} tCO₂
-- Leerlauf-Perioden (<20% Peak): ${stats.idleCount.toLocaleString('de-DE')} Intervalle
-
-KONTEXT: Diese Analyse dient als Proof of Concept für virtauto.OS, das Industrial Operating System für die Automobilindustrie (BiW-Fertigung, Karosseriebau). Ziel: Demonstration von 8-10% Energieeinsparung für einen OEM-Pilot.
-
-Antworte präzise, faktenbasiert, auf Deutsch. Sei direkt und unternehmerisch. Nutze konkrete Zahlen aus den Daten. Max. 300 Wörter.
-`.trim();
-
-try {
-const response = await fetch('https://api.anthropic.com/v1/messages', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({
-model: 'claude-sonnet-4-20250514',
-max_tokens: 1000,
-system: ctx,
-messages: [{ role: 'user', content: query }]
-})
-});
-
-const data = await response.json();
-const text = data.content?.map(b => b.text||'').join('') || 'Keine Antwort erhalten.';
-
-// Typewriter effect
-responseEl.textContent = '';
-let i = 0;
-const cursor = document.createElement('span');
-cursor.className = 'ai-cursor';
-
-const typeInterval = setInterval(() => {
-if (i < text.length) {
-responseEl.textContent += text[i];
-responseEl.appendChild(cursor);
-i++;
-} else {
-clearInterval(typeInterval);
-cursor.remove();
-btn.disabled = false;
-btn.textContent = '◈ ANALYSIEREN';
-markStep(4, true);
-}
-}, 12);
-
-} catch(err) {
-responseEl.innerHTML = `<span style="color:var(--accent3)">API-Fehler: ${err.message}<br><br>Stellen Sie sicher, dass Sie mit dem Internet verbunden sind und die API verfügbar ist.</span>`;
-btn.disabled = false;
-btn.textContent = '◈ ANALYSIEREN';
-}
-}
-
-// ============================================================
-// UI HELPERS
-// ============================================================
-function showLoading(msg) {
-document.getElementById('loadingBar').classList.add('active');
-document.getElementById('loadingText').textContent = msg;
-}
-
-function hideLoading() {
-document.getElementById('loadingBar').classList.remove('active');
-}
-
-function markStep(n, done) {
-const el = document.getElementById('step'+n);
-el.classList.remove('active');
-if (done) el.classList.add('done');
-}
-
-function setActiveStep(n) {
-const el = document.getElementById('step'+n);
-if(el) { el.classList.remove('done'); el.classList.add('active'); }
-}
-
-// Init savings display
-updateSavings();
-</script>
 
+    body {
+      background: var(--bg, #070b14);
+      color: var(--poc-text);
+      overflow-x: hidden;
+    }
+
+    .poc-page {
+      position: relative;
+      z-index: 1;
+      padding-bottom: 64px;
+    }
+
+    .poc-page::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .poc-shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .poc-hero {
+      padding: 72px 0 48px;
+    }
+
+    .poc-eyebrow,
+    .section-label {
+      font-family: "Space Mono", monospace;
+      font-size: 11px;
+      color: var(--poc-accent);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .poc-hero h1 {
+      margin: 18px 0;
+      max-width: 850px;
+      font-size: clamp(38px, 6vw, 72px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+      color: var(--poc-bright);
+    }
+
+    .poc-hero h1 em {
+      color: var(--poc-accent);
+      font-style: normal;
+    }
+
+    .poc-hero p {
+      max-width: 720px;
+      color: var(--poc-text);
+      font-size: 18px;
+      line-height: 1.65;
+    }
+
+    .datasource {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 26px;
+      padding: 12px 16px;
+      background: rgba(15, 30, 38, 0.9);
+      border: 1px solid var(--poc-border);
+      border-left: 3px solid var(--poc-accent);
+      font-family: "Space Mono", monospace;
+      font-size: 11px;
+      color: var(--poc-dim);
+    }
+
+    .datasource strong {
+      color: var(--poc-accent);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      margin: 0 0 40px;
+    }
+
+    .step {
+      padding: 14px 16px;
+      background: var(--poc-surface);
+      border: 1px solid var(--poc-border);
+      border-right: none;
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      color: var(--poc-dim);
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+      text-transform: uppercase;
+    }
+
+    .step:last-child {
+      border-right: 1px solid var(--poc-border);
+    }
+
+    .step.active {
+      background: rgba(0,229,255,0.08);
+      border-color: var(--poc-accent);
+      color: var(--poc-accent);
+    }
+
+    .step.done {
+      border-color: var(--poc-green);
+      color: var(--poc-green);
+    }
+
+    .step-num {
+      width: 20px;
+      height: 20px;
+      border: 1px solid currentColor;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .upload-section {
+      margin-bottom: 48px;
+    }
+
+    .demo-note {
+      background: rgba(0,229,255,0.05);
+      border: 1px solid rgba(0,229,255,0.2);
+      border-left: 3px solid var(--poc-accent);
+      padding: 16px 18px;
+      font-size: 13px;
+      color: var(--poc-text);
+      margin-bottom: 20px;
+      font-family: "Space Mono", monospace;
+      line-height: 1.7;
+    }
+
+    .demo-note strong {
+      color: var(--poc-accent);
+    }
+
+    .demo-note a {
+      color: var(--poc-accent);
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--poc-border);
+      background: var(--poc-surface);
+      padding: 48px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--poc-accent);
+      background: rgba(0,229,255,0.04);
+    }
+
+    .upload-icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .upload-zone h3 {
+      font-size: 22px;
+      color: var(--poc-bright);
+      margin-bottom: 8px;
+    }
+
+    .upload-zone p {
+      color: var(--poc-dim);
+      font-size: 15px;
+      margin-bottom: 22px;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      font-family: "Space Mono", monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      border-radius: 12px;
+    }
+
+    .btn-primary {
+      background: var(--poc-accent);
+      color: #001018;
+      border: 1px solid var(--poc-accent);
+    }
+
+    .btn-primary:hover {
+      background: var(--poc-green);
+      border-color: var(--poc-green);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--poc-accent);
+      border: 1px solid var(--poc-accent);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0,229,255,0.1);
+    }
+
+    .loading-bar {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .loading-bar.active {
+      display: block;
+    }
+
+    .loading-track {
+      height: 2px;
+      background: var(--poc-border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .loading-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--poc-accent), var(--poc-green));
+      animation: loadSweep 1.5s ease-in-out infinite;
+    }
+
+    @keyframes loadSweep {
+      0% { width: 0%; margin-left: 0; }
+      50% { width: 60%; margin-left: 20%; }
+      100% { width: 0%; margin-left: 100%; }
+    }
+
+    .loading-text {
+      font-family: "Space Mono", monospace;
+      font-size: 11px;
+      color: var(--poc-accent);
+      margin-top: 10px;
+      letter-spacing: 1px;
+    }
+
+    .dashboard-content {
+      display: none;
+    }
+
+    .dashboard-content.active {
+      display: block;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 42px 0 20px;
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--poc-border);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .kpi-card {
+      background: var(--poc-surface);
+      border: 1px solid var(--poc-border);
+      border-top: 2px solid var(--poc-accent);
+      padding: 22px 18px;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
+
+    .kpi-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .kpi-label {
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      color: var(--poc-dim);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .kpi-value {
+      font-weight: 900;
+      font-size: 34px;
+      color: var(--poc-bright);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value.accent,
+    .kpi-value.green {
+      color: var(--poc-green);
+    }
+
+    .kpi-value.warn {
+      color: var(--poc-warn);
+    }
+
+    .kpi-value.hot {
+      color: var(--poc-orange);
+    }
+
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--poc-dim);
+    }
+
+    .kpi-badge {
+      display: inline-block;
+      margin-top: 8px;
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      padding: 2px 8px;
+      background: rgba(0,255,136,0.1);
+      color: var(--poc-green);
+      border: 1px solid rgba(0,255,136,0.3);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .charts-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .chart-card,
+    .savings-card,
+    .ai-output {
+      background: var(--poc-surface);
+      border: 1px solid var(--poc-border);
+      padding: 24px;
+      border-radius: 16px;
+    }
+
+    .chart-card {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: all 0.6s ease;
+    }
+
+    .chart-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .chart-card h3,
+    .savings-card h3 {
+      font-family: "Space Mono", monospace;
+      font-size: 11px;
+      color: var(--poc-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .chart-card canvas {
+      width: 100% !important;
+    }
+
+    .trace-box {
+      background: #060b10;
+      border: 1px solid var(--poc-border);
+      padding: 18px;
+      overflow: auto;
+      border-radius: 16px;
+      font-family: "Space Mono", monospace;
+      font-size: 12px;
+      color: var(--poc-text);
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    .trace-box pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .ai-section,
+    .anomaly-section,
+    .savings-section {
+      margin-bottom: 48px;
+    }
+
+    .ai-prompt-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      align-items: stretch;
+    }
+
+    .ai-input {
+      flex: 1;
+      background: var(--poc-surface);
+      border: 1px solid var(--poc-border);
+      color: var(--poc-bright);
+      padding: 14px 18px;
+      font-size: 14px;
+      outline: none;
+      border-radius: 12px;
+    }
+
+    .ai-input:focus {
+      border-color: var(--poc-accent);
+    }
+
+    .ai-output {
+      border-left: 3px solid var(--poc-green);
+      min-height: 160px;
+    }
+
+    .ai-output-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ai-badge {
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      background: rgba(0,255,136,0.1);
+      color: var(--poc-green);
+      border: 1px solid rgba(0,255,136,0.3);
+      padding: 3px 10px;
+      letter-spacing: 1px;
+    }
+
+    .ai-model-tag {
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      color: var(--poc-dim);
+    }
+
+    #aiResponse {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--poc-text);
+      white-space: pre-wrap;
+    }
+
+    .placeholder-text {
+      color: var(--poc-dim);
+      font-style: italic;
+      font-size: 14px;
+    }
+
+    .preset-questions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .preset-btn {
+      background: transparent;
+      border: 1px solid var(--poc-border);
+      color: var(--poc-dim);
+      padding: 7px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 999px;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--poc-accent);
+      color: var(--poc-accent);
+      background: rgba(0,229,255,0.05);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: var(--poc-surface);
+      border: 1px solid var(--poc-border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .data-table th {
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      color: var(--poc-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--poc-border);
+      background: var(--poc-surface2);
+    }
+
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(26,48,64,0.5);
+      color: var(--poc-text);
+      font-family: "Space Mono", monospace;
+      font-size: 11px;
+    }
+
+    .severity-high {
+      color: var(--poc-orange);
+      font-weight: 700;
+    }
+
+    .severity-medium {
+      color: var(--poc-warn);
+    }
+
+    .severity-low {
+      color: var(--poc-green);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-family: "Space Mono", monospace;
+      border-radius: 999px;
+    }
+
+    .tag-high {
+      background: rgba(255,107,53,0.15);
+      color: var(--poc-orange);
+      border: 1px solid rgba(255,107,53,0.3);
+    }
+
+    .tag-medium {
+      background: rgba(255,210,63,0.15);
+      color: var(--poc-warn);
+      border: 1px solid rgba(255,210,63,0.3);
+    }
+
+    .tag-low {
+      background: rgba(0,255,136,0.1);
+      color: var(--poc-green);
+      border: 1px solid rgba(0,255,136,0.3);
+    }
+
+    .savings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .slider-group {
+      margin-bottom: 16px;
+    }
+
+    .slider-label,
+    .savings-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .slider-label {
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .slider-label span:first-child,
+    .savings-label {
+      color: var(--poc-dim);
+    }
+
+    .slider-label span:last-child,
+    .savings-val {
+      font-family: "Space Mono", monospace;
+      color: var(--poc-accent);
+    }
+
+    input[type=range] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 2px;
+      background: var(--poc-border);
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--poc-accent);
+      cursor: pointer;
+      border-radius: 50%;
+    }
+
+    .savings-row {
+      align-items: baseline;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--poc-border);
+    }
+
+    .savings-val.green,
+    .savings-val.big {
+      color: var(--poc-green);
+    }
+
+    .savings-val.big {
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .poc-footer {
+      border-top: 1px solid var(--poc-border);
+      padding: 32px 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+      color: var(--poc-dim);
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+
+    .footer-logo {
+      font-family: "Space Mono", monospace;
+      font-size: 14px;
+      color: var(--poc-accent);
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      .poc-shell {
+        padding: 0 20px;
+      }
+
+      .steps,
+      .charts-grid,
+      .charts-grid-3,
+      .savings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .step {
+        border-right: 1px solid var(--poc-border);
+      }
+
+      .ai-prompt-bar {
+        flex-direction: column;
+      }
+
+      .upload-zone {
+        padding: 34px 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="container nav">
+      <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+
+      <nav id="menu" class="menu">
+        <a href="index.html">Home</a>
+        <a href="industrymodel.html">Industry Model</a>
+        <a href="decision-model.html">Decision Model</a>
+        <a href="decision-demo.html">Decision Demo</a>
+        <a href="energy-optimization.html">Energy Advisory</a>
+        <a class="active" href="energy-steel.html">Real Data PoC</a>
+        <a href="pilot.html">Pilot</a>
+        <a href="/status/">Status</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+
+      <div class="agent-flag">Agentic Website</div>
+      <div id="agent-chips" class="agent-chips"></div>
+
+      <button class="burger" aria-label="Menu" type="button">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main class="poc-page">
+    <div class="poc-shell">
+      <section class="poc-hero">
+        <div class="poc-eyebrow">Real Data PoC — Steel Energy Decision Layer</div>
+        <h1>From industrial energy data to <em>governed decisions.</em></h1>
+        <p>
+          This Proof of Concept processes real industrial steel energy data through the virtauto Decision Layer and generates traceable ALLOW, HOLD and BLOCK outputs.
+        </p>
+
+        <div class="datasource">
+          <strong>DATASET</strong>
+          UCI Machine Learning Repository — Steel Industry Energy Consumption
+          &nbsp;·&nbsp; DAEWOO Steel Co. Ltd, Gwangyang, South Korea
+          &nbsp;·&nbsp; 35,040 data points &nbsp;·&nbsp; CC BY 4.0
+        </div>
+      </section>
+
+      <div class="steps">
+        <div class="step active" id="step1"><div class="step-num">1</div>Load Data</div>
+        <div class="step" id="step2"><div class="step-num">2</div>Analyze</div>
+        <div class="step" id="step3"><div class="step-num">3</div>Decision Layer</div>
+        <div class="step" id="step4"><div class="step-num">4</div>Business Case</div>
+      </div>
+
+      <section class="upload-section" id="uploadSection">
+        <div class="demo-note">
+          <strong>INSTRUCTION:</strong> Download the CSV file from the UCI Repository:
+          <a href="https://archive.ics.uci.edu/static/public/851/steel+industry+energy+consumption.zip" target="_blank" rel="noopener">steel+industry+energy+consumption.zip</a>
+          → unzip → upload <strong>Steel_industry_data.csv</strong> here.
+        </div>
+
+        <div class="upload-zone" id="dropZone">
+          <span class="upload-icon">⚡</span>
+          <h3>Upload Steel_industry_data.csv</h3>
+          <p>Drag & drop or select file<br />35,040 rows · 9 features · approx. 2.6 MB</p>
+          <input type="file" id="fileInput" accept=".csv" />
+          <button class="btn-primary" type="button" onclick="document.getElementById('fileInput').click()">▲ Load CSV File</button>
+          <div style="margin-top:16px">
+            <button class="btn-secondary" type="button" onclick="loadDemoData()">◈ Demo Mode</button>
+          </div>
+        </div>
+
+        <div class="loading-bar" id="loadingBar">
+          <div class="loading-track"><div class="loading-fill"></div></div>
+          <div class="loading-text" id="loadingText">Loading dataset...</div>
+        </div>
+      </section>
+
+      <section class="dashboard-content" id="dashboard">
+        <div class="section-header">
+          <div class="section-label">// Overview</div>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="kpi-grid" id="kpiGrid">
+          <div class="kpi-card" id="kpi1">
+            <div class="kpi-label">Data points analyzed</div>
+            <div class="kpi-value" id="kpiDatapoints">—</div>
+            <div class="kpi-sub" id="kpiDateRange">Loading period...</div>
+          </div>
+
+          <div class="kpi-card" id="kpi2">
+            <div class="kpi-label">Avg. consumption / interval</div>
+            <div class="kpi-value accent" id="kpiAvgKwh">—</div>
+            <div class="kpi-sub">kWh per 15-minute interval</div>
+          </div>
+
+          <div class="kpi-card" id="kpi3">
+            <div class="kpi-label">Peak consumption</div>
+            <div class="kpi-value hot" id="kpiPeak">—</div>
+            <div class="kpi-sub" id="kpiPeakSub">Maximum interval value</div>
+          </div>
+
+          <div class="kpi-card" id="kpi4">
+            <div class="kpi-label">Anomalies detected</div>
+            <div class="kpi-value warn" id="kpiAnomalies">—</div>
+            <div class="kpi-sub">Consumption &gt; 2σ above mean</div>
+            <div class="kpi-badge" id="kpiAnomalyPct">—% of windows</div>
+          </div>
+
+          <div class="kpi-card" id="kpi5">
+            <div class="kpi-label">Idle periods est.</div>
+            <div class="kpi-value accent" id="kpiIdle">—</div>
+            <div class="kpi-sub">Consumption &lt; 20% of peak</div>
+          </div>
+
+          <div class="kpi-card" id="kpi6">
+            <div class="kpi-label">Total CO₂ equivalent</div>
+            <div class="kpi-value" id="kpiCO2">—</div>
+            <div class="kpi-sub">tCO₂ in measurement period</div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div class="section-label">// virtauto Decision Layer</div>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="kpi-grid" id="decisionKpiGrid">
+          <div class="kpi-card">
+            <div class="kpi-label">ALLOW windows</div>
+            <div class="kpi-value green" id="decisionAllow">—</div>
+            <div class="kpi-sub">Admissible optimization windows</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">HOLD windows</div>
+            <div class="kpi-value warn" id="decisionHold">—</div>
+            <div class="kpi-sub">Insufficient or non-admissible context</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">BLOCK windows</div>
+            <div class="kpi-value hot" id="decisionBlock">—</div>
+            <div class="kpi-sub">Maximum load or hard constraint</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-label">Estimated savings</div>
+            <div class="kpi-value accent" id="decisionSavings">—</div>
+            <div class="kpi-sub">Based on ALLOW windows only</div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div class="section-label">// Sample Decision Trace</div>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="trace-box">
+          <pre id="decisionTraceSample">Load dataset to generate a real decision trace.</pre>
+        </div>
+
+        <div class="section-header">
+          <div class="section-label">// Consumption Profile</div>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="charts-grid" style="margin-bottom:20px">
+          <div class="chart-card" id="chart1card">
+            <h3>// Energy consumption over time sample</h3>
+            <canvas id="timeChart" height="220"></canvas>
+          </div>
+
+          <div class="chart-card" id="chart2card">
+            <h3>// Load type distribution</h3>
+            <canvas id="loadChart" height="220"></canvas>
+          </div>
+        </div>
+
+        <div class="charts-grid-3">
+          <div class="chart-card" id="chart3card">
+            <h3>// Avg. consumption by weekday</h3>
+            <canvas id="weekdayChart" height="200"></canvas>
+          </div>
+
+          <div class="chart-card" id="chart4card">
+            <h3>// Power factor distribution</h3>
+            <canvas id="pfChart" height="200"></canvas>
+          </div>
+
+          <div class="chart-card" id="chart5card">
+            <h3>// Weekday vs. weekend consumption</h3>
+            <canvas id="weekendChart" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="anomaly-section">
+          <div class="section-header">
+            <div class="section-label">// Anomaly detection — Top 10</div>
+            <div class="section-line"></div>
+          </div>
+
+          <div style="overflow-x:auto">
+            <table class="data-table" id="anomalyTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Timestamp</th>
+                  <th>Consumption</th>
+                  <th>Z-Score</th>
+                  <th>Power Factor</th>
+                  <th>Load Type</th>
+                  <th>Severity</th>
+                </tr>
+              </thead>
+              <tbody id="anomalyBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="ai-section">
+          <div class="section-header">
+            <div class="section-label">// Advisory Interpretation</div>
+            <div class="section-line"></div>
+          </div>
+
+          <div class="preset-questions">
+            <button class="preset-btn" type="button" onclick="askPreset(0)">What savings potential exists?</button>
+            <button class="preset-btn" type="button" onclick="askPreset(1)">Explain the anomalies</button>
+            <button class="preset-btn" type="button" onclick="askPreset(2)">What is the CO₂ potential?</button>
+            <button class="preset-btn" type="button" onclick="askPreset(3)">Which measures have highest ROI?</button>
+            <button class="preset-btn" type="button" onclick="askPreset(4)">Transferability to BIW doorline?</button>
+          </div>
+
+          <div class="ai-prompt-bar">
+            <input type="text" class="ai-input" id="aiQuery" placeholder="Ask a question about the data..." />
+            <button class="btn-primary" type="button" onclick="runAIAnalysis()" id="aiBtn">◈ Analyze</button>
+          </div>
+
+          <div class="ai-output">
+            <div class="ai-output-header">
+              <div class="ai-badge">VIRTAUTO ADVISORY</div>
+              <div class="ai-model-tag">deterministic local summary · no backend required</div>
+            </div>
+            <div id="aiResponse">
+              <span class="placeholder-text">Load the dataset first, then use one of the preset questions. This PoC uses local deterministic analysis for explainable advisory output.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="savings-section">
+          <div class="section-header">
+            <div class="section-label">// Savings potential calculator</div>
+            <div class="section-line"></div>
+          </div>
+
+          <div class="savings-grid">
+            <div class="savings-card">
+              <h3>Adjust parameters</h3>
+
+              <div class="slider-group">
+                <div class="slider-label">
+                  <span>Installed capacity</span>
+                  <span id="capLabel">500 kW</span>
+                </div>
+                <input type="range" id="capSlider" min="100" max="5000" value="500" step="100" oninput="updateSavings()" />
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-label">
+                  <span>Annual operating hours</span>
+                  <span id="hoursLabel">6,000 h</span>
+                </div>
+                <input type="range" id="hoursSlider" min="2000" max="8760" value="6000" step="100" oninput="updateSavings()" />
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-label">
+                  <span>Energy price</span>
+                  <span id="priceLabel">12 ct/kWh</span>
+                </div>
+                <input type="range" id="priceSlider" min="5" max="30" value="12" step="1" oninput="updateSavings()" />
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-label">
+                  <span>Optimization potential</span>
+                  <span id="savingLabel">9%</span>
+                </div>
+                <input type="range" id="savingSlider" min="3" max="20" value="9" step="1" oninput="updateSavings()" />
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-label">
+                  <span>Number of lines / sites</span>
+                  <span id="linesLabel">4 lines</span>
+                </div>
+                <input type="range" id="linesSlider" min="1" max="100" value="4" step="1" oninput="updateSavings()" />
+              </div>
+            </div>
+
+            <div class="savings-card">
+              <h3>Projected savings potential</h3>
+
+              <div class="savings-row">
+                <span class="savings-label">Annual consumption</span>
+                <span class="savings-val" id="savTotalKwh">—</span>
+              </div>
+
+              <div class="savings-row">
+                <span class="savings-label">Annual energy cost</span>
+                <span class="savings-val" id="savTotalCost">—</span>
+              </div>
+
+              <div class="savings-row">
+                <span class="savings-label">Optimization potential</span>
+                <span class="savings-val" id="savPct">—</span>
+              </div>
+
+              <div class="savings-row">
+                <span class="savings-label">Annual savings</span>
+                <span class="savings-val green" id="savPerYear">—</span>
+              </div>
+
+              <div class="savings-row">
+                <span class="savings-label">CO₂ reduction est.</span>
+                <span class="savings-val green" id="savCO2">—</span>
+              </div>
+
+              <div class="savings-row">
+                <span class="savings-label">virtauto ROI share est.</span>
+                <span class="savings-val" id="savShare">—</span>
+              </div>
+
+              <div class="savings-row" style="border-top: 2px solid var(--poc-green); margin-top:8px; padding-top:16px">
+                <span class="savings-label" style="font-weight:700; color:var(--poc-bright)">Total annual savings</span>
+                <span class="savings-val big" id="savTotal">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="poc-footer">
+        <div class="footer-logo">virtauto.OS</div>
+        <div>
+          Real Data PoC · Dataset: UCI ML Repository, Steel Industry Energy Consumption · CC BY 4.0 · Advisory-only
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <script>
+    let parsedData = [];
+    let stats = {};
+    let charts = {};
+    let decisionResults = [];
+
+    const REDUCTION_FACTOR = 0.15;
+    const ENERGY_PRICE_EUR_PER_KWH = 0.18;
+    const CO2_FACTOR_KG_PER_KWH = 0.5;
+
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+
+    dropZone.addEventListener("dragover", e => {
+      e.preventDefault();
+      dropZone.classList.add("drag-over");
+    });
+
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
+
+    dropZone.addEventListener("drop", e => {
+      e.preventDefault();
+      dropZone.classList.remove("drag-over");
+      const file = e.dataTransfer.files[0];
+      if (file) processFile(file);
+    });
+
+    fileInput.addEventListener("change", e => {
+      if (e.target.files[0]) processFile(e.target.files[0]);
+    });
+
+    function processFile(file) {
+      showLoading("Parsing CSV...");
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: result => {
+          showLoading("Computing statistics...");
+          setTimeout(() => {
+            parsedData = result.data;
+            computeStats();
+            renderDashboard();
+          }, 300);
+        }
+      });
+    }
+
+    function loadDemoData() {
+      showLoading("Generating demo dataset...");
+      setTimeout(() => {
+        parsedData = generateDemoData();
+        computeStats();
+        renderDashboard();
+      }, 800);
+    }
+
+    function generateDemoData() {
+      const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const data = [];
+      const start = new Date("2018-01-01");
+
+      for (let i = 0; i < 35040; i++) {
+        const d = new Date(start.getTime() + i * 15 * 60000);
+        const hour = d.getHours();
+        const dayIdx = d.getDay();
+        const isWeekend = dayIdx === 0 || dayIdx === 6;
+        const dayName = days[dayIdx === 0 ? 6 : dayIdx - 1];
+
+        let baseLoad = isWeekend ? 15 : 35;
+        let timeMultiplier = 1;
+
+        if (hour >= 6 && hour < 8) timeMultiplier = 1.5;
+        else if (hour >= 8 && hour < 18) timeMultiplier = 2.2 + Math.random() * 0.8;
+        else if (hour >= 18 && hour < 22) timeMultiplier = 1.4;
+        else timeMultiplier = 0.6;
+
+        const noise = (Math.random() - 0.5) * 8;
+        const spike = Math.random() < 0.02 ? Math.random() * 80 : 0;
+        const usage = Math.max(1, baseLoad * timeMultiplier + noise + spike);
+
+        const lagPF = 70 + Math.random() * 25;
+        const leadPF = 85 + Math.random() * 14;
+        const lagReactive = usage * (1 - lagPF / 100) * 10;
+        const leadReactive = usage * (1 - leadPF / 100) * 3;
+
+        let loadType;
+        if (usage < 25) loadType = "Light_Load";
+        else if (usage < 55) loadType = "Medium_Load";
+        else loadType = "Maximum_Load";
+
+        const month = d.getMonth();
+        const co2Factor = 0.0004 + (month >= 10 || month <= 2 ? 0.0001 : 0);
+
+        data.push({
+          date: d.toISOString().replace("T", " ").substring(0, 16),
+          Usage_kWh: usage.toFixed(4),
+          "Lagging_Current_Reactive.Power_kVarh": lagReactive.toFixed(4),
+          Leading_Current_Reactive_Power_kVarh: leadReactive.toFixed(4),
+          "CO2(tCO2)": (usage * co2Factor).toFixed(4),
+          Lagging_Current_Power_Factor: lagPF.toFixed(4),
+          Leading_Current_Power_Factor: leadPF.toFixed(4),
+          NSM: hour * 3600 + d.getMinutes() * 60,
+          WeekStatus: isWeekend ? "Weekend" : "Weekday",
+          Day_of_week: dayName,
+          Load_Type: loadType
+        });
+      }
+
+      return data;
+    }
+
+    function num(row, key) {
+      return parseFloat(row[key] ?? row[key + " "] ?? 0) || 0;
+    }
+
+    function val(row, key) {
+      return String(row[key] ?? row[key + " "] ?? "").trim();
+    }
+
+    function normalizeLoadType(loadType) {
+      return loadType.replace(/\s+/g, "_");
+    }
+
+    function checkLoadGate(row) {
+      const loadType = normalizeLoadType(val(row, "Load_Type"));
+      const pf = num(row, "Lagging_Current_Power_Factor");
+
+      if (loadType === "Maximum_Load") {
+        return { gate: "load_gate", result: "BLOCK", reasoning: "Maximum load window — no energy shift advisory is admissible." };
+      }
+
+      if (loadType === "Medium_Load" && pf <= 75) {
+        return { gate: "load_gate", result: "HOLD", reasoning: "Medium load with insufficient power factor for advisory approval." };
+      }
+
+      if (loadType === "Light_Load" || loadType === "Medium_Load") {
+        return { gate: "load_gate", result: "PASS", reasoning: `${loadType} is admissible for further checks.` };
+      }
+
+      return { gate: "load_gate", result: "HOLD", reasoning: "Unknown load type — default HOLD." };
+    }
+
+    function checkPowerFactorGate(row) {
+      const pf = num(row, "Lagging_Current_Power_Factor");
+
+      if (pf < 60) {
+        return { gate: "power_factor_gate", result: "HOLD", reasoning: `Lagging power factor too low (${pf.toFixed(1)}%).` };
+      }
+
+      return { gate: "power_factor_gate", result: "PASS", reasoning: `Lagging power factor acceptable (${pf.toFixed(1)}%).` };
+    }
+
+    function checkReactivePowerGate(row) {
+      const usage = num(row, "Usage_kWh");
+      const reactive = num(row, "Lagging_Current_Reactive.Power_kVarh");
+
+      if (usage <= 0) {
+        return { gate: "reactive_power_gate", result: "HOLD", reasoning: "Usage value missing or zero — default HOLD." };
+      }
+
+      if (reactive > 2 * usage) {
+        return { gate: "reactive_power_gate", result: "HOLD", reasoning: "Reactive power is too high relative to active energy usage." };
+      }
+
+      return { gate: "reactive_power_gate", result: "PASS", reasoning: "Reactive power within admissible bounds." };
+    }
+
+    function checkTimeWindowGate(row) {
+      const nsm = num(row, "NSM");
+
+      if (nsm < 21600) {
+        return { gate: "time_window_gate", result: "PASS", reasoning: "Off-peak window before 06:00." };
+      }
+
+      if (nsm >= 79200) {
+        return { gate: "time_window_gate", result: "PASS", reasoning: "Late-night window after 22:00." };
+      }
+
+      return { gate: "time_window_gate", result: "HOLD", reasoning: "On-peak production window — no advisory." };
+    }
+
+    function checkWeekendGate(row) {
+      const weekStatus = val(row, "WeekStatus");
+
+      if (weekStatus === "Weekend") {
+        return { gate: "weekend_gate", result: "HOLD", reasoning: "Weekend production context requires separate analysis." };
+      }
+
+      return { gate: "weekend_gate", result: "PASS", reasoning: "Weekday context." };
+    }
+
+    function runAdmissibility(row) {
+      const gates = [
+        checkLoadGate(row),
+        checkPowerFactorGate(row),
+        checkReactivePowerGate(row),
+        checkTimeWindowGate(row),
+        checkWeekendGate(row)
+      ];
+
+      let overall = "PASS";
+
+      if (gates.some(g => g.result === "BLOCK")) overall = "BLOCK";
+      else if (gates.some(g => g.result === "HOLD")) overall = "HOLD";
+
+      return { gates, overall };
+    }
+
+    function computeBusinessCase(row, decision) {
+      if (decision !== "ALLOW") {
+        return { saving_kwh: 0, saving_eur: 0, saving_co2_kg: 0 };
+      }
+
+      const usage = num(row, "Usage_kWh");
+      const savingKwh = usage * REDUCTION_FACTOR;
+
+      return {
+        saving_kwh: Number(savingKwh.toFixed(3)),
+        saving_eur: Number((savingKwh * ENERGY_PRICE_EUR_PER_KWH).toFixed(3)),
+        saving_co2_kg: Number((savingKwh * CO2_FACTOR_KG_PER_KWH).toFixed(3))
+      };
+    }
+
+    function runDecisionLayer(row, index) {
+      const admissibility = runAdmissibility(row);
+      const decision = admissibility.overall === "PASS" ? "ALLOW" : admissibility.overall;
+      const businessCase = computeBusinessCase(row, decision);
+      const reasoning = admissibility.gates.map(g => `${g.gate}: ${g.result} — ${g.reasoning}`).join(" | ");
+
+      return {
+        trace_id: `VA-STEEL-2018-${String(index + 1).padStart(5, "0")}`,
+        dataset: "UCI Steel Industry Energy Consumption (DAEWOO, 2018)",
+        timestamp: val(row, "date"),
+        signals: {
+          Usage_kWh: num(row, "Usage_kWh"),
+          Load_Type: normalizeLoadType(val(row, "Load_Type")),
+          Lagging_Current_Power_Factor: num(row, "Lagging_Current_Power_Factor"),
+          Lagging_Current_Reactive_Power_kVarh: num(row, "Lagging_Current_Reactive.Power_kVarh"),
+          CO2_tCO2: num(row, "CO2(tCO2)"),
+          NSM: num(row, "NSM"),
+          WeekStatus: val(row, "WeekStatus")
+        },
+        admissibility: {
+          gates: admissibility.gates,
+          overall: admissibility.overall
+        },
+        decision,
+        reasoning,
+        business_case: businessCase,
+        governance: {
+          mode: "advisory-only",
+          operator_review_required: true,
+          write_access: false,
+          execution: "none"
+        }
+      };
+    }
+
+    function runDecisionLayerForDataset() {
+      decisionResults = parsedData.map((row, index) => runDecisionLayer(row, index));
+    }
+
+    function updateDecisionLayerView() {
+      const allow = decisionResults.filter(r => r.decision === "ALLOW");
+      const hold = decisionResults.filter(r => r.decision === "HOLD");
+      const block = decisionResults.filter(r => r.decision === "BLOCK");
+      const totalSavingEur = allow.reduce((sum, r) => sum + r.business_case.saving_eur, 0);
+
+      document.getElementById("decisionAllow").textContent = allow.length.toLocaleString("en-US");
+      document.getElementById("decisionHold").textContent = hold.length.toLocaleString("en-US");
+      document.getElementById("decisionBlock").textContent = block.length.toLocaleString("en-US");
+      document.getElementById("decisionSavings").textContent = totalSavingEur.toFixed(2) + " €";
+
+      const sample = allow[0] || hold[0] || block[0];
+      document.getElementById("decisionTraceSample").textContent = JSON.stringify(sample, null, 2);
+    }
+
+    function computeStats() {
+      showLoading("Detecting anomalies...");
+
+      const usages = parsedData.map(r => parseFloat(r["Usage_kWh"] || r["Usage_kWh "]) || 0);
+      const co2s = parsedData.map(r => parseFloat(r["CO2(tCO2)"]) || 0);
+      const lagPFs = parsedData.map(r => parseFloat(r["Lagging_Current_Power_Factor"]) || 0);
+
+      const mean = usages.reduce((a, b) => a + b, 0) / usages.length;
+      const variance = usages.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / usages.length;
+      const std = Math.sqrt(variance);
+      const max = Math.max(...usages);
+      const totalCO2 = co2s.reduce((a, b) => a + b, 0);
+
+      const anomalies = parsedData
+        .map((r, i) => ({ ...r, usage: usages[i], z: (usages[i] - mean) / std, idx: i }))
+        .filter(r => r.z > 2)
+        .sort((a, b) => b.z - a.z);
+
+      const loadDist = { Light_Load: 0, Medium_Load: 0, Maximum_Load: 0 };
+      parsedData.forEach(r => {
+        const lt = r["Load_Type"] || r["Load_Type "] || "";
+        if (loadDist[lt] !== undefined) loadDist[lt]++;
+      });
+
+      const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const dayTotals = {};
+      const dayCounts = {};
+      dayOrder.forEach(d => { dayTotals[d] = 0; dayCounts[d] = 0; });
+
+      parsedData.forEach((r, i) => {
+        const day = r["Day_of_week"] || "";
+        if (dayTotals[day] !== undefined) {
+          dayTotals[day] += usages[i];
+          dayCounts[day]++;
+        }
+      });
+
+      const dayAvgs = dayOrder.map(d => dayCounts[d] > 0 ? dayTotals[d] / dayCounts[d] : 0);
+
+      let wdTotal = 0, wdCount = 0, weTotal = 0, weCount = 0;
+
+      parsedData.forEach((r, i) => {
+        if ((r["WeekStatus"] || "").trim() === "Weekday") {
+          wdTotal += usages[i];
+          wdCount++;
+        } else {
+          weTotal += usages[i];
+          weCount++;
+        }
+      });
+
+      const pfBuckets = Array(10).fill(0);
+      lagPFs.forEach(pf => {
+        const bucket = Math.min(9, Math.floor(pf / 10));
+        pfBuckets[bucket]++;
+      });
+
+      const idleCount = usages.filter(u => u < max * 0.2).length;
+
+      stats = {
+        count: usages.length,
+        mean,
+        std,
+        max,
+        totalCO2,
+        anomalies,
+        loadDist,
+        dayAvgs,
+        dayOrder,
+        wdAvg: wdCount > 0 ? wdTotal / wdCount : 0,
+        weAvg: weCount > 0 ? weTotal / weCount : 0,
+        pfBuckets,
+        idleCount,
+        usages,
+        timeSample: parsedData.filter((_, i) => i % 96 === 0).slice(0, 365),
+        usageSample: usages.filter((_, i) => i % 96 === 0).slice(0, 365),
+        dates: parsedData.map(r => r["date"] || r["date "]).filter((_, i) => i % 96 === 0).slice(0, 365)
+      };
+    }
+
+    function renderDashboard() {
+      showLoading("Rendering visualization...");
+
+      setTimeout(() => {
+        hideLoading();
+        document.getElementById("uploadSection").style.display = "none";
+        document.getElementById("dashboard").classList.add("active");
+
+        markStep(1, true);
+        markStep(2, true);
+        setActiveStep(3);
+
+        runDecisionLayerForDataset();
+        updateDecisionLayerView();
+
+        updateKPIs();
+        renderCharts();
+        renderAnomalyTable();
+        updateSavings();
+
+        document.querySelectorAll(".kpi-card").forEach((c, i) => {
+          setTimeout(() => c.classList.add("visible"), i * 80);
+        });
+
+        document.querySelectorAll(".chart-card").forEach((c, i) => {
+          setTimeout(() => c.classList.add("visible"), i * 120 + 300);
+        });
+      }, 400);
+    }
+
+    function updateKPIs() {
+      document.getElementById("kpiDatapoints").textContent = stats.count.toLocaleString("en-US");
+      document.getElementById("kpiAvgKwh").textContent = stats.mean.toFixed(1);
+      document.getElementById("kpiPeak").textContent = stats.max.toFixed(1) + " kWh";
+      document.getElementById("kpiAnomalies").textContent = stats.anomalies.length.toLocaleString("en-US");
+      document.getElementById("kpiAnomalyPct").textContent = (stats.anomalies.length / stats.count * 100).toFixed(1) + "% of windows";
+      document.getElementById("kpiIdle").textContent = stats.idleCount.toLocaleString("en-US");
+      document.getElementById("kpiCO2").textContent = stats.totalCO2.toFixed(1) + " t";
+      document.getElementById("kpiDateRange").textContent = (stats.timeSample[0]?.date || "") + " – " + (stats.timeSample[stats.timeSample.length - 1]?.date || "");
+    }
+
+    function renderCharts() {
+      const ACCENT = "#00e5ff";
+      const ACCENT2 = "#00ff88";
+      const ACCENT3 = "#ff6b35";
+      const WARN = "#ffd23f";
+      const GRID = "rgba(26,48,64,0.8)";
+      const LABEL = "#7f96a5";
+
+      Chart.defaults.color = LABEL;
+      Chart.defaults.borderColor = GRID;
+
+      if (charts.time) charts.time.destroy();
+      charts.time = new Chart(document.getElementById("timeChart"), {
+        type: "line",
+        data: {
+          labels: stats.dates,
+          datasets: [{
+            label: "Usage (kWh)",
+            data: stats.usageSample,
+            borderColor: ACCENT,
+            backgroundColor: "rgba(0,229,255,0.06)",
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { maxTicksLimit: 8, font: { family: "Space Mono", size: 9 } } },
+            y: { ticks: { font: { family: "Space Mono", size: 9 } } }
+          }
+        }
+      });
+
+      if (charts.load) charts.load.destroy();
+      charts.load = new Chart(document.getElementById("loadChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["Light Load", "Medium Load", "Max Load"],
+          datasets: [{
+            data: [
+              stats.loadDist.Light_Load,
+              stats.loadDist.Medium_Load,
+              stats.loadDist.Maximum_Load
+            ],
+            backgroundColor: [ACCENT2, WARN, ACCENT3],
+            borderColor: "#050a0e",
+            borderWidth: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: "bottom", labels: { font: { family: "Space Mono", size: 10 }, padding: 12 } }
+          }
+        }
+      });
+
+      if (charts.weekday) charts.weekday.destroy();
+      charts.weekday = new Chart(document.getElementById("weekdayChart"), {
+        type: "bar",
+        data: {
+          labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+          datasets: [{
+            data: stats.dayAvgs,
+            backgroundColor: stats.dayOrder.map((_, i) => i < 5 ? "rgba(0,229,255,0.7)" : "rgba(255,107,53,0.7)"),
+            borderWidth: 0,
+            borderRadius: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { family: "Space Mono", size: 9 } } },
+            y: { ticks: { font: { family: "Space Mono", size: 9 } } }
+          }
+        }
+      });
+
+      if (charts.pf) charts.pf.destroy();
+      charts.pf = new Chart(document.getElementById("pfChart"), {
+        type: "bar",
+        data: {
+          labels: ["0-10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90", "90-100"],
+          datasets: [{
+            data: stats.pfBuckets,
+            backgroundColor: "rgba(0,255,136,0.6)",
+            borderWidth: 0,
+            borderRadius: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { family: "Space Mono", size: 8 }, maxRotation: 45 } },
+            y: { ticks: { font: { family: "Space Mono", size: 9 } } }
+          }
+        }
+      });
+
+      if (charts.weekend) charts.weekend.destroy();
+      charts.weekend = new Chart(document.getElementById("weekendChart"), {
+        type: "bar",
+        data: {
+          labels: ["Weekday", "Weekend"],
+          datasets: [{
+            data: [stats.wdAvg, stats.weAvg],
+            backgroundColor: ["rgba(0,229,255,0.7)", "rgba(255,107,53,0.7)"],
+            borderWidth: 0,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { font: { family: "Space Mono", size: 10 } } },
+            y: {
+              ticks: { font: { family: "Space Mono", size: 9 } },
+              title: { display: true, text: "Avg. kWh", font: { family: "Space Mono", size: 9 }, color: LABEL }
+            }
+          }
+        }
+      });
+    }
+
+    function renderAnomalyTable() {
+      const tbody = document.getElementById("anomalyBody");
+      tbody.innerHTML = "";
+
+      stats.anomalies.slice(0, 10).forEach((r, i) => {
+        const z = r.z;
+        let severity, tag;
+
+        if (z > 4) {
+          severity = "severity-high";
+          tag = '<span class="tag tag-high">Critical</span>';
+        } else if (z > 3) {
+          severity = "severity-medium";
+          tag = '<span class="tag tag-medium">High</span>';
+        } else {
+          severity = "severity-low";
+          tag = '<span class="tag tag-low">Medium</span>';
+        }
+
+        const lt = r.Load_Type || r["Load_Type "] || "—";
+        const pf = parseFloat(r.Lagging_Current_Power_Factor || 0).toFixed(1);
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${r.date || "—"}</td>
+            <td class="${severity}">${r.usage.toFixed(2)} kWh</td>
+            <td class="${severity}">${z.toFixed(2)}σ</td>
+            <td>${pf}%</td>
+            <td>${lt.replace("_", " ")}</td>
+            <td>${tag}</td>
+          </tr>`;
+      });
+    }
+
+    function updateSavings() {
+      const cap = parseInt(document.getElementById("capSlider").value);
+      const hours = parseInt(document.getElementById("hoursSlider").value);
+      const price = parseInt(document.getElementById("priceSlider").value);
+      const savPct = parseInt(document.getElementById("savingSlider").value);
+      const lines = parseInt(document.getElementById("linesSlider").value);
+
+      document.getElementById("capLabel").textContent = cap.toLocaleString("en-US") + " kW";
+      document.getElementById("hoursLabel").textContent = hours.toLocaleString("en-US") + " h";
+      document.getElementById("priceLabel").textContent = price + " ct/kWh";
+      document.getElementById("savingLabel").textContent = savPct + "%";
+      document.getElementById("linesLabel").textContent = lines + (lines === 1 ? " line" : " lines");
+
+      const totalKwh = cap * hours * lines;
+      const totalCost = totalKwh * price / 100;
+      const saving = totalCost * savPct / 100;
+      const co2Saving = totalKwh * savPct / 100 * 0.000400;
+      const share = saving * 0.18;
+
+      document.getElementById("savTotalKwh").textContent = (totalKwh / 1e6).toFixed(2) + " GWh/a";
+      document.getElementById("savTotalCost").textContent = formatEur(totalCost);
+      document.getElementById("savPct").textContent = savPct + "%";
+      document.getElementById("savPerYear").textContent = formatEur(saving);
+      document.getElementById("savCO2").textContent = co2Saving.toFixed(1) + " tCO₂/a";
+      document.getElementById("savShare").textContent = formatEur(share);
+      document.getElementById("savTotal").textContent = formatEur(saving);
+    }
+
+    function formatEur(val) {
+      if (val >= 1e6) return (val / 1e6).toFixed(2) + " M€";
+      if (val >= 1e3) return (val / 1e3).toFixed(1) + " k€";
+      return val.toFixed(0) + " €";
+    }
+
+    const presets = [
+      "What savings potential exists?",
+      "Explain the anomalies in this industrial energy dataset.",
+      "What is the CO₂ reduction potential?",
+      "Which optimization measures have the highest ROI?",
+      "How transferable is this steel industry dataset to a BIW doorline scenario?"
+    ];
+
+    function askPreset(idx) {
+      document.getElementById("aiQuery").value = presets[idx];
+      runAIAnalysis();
+    }
+
+    function runAIAnalysis() {
+      if (!stats.count) {
+        document.getElementById("aiResponse").innerHTML = '<span class="placeholder-text">Please load a dataset first.</span>';
+        return;
+      }
+
+      const query = document.getElementById("aiQuery").value.trim();
+      const allow = decisionResults.filter(r => r.decision === "ALLOW").length;
+      const hold = decisionResults.filter(r => r.decision === "HOLD").length;
+      const block = decisionResults.filter(r => r.decision === "BLOCK").length;
+      const savings = decisionResults.reduce((sum, r) => sum + r.business_case.saving_eur, 0);
+
+      markStep(3, true);
+      setActiveStep(4);
+
+      document.getElementById("aiResponse").textContent =
+`Local advisory summary
+
+Question:
+${query || "General summary"}
+
+Dataset:
+- ${stats.count.toLocaleString("en-US")} industrial 15-minute intervals
+- Average consumption: ${stats.mean.toFixed(2)} kWh / interval
+- Peak consumption: ${stats.max.toFixed(2)} kWh
+- Detected anomalies: ${stats.anomalies.length.toLocaleString("en-US")}
+
+Decision Layer output:
+- ALLOW: ${allow.toLocaleString("en-US")}
+- HOLD: ${hold.toLocaleString("en-US")}
+- BLOCK: ${block.toLocaleString("en-US")}
+
+Interpretation:
+virtauto does not optimize blindly. It first checks admissibility: load type, power factor, reactive power, time window and weekday context. Only ALLOW windows contribute to the estimated savings case.
+
+Estimated savings from ALLOW windows:
+${savings.toFixed(2)} €
+
+Governance:
+All outputs are advisory-only. Operator review is required before any real-world execution.`;
+    }
+
+    function showLoading(msg) {
+      document.getElementById("loadingBar").classList.add("active");
+      document.getElementById("loadingText").textContent = msg;
+    }
+
+    function hideLoading() {
+      document.getElementById("loadingBar").classList.remove("active");
+    }
+
+    function markStep(n, done) {
+      const el = document.getElementById("step" + n);
+      if (!el) return;
+      el.classList.remove("active");
+      if (done) el.classList.add("done");
+    }
+
+    function setActiveStep(n) {
+      const el = document.getElementById("step" + n);
+      if (el) {
+        el.classList.remove("done");
+        el.classList.add("active");
+      }
+    }
+
+    updateSavings();
+  </script>
 </body>
 </html>
