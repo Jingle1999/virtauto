@@ -196,7 +196,45 @@ function renderGeorgeEventActions(){
 function downloadGeorgeEvent(){const event=state.lastEvent||emitScanEvent();if(!event){alert('Run the Energy Scan first.');return}downloadBlob(JSON.stringify(event,null,2),'energy_scan_completed.event.json','application/json')}
 function copyGeorgeEvent(){const event=state.lastEvent||emitScanEvent();if(!event){alert('Run the Energy Scan first.');return}navigator.clipboard.writeText(JSON.stringify(event,null,2)).then(()=>{const btn=document.getElementById('copyGeorgeEventBtn');if(btn){const old=btn.textContent;btn.textContent='✓ Copied';setTimeout(()=>btn.textContent=old,2000)}}).catch(()=>alert('Clipboard copy failed. Use Download Event instead.'))}
 function handleGeorgeTrace(input){const file=input.files&&input.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{try{renderGeorgeVerdict(JSON.parse(e.target.result))}catch(err){alert('Could not parse George response JSON: '+err.message)}};reader.readAsText(file)}
-function renderGeorgeVerdict(decision){const pilot=document.getElementById('pilot');if(!pilot)return;const old=document.getElementById('george-verdict-box');if(old)old.remove();const verdict=decision.verdict||'UNKNOWN';const color=verdict==='RECOMMEND'?'var(--biw-green)':verdict==='BLOCK'?'var(--biw-red)':'var(--biw-amber)';const box=document.createElement('div');box.id='george-verdict-box';box.className='report-block';box.innerHTML=`<h3>// George Verdict</h3><p><strong style="color:${color}">${esc(verdict)}</strong> · ${esc(decision.action||'NO_ACTION')}</p><p>${esc(decision.reason||decision.msg||'No reason provided.')}</p><p class="small">Decision ID: ${esc(decision.decision_id||'n/a')}<br>Confidence: ${esc(decision.confidence||decision.overall_traffic||'n/a')}<br>Timestamp: ${esc(decision.ts||'n/a')}</p>`;pilot.parentNode.insertBefore(box,pilot)}
+function renderGeorgeVerdict(decision){
+  const pilot=document.getElementById('pilot');
+  if(!pilot)return;
+
+  const old=document.getElementById('george-verdict-box');
+  if(old)old.remove();
+
+  const rawStatus=String(decision.status||decision.verdict||'unknown').toLowerCase();
+
+  let verdict='UNKNOWN';
+  if(rawStatus==='blocked'||rawStatus==='block') verdict='BLOCKED';
+  else if(rawStatus==='approved'||rawStatus==='recommend'||rawStatus==='recommended') verdict='RECOMMEND';
+  else if(rawStatus==='warning'||rawStatus==='review'||rawStatus==='needs_review') verdict='REVIEW';
+
+  const color=
+    verdict==='RECOMMEND'?'var(--biw-green)':
+    verdict==='BLOCKED'?'var(--biw-red)':
+    'var(--biw-amber)';
+
+  const reason=
+    decision.result_summary||
+    decision.reason||
+    decision.error_message||
+    decision.msg||
+    'No reason provided.';
+
+  const box=document.createElement('div');
+  box.id='george-verdict-box';
+  box.className='report-block';
+  box.innerHTML=`<h3>// George Verdict</h3>
+    <p><strong style="color:${color}">${esc(verdict)}</strong> · ${esc(decision.action||'NO_ACTION')}</p>
+    <p>${esc(reason)}</p>
+    <p class="small">Decision ID: ${esc(decision.decision_id||'n/a')}<br>
+    Confidence: ${esc(decision.confidence||decision.overall_traffic||'n/a')}<br>
+    Status: ${esc(decision.status||'n/a')}<br>
+    Timestamp: ${esc(decision.timestamp||decision.ts||'n/a')}</p>`;
+
+  pilot.parentNode.insertBefore(box,pilot);
+}
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 updateReadyState();
 </script>
