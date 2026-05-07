@@ -2,8 +2,9 @@ import json
 import sys
 from pathlib import Path
 
-from ops.george_energy_handler import handle_energy_scan_completed
+sys.path.append(str(Path(__file__).resolve().parent))
 
+from george_energy_handler import handle_energy_scan_completed
 
 def main():
     if len(sys.argv) < 2:
