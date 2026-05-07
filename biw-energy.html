@@ -195,7 +195,25 @@ function renderGeorgeEventActions(){
 
 function downloadGeorgeEvent(){const event=state.lastEvent||emitScanEvent();if(!event){alert('Run the Energy Scan first.');return}downloadBlob(JSON.stringify(event,null,2),'energy_scan_completed.event.json','application/json')}
 function copyGeorgeEvent(){const event=state.lastEvent||emitScanEvent();if(!event){alert('Run the Energy Scan first.');return}navigator.clipboard.writeText(JSON.stringify(event,null,2)).then(()=>{const btn=document.getElementById('copyGeorgeEventBtn');if(btn){const old=btn.textContent;btn.textContent='✓ Copied';setTimeout(()=>btn.textContent=old,2000)}}).catch(()=>alert('Clipboard copy failed. Use Download Event instead.'))}
-function handleGeorgeTrace(input){const file=input.files&&input.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{try{renderGeorgeVerdict(JSON.parse(e.target.result))}catch(err){alert('Could not parse George response JSON: '+err.message)}};reader.readAsText(file)}
+function handleGeorgeTrace(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+
+  const reader=new FileReader();
+
+  reader.onload=e=>{
+    try{
+      const decision=JSON.parse(e.target.result);
+      renderGeorgeVerdict(decision);
+      input.value='';
+    }catch(err){
+      alert('Could not parse George response JSON: '+err.message);
+    }
+  };
+
+  reader.readAsText(file);
+}
+
 function renderGeorgeVerdict(decision){
   const pilot=document.getElementById('pilot');
   if(!pilot)return;
@@ -203,35 +221,53 @@ function renderGeorgeVerdict(decision){
   const old=document.getElementById('george-verdict-box');
   if(old)old.remove();
 
-  const rawStatus=String(decision.status||decision.verdict||'unknown').toLowerCase();
+  const rawStatus=String(
+    decision.status ||
+    decision.verdict ||
+    decision.result ||
+    decision.decision_status ||
+    ''
+  ).toLowerCase();
 
   let verdict='UNKNOWN';
-  if(rawStatus==='blocked'||rawStatus==='block') verdict='BLOCKED';
-  else if(rawStatus==='approved'||rawStatus==='recommend'||rawStatus==='recommended') verdict='RECOMMEND';
-  else if(rawStatus==='warning'||rawStatus==='review'||rawStatus==='needs_review') verdict='REVIEW';
+  if(['blocked','block','denied','rejected'].includes(rawStatus)) verdict='BLOCKED';
+  else if(['approved','approve','recommend','recommended'].includes(rawStatus)) verdict='RECOMMEND';
+  else if(['warning','review','needs_review','manual_review'].includes(rawStatus)) verdict='REVIEW';
 
-  const color=
-    verdict==='RECOMMEND'?'var(--biw-green)':
-    verdict==='BLOCKED'?'var(--biw-red)':
-    'var(--biw-amber)';
+  const action =
+    decision.action ||
+    decision.follow_up ||
+    decision.intent ||
+    decision.scope ||
+    'NO_ACTION';
 
-  const reason=
-    decision.result_summary||
-    decision.reason||
-    decision.error_message||
-    decision.msg||
+  const reason =
+    decision.result_summary ||
+    decision.reason ||
+    decision.error_message ||
+    decision.msg ||
+    decision.guardian_flag ||
     'No reason provided.';
+
+  const color =
+    verdict==='RECOMMEND' ? 'var(--biw-green)' :
+    verdict==='BLOCKED' ? 'var(--biw-red)' :
+    'var(--biw-amber)';
 
   const box=document.createElement('div');
   box.id='george-verdict-box';
   box.className='report-block';
+
   box.innerHTML=`<h3>// George Verdict</h3>
-    <p><strong style="color:${color}">${esc(verdict)}</strong> · ${esc(decision.action||'NO_ACTION')}</p>
+    <p><strong style="color:${color}">${esc(verdict)}</strong> · ${esc(action)}</p>
     <p>${esc(reason)}</p>
-    <p class="small">Decision ID: ${esc(decision.decision_id||'n/a')}<br>
-    Confidence: ${esc(decision.confidence||decision.overall_traffic||'n/a')}<br>
-    Status: ${esc(decision.status||'n/a')}<br>
-    Timestamp: ${esc(decision.timestamp||decision.ts||'n/a')}</p>`;
+    <p class="small">
+      Decision ID: ${esc(decision.decision_id||'n/a')}<br>
+      Confidence: ${esc(decision.confidence||decision.overall_traffic||'n/a')}<br>
+      Status: ${esc(decision.status||'n/a')}<br>
+      Agent: ${esc(decision.agent||'n/a')}<br>
+      Timestamp: ${esc(decision.timestamp||decision.ts||'n/a')}
+    </p>`;
 
   pilot.parentNode.insertBefore(box,pilot);
 }
