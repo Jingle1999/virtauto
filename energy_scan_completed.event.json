@@ -1,0 +1,68 @@
+{
+  "ts": "2026-05-07T08:35:31.150Z",
+  "type": "energy/scan_completed",
+  "source": "biw-energy.html",
+  "severity": "warning",
+  "msg": "BIW Energy Scan completed",
+  "data": {
+    "scan_id": "SCAN-1778142931150",
+    "rows": 8928,
+    "dataset_days": 32,
+    "saving_pct": 7.76,
+    "annual_savings_eur": 2240.1,
+    "dataset_saving_kwh": 1875.93,
+    "data_confidence": "HIGH",
+    "model_confidence": "MEDIUM",
+    "overall_traffic": "YELLOW",
+    "cap_applied": true,
+    "advisory_only": true,
+    "operator_review_required": true,
+    "no_autonomous_execution": true,
+    "top_opportunities": [
+      {
+        "type": "Compressed Air Leakage",
+        "reason": "8928 windows show leakage or constant compressed-air flow patterns.",
+        "saving_kwh": 2418.92,
+        "annual_saving_eur": 2888.49,
+        "confidence": "medium"
+      },
+      {
+        "type": "Energy per Door Improvement",
+        "reason": "Current estimated energy per door is 1.13 kWh. Pilot target: reduce energy intensity after baseline validation.",
+        "saving_kwh": 1875.93,
+        "annual_saving_eur": 2240.1,
+        "confidence": "high"
+      },
+      {
+        "type": "Idle Loss Reduction",
+        "reason": "979 unplanned windows consume energy without useful production signal. Planned stops are excluded.",
+        "saving_kwh": 317.32,
+        "annual_saving_eur": 378.92,
+        "confidence": "medium"
+      }
+    ],
+    "findings": [
+      {
+        "id": "compressed_air_constant_flow",
+        "title": "Compressed-air base load or leakage pattern",
+        "severity": "HIGH",
+        "recommendation": "Run a leakage walkdown on the top affected stations, compare flow during production-off windows, and add shut-off or pressure-zone logic where technically safe.",
+        "value": "€ 2,888"
+      },
+      {
+        "id": "station_hotspot",
+        "title": "Station hotspot: ST10",
+        "severity": "HIGH",
+        "recommendation": "Use this station as the first on-site validation point. Confirm station state, PLC readiness and safe standby constraints with the responsible automation engineer.",
+        "value": "€ 906"
+      },
+      {
+        "id": "governance_summary",
+        "title": "Governance and validation requirement",
+        "severity": "MEDIUM",
+        "recommendation": "Do not treat this as an audit result. Use it to scope a 90-day pilot, validate baseline, confirm constraints and document operator-approved actions.",
+        "value": "YELLOW"
+      }
+    ]
+  }
+}
