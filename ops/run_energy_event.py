@@ -2,7 +2,7 @@ import json
 import sys
 from pathlib import Path
 
-from george_energy_handler import handle_energy_scan_completed
+from ops.george_energy_handler import handle_energy_scan_completed
 
 
 def main():
