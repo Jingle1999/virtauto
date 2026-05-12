@@ -1,0 +1,1165 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Branchenmodell · Spec v1.1 · virtauto®</title>
+
+  <!-- virtauto Spec Metadata -->
+  <meta name="virtauto:document_type" content="spec">
+  <meta name="virtauto:spec_name" content="industrymodel">
+  <meta name="virtauto:spec_version" content="1.1">
+  <meta name="virtauto:spec_status" content="v1.1">
+
+  <!-- SEO -->
+  <link rel="canonical" href="https://www.virtauto.de/industrymodel-de.html">
+  <meta name="description" content="Branchenmodell (AEO Stage 1): normative proof object for governed industrial decision-making. Infrastructure-first: Datenzugriff → Wissensschicht → Deterministische Prüfer → Orchestration. Includes bounded advisory energy optimization (€/door) using CWD and enterprise Ressourcen-Orchestrator (holarchic scaling). Audit-first, block-capable, PR-driven.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="virtauto Branchenmodell — AEO Stage 1 (Normative Proof Object)">
+  <meta property="og:description" content="Not a showcase: a normative infrastructure-first world-model spec and proof object. One bounded decision class with explicit authority and an explainable BLOCK path — PR-driven, audit-first. Includes governed energy optimization advisory via CWD + Ressourcen-Orchestrator.">
+  <meta property="og:url" content="https://www.virtauto.de/industrymodel-de.html">
+  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="virtauto Branchenmodell — AEO Stage 1 (Normative Proof Object)">
+  <meta name="twitter:description" content="A normative infrastructure-first world-model spec: how a doorline thinks, decides, and blocks — decision-first, audit-first, PR-driven, explainable BLOCK. Includes governed energy optimization via CWD + enterprise Ressourcen-Orchestrator (holarchic scaling).">
+  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
+
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <link rel="stylesheet" href="assets/styles_unify.css"/>
+  <script defer src="assets/site.js"></script>
+  <script defer src="assets/agent-status.js"></script>
+
+  <!-- Page-local styling (minimal + aligned with theme) -->
+  <style>
+    .pill-row { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem; }
+    .pill{
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.25rem .55rem; border-radius:999px;
+      border:1px solid #2a3a5e; background:#0f1629; color:#dbe7ff;
+      font-size:.82rem; line-height:1.2;
+    }
+    .pill .dot{ width:8px; height:8px; border-radius:999px; display:inline-block; background: rgba(125,211,252,.95); }
+    .pill.red  { border-color: rgba(248,113,113,.35); background: rgba(127,29,29,.12); }
+    .pill.red .dot{ background: rgba(248,113,113,.95); }
+    .pill.amb  { border-color: rgba(251,191,36,.35); background: rgba(120,53,15,.12); }
+    .pill.amb .dot{ background: rgba(251,191,36,.95); }
+    .pill.ok   { border-color: rgba(34,197,94,.25); background: rgba(20,83,45,.10); }
+    .pill.ok .dot{ background: rgba(34,197,94,.95); }
+
+    .anchors{ display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.8rem; }
+    .anchors a{ border:1px solid #243255; border-radius:999px; padding:.28rem .6rem; background:#0f1629; color:#dbe7ff; }
+    .anchors a:hover{ border-color:#3c5080; }
+
+    .list-tight{ margin:.4rem 0 0; padding-left:1.1rem; }
+    .list-tight li{ margin:.18rem 0; }
+
+    .two-col{ display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-top:1rem; }
+    .three-col{ display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-top:1rem; }
+
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:.88rem; line-height:1.5;
+    }
+    .codeblock{
+      background:#0a0f1b; border:1px solid #243255; border-radius:.8rem;
+      padding:.85rem; overflow:auto; color:#dbe7ff;
+    }
+
+    .callout{
+      background: linear-gradient(135deg, rgba(125,211,252,.12), rgba(34,211,238,.06));
+      border: 1px solid rgba(125,211,252,.25);
+    }
+    .callout.warn{
+      background: linear-gradient(135deg, rgba(251,191,36,.10), rgba(248,113,113,.06));
+      border: 1px solid rgba(251,191,36,.30);
+    }
+    .callout.ok{
+      background: linear-gradient(135deg, rgba(34,197,94,.10), rgba(125,211,252,.05));
+      border: 1px solid rgba(34,197,94,.24);
+    }
+
+    .badge2{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.22rem .55rem; border-radius:999px;
+      border:1px solid #243255; background:#0b1220; color:#dbe7ff; font-size:.78rem;
+    }
+    .badge2 .dot{ width:8px; height:8px; border-radius:999px; display:inline-block; background: rgba(125,211,252,.95); }
+    .badge2.ok   { border-color: rgba(34,197,94,.25); }
+    .badge2.ok .dot{ background: rgba(34,197,94,.95); }
+    .badge2.hold { border-color: rgba(251,191,36,.35); }
+    .badge2.hold .dot{ background: rgba(251,191,36,.95); }
+    .badge2.block{ border-color: rgba(248,113,113,.35); }
+    .badge2.block .dot{ background: rgba(248,113,113,.95); }
+
+    .kpi-row{ display:flex; flex-wrap:wrap; gap:.7rem; margin-top:.75rem; }
+    .kpi{ padding:.55rem .7rem; border:1px solid #243255; border-radius:.7rem; background:#0f1526; min-width: 240px; }
+    .kpi strong{ display:block; font-size:1.05rem; }
+    .kpi .muted{ display:block; margin-top:.15rem; }
+
+    .mini-hr{ border:0; height:1px; background: #162034; margin: 16px 0; }
+
+    .path{
+      display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.6rem;
+      align-items:center;
+    }
+    .node{
+      border:1px solid #243255; border-radius:999px; padding:.28rem .6rem;
+      background:#0f1629; color:#dbe7ff; font-size:.82rem;
+      display:inline-flex; gap:.4rem; align-items:center;
+    }
+    .node .n{ width:18px; height:18px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; font-size:.72rem; border:1px solid #2a3a5e; }
+    .arrow{ opacity:.7; }
+
+    .repo{
+      display:grid; grid-template-columns: 1fr; gap:.7rem; margin-top:.8rem;
+    }
+    .repo .row{
+      border:1px solid #243255; border-radius:.8rem; padding:.75rem; background:#0f1526;
+    }
+    .repo .row code{ font-size:.9rem; }
+
+    /* Production process (Stages 1–6) helpers */
+    .stage-head{
+      display:flex; align-items:center; justify-content:space-between; gap:.75rem;
+      margin-bottom:.35rem;
+    }
+    .stage-badge{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.22rem .55rem; border-radius:999px;
+      border:1px solid #243255; background:#0b1220; color:#dbe7ff;
+      font-size:.78rem; white-space:nowrap;
+    }
+    .stage-badge .n{
+      width:18px; height:18px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:.72rem; border:1px solid #2a3a5e;
+    }
+    .stage-badge.ok  { border-color: rgba(34,197,94,.25); }
+    .stage-badge.amb { border-color: rgba(251,191,36,.35); }
+
+    /* CWD orchestration helpers */
+    .cwd-grid{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; margin-top:1rem; }
+    .cwd-card-title{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin:0 0 .35rem; }
+    .cwd-tag{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.2rem .5rem; border-radius:999px;
+      border:1px solid #243255; background:#0b1220; color:#dbe7ff; font-size:.75rem; white-space:nowrap;
+    }
+    .cwd-tag .n{
+      width:18px; height:18px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:.72rem; border:1px solid #2a3a5e;
+    }
+
+    /* Ressourcen-Orchestrator helpers */
+    .ro-grid{ display:grid; grid-template-columns: 1.15fr .85fr; gap:1rem; margin-top:1rem; }
+    .ro-badge{
+      display:inline-flex; align-items:center; gap:.45rem;
+      padding:.22rem .55rem; border-radius:999px;
+      border:1px solid #243255; background:#0b1220; color:#dbe7ff;
+      font-size:.78rem; white-space:nowrap;
+    }
+    .ro-badge .n{
+      width:18px; height:18px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:.72rem; border:1px solid #2a3a5e;
+    }
+
+    @media (max-width: 900px) {
+      .two-col, .three-col, .cwd-grid, .ro-grid { grid-template-columns: 1fr; }
+      .kpi{ min-width: unset; width:100%; }
+    }
+  </style>
+
+<link rel="alternate" hreflang="en" href="https://www.virtauto.de/industrymodel.html" />
+<link rel="alternate" hreflang="de" href="https://www.virtauto.de/industrymodel-de.html" />
+</head>
+
+<body>
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+
+    <nav id="menu" class="menu">
+        <a href="index-de.html">Start</a>
+        <a href="industrymodel-de.html" class="active">Branchenmodell</a>
+        <a href="decision-model-de.html">Entscheidungsmodell</a>
+        <a href="decision-demo-de.html">Entscheidungsdemo</a>
+        <a href="energy-steel-de.html">Real-Data-PoC</a>
+        <a href="biw-energy-de.html">Energie-Scan</a>
+        <a href="pilot-de.html">Pilot</a>
+        <a href="/status/">Status</a>
+        <a href="contact-de.html">Kontakt</a>
+        <a href="industrymodel.html">EN</a>
+        <a href="industrymodel-de.html">DE</a>
+        </nav>
+
+    <div id="agent-chips" class="agent-chips" aria-label="Agent health"></div>
+
+    <button class="burger" aria-label="Menu" type="button">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="kicker">Branchenmodell · AEO Stage 1</div>
+
+      <h1>Branchenmodell <span class="spec-badge">Spec v1.1</span></h1>
+
+      <section class="spec-banner" aria-label="Specification banner">
+        <div class="spec-banner__inner">
+          <div class="spec-banner__title">Spec v1.1 (normative)</div>
+          <div class="spec-banner__meta">
+            <span>Dokumenttyp: Spezifikation</span>
+            <span>·</span>
+            <span>Status: v1.1</span>
+            <span>·</span>
+            <span>Rolle in der Architektur: World Model</span>
+          </div>
+        </div>
+      </section>
+
+      <p class="lead">
+        <strong>industrymodel.html</strong> is not a marketing showcase.
+        It is a <strong>normative reference point</strong> — a <strong>Proof Object</strong> that demonstrates:
+        <em>how a real industrial system thinks, decides, and blocks</em>.
+        Inside the broader virtauto architecture, this page acts as the <strong>World Model</strong>:
+        the explicit representation of factory reality that later feeds the
+        <strong>Decision Layer</strong>, <strong>Decision Contracts</strong>, and <strong>Authority Graph</strong>.
+      </p>
+
+      <div class="card callout" style="margin-top:16px">
+        <strong>Stage-1-Definition (begrenzter Entscheidungsraum)</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          AEO Stage 1 bedeutet: <strong>eine Domäne</strong>, <strong>eine Entscheidungsklasse</strong>, <strong>einen Autoritätspfad</strong>,
+          and an explicit, explainable <strong>BLOCK</strong> case.
+          This page is decision-first and audit-first — <strong>PR-driven</strong>, not UI-driven.
+        </p>
+
+        <div class="kpi-row">
+          <div class="kpi">
+            <strong>Domäne</strong>
+            <span class="muted">Karosseriebau — Türlinie vorne links (TVL)</span>
+          </div>
+          <div class="kpi">
+            <strong>Kern-Entscheidungsklasse (Decision Product A)</strong>
+            <span class="muted">Darf diese Tür freigegeben bzw. übergeben werden?</span>
+          </div>
+          <div class="kpi">
+            <strong>Ergebnisraum</strong>
+            <span class="muted">ALLOW · HOLD · BLOCK</span>
+          </div>
+        </div>
+
+        <div class="pill-row" aria-label="Normative tags">
+          <span class="pill ok"><span class="dot"></span>Normative Referenz</span>
+          <span class="pill"><span class="dot"></span>Infrastructure-first</span>
+          <span class="pill"><span class="dot"></span>Decision-first</span>
+          <span class="pill"><span class="dot"></span>Audit-first</span>
+          <span class="pill red"><span class="dot"></span>Block-fähig</span>
+          <span class="pill"><span class="dot"></span>PR-driven</span>
+          <span class="pill"><span class="dot"></span>Holarchische Skalierung</span>
+        </div>
+
+        <hr class="mini-hr">
+
+        <strong>Principle: Infrastructure → Decision Products (not “Use Case first”)</strong>
+        <p class="muted" style="margin:.45rem 0 0">
+          Das Modell ist als Infrastruktur-Stack strukturiert (Datenzugriff → Wissensschicht → Deterministische Prüfer → Orchestration),
+          und stellt erst darüber Decision Products bereit. Energy optimization is a <strong>bounded advisory decision product</strong>.
+          In v1.1, enterprise scaling adds a <strong>Ressourcen-Orchestrator</strong> to prevent cross-line conflicts.
+        </p>
+
+        <div class="pill-row">
+          <span class="pill"><span class="dot"></span>Datenzugriff</span>
+          <span class="pill"><span class="dot"></span>Wissensschicht</span>
+          <span class="pill"><span class="dot"></span>Deterministische Prüfer</span>
+          <span class="pill"><span class="dot"></span>Agenten-Orchestrierung</span>
+          <span class="pill"><span class="dot"></span>CWD pattern</span>
+          <span class="pill"><span class="dot"></span>Ressourcen-Orchestrator</span>
+        </div>
+
+        <p class="muted" style="margin-top:.65rem">
+          Jump to:
+          <a href="#industrial-decision-architecture">Industrielle Entscheidungsarchitektur</a> ·
+          <a href="#proof">Proof Object</a> ·
+          <a href="#infrastructure-stack">Infrastruktur-Stack</a> ·
+          <a href="#decision-products">Decision Products</a> ·
+          <a href="#production-process">Produktionsprozess</a> ·
+          <a href="#energy-optimization">Energieoptimierung</a> ·
+          <a href="#cwd-orchestration">CWD Orchestration</a> ·
+          <a href="#resource-orchestration">Ressourcen-Orchestrator</a> ·
+          <a href="#governance">Governance</a> ·
+          <a href="#audit">Audit</a> ·
+          <a href="#block">BLOCK</a>
+        </p>
+
+        <div class="anchors" aria-label="Jump links">
+          <a href="#proof">Proof Object</a>
+          <a href="#industrial-decision-architecture">Industrielle Entscheidungsarchitektur</a>
+          <a href="#infrastructure-stack">Infrastruktur-Stack</a>
+          <a href="#knowledge-layer">Wissensschicht</a>
+          <a href="#verifiers">Deterministische Prüfer</a>
+          <a href="#orchestration">Orchestration Layer</a>
+          <a href="#decision-products">Decision Products</a>
+          <a href="#production-process">Produktionsprozess (Stages 1–6)</a>
+          <a href="#energy-optimization">Energieoptimierung (advisory)</a>
+          <a href="#cwd-orchestration">CWD Orchestration</a>
+          <a href="#resource-orchestration">Ressourcen-Orchestrator</a>
+          <a href="#decision-graph">Decision Graph</a>
+          <a href="#artifacts">Artifacts</a>
+          <a href="#audit">Audit</a>
+          <a href="#block">BLOCK (explicit trace)</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INDUSTRIAL DECISION ARCHITECTURE -->
+  <section class="section" id="industrial-decision-architecture">
+    <div class="container">
+      <h2>0.5) Industrielle Entscheidungsarchitektur</h2>
+      <p class="muted">
+        The Branchenmodell is the <strong>World Model</strong> inside virtauto’s broader industrial decision architecture.
+        It sits between <strong>Simulated Reality</strong> and the later layers that evaluate decisions, formalize them,
+        and govern who may approve or execute them.
+      </p>
+
+      <div class="card callout">
+        <strong>Five-layer proof-of-concept path</strong>
+        <div class="path" aria-label="Architecture path">
+          <span class="node"><span class="n">1</span> Simulated Reality</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">2</span> World Model</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">3</span> Decision Layer</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">4</span> Decision Contracts</span>
+          <span class="arrow">→</span>
+          <span class="node"><span class="n">5</span> Authority Graph</span>
+        </div>
+        <div class="pill-row" style="margin-top:.9rem">
+          <span class="pill"><span class="dot"></span>Reality → structure</span>
+          <span class="pill"><span class="dot"></span>Structure → decision</span>
+          <span class="pill"><span class="dot"></span>Decision → contract</span>
+          <span class="pill"><span class="dot"></span>Contract → authority</span>
+        </div>
+      </div>
+
+      <div class="three-col">
+        <div class="card">
+          <h3>1) Simulated Reality</h3>
+          <p class="muted">
+            Synthetic operational context for a BIW Doorline. This layer creates safe, inspectable factory states
+            without connecting to live production systems.
+          </p>
+          <p style="margin-top:.6rem"><a href="simulatedreality.html">Open simulated context →</a></p>
+        </div>
+
+        <div class="card callout ok">
+          <h3>2) World Model</h3>
+          <p class="muted">
+            This page. It structures the factory into entities, stages, signals, evidence, and constraints so later
+            decision logic can reason over an explicit industrial reality.
+          </p>
+          <div class="pill-row">
+            <span class="pill ok"><span class="dot"></span>This page</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>3) Decision Layer</h3>
+          <p class="muted">
+            Evaluates operational options under constraints and system intent. Example: energy optimization in advisory mode.
+          </p>
+          <p style="margin-top:.6rem"><a href="energydecisionlayer.html">Explore decision layer →</a></p>
+        </div>
+
+        <div class="card">
+          <h3>4) Decision Contracts</h3>
+          <p class="muted">
+            Formalizes industrial decisions as governed objects with intent, context, constraints, impact, and execution mode.
+          </p>
+          <p style="margin-top:.6rem"><a href="decisioncontracts.html">View decision contracts →</a></p>
+        </div>
+
+        <div class="card">
+          <h3>5) Authority Graph</h3>
+          <p class="muted">
+            Defines who may approve, veto, escalate, or execute industrial actions. No autonomy without explicit delegation.
+          </p>
+          <p style="margin-top:.6rem"><a href="authoritygraph.html">Inspect authority graph →</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROOF OBJECT -->
+  <section class="section" id="proof">
+    <div class="container">
+      <h2>0) Why this page exists (Proof Object)</h2>
+      <p class="muted">
+        This is the first <strong>World-Model Spec</strong> you can point to.
+        Its purpose is to prove one thing under real constraints:
+        <strong>autonomy can fail correctly</strong>.
+      </p>
+
+      <div class="two-col">
+        <div class="card">
+          <h3>What this proves</h3>
+          <ul class="list-tight muted">
+            <li>An industrial decision can be <strong>bounded</strong> (domain + decision class)</li>
+            <li>Decisions have <strong>explicit authority</strong> and <strong>enforced constraints</strong></li>
+            <li>Every decision is <strong>auditable</strong> (append-only trace, evidence refs, ruleset)</li>
+            <li>BLOCK is legitimate: <strong>explainable</strong> and <strong>stable</strong>, not “AI error”</li>
+            <li>Scaling requires explicit handling of <strong>shared resources</strong> (v1.1 Ressourcen-Orchestrator)</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>What this prevents</h3>
+          <ul class="list-tight muted">
+            <li>“Smart agent did something” without accountability</li>
+            <li>Silent execution (state changes without trace)</li>
+            <li>UI storytelling without governed artifacts</li>
+            <li>Local optimization that creates enterprise-level energy conflicts</li>
+          </ul>
+          <div class="pill-row" aria-label="Non-negotiables">
+            <span class="pill red"><span class="dot"></span>No decision without trace</span>
+            <span class="pill red"><span class="dot"></span>No bypassing Guardian</span>
+            <span class="pill"><span class="dot"></span>PR-only governed change</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card callout" style="margin-top:16px">
+        <strong>Operational reality</strong>
+        <p class="muted" style="margin:.5rem 0 0">
+          We run our own website like we want industrial agents to run:
+          <strong>PR-only</strong>, no direct writes, no silent actions, governed artifacts, required checks.
+          The website is not a demo playground — it is our controlled test field for governance.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INFRASTRUCTURE STACK -->
+  <section class="section" id="infrastructure-stack">
+    <div class="container">
+      <h2>1) Infrastruktur-Stack (normative)</h2>
+
+      <p class="muted">
+        The Branchenmodell follows an infrastructure-first approach.
+        Industrial decisions are only allowed if the underlying
+        information layers provide reliable, verifiable inputs.
+      </p>
+
+      <div class="card callout">
+        <strong>Four-layer infrastructure</strong>
+
+        <div class="path">
+
+          <span class="node">
+            <span class="n">1</span>
+            Datenzugriff
+          </span>
+
+          <span class="arrow">→</span>
+
+          <span class="node">
+            <span class="n">2</span>
+            Wissensschicht
+          </span>
+
+          <span class="arrow">→</span>
+
+          <span class="node">
+            <span class="n">3</span>
+            Deterministische Prüfer
+          </span>
+
+          <span class="arrow">→</span>
+
+          <span class="node">
+            <span class="n">4</span>
+            Orchestration
+          </span>
+
+        </div>
+
+        <div class="pill-row">
+
+          <span class="pill">
+            <span class="dot"></span>
+            Sensors first
+          </span>
+
+          <span class="pill">
+            <span class="dot"></span>
+            Structured state
+          </span>
+
+          <span class="pill">
+            <span class="dot"></span>
+            Deterministic checks
+          </span>
+
+          <span class="pill red">
+            <span class="dot"></span>
+            Fail-safe default
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- KNOWLEDGE LAYER -->
+  <section class="section" id="knowledge-layer">
+
+    <div class="container">
+
+      <h2>2) Wissensschicht</h2>
+
+      <p class="muted">
+
+        The knowledge layer defines the semantic structure of the
+        factory environment.
+
+        It describes entities, relationships and operational context.
+
+      </p>
+
+      <div class="two-col">
+
+        <div class="card">
+
+          <h3>Core entities</h3>
+
+          <ul class="list-tight muted">
+
+            <li>Door (BIW component)</li>
+
+            <li>Production station</li>
+
+            <li>Robot / tool</li>
+
+            <li>Material flow</li>
+
+            <li>Energy consumer</li>
+
+            <li>Sensor</li>
+
+          </ul>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Relationships</h3>
+
+          <ul class="list-tight muted">
+
+            <li>Door → Station</li>
+
+            <li>Station → Robot</li>
+
+            <li>Robot → Tool</li>
+
+            <li>Station → Energy consumption</li>
+
+            <li>Sensor → State update</li>
+
+          </ul>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- DETERMINISTIC VERIFIERS -->
+  <section class="section" id="verifiers">
+
+    <div class="container">
+
+      <h2>3) Deterministische Prüfer</h2>
+
+      <p class="muted">
+
+        Before any decision is executed, verifiers evaluate whether
+        the system state satisfies defined constraints.
+
+      </p>
+
+      <div class="three-col">
+
+        <div class="card">
+
+          <h3>Geometry check</h3>
+
+          <p class="muted">
+
+            Validate dimensional tolerances using structured
+            measurement data.
+
+          </p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Presence verification</h3>
+
+          <p class="muted">
+
+            Confirm that required components are physically present
+            before joining operations.
+
+          </p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Surface inspection</h3>
+
+          <p class="muted">
+
+            Detect dents, scratches or imprints prior to final
+            release of the component.
+
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ORCHESTRATION -->
+  <section class="section" id="orchestration">
+
+    <div class="container">
+
+      <h2>4) Orchestration Layer</h2>
+
+      <p class="muted">
+
+        The orchestration layer coordinates the flow of information
+        and actions between production stations.
+
+      </p>
+
+      <div class="card">
+
+        <ul class="list-tight muted">
+
+          <li>Scheduling production steps</li>
+
+          <li>Ensuring process order</li>
+
+          <li>Handling exceptions</li>
+
+          <li>Forwarding verified state to decision logic</li>
+
+        </ul>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- PRODUCTION PROCESS -->
+  <section class="section" id="production-process">
+
+    <div class="container">
+
+      <h2>Produktionsprozess — Doorline (Front Left)</h2>
+
+      <p class="muted">
+
+        The production flow below describes a simplified
+        BIW door manufacturing process.
+
+        Each stage updates the world model with verifiable state.
+
+      </p>
+
+      <div class="three-col">
+
+        <div class="card">
+
+          <div class="stage-head">
+
+            <h3>Stage 1 — Inner Panel Setup</h3>
+
+            <span class="stage-badge">
+              <span class="n">1</span>
+              assembly
+            </span>
+
+          </div>
+
+          <ul class="list-tight muted">
+
+            <li>Inner panel positioned in fixture</li>
+
+            <li>Clamps secure geometry</li>
+
+            <li>Variant verified via barcode</li>
+
+          </ul>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="stage-head">
+
+            <h3>Stage 2 — Reinforcements</h3>
+
+            <span class="stage-badge">
+              <span class="n">2</span>
+              structure
+            </span>
+
+          </div>
+
+          <ul class="list-tight muted">
+
+            <li>Hinge reinforcement added</li>
+
+            <li>Lock reinforcement placed</li>
+
+            <li>Crash beam inserted</li>
+
+          </ul>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="stage-head">
+
+            <h3>Stage 3 — Outer Panel Joining</h3>
+
+            <span class="stage-badge">
+              <span class="n">3</span>
+              hemming
+            </span>
+
+          </div>
+
+          <ul class="list-tight muted">
+
+            <li>Outer panel aligned</li>
+
+            <li>Adhesive applied</li>
+
+            <li>Hemming process executed</li>
+
+          </ul>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="stage-head">
+
+            <h3>Stage 4 — Structural Completion</h3>
+
+            <span class="stage-badge">
+              <span class="n">4</span>
+              joining
+            </span>
+
+          </div>
+
+          <ul class="list-tight muted">
+
+            <li>Remaining welds completed</li>
+
+            <li>Clinch and rivet points verified</li>
+
+            <li>Structural integrity confirmed</li>
+
+          </ul>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="stage-head">
+
+            <h3>Stage 5 — Quality Gate</h3>
+
+            <span class="stage-badge">
+              <span class="n">5</span>
+              inspection
+            </span>
+
+          </div>
+
+          <ul class="list-tight muted">
+
+            <li>Geometry measurement</li>
+
+            <li>Gap / flush check</li>
+
+            <li>Surface inspection</li>
+
+          </ul>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="stage-head">
+
+            <h3>Stage 6 — Release</h3>
+
+            <span class="stage-badge">
+              <span class="n">6</span>
+              handover
+            </span>
+
+          </div>
+
+          <ul class="list-tight muted">
+
+            <li>Door classified (OK / REWORK / HOLD)</li>
+
+            <li>Audit record created</li>
+
+            <li>Part released to downstream process</li>
+
+          </ul>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- SENSORS -->
+  <section class="section" id="sensors">
+
+    <div class="container">
+
+      <h2>Sensors and Signals</h2>
+
+      <p class="muted">
+
+        Sensors provide the raw signals that update the
+        factory world model.
+
+      </p>
+
+      <div class="three-col">
+
+        <div class="card">
+
+          <h3>Identification</h3>
+
+          <ul class="list-tight muted">
+
+            <li>Barcode scanners</li>
+
+            <li>QR readers</li>
+
+            <li>RFID tags</li>
+
+          </ul>
+
+        </div>
+
+
+        <div class="card">
+
+          <h3>Position and Geometry</h3>
+
+          <ul class="list-tight muted">
+
+            <li>Structured light scanners</li>
+
+            <li>Laser line scanners</li>
+
+            <li>Optical measurement systems</li>
+
+          </ul>
+
+        </div>
+
+
+        <div class="card">
+
+          <h3>Joining Verification</h3>
+
+          <ul class="list-tight muted">
+
+            <li>Weld monitoring</li>
+
+            <li>Force sensors</li>
+
+            <li>Torque sensors</li>
+
+          </ul>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ENERGY OPTIMIZATION -->
+  <section class="section" id="energy-optimization">
+
+    <div class="container">
+
+      <h2>Energieoptimierung (Advisory)</h2>
+
+      <p class="muted">
+
+        In addition to product quality decisions, the system can provide
+        advisory recommendations regarding energy consumption.
+
+      </p>
+
+      <div class="card callout">
+
+        <strong>Advisory mode</strong>
+
+        <p class="muted" style="margin-top:.5rem">
+
+          Energy optimization recommendations do not directly execute
+          operational actions. Instead they provide suggestions that can
+          be accepted, rejected, or escalated.
+
+        </p>
+
+        <div class="pill-row">
+
+          <span class="pill">
+            <span class="dot"></span>
+            recommendation
+          </span>
+
+          <span class="pill amb">
+            <span class="dot"></span>
+            review
+          </span>
+
+          <span class="pill red">
+            <span class="dot"></span>
+            blocked if unsafe
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- AUDIT TRACE -->
+  <section class="section" id="audit">
+
+    <div class="container">
+
+      <h2>Audit Trace</h2>
+
+      <p class="muted">
+
+        Every classification decision must leave a verifiable trace.
+
+      </p>
+
+      <div class="card">
+
+<pre class="codeblock">
+
+{
+  "door_id": "TVL-2026-001284",
+  "timestamp": "2026-01-09T10:58:12Z",
+
+  "stage": 5,
+
+  "checks": {
+
+    "geometry": "PASS",
+
+    "gap_flush": "PASS",
+
+    "surface": "PASS"
+
+  },
+
+  "decision": "ALLOW",
+
+  "governance": {
+
+    "guardian_check": "PASS",
+
+    "policy": "release_requires_complete_evidence"
+
+  }
+
+}
+
+</pre>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- BLOCK EXAMPLE -->
+  <section class="section" id="block">
+
+    <div class="container">
+
+      <h2>Explicit BLOCK Case</h2>
+
+      <p class="muted">
+
+        Autonomous systems must be able to fail safely.
+        If constraints are violated, the system must produce
+        a clear BLOCK outcome.
+
+      </p>
+
+      <div class="card callout warn">
+
+        <strong>Example</strong>
+
+        <p class="muted">
+
+          If surface inspection detects a dent exceeding tolerance,
+          the door cannot be released.
+
+        </p>
+
+        <div class="pill-row">
+
+          <span class="pill red">
+            <span class="dot"></span>
+            geometry fail
+          </span>
+
+          <span class="pill red">
+            <span class="dot"></span>
+            surface fail
+          </span>
+
+          <span class="pill red">
+            <span class="dot"></span>
+            decision BLOCK
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+
+<footer class="footer">
+
+  <div class="container cols">
+
+    <div>
+
+      <strong>virtauto®</strong><br/>
+
+      <small>
+
+        The Digital Transformation of the Automotive Industry.
+        When Software builds Hardware.
+
+      </small>
+
+    </div>
+
+    <div>
+
+      <small>
+
+        <a href="blog.html">Blog</a> ·
+        <a href="contact.html">Kontakt</a>
+
+      </small>
+
+    </div>
+
+    <div class="right">
+
+      <small>
+
+        © 2025 virtauto®. Alle Rechte vorbehalten.
+
+      </small>
+
+    </div>
+
+  </div>
+
+  <div style="margin-top:24px;padding:12px 0;border-top:1px solid #1a2332;">
+
+    <a href="/status/" class="agentic-link" aria-label="Open System Status">
+
+      <small id="agentic-status" class="agentic-status" aria-live="polite">
+
+        <span class="dot"></span>
+        Agentische Website — checking…
+
+      </small>
+
+    </a>
+
+  </div>
+
+</footer>
+
+</body>
+</html>
