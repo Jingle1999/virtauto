@@ -1,0 +1,54 @@
+name: GEORGE — Capability Router (Deterministic Failover)
+
+on:
+  workflow_dispatch:
+    inputs:
+      capability:
+        description: "Capability to execute (e.g., deploy)"
+        required: true
+        default: "deploy"
+
+permissions:
+  contents: write   # needed because GEORGE commits failover_trace.jsonl
+  actions: write    # needed to dispatch other workflows
+
+jobs:
+  route:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo (main)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Route capability + write failover trace
+        id: route
+        env:
+          CAPABILITY: ${{ inputs.capability }}
+        run: |
+          python ops/route_capability.py | tee /tmp/route.out
+          echo "selected_agent=$(grep '^selected_agent=' /tmp/route.out | cut -d= -f2-)" >> $GITHUB_OUTPUT
+          echo "selected_role=$(grep '^selected_role=' /tmp/route.out | cut -d= -f2-)" >> $GITHUB_OUTPUT
+          echo "deploy_workflow=$(grep '^deploy_workflow=' /tmp/route.out | cut -d= -f2-)" >> $GITHUB_OUTPUT
+
+      - name: Commit failover trace (truth artifact)
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add ops/reports/failover_trace.jsonl
+          git commit -m "GEORGE: failover trace (capability=${{ inputs.capability }}, role=${{ steps.route.outputs.selected_role }})" || echo "No changes"
+          git push origin main
+
+      - name: Dispatch selected deploy workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          wf="${{ steps.route.outputs.deploy_workflow }}"
+          echo "GEORGE routing decision: capability=${{ inputs.capability }}, agent=${{ steps.route.outputs.selected_agent }}, role=${{ steps.route.outputs.selected_role }}"
+          echo "Dispatching workflow: $wf"
+          gh workflow run "$wf" --ref main

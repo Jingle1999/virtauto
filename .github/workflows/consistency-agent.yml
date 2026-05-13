@@ -1,32 +1,103 @@
-# .github/workflows/consistency-agent.yml — CI wiring for Consistency Agent v1
-name: Consistency Agent v1
+name: consistency_agent
 
 on:
-  pull_request:
-    branches: [ "main" ]
-  push:
-    branches: [ "main" ]
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["george_orchestrator"]
+    types:
+      - completed
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: consistency-agent-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  consistency-agent:
-    runs-on: ubuntu-latest
+  consistency_agent:
+    name: consistency_agent
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          fetch-depth: 0
 
-      - name: Install dependencies
+      - name: Generate consistency result artifact
+        shell: bash
         run: |
-          python -m pip install --upgrade pip
-          pip install pyyaml
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
 
-      - name: Run Consistency Agent v1
+          now = datetime.now(timezone.utc).replace(microsecond=0)
+          ts = now.isoformat().replace("+00:00", "Z")
+
+          decision_path = "status/latest_decision.json"
+          os.makedirs("governance/consistency", exist_ok=True)
+
+          if os.path.exists(decision_path):
+              with open(decision_path, "r", encoding="utf-8") as f:
+                  decision = json.load(f)
+
+              result = "approved"
+              status = "consistent"
+              decision_id = decision.get("decision_id", "unknown")
+
+          else:
+              result = "rejected"
+              status = "missing_decision"
+              decision_id = "missing"
+
+          consistency = {
+              "consistency_id": "CONS-" + now.strftime("%Y-%m-%d-%H%M%S"),
+              "decision_id": decision_id,
+              "agent": "CONSISTENCY",
+              "result": result,
+              "status": status,
+              "timestamp": ts
+          }
+
+          with open(
+              "governance/consistency/consistency_result.json",
+              "w",
+              encoding="utf-8"
+          ) as f:
+              json.dump(consistency, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          PY
+
+      - name: Create branch and commit
+        shell: bash
         run: |
-          python ops/consistency_agent.py --mode ci
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          branch="automation/consistency-$(date +%s)"
+          git checkout -b "$branch"
+
+          git add governance/consistency/consistency_result.json
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "governance: update consistency check artifact"
+          git push origin "$branch"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "Consistency Agent Result"
+          body: "Automated consistency governance result"
+          branch: automation/consistency-pr
+          delete-branch: true

@@ -1,0 +1,13 @@
+{
+  "governed_decision_id": "GD-2026-04-02-185050",
+  "decision_id": "GEORGE-2026-03-13-001",
+  "source_agent": "GEORGE",
+  "action": "status_update",
+  "consistency_result": "missing",
+  "guardian_result": "blocked",
+  "governance_status": "blocked",
+  "execution_authorized": false,
+  "audit_required": true,
+  "lifecycle_state": "blocked",
+  "timestamp": "2026-04-02T18:50:50Z"
+}

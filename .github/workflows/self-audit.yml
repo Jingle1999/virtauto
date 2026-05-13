@@ -1,39 +1,115 @@
-name: Self Audit Agent
+name: self_audit
 
 on:
   workflow_dispatch:
-    inputs:
-      url:
-        description: "Website URL"
-        required: false
-        default: "https://virtauto.de"
-  schedule:
-    - cron: "15 */6 * * *"   # alle 6h
-  workflow_call: {}
+  workflow_run:
+    workflows: ["guardian", "status_monitoring"]
+    types:
+      - completed
 
 permissions:
   contents: write
 
+concurrency:
+  group: self-audit-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  audit:
-    runs-on: ubuntu-latest
-    env:
-      PYTHONPATH: ${{ github.workspace }}
+  self_audit:
+    name: self_audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          python-version: "3.11"
-      - run: pip install -r requirements.txt
+          fetch-depth: 1
 
-      - name: Run audit
+      - name: Generate self audit report
+        shell: bash
         run: |
-          python -m scripts.self_audit \
-            --url "${{ github.event.inputs.url || 'https://virtauto.de' }}" \
-            --out ops/reports/self_audit.json
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
 
-      - name: Upload report
-        uses: actions/upload-artifact@v4
-        with:
-          name: self-audit-report
-          path: ops/reports/self_audit.json
+          now = datetime.now(timezone.utc).replace(microsecond=0)
+          ts = now.isoformat().replace("+00:00", "Z")
+          audit_id = "AUDIT-" + now.strftime("%Y-%m-%d-%H%M%S")
+
+          os.makedirs("audit", exist_ok=True)
+
+          checks = []
+          missing = []
+
+          if os.path.exists("status/system_health.json"):
+              checks.append("status_files_present")
+          else:
+              missing.append("status/system_health.json")
+
+          if os.path.exists("status/latest_decision.json"):
+              checks.append("latest_decision_present")
+          else:
+              missing.append("status/latest_decision.json")
+
+          if os.path.exists("governance/decision_traces/GEORGE-example.json"):
+              checks.append("decision_trace_present")
+          else:
+              missing.append("governance/decision_traces/GEORGE-example.json")
+
+          if os.path.exists("governance/validation/GUARDIAN-example.json"):
+              checks.append("validation_present")
+          else:
+              missing.append("governance/validation/GUARDIAN-example.json")
+
+          if os.path.exists("status/dashboard_summary.json"):
+              checks.append("dashboard_summary_present")
+          else:
+              missing.append("status/dashboard_summary.json")
+
+          total_expected = 5
+          passed = len(checks)
+
+          if passed == total_expected:
+              system_status = "OK"
+          elif passed >= 3:
+              system_status = "PARTIAL"
+          else:
+              system_status = "DEGRADED"
+
+          report = {
+              "audit_id": audit_id,
+              "agent": "SELF_AUDIT",
+              "audit_scope": "phase1_governance_poc",
+              "system_status": system_status,
+              "checks_passed": passed,
+              "checks_expected": total_expected,
+              "checks": checks,
+              "missing": missing,
+              "timestamp": ts
+          }
+
+          with open("audit/self_audit_report.json", "w", encoding="utf-8") as f:
+              json.dump(report, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+          PY
+
+      - name: Commit updated artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add audit/self_audit_report.json
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "audit: update self audit report"
+          git push

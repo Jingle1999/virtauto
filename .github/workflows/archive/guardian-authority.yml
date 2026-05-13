@@ -1,0 +1,85 @@
+name: Guardian/Authority (Policy Gate) + Deterministic Failover
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      force_backup:
+        description: "Chaos test: force backup guardian agent (true/false)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+
+env:
+  GOV_OUT: ops/reports/governance_outputs.json
+  TRACE_PATH: ops/reports/guardian_trace.jsonl
+  ACTIVITY_PATH: ops/agent_activity.jsonl
+
+jobs:
+  guardian_gate:
+    name: Guardian Gate (primary → backup)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Ensure evidence paths exist
+        run: |
+          mkdir -p ops/reports
+          touch "${TRACE_PATH}"
+          touch "${ACTIVITY_PATH}"
+
+      - name: Run Guardian Agent (primary)
+        id: primary
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.force_backup == 'true') }}
+        continue-on-error: true
+        run: |
+          python ops/guardian_agent.py --agent primary
+
+      - name: Run Guardian Agent (backup) deterministic failover
+        id: backup
+        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.force_backup == 'true') || steps.primary.outcome != 'success' }}
+        run: |
+          python ops/guardian_agent.py --agent backup
+
+      - name: Upload governance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guardian-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ops/reports/governance_outputs.json
+            ops/reports/guardian_trace.jsonl
+            ops/agent_activity.jsonl
+          if-no-files-found: error
+
+      - name: Enforce gate result (BLOCK stops pipeline)
+        shell: bash
+        run: |
+          if [ ! -f "${GOV_OUT}" ]; then
+            echo "Missing governance output ${GOV_OUT}" >&2
+            exit 3
+          fi
+
+          verdict=$(python - <<'PY'
+import json
+p="ops/reports/governance_outputs.json"
+with open(p,"r",encoding="utf-8") as f:
+    j=json.load(f)
+print(j.get("verdict","UNKNOWN"))
+PY
+)
+          echo "Guardian verdict: ${verdict}"
+          if [ "${verdict}" != "PASS" ]; then
+            echo "Guardian gate BLOCKED. See ops/reports/governance_outputs.json" >&2
+            exit 2
+          fi

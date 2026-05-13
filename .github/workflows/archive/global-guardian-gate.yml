@@ -1,0 +1,106 @@
+name: Global Guardian Gate (Authority + Policy) — Blocking
+
+on:
+  workflow_call:
+    inputs:
+      capability:
+        description: "Capability name (deploy/status/...)"
+        required: true
+        type: string
+      chaos_force_block:
+        description: "Chaos test: force Guardian to BLOCK (true/false)"
+        required: false
+        type: string
+        default: "false"
+    outputs:
+      verdict:
+        description: "PASS/BLOCK"
+        value: ${{ jobs.guardian.outputs.verdict }}
+      authority_mode:
+        description: "Authority mode (e.g., SUPERVISED)"
+        value: ${{ jobs.guardian.outputs.authority_mode }}
+      gate_trace_path:
+        description: "Path to gate trace artifact"
+        value: ${{ jobs.guardian.outputs.gate_trace_path }}
+
+permissions:
+  contents: read
+
+env:
+  GATE_TRACE: ops/reports/guardian_gate_trace.jsonl
+  AUTHORITY_MODE: SUPERVISED
+  HEALTH_THRESHOLD: "0.80"
+
+jobs:
+  guardian:
+    name: Guardian/Authority Gate (deterministic, trace-required)
+    runs-on: ubuntu-latest
+    outputs:
+      verdict: ${{ steps.out.outputs.verdict }}
+      authority_mode: ${{ steps.out.outputs.authority_mode }}
+      gate_trace_path: ${{ steps.out.outputs.gate_trace_path }}
+    steps:
+      - name: Checkout main (read-only)
+        uses: actions/checkout@v4
+
+      - name: Ensure gate trace exists
+        shell: bash
+        run: |
+          mkdir -p ops/reports
+          touch "${GATE_TRACE}"
+
+      - name: Deterministic authority checks (NO LLM, NO heuristics)
+        id: gate
+        shell: bash
+        run: |
+          ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          cap="${{ inputs.capability }}"
+          verdict="PASS"
+          reasons="[]"
+
+          # ---- CHAOS TEST (optional) ----
+          if [ "${{ inputs.chaos_force_block }}" = "true" ]; then
+            verdict="BLOCK"
+            reasons='["CHAOS_FORCE_BLOCK"]'
+          fi
+
+          # ---- REQUIRED REPO ARTIFACTS (Phase 8 safety posture) ----
+          # (Keep these simple + deterministic; extend later.)
+          if [ "$verdict" = "PASS" ]; then
+            if [ ! -f "ops/reports/system_status.json" ]; then
+              verdict="BLOCK"
+              reasons='["MISSING_SYSTEM_STATUS_JSON"]'
+            fi
+          fi
+
+          # ---- OPTIONAL: ensure site deploy uses deterministic failover config ----
+          # We do not parse YAML here (avoid tooling complexity). We only enforce that the workflow exists.
+          if [ "$verdict" = "PASS" ]; then
+            if [ ! -f ".github/workflows/site-deploy.yml" ]; then
+              verdict="BLOCK"
+              reasons='["MISSING_SITE_DEPLOY_WORKFLOW"]'
+            fi
+          fi
+
+          echo "{\"ts\":\"$ts\",\"gate\":\"global_guardian\",\"capability\":\"$cap\",\"authority_mode\":\"${AUTHORITY_MODE}\",\"health_threshold\":${HEALTH_THRESHOLD},\"verdict\":\"$verdict\",\"reasons\":$reasons,\"run_id\":\"${GITHUB_RUN_ID}\",\"attempt\":\"${GITHUB_RUN_ATTEMPT}\",\"sha\":\"${GITHUB_SHA}\"}" >> "${GATE_TRACE}"
+
+          if [ "$verdict" != "PASS" ]; then
+            echo "Guardian Gate BLOCKED. Reasons: $reasons" >&2
+            exit 3
+          fi
+
+      - name: Upload gate evidence (audit)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guardian-gate-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ops/reports/guardian_gate_trace.jsonl
+          if-no-files-found: error
+
+      - name: Outputs
+        id: out
+        shell: bash
+        run: |
+          echo "verdict=PASS" >> "$GITHUB_OUTPUT"
+          echo "authority_mode=${AUTHORITY_MODE}" >> "$GITHUB_OUTPUT"
+          echo "gate_trace_path=${GATE_TRACE}" >> "$GITHUB_OUTPUT"

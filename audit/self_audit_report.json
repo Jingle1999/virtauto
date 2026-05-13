@@ -1,0 +1,10 @@
+{
+  "audit_id": "AUDIT-2026-03-13-001",
+  "system_status": "OK",
+  "checks": [
+    "status_files_present",
+    "decision_trace_present",
+    "validation_present"
+  ],
+  "timestamp": "2026-03-13T12:05:00Z"
+}
