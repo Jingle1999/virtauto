@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Decision Model · Die 7. Schicht · virtauto®</title>
+
+  <link rel="canonical" href="https://www.virtauto.de/decision-model-de.html">
+  <meta name="description" content="Das virtauto Decision Model — die 7. Schicht zwischen Unternehmensplanung, KI-Vorschlägen und operativer Ausführung. Eine Governance-Schicht für orchestrierte, validierte und nachvollziehbare Entscheidungen.">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="virtauto Decision Model — Die 7. Schicht">
+  <meta property="og:description" content="virtauto modelliert Entscheidungen selbst als eigenständige Architektur-Schicht zwischen ERP, MES, KI-Agenten und operativer Ausführung.">
+  <meta property="og:url" content="https://www.virtauto.de/decision-model-de.html">
+  <meta property="og:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="virtauto Decision Model — Die 7. Schicht">
+  <meta name="twitter:description" content="Eine Governance-Schicht, die Agenten orchestriert, Entscheidungen validiert, Unternehmensregeln durchsetzt und Nachweise erzeugt.">
+  <meta name="twitter:image" content="https://www.virtauto.de/assets/img/smart_factory.jpg">
+
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <link rel="stylesheet" href="assets/styles_unify.css"/>
+  <script defer src="assets/site.js"></script>
+  <script defer src="assets/agent-status.js"></script>
+
+  <!-- STYLE BLOCK UNVERÄNDERT ÜBERNEHMEN -->
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="brand" href="index-de.html">
+        virtauto<span class="badge">OS</span>
+      </a>
+
+      <nav class="main-nav">
+        <a href="index-de.html">Home</a>
+        <a href="industrymodel-de.html">Industry Model</a>
+        <a href="decision-model-de.html">Decision Model</a>
+        <a href="decision-demo-de.html">Decision Demo</a>
+        <a href="energy-steel-de.html">Real Data PoC</a>
+        <a href="biw-energy-de.html">Energy Scan</a>
+        <a href="pilot-de.html">Pilot</a>
+        <a href="status/index.html">Status</a>
+        <a href="contact-de.html">Kontakt</a>
+      </nav>
+
+      <div class="lang-switch">
+        <a class="lang-btn" href="decision-model.html">EN</a>
+        <a class="lang-btn active" href="decision-model-de.html">DE</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="decision-page">
+
+    <section class="hero">
+      <div class="container">
+        <div class="kicker">Decision Model</div>
+
+        <h1>Die 7. Schicht: Entscheidung &amp; Governance</h1>
+
+        <p class="lead">
+          virtauto modelliert Entscheidungsfindung selbst als eigenständige
+          Architekturschicht — zwischen Unternehmensplanung,
+          KI-Vorschlägen und operativer Ausführung.
+          Diese Schicht ersetzt weder ERP-, MES- noch Domänensysteme.
+          Sie <strong>orchestriert</strong>,
+          <strong>validiert</strong>,
+          <strong>steuert</strong> und
+          <strong>dokumentiert</strong> Entscheidungen über alle Systeme hinweg.
+        </p>
+
+        <div class="hero-badge">
+          virtauto ist eine eigenständige Entscheidungsschicht, die Aktionen über Agenten und Unternehmenssysteme hinweg orchestriert und steuert.
+        </div>
+
+        <div class="meta-row">
+          <span class="pill"><span class="dot"></span> 7. Schicht</span>
+          <span class="pill"><span class="dot"></span> Decision-first Architektur</span>
+          <span class="pill"><span class="dot"></span> Governance durch Evidenz</span>
+          <span class="pill"><span class="dot"></span> Transformation über Technologie hinaus</span>
+        </div>
+
+        <div class="anchor-row">
+          <a href="#problem">Warum diese Schicht existiert</a>
+          <a href="#model">Entscheidungsmodell</a>
+          <a href="#graph">Decision Graph</a>
+          <a href="#functions">Kernfunktionen</a>
+          <a href="#flow">Decision Flow</a>
+          <a href="#repo">Live-Implementierung</a>
+          <a href="#practice">Praxis</a>
+          <a href="#principles">Prinzipien</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="problem">
+      <div class="container">
+        <h2>Warum diese Schicht existiert</h2>
+
+        <div class="callout">
+          <p style="margin:0;">
+            Digitale Transformation scheitert nicht nur an fragmentierten Systemen.
+            Sie scheitert auch daran, dass
+            <strong>Entscheidungsfindung strukturell ungelöst bleibt</strong>.
+            ERP-Systeme definieren Restriktionen.
+            MES-Systeme zeigen die operative Realität.
+            KI erzeugt Vorschläge und Optimierungen.
+            Aber ohne eine explizite Schicht für gesteuerte Entscheidungen
+            verschwimmt Verantwortung, Trade-offs bleiben implizit
+            und Ausführung wird inkonsistent.
+          </p>
+        </div>
+
+        <div class="grid-3" style="margin-top:16px;">
+
+          <div class="card">
+            <h3>ERP / Unternehmensplanung</h3>
+            <p>Definiert Restriktionen, Kosten, Aufträge, Ressourcen, Kapazitäten und Richtlinien.</p>
+            <p class="muted">Stark in Planung. Schwach in situativer Orchestrierung.</p>
+          </div>
+
+          <div class="card">
+            <h3>MES / Operations</h3>
+            <p>Spiegelt reale Produktionsbedingungen, Störungen, Qualitätssignale und Shopfloor-Realität wider.</p>
+            <p class="muted">Stark in operativer Wahrheit. Schwach in bereichsübergreifender Governance.</p>
+          </div>
+
+          <div class="card">
+            <h3>KI / Agentensysteme</h3>
+            <p>Erzeugen Vorschläge, Prognosen, Optimierungen und alternative Handlungspfade.</p>
+            <p class="muted">Stark in Analyse. Schwach in verantwortbarer Entscheidungsübernahme.</p>
+          </div>
+
+        </div>
+
+        <div class="callout warn" style="margin-top:16px;">
+          <p style="margin:0;">
+            <strong>Die fehlende Verbindung:</strong>
+            Wer übersetzt Restriktionen, Signale und Vorschläge in eine kontrollierte Entscheidung —
+            und wer dokumentiert, warum diese Entscheidung zulässig war?
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="model">
+      <div class="container">
+
+        <h2>Das Entscheidungsmodell</h2>
+
+        <p class="muted">
+          virtauto behandelt Entscheidungsfindung nicht als versteckten Nebeneffekt von Anwendungen,
+          sondern als explizites Modell mit Eingaben, Governance, Ergebnis und Nachweis.
+        </p>
+
+        <div class="flow">
+          <div class="flow-row">
+
+            <div class="flow-box">
+              <h3>1. Eingaben</h3>
+              <ul>
+                <li>Unternehmensrestriktionen</li>
+                <li>operative Signale</li>
+                <li>KI-Vorschläge</li>
+                <li>Systemzustand und Kontext</li>
+              </ul>
+            </div>
+
+            <div class="flow-arrow">→</div>
+
+            <div class="flow-box">
+              <h3>2. Entscheidungsschicht</h3>
+              <ul>
+                <li>orchestriert Agenten</li>
+                <li>bewertet Optionen</li>
+                <li>wendet Governance-Regeln an</li>
+                <li>wählt zulässige Handlungspfade</li>
+              </ul>
+            </div>
+
+            <div class="flow-arrow">→</div>
+
+            <div class="flow-box">
+              <h3>3. Ergebnisse</h3>
+              <ul>
+                <li>validierte Entscheidung</li>
+                <li>Execution Intent</li>
+                <li>Decision Trace</li>
+                <li>Audit-fähige Evidenz</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:16px;">
+
+          <div class="card">
+            <h3>Entscheidung = Architektur-Objekt</h3>
+            <p>
+              In virtauto ist eine Entscheidung keine versteckte Konsequenz
+              innerhalb von ERP-Logik, Prompt-Ausgaben oder Workflow-Nebeneffekten mehr.
+              Sie wird zu einem expliziten Systemobjekt mit Identität, Kontext,
+              Validierung und Evidenz.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Governance = Runtime-Fähigkeit</h3>
+            <p>
+              Governance ist nicht nur Dokumentation.
+              Sie wird zu einer Runtime-Fähigkeit,
+              die entscheidet, ob ein Vorschlag erlaubt,
+              blockiert, eskaliert oder geprüft werden muss.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="graph">
+      <div class="container">
+
+        <h2>Der Decision Graph als steuerndes Rückgrat</h2>
+
+        <p class="muted">
+          Kontext allein reicht nicht aus.
+          Das System benötigt zusätzlich einen expliziten Graphen,
+          der steuert, was als Nächstes passieren darf,
+          wer entscheiden darf,
+          welche Restriktionen gelten
+          und wann eskaliert werden muss.
+        </p>
+
+        <div class="callout" style="margin-top:16px;">
+          <p style="margin:0;">
+            Der Decision Graph ist deshalb keine reine Visualisierung.
+            Er ist das steuernde Rückgrat,
+            das Entscheidungsobjekte, Autorität,
+            Restriktionen, Eskalation und Evidenz
+            zu einer überprüfbaren Runtime-Struktur verbindet.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section" id="functions">
+      <div class="container">
+
+        <h2>Die vier Kernfunktionen der Entscheidungsschicht</h2>
+
+        <div class="grid-4">
+
+          <div class="step">
+            <div class="num">1</div>
+            <h3>Agenten orchestrieren</h3>
+            <p>Spezialisierte Agenten und Informationsquellen koordinieren, statt sie unabhängig handeln zu lassen.</p>
+          </div>
+
+          <div class="step">
+            <div class="num">2</div>
+            <h3>Entscheidungen validieren</h3>
+            <p>Vorschläge gegen Unternehmensrestriktionen, Governance-Regeln und operative Grenzen prüfen.</p>
+          </div>
+
+          <div class="step">
+            <div class="num">3</div>
+            <h3>Restriktionen durchsetzen</h3>
+            <p>Sicherstellen, dass Entscheidungen innerhalb zulässiger Geschäfts-, Compliance- und Betriebsgrenzen bleiben.</p>
+          </div>
+
+          <div class="step">
+            <div class="num">4</div>
+            <h3>Evidenz dokumentieren</h3>
+            <p>Decision Traces, Validierungsartefakte und Audit-Nachweise erzeugen.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="flow">
+      <div class="container">
+
+        <h2>Decision Flow in virtauto</h2>
+
+        <div class="grid-2">
+
+          <div class="card">
+            <h3>Konzeptioneller Ablauf</h3>
+
+            <ol>
+              <li>Signale, Restriktionen und Vorschläge gelangen ins System</li>
+              <li>GEORGE erzeugt einen Decision Intent</li>
+              <li>GUARDIAN validiert die Entscheidung</li>
+              <li>Status aggregiert den Systemzustand</li>
+              <li>Self-Audit prüft die Governance-Kette</li>
+              <li>Die Website rendert die sichtbare Governance-Oberfläche</li>
+            </ol>
+          </div>
+
+          <div class="card">
+            <h3>Governance Runtime Loop</h3>
+
+            <p class="mono">
+              Entscheidung → Validierung → Status → Audit → überprüfbarer Systemzustand
+            </p>
+
+            <p class="muted">
+              Dadurch schließt sich der Kreis zwischen Architektur,
+              Automatisierung und Verantwortlichkeit.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+
+        <h2>In einem Satz</h2>
+
+        <div class="card">
+          <p style="font-size:1.1rem; margin:0;">
+            <strong>virtauto ist nicht nur eine weitere KI-Schicht.</strong>
+            Es ist die fehlende Entscheidungs- und Governance-Schicht
+            zwischen Unternehmensabsicht,
+            operativer Realität
+            und agentischem Handeln.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="section">
+    <div class="container">
+      <p class="muted" style="text-align:center;">
+        virtauto® — Decision Model · Die 7. Schicht zwischen Planung, Intelligenz und Ausführung
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>
