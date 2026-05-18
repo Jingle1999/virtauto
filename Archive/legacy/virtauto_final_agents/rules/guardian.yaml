@@ -1,0 +1,39 @@
+version: 0.2.0
+updated: "2025-10-23"
+policies:
+  - id: P-CONT-001
+    name: "No secrets in repo"
+    match:
+      patterns:
+        - "(?i)api[_-]?key"
+        - "(?i)secret"
+        - "(?i)password"
+        - "AKIA[0-9A-Z]{16}"
+    action: "block"
+
+  - id: P-CONT-002
+    name: "No unverifiable superlatives"
+    match:
+      phrases: ["world's best","100% guaranteed","state of the art"]
+    action: "warn"
+
+  - id: P-UX-001
+    name: "Contrast minimum"
+    description: "WCAG contrast of 4.5:1 for normal text"
+    requires_check: "contrast>=4.5"
+    action: "warn"
+
+  - id: P-DSGVO-001
+    name: "Cookie/Consent"
+    description: "No non-essential cookies without consent"
+    requires_check: "cookies=='none' || consent=='enabled'"
+    action: "warn"
+
+  - id: P-LEGAL-001
+    name: "Impressum & Datenschutz vorhanden"
+    match:
+      paths: ["public/**","src/**","content/**"]
+      patterns:
+        - "(?i)impressum"
+        - "(?i)datenschutz"
+    action: "warn"
