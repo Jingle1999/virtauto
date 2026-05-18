@@ -1,0 +1,18 @@
+version: 0.1.0
+updated: "2025-10-23"
+checks:
+  meta:
+    - key: "title"
+      required: true
+    - key: "meta[name='description']"
+      required: true
+    - key: "link[rel='canonical']"
+      required: true
+  content:
+    - rule: "one h1 per page"
+    - rule: "meaningful alt text for images"
+    - rule: "internal links to 2+ related pages"
+  performance_budgets:
+    lcp_ms_max: 2500
+    tbt_ms_max: 200
+    cls_max: 0.10
