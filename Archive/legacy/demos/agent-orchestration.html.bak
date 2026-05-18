@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multi-Agent Orchestration · virtauto®</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <!-- include header -->
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="kicker">Demo</div>
+        <h1>Multi-Agent Orchestration</h1>
+        <p class="lead">GEORGE coordinating specialized agents across the automotive value chain.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Overview</h2>
+        <p>
+          Modern OEMs deal with complex, siloed processes. Orchestration ensures agents collaborate consistently across ISA-95 layers — from shop floor signals to enterprise planning.
+        </p>
+
+        <h2>Process</h2>
+        <ol>
+          <li>Event (e.g., production delay) triggers orchestration.</li>
+          <li>GEORGE routes the task to specialized agents (Root Cause, Supply Chain, Finance).</li>
+          <li>Agents exchange context via shared memory and policies.</li>
+          <li>Orchestrated response is logged, validated, and escalated if needed.</li>
+        </ol>
+
+        <h2>Key Benefits</h2>
+        <ul>
+          <li>Breaks down silos between IT/OT.</li>
+          <li>Ensures every agent follows the same governance rules.</li>
+          <li>Speeds up decision-making by 30–50%.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <!-- include footer -->
+</body>
+</html>

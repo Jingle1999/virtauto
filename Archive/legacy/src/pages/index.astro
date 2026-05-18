@@ -1,0 +1,29 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="virtauto — Self-Evolving Industrial Website">
+  <h1>virtauto.de</h1>
+  <p>The self-evolving website for Multi-Agent Systems (MAS) in industrial & automotive domains.</p>
+
+  <h2>What runs automatically (Phase 1)</h2>
+  <ul>
+    <li>Content ingestion from Medium → Drafts</li>
+    <li>Quality gates via YAML rules (Review-Gate)</li>
+    <li>Lighthouse performance audits & budgets</li>
+    <li>GitHub Pages CI/CD deploy</li>
+  </ul>
+
+  <h2>Contact</h2>
+  <form action="https://formspree.io/f/your_form_id" method="POST">
+    <label>
+      Your email:
+      <input type="email" name="email" required />
+    </label>
+    <label>
+      Message:
+      <textarea name="message" required></textarea>
+    </label>
+    <button type="submit">Send</button>
+  </form>
+  <p style="font-size:.9rem;opacity:.7">Note: By submitting you agree that we may contact you about virtauto.</p>
+</Base>

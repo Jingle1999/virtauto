@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>virtauto – Status</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/styles_unify.css">
+  <script src="assets/site.js" defer></script>
+</head>
+<body>
+  <h1>virtauto – Latest Runs</h1>
+  <div class="build" id="build-info"></div>
+  <ul id="news"></ul>
+  <script>
+    async function loadData() {
+      const buildRes = await fetch('data/build.json').catch(()=>null);
+      const build = buildRes ? await buildRes.json() : {};
+      document.getElementById('build-info').innerText = build.commit 
+        ? `Build from ${build.commit} on ${build.branch} @ ${build.time}` 
+        : 'No build info available';
+
+      const newsRes = await fetch('data/news.json').catch(()=>null);
+      const news = newsRes ? await newsRes.json() : [];
+      const ul = document.getElementById('news');
+      ul.innerHTML = news.map(n => `<li><b>${n.event}</b> – ${n.details}</li>`).join('');
+    }
+    loadData();
+  </script>
+</body>
+</html>

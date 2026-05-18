@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>virtauto | Demo Overview</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <h1>virtauto Demo Center</h1>
+    <p>Explore how our AI agents solve real automotive challenges.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Available Demos</h2>
+      <ul>
+        <li>
+          <a href="agent-orchestration.html">Agent Orchestration</a>  
+          <p>Demonstrates how GEORGE orchestrates multiple specialized agents in parallel workflows.</p>
+        </li>
+        <li>
+          <a href="root-cause-analysis.html">Root Cause Analysis</a>  
+          <p>Shows how the Root Cause Agent identifies production issues and accelerates problem resolution.</p>
+        </li>
+        <li>
+          <a href="supply-chain-copilot.html">Supply Chain Copilot</a>  
+          <p>Explains how the Copilot Agent helps purchasing and logistics manage risks and shortages.</p>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 virtauto. All rights reserved.</p>
+  </footer>
+</body>
+</html>

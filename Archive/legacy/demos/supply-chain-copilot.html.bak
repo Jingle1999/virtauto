@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Supply Chain Copilot · virtauto®</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+  <!-- include header -->
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="kicker">Demo</div>
+        <h1>Supply Chain Copilot</h1>
+        <p class="lead">Predict shortages, optimize sourcing, and support procurement decisions.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Overview</h2>
+        <p>
+          Disruptions in global supply chains delay vehicle launches and increase costs. The Copilot continuously monitors supplier performance, logistics, and external signals to anticipate risks.
+        </p>
+
+        <h2>Process</h2>
+        <ol>
+          <li>Continuous monitoring of supplier & logistics data.</li>
+          <li>Shortage risk detection (e.g., semiconductor lead time spike).</li>
+          <li>Scenario simulation: alternative sourcing, safety stock, adjusted production.</li>
+          <li>Decision support → Procurement Agent → GEORGE.</li>
+        </ol>
+
+        <h2>Key Benefits</h2>
+        <ul>
+          <li>Early warning system for bottlenecks.</li>
+          <li>Decision transparency through simulations.</li>
+          <li>Stronger supplier collaboration and negotiation.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <!-- include footer -->
+</body>
+</html>

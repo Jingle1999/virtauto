@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Website Self‑Agents — virtauto®</title>
+  <meta name="description" content="virtauto® Website Self‑Agents: Layout, Healthcheck, Image Consistency, and SEO agents that improve the site automatically." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .container {max-width: 1100px; margin: 0 auto; padding: 32px 24px;}
+    .kicker {color: var(--muted,#9aa4b0); font-weight: 600; letter-spacing:.06em; text-transform: uppercase; font-size: 12px;}
+    .title-xl {font-size: 44px; line-height: 1.1; margin: 8px 0 16px;}
+    .lead {font-size: 18px; line-height:1.6; color: var(--text,#dfe7ef);}
+    .grid {display: grid; gap: 20px; grid-template-columns: repeat(12, minmax(0, 1fr));}
+    .col-12 {grid-column: span 12;}
+    .col-6 {grid-column: span 6;}
+    .card {background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 20px;}
+    .card h3 {margin: 0 0 8px;}
+    .pill {display:inline-block; font-size:12px; padding:4px 10px; border:1px solid rgba(255,255,255,.12); border-radius:999px; margin-bottom:10px;}
+    .muted {color: var(--muted,#9aa4b0);}
+    .btn-row {display:flex; gap:12px; flex-wrap:wrap; margin-top: 16px;}
+    .btn {display:inline-block; background:#0b7bff; color:#fff; padding:10px 16px; border-radius:8px; text-decoration:none;}
+    .btn.secondary {background:transparent; border:1px solid rgba(255,255,255,.18);}
+    .list {margin: 8px 0 0 18px;}
+    .list li {margin: 6px 0;}
+    header.nav {position: sticky; top:0; z-index: 50; backdrop-filter: blur(8px); background: rgba(20,32,58,.6); border-bottom: 1px solid rgba(255,255,255,.06);}
+    header.nav .inner {display:flex; align-items:center; justify-content:space-between; max-width:1100px; margin:0 auto; padding: 14px 20px;}
+    header.nav a {text-decoration:none; color:#dfe7ef; margin: 0 10px;}
+    header.nav a.logo {font-weight:800; letter-spacing:.5px;}
+    footer {border-top: 1px solid rgba(255,255,255,0.06); margin-top: 40px; padding: 24px 0; color: var(--muted,#9aa4b0); text-align:center;}
+    @media (max-width: 980px) {.col-6 {grid-column: span 12;} .title-xl{font-size:34px;}}
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="inner">
+      <a class="logo" href="index.html">virtauto® <span class="muted">OS</span></a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="agents.html">Agents</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="solutions.html">Solutions</a>
+        <a href="status.html">Status</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <a class="btn" href="solutions.html#george">Meet GEORGE</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="container">
+      <p class="kicker">Website Self‑Agents</p>
+      <h1 class="title-xl">Our website is the first customer of our Multi‑Agent System</h1>
+      <p class="lead">We run lightweight agents on every change to keep the site fast, consistent and accessible. Results appear in the Status dashboard and as PR comments.</p>
+      <div class="btn-row">
+        <a class="btn" href="status.html">View live status</a>
+        <a class="btn secondary" href="#agents">See agents</a>
+      </div>
+    </section>
+
+    <section id="agents" class="container">
+      <div class="grid">
+        <div class="col-12"><h2>Agents (MVP)</h2></div>
+
+        <article class="card col-6">
+          <span class="pill">Layout Agent</span>
+          <h3>Consistent spacing, grid and typography</h3>
+          <ul class="list">
+            <li>Normalizes paddings/margins and heading hierarchy.</li>
+            <li>Checks buttons/links for empty labels and invalid hrefs.</li>
+            <li>Writes a Markdown report and (optionally) opens a PR.</li>
+          </ul>
+        </article>
+
+        <article class="card col-6">
+          <span class="pill">Healthcheck Agent</span>
+          <h3>Broken links &amp; HTML quality</h3>
+          <ul class="list">
+            <li>404 &amp; redirect checks across the site.</li>
+            <li>Validates basic HTML semantics and ARIA landmarks.</li>
+            <li>Updates the Status dashboard with findings.</li>
+          </ul>
+        </article>
+
+        <article class="card col-6">
+          <span class="pill">Image Consistency Agent</span>
+          <h3>Sizes, aspect ratio &amp; alt text</h3>
+          <ul class="list">
+            <li>Flags over‑wide images and missing <code>alt</code> attributes.</li>
+            <li>Suggests optimized widths for hero/poster images.</li>
+            <li>Exports a CSV/JSON with suggested fixes.</li>
+          </ul>
+        </article>
+
+        <article class="card col-6">
+          <span class="pill">SEO Agent</span>
+          <h3>Meta, Open Graph &amp; sitemap</h3>
+          <ul class="list">
+            <li>Ensures title/description length and uniqueness.</li>
+            <li>Generates Open Graph/Twitter tags from page content.</li>
+            <li>Keeps <code>sitemap.xml</code> in sync.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="container">
+      <h2>How it runs</h2>
+      <div class="grid">
+        <div class="card col-6">
+          <h3>Trigger</h3>
+          <p class="muted">On every push to <code>main</code> (and nightly), GitHub Actions runs the agents inside the repo.</p>
+        </div>
+        <div class="card col-6">
+          <h3>Outputs</h3>
+          <p class="muted">Agents write reports to <code>/logs/</code>, post a Status entry, and may open an automated PR when a fix is safe.</p>
+        </div>
+      </div>
+      <div class="btn-row">
+        <a class="btn" href="https://github.com/">Open on GitHub</a>
+        <a class="btn secondary" href="status.html">See latest run</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container" style="text-align:center;">
+      <div>virtauto® — The Digital Transformation of the Automotive Industry. When Software builds Hardware.</div>
+      <div style="margin-top:6px;"><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></div>
+      <div class="muted" style="margin-top:6px;">© 2025 virtauto®. All rights reserved.</div>
+    </div>
+  </footer>
+</body>
+</html>
