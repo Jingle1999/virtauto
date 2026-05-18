@@ -1,0 +1,8 @@
+{
+  "mandatory_artifacts": [
+    "ops/reports/decision_trace.jsonl",
+    "ops/decisions/gate_result.json",
+    "ops/reports/system_status.json",
+    "ops/reports/latest.json"
+  ]
+}
