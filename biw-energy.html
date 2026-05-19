@@ -30,30 +30,24 @@
 <body>
   <header class="site-header">
     <div class="nav-container">
-      <a class="brand" href="index.html" aria-label="virtauto home">virtauto <span class="badge">OS</span></a>
-
-      <button class="menu-toggle" type="button" aria-label="Toggle navigation" onclick="document.getElementById('site-menu').classList.toggle('open')">☰</button>
-
-      <nav id="site-menu" class="main-nav" aria-label="Primary navigation">
+      <a class="logo" href="index.html" aria-label="virtauto Home">
+        <img src="assets/virtauto-logo.svg" alt="virtauto">
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
         <a href="index.html">Home</a>
-        <a href="industrymodel.html">Industry Model</a>
-        <a href="decision-model.html">Decision Model</a>
-        <a href="decision-demo.html">Decision Demo</a>
-        <a href="energy-steel.html">Real Data PoC</a>
-        <a href="biw-energy.html" aria-current="page">Energy Scan</a>
-        <a href="pilot.html">Pilot</a>
-        <a href="/status/">Status</a>
+        <a href="virtauto-os.html">virtauto.OS</a>
+        <a href="biw-energy.html">Energy Scan</a>
+        <a href="pilot.html">Pilot Program</a>
         <a href="contact.html">Contact</a>
-
-        <span class="lang-switch" aria-label="Language switch">
-          <a class="lang-btn active" href="biw-energy.html" aria-current="page">EN</a>
-          <a class="lang-btn" href="biw-energy-de.html">DE</a>
-        </span>
-
-        <a class="cta-button" href="pilot.html">Agentic Website</a>
       </nav>
+      
+      <div class="lang-switch" aria-label="Language switch">
+        <a class="lang-btn active" href="index.html">EN</a>
+        <a class="lang-btn" href="index-de.html">DE</a>
+      </div>
     </div>
   </header>
+  
   <main class="biw-page"><div class="biw-wrap">
     <section class="hero"><div class="kicker">virtauto.OS Energy Scan for BIW Doorlines</div><h1>Upload MES, SCADA and ERP exports. <em>See where your BIW line is wasting energy.</em></h1><p class="lead">virtauto.OS scans production and energy signals locally in your browser and turns them into an Energy Opportunity Report: estimated savings, idle losses, peak load risk, compressed air issues and standby windows — ready for a 90-day pilot discussion.</p><div class="pills"><span class="pill green">6% target after baseline validation</span><span class="pill">BIW · Doorline</span><span class="pill blue">MES + SCADA + ERP</span><span class="pill">Energy Opportunity Report</span><span class="pill amber">Your data stays local</span></div></section>
     <div class="scan-flow"><div class="flow-item active"><div class="flow-num">01</div><div class="flow-label">Upload exports</div></div><div class="flow-item active"><div class="flow-num">02</div><div class="flow-label">Configure scan</div></div><div class="flow-item active"><div class="flow-num">03</div><div class="flow-label">Review opportunities</div></div><div class="flow-item active"><div class="flow-num">04</div><div class="flow-label">Request pilot review</div></div></div>
