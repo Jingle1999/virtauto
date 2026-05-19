@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>virtauto.OS — Die Architektur</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #060810;
+  --surface: #0c1018;
+  --surface2: #111620;
+  --border: #1c2535;
+  --border-bright: #2a3a50;
+  --l7-color: #7c6af7;
+  --l6-color: #3b9eff;
+  --l5-color: #00d4ff;
+  --l4-color: #00e5b0;
+  --l3-color: #00f070;
+  --l2-color: #c8ff3e;
+  --l1-color: #ff9f2f;
+  --text: #8ba0b8;
+  --text-bright: #e8f0f8;
+  --text-dim: #3a5068;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: default;
+  color: var(--text);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 100;
+}
+
+.page { max-width: 1200px; margin: 0 auto; padding: 60px 40px 80px; }
+
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 80px; }
+
+@media (max-width: 900px) {
+  .page { padding: 40px 20px 60px; }
+}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+<header class="site-header">
+  <div class="nav-container">
+
+    <a class="logo" href="index-de.html" aria-label="virtauto Startseite">
+      <img src="assets/virtauto-logo.svg" alt="virtauto">
+    </a>
+
+    <nav class="main-nav" aria-label="Hauptnavigation">
+      <a href="index-de.html">Home</a>
+      <a href="virtauto-os-de.html">virtauto.OS</a>
+      <a href="biw-energy-de.html">Energy Scan</a>
+      <a href="pilot-de.html">Pilotprogramm</a>
+      <a href="contact-de.html">Kontakt</a>
+    </nav>
+
+    <div class="lang-switch" aria-label="Sprachumschaltung">
+      <a class="lang-btn" href="virtauto-os.html">EN</a>
+      <a class="lang-btn active" href="virtauto-os-de.html">DE</a>
+    </div>
+
+  </div>
+</header>
+
+<div class="title-section">
+  <div class="eyebrow">Die Architektur</div>
+
+  <h1>
+    Sieben Schichten.<br>
+    <em>Ein industrielles Betriebssystem.</em>
+  </h1>
+
+  <p>
+    virtauto.OS verbindet bestehende industrielle Systeme mit kontrollierter
+    Entscheidungsintelligenz. Die Architektur trennt physische Anlagen,
+    Daten, Semantik, Entscheidungslogik, Anwendungen und Autonomie
+    in klar definierte Ebenen.
+  </p>
+</div>
+
+<div class="instruction">
+  <div class="instruction-dot"></div>
+  SCHICHT ANKLICKEN FÜR DETAILS UND BIW-ENERGIE-MAPPING
+</div>
+
+<div class="stack-layout">
+
+<div class="stack-container" id="stackContainer">
+
+<!-- L7 -->
+<div class="layer" id="layer-7" tabindex="0" onclick="selectLayer(7)" role="button">
+<div class="layer-inner">
+<div class="layer-bar" style="background: var(--l7-color)"></div>
+
+<div class="layer-content">
+<div class="layer-left">
+
+<div class="layer-number">L7</div>
+
+<div class="layer-info">
+<div class="layer-label" style="color: var(--l7-color)">
+Autonomie-Schicht
+</div>
+
+<div class="layer-title">
+Autonomie & Orchestrierung
+</div>
+
+<div class="layer-chips">
+<span class="chip">KI-Agenten</span>
+<span class="chip">Selbstoptimierung</span>
+<span class="chip">Orchestrierung</span>
+<span class="chip">L3–L5</span>
+</div>
+</div>
+</div>
+
+<div class="layer-arrow">›</div>
+</div>
+</div>
+</div>
+
+<div class="flow-arrow">
+<svg viewBox="0 0 20 8" fill="none">
+<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
+stroke="#2a3a50" stroke-width="1.5"/>
+</svg>
+</div>
+
+<!-- L6 -->
+<div class="layer" id="layer-6" tabindex="0" onclick="selectLayer(6)" role="button">
+<div class="layer-inner">
+<div class="layer-bar" style="background: var(--l6-color)"></div>
+
+<div class="layer-content">
+<div class="layer-left">
+
+<div class="layer-number">L6</div>
+
+<div class="layer-info">
+<div class="layer-label" style="color: var(--l6-color)">
+Anwendungs-Schicht
+</div>
+
+<div class="layer-title">
+Anwendungen & Marketplace
+</div>
+
+<div class="layer-chips">
+<span class="chip">Use Cases</span>
+<span class="chip">Partner APIs</span>
+<span class="chip">Marketplace</span>
+</div>
+</div>
+</div>
+
+<div class="layer-arrow">›</div>
+</div>
+</div>
+</div>
+
+<div class="flow-arrow">
+<svg viewBox="0 0 20 8" fill="none">
+<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
+stroke="#2a3a50" stroke-width="1.5"/>
+</svg>
+</div>
+
+<!-- L5 -->
+<div class="layer" id="layer-5" tabindex="0" onclick="selectLayer(5)" role="button">
+<div class="layer-inner">
+<div class="layer-bar" style="background: var(--l5-color)"></div>
+
+<div class="layer-content">
+<div class="layer-left">
+
+<div class="layer-number">L5</div>
+
+<div class="layer-info">
+<div class="layer-label" style="color: var(--l5-color)">
+Entscheidungs-Schicht
+</div>
+
+<div class="layer-title">
+Entscheidungslogik & KI-Engine
+</div>
+
+<div class="layer-chips">
+<span class="chip">Governance Gates</span>
+<span class="chip">Decision Trace</span>
+<span class="chip">ML Modelle</span>
+<span class="chip">Digital Twin</span>
+</div>
+</div>
+</div>
+
+<div class="layer-arrow">›</div>
+</div>
+</div>
+</div>
+
+<div class="flow-arrow">
+<svg viewBox="0 0 20 8" fill="none">
+<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
+stroke="#2a3a50" stroke-width="1.5"/>
+</svg>
+</div>
+
+<!-- L4 -->
+<div class="layer" id="layer-4" tabindex="0" onclick="selectLayer(4)" role="button">
+<div class="layer-inner">
+<div class="layer-bar" style="background: var(--l4-color)"></div>
+
+<div class="layer-content">
+<div class="layer-left">
+
+<div class="layer-number">L4</div>
+
+<div class="layer-info">
+<div class="layer-label" style="color: var(--l4-color)">
+Semantik-Schicht
+</div>
+
+<div class="layer-title">
+Wissen & Semantik
+</div>
+
+<div class="layer-chips">
+<span class="chip">Ontologien</span>
+<span class="chip">Knowledge Graphs</span>
+<span class="chip">OPC UA</span>
+<span class="chip">AAS</span>
+</div>
+</div>
+</div>
+
+<div class="layer-arrow">›</div>
+</div>
+</div>
+</div>
+
+<div class="flow-arrow">
+<svg viewBox="0 0 20 8" fill="none">
+<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
+stroke="#2a3a50" stroke-width="1.5"/>
+</svg>
+</div>
+
+<!-- L3 -->
+<div class="layer" id="layer-3" tabindex="0" onclick="selectLayer(3)" role="button">
+<div class="layer-inner">
+<div class="layer-bar" style="background: var(--l3-color)"></div>
+
+<div class="layer-content">
+<div class="layer-left">
+
+<div class="layer-number">L3</div>
+
+<div class="layer-info">
+<div class="layer-label" style="color: var(--l3-color)">
+Daten-Schicht
+</div>
+
+<div class="layer-title">
+Unified Data Fabric
+</div>
+
+<div class="layer-chips">
+<span class="chip">Kafka</span>
+<span class="chip">Delta Lake</span>
+<span class="chip">Time Series</span>
+<span class="chip">Vector DB</span>
+</div>
+</div>
+</div>
+
+<div class="layer-arrow">›</div>
+</div>
+</div>
+</div>
+
+<div class="flow-arrow">
+<svg viewBox="0 0 20 8" fill="none">
+<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
+stroke="#2a3a50" stroke-width="1.5"/>
+</svg>
+</div>
+
+<!-- L2 -->
+<div class="layer" id="layer-2" tabindex="0" onclick="selectLayer(2)" role="button">
+<div class="layer-inner">
+<div class="layer-bar" style="background: var(--l2-color)"></div>
+
+<div class="layer-content">
+<div class="layer-left">
+
+<div class="layer-number">L2</div>
+
+<div class="layer-info">
+<div class="layer-label" style="color: var(--l2-color)">
+Infrastruktur-Schicht
+</div>
+
+<div class="layer-title">
+Compute & Infrastruktur
+</div>
+
+<div class="layer-chips">
+<span class="chip">Edge GPU</span>
+<span class="chip">5G / TSN</span>
+<span class="chip">Cloud</span>
+<span class="chip">Federated Learning</span>
+</div>
+</div>
+</div>
+
+<div class="layer-arrow">›</div>
+</div>
+</div>
+</div>
+
+<div class="flow-arrow">
+<svg viewBox="0 0 20 8" fill="none">
+<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
+stroke="#2a3a50" stroke-width="1.5"/>
+</svg>
+</div>
+
+<!-- L1 -->
+<div class="layer" id="layer-1" tabindex="0" onclick="selectLayer(1)" role="button">
+<div class="layer-inner">
+<div class="layer-bar" style="background: var(--l1-color)"></div>
+
+<div class="layer-content">
+<div class="layer-left">
+
+<div class="layer-number">L1</div>
+
+<div class="layer-info">
+<div class="layer-label" style="color: var(--l1-color)">
+Physische Schicht
+</div>
+
+<div class="layer-title">
+Maschinen- & Legacy-Integration
+</div>
+
+<div class="layer-chips">
+<span class="chip">ERP / SAP</span>
+<span class="chip">MES</span>
+<span class="chip">PLC</span>
+<span class="chip">SCADA</span>
+<span class="chip">Retrofit</span>
+</div>
+</div>
+</div>
+
+<div class="layer-arrow">›</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="detail-panel">
+<div class="panel-empty" id="panelEmpty">
+<div class="panel-icon">⬡</div>
+<p>SCHICHT AUSWÄHLEN<br>FÜR DETAILS</p>
+</div>
+
+<div class="panel-content" id="panelContent"></div>
+</div>
+
+</div>
+
+<div class="bottom-section">
+
+<div class="bottom-card">
+<div class="bottom-card-label">Architektur-Schichten</div>
+<div class="bottom-card-value">7</div>
+<div class="bottom-card-sub">
+Von physischen Systemen bis zur Autonomie
+</div>
+</div>
+
+<div class="bottom-card">
+<div class="bottom-card-label">BIW Energie-Mapping</div>
+<div class="bottom-card-value">L1→L6</div>
+<div class="bottom-card-sub">
+Von SCADA/MES-Export bis zum Entscheidungsreport
+</div>
+</div>
+
+<div class="bottom-card">
+<div class="bottom-card-label">Ausführungsmodus</div>
+<div class="bottom-card-value">Advisory</div>
+<div class="bottom-card-sub">
+Der Operator entscheidet über Maßnahmen
+</div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+function selectLayer(num) {
+  console.log("Layer selected:", num);
+}
+</script>
+
+</body>
+</html>
