@@ -71,8 +71,21 @@
     <section class="section hidden" id="report"><div class="sec-label">§ 4 — Energie-Opportunity-Report</div><div class="sec-title">Zusammenfassung, ROI und Pilotpfad.</div><div class="report-block"><h3>// Zusammenfassung</h3><p id="report-summary">—</p></div><div class="report-block"><h3>// Findings Engine</h3><div class="findings-grid" id="findingsRows"></div></div><div class="report-block"><h3>// Geschätzter ROI</h3><p id="report-roi">—</p></div><div class="report-block"><h3>// Konfidenzniveau</h3><p id="report-confidence">—</p></div><div class="report-block" style="background:#070b14"><h3>// Datensicherheits-Hinweis</h3><p>Ihre Daten bleiben lokal. Dieses MVP läuft vollständig im Browser. Kein Backend-Upload, keine Datenbank, keine externe Speicherung. Eine sichere Pilotintegration kann unter NDA umgesetzt werden.</p></div>
       <div class="report-block"><h3>// George Response Upload</h3><p class="small">Laden Sie die George-Entscheidungs-JSON hoch, um den Browser → George → Browser-Feedback-Loop zu schließen. Kein Backend-Upload; die Datei wird lokal gelesen.</p><div class="drop-zone" id="dz-george"><input type="file" accept=".json" onchange="handleGeorgeTrace(this)"><div class="drop-icon">⬡</div><div class="drop-label">george_decision.json</div><div class="drop-hint">Aktuelle George-Entscheidungsantwort hochladen</div></div></div>
       <div class="lead-box" id="pilot"><h3>90-Tage-BIW-Energiepilot anfragen</h3><p>Ziel: <strong>6%-Ziel nach Baseline-Validierung</strong>. Hinterlassen Sie Ihre Kontaktdaten für eine Pilotprüfung.</p><div class="lead-grid"><div class="field"><label>Name</label><input id="lead-name" placeholder="Ihr Name"></div><div class="field"><label>Unternehmen</label><input id="lead-company" placeholder="Unternehmen"></div><div class="field"><label>E-Mail</label><input id="lead-email" placeholder="name@unternehmen.de"></div><div class="field"><label>Rolle</label><input id="lead-role" placeholder="Produktion / Energie / Operations"></div><div class="field full"><label>Nachricht</label><textarea id="lead-msg" placeholder="Optional: Linie, Standort, Datenverfügbarkeit, Timing"></textarea></div></div><div class="actions-row"><button class="btn btn-primary" onclick="requestPilotReview()">Pilotprüfung anfragen →</button><button class="btn" onclick="downloadReport()">↓ Report herunterladen</button></div></div></section>
-  </div></main><footer class="biw-footer"><div>virtauto® · Energie-Scan für BIW-Türlinien · lokales Browser-MVP</div><div><a href="energy-steel.html">Real Data PoC</a><a href="pilot.html">Pilot</a><a href="contact.html">Contact</a></div></footer>
 
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-left">
+      © 2026 virtauto® · Decision Intelligence for Industrial Operations
+    </div>
+
+    <div class="footer-links">
+      <a href="impressum.html">Impressum</a>
+      <a href="privacy.html">Datenschutz</a>
+      <a href="contact-de.html">Kontakt</a>
+    </div>
+  </div>
+</footer>
+    
 <script>
 const CONTACT_EMAIL='andreas.braun.2011@gmx.de';
 const state={combined:null,scada:null,mes:null,erp:null,rows:[],scan:null,opportunities:[],findings:[],stationRanking:[],manualPriceTouched:false,shiftModelConfirmed:false,mesJoinHitRate:null,lastEvent:null};
