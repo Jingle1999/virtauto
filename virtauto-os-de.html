@@ -1,63 +1,255 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>virtauto.OS — Die Architektur</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap');
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-:root {
-  --bg: #060810;
-  --surface: #0c1018;
-  --surface2: #111620;
-  --border: #1c2535;
-  --border-bright: #2a3a50;
-  --l7-color: #7c6af7;
-  --l6-color: #3b9eff;
-  --l5-color: #00d4ff;
-  --l4-color: #00e5b0;
-  --l3-color: #00f070;
-  --l2-color: #c8ff3e;
-  --l1-color: #ff9f2f;
-  --text: #8ba0b8;
-  --text-bright: #e8f0f8;
-  --text-dim: #3a5068;
-}
+  <title>virtauto.OS — Industrielle Entscheidungsarchitektur</title>
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+  <link rel="stylesheet" href="styles.css" />
 
-body {
-  background: var(--bg);
-  font-family: 'Syne', sans-serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-  cursor: default;
-  color: var(--text);
-}
+  <style>
+    :root {
+      --l7-color: #7a6cf0;
+      --l6-color: #4f8cff;
+      --l5-color: #2ec5ff;
+      --l4-color: #2dd4bf;
+      --l3-color: #4ade80;
+      --l2-color: #a3e635;
+      --l1-color: #f59e0b;
+    }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 100;
-}
+    body {
+      overflow-x: hidden;
+    }
 
-.page { max-width: 1200px; margin: 0 auto; padding: 60px 40px 80px; }
+    .os-hero {
+      padding: 90px 0 70px;
+    }
 
-.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 80px; }
+    .os-shell {
+      width: min(calc(100% - 48px), 1180px);
+      margin: 0 auto;
+    }
 
-@media (max-width: 900px) {
-  .page { padding: 40px 20px 60px; }
-}
-</style>
+    .os-eyebrow {
+      display: inline-block;
+      margin-bottom: 18px;
+      color: var(--color-primary-soft);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .os-hero h1 {
+      max-width: 950px;
+      margin-bottom: 24px;
+    }
+
+    .os-hero h1 em {
+      font-style: normal;
+      color: #dbeafe;
+    }
+
+    .os-intro {
+      max-width: 820px;
+      font-size: 1.08rem;
+      line-height: 1.8;
+      color: #b8c7d9;
+    }
+
+    .stack-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) 380px;
+      gap: 28px;
+      margin-top: 56px;
+      align-items: start;
+    }
+
+    .stack-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .layer {
+      border-radius: 22px;
+      background: linear-gradient(145deg, rgba(15,23,42,0.88), rgba(2,6,23,0.94));
+      border: 1px solid rgba(148,163,184,0.18);
+      transition: 0.18s ease;
+      overflow: hidden;
+    }
+
+    .layer:hover {
+      transform: translateY(-2px);
+      border-color: rgba(46,197,255,0.45);
+    }
+
+    .layer-inner {
+      display: grid;
+      grid-template-columns: 5px 1fr;
+    }
+
+    .layer-bar {
+      min-height: 100%;
+    }
+
+    .layer-content {
+      padding: 22px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .layer-left {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .layer-number {
+      min-width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .layer-label {
+      margin-bottom: 5px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .layer-title {
+      font-size: 1.08rem;
+      font-weight: 750;
+      color: #f8fafc;
+      margin-bottom: 12px;
+    }
+
+    .layer-chips,
+    .panel-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 6px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(255,255,255,0.04);
+      color: #cbd5e1;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .layer-arrow {
+      font-size: 1.8rem;
+      color: #4b5563;
+    }
+
+    .detail-panel {
+      position: sticky;
+      top: 110px;
+      border-radius: 24px;
+      padding: 28px;
+      background: linear-gradient(145deg, rgba(15,23,42,0.9), rgba(2,6,23,0.95));
+      border: 1px solid rgba(148,163,184,0.18);
+      min-height: 420px;
+    }
+
+    .panel-title {
+      margin-bottom: 18px;
+      font-size: 1.4rem;
+      color: #f8fafc;
+    }
+
+    .panel-text {
+      color: #b8c7d9;
+      line-height: 1.75;
+      margin-bottom: 18px;
+    }
+
+    .bottom-section {
+      margin-top: 56px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .bottom-card {
+      padding: 24px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, rgba(15,23,42,0.82), rgba(2,6,23,0.92));
+      border: 1px solid rgba(148,163,184,0.18);
+    }
+
+    .bottom-card-label {
+      margin-bottom: 10px;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      font-weight: 800;
+    }
+
+    .bottom-card-value {
+      margin-bottom: 8px;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .bottom-card-sub {
+      color: #b8c7d9;
+      line-height: 1.65;
+      font-size: 0.94rem;
+    }
+
+    @media (max-width: 980px) {
+      .stack-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-panel {
+        position: relative;
+        top: auto;
+      }
+
+      .bottom-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .layer-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .layer-left {
+        flex-direction: column;
+      }
+
+      .os-hero {
+        padding: 64px 0 42px;
+      }
+    }
+  </style>
 </head>
 
 <body>
-<div class="page">
 
 <header class="site-header">
   <div class="nav-container">
@@ -68,7 +260,7 @@ body::before {
 
     <nav class="main-nav" aria-label="Hauptnavigation">
       <a href="index-de.html">Home</a>
-      <a href="virtauto-os-de.html">virtauto.OS</a>
+      <a href="virtauto-os-de.html" class="active">virtauto.OS</a>
       <a href="biw-energy-de.html">Energy Scan</a>
       <a href="pilot-de.html">Pilotprogramm</a>
       <a href="contact-de.html">Kontakt</a>
@@ -82,352 +274,263 @@ body::before {
   </div>
 </header>
 
-<div class="title-section">
-  <div class="eyebrow">Die Architektur</div>
-
-  <h1>
-    Sieben Schichten.<br>
-    <em>Ein industrielles Betriebssystem.</em>
-  </h1>
-
-  <p>
-    virtauto.OS verbindet bestehende industrielle Systeme mit kontrollierter
-    Entscheidungsintelligenz. Die Architektur trennt physische Anlagen,
-    Daten, Semantik, Entscheidungslogik, Anwendungen und Autonomie
-    in klar definierte Ebenen.
-  </p>
-</div>
-
-<div class="instruction">
-  <div class="instruction-dot"></div>
-  SCHICHT ANKLICKEN FÜR DETAILS UND BIW-ENERGIE-MAPPING
-</div>
-
-<div class="stack-layout">
-
-<div class="stack-container" id="stackContainer">
-
-<!-- L7 -->
-<div class="layer" id="layer-7" tabindex="0" onclick="selectLayer(7)" role="button">
-<div class="layer-inner">
-<div class="layer-bar" style="background: var(--l7-color)"></div>
-
-<div class="layer-content">
-<div class="layer-left">
-
-<div class="layer-number">L7</div>
-
-<div class="layer-info">
-<div class="layer-label" style="color: var(--l7-color)">
-Autonomie-Schicht
-</div>
-
-<div class="layer-title">
-Autonomie & Orchestrierung
-</div>
-
-<div class="layer-chips">
-<span class="chip">KI-Agenten</span>
-<span class="chip">Selbstoptimierung</span>
-<span class="chip">Orchestrierung</span>
-<span class="chip">L3–L5</span>
-</div>
-</div>
-</div>
-
-<div class="layer-arrow">›</div>
-</div>
-</div>
-</div>
-
-<div class="flow-arrow">
-<svg viewBox="0 0 20 8" fill="none">
-<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
-stroke="#2a3a50" stroke-width="1.5"/>
-</svg>
-</div>
-
-<!-- L6 -->
-<div class="layer" id="layer-6" tabindex="0" onclick="selectLayer(6)" role="button">
-<div class="layer-inner">
-<div class="layer-bar" style="background: var(--l6-color)"></div>
-
-<div class="layer-content">
-<div class="layer-left">
-
-<div class="layer-number">L6</div>
-
-<div class="layer-info">
-<div class="layer-label" style="color: var(--l6-color)">
-Anwendungs-Schicht
-</div>
-
-<div class="layer-title">
-Anwendungen & Marketplace
-</div>
-
-<div class="layer-chips">
-<span class="chip">Use Cases</span>
-<span class="chip">Partner APIs</span>
-<span class="chip">Marketplace</span>
-</div>
-</div>
-</div>
-
-<div class="layer-arrow">›</div>
-</div>
-</div>
-</div>
-
-<div class="flow-arrow">
-<svg viewBox="0 0 20 8" fill="none">
-<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
-stroke="#2a3a50" stroke-width="1.5"/>
-</svg>
-</div>
-
-<!-- L5 -->
-<div class="layer" id="layer-5" tabindex="0" onclick="selectLayer(5)" role="button">
-<div class="layer-inner">
-<div class="layer-bar" style="background: var(--l5-color)"></div>
-
-<div class="layer-content">
-<div class="layer-left">
-
-<div class="layer-number">L5</div>
-
-<div class="layer-info">
-<div class="layer-label" style="color: var(--l5-color)">
-Entscheidungs-Schicht
-</div>
-
-<div class="layer-title">
-Entscheidungslogik & KI-Engine
-</div>
-
-<div class="layer-chips">
-<span class="chip">Governance Gates</span>
-<span class="chip">Decision Trace</span>
-<span class="chip">ML Modelle</span>
-<span class="chip">Digital Twin</span>
-</div>
-</div>
-</div>
-
-<div class="layer-arrow">›</div>
-</div>
-</div>
-</div>
-
-<div class="flow-arrow">
-<svg viewBox="0 0 20 8" fill="none">
-<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
-stroke="#2a3a50" stroke-width="1.5"/>
-</svg>
-</div>
-
-<!-- L4 -->
-<div class="layer" id="layer-4" tabindex="0" onclick="selectLayer(4)" role="button">
-<div class="layer-inner">
-<div class="layer-bar" style="background: var(--l4-color)"></div>
-
-<div class="layer-content">
-<div class="layer-left">
-
-<div class="layer-number">L4</div>
-
-<div class="layer-info">
-<div class="layer-label" style="color: var(--l4-color)">
-Semantik-Schicht
-</div>
-
-<div class="layer-title">
-Wissen & Semantik
-</div>
-
-<div class="layer-chips">
-<span class="chip">Ontologien</span>
-<span class="chip">Knowledge Graphs</span>
-<span class="chip">OPC UA</span>
-<span class="chip">AAS</span>
-</div>
-</div>
-</div>
-
-<div class="layer-arrow">›</div>
-</div>
-</div>
-</div>
-
-<div class="flow-arrow">
-<svg viewBox="0 0 20 8" fill="none">
-<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
-stroke="#2a3a50" stroke-width="1.5"/>
-</svg>
-</div>
-
-<!-- L3 -->
-<div class="layer" id="layer-3" tabindex="0" onclick="selectLayer(3)" role="button">
-<div class="layer-inner">
-<div class="layer-bar" style="background: var(--l3-color)"></div>
-
-<div class="layer-content">
-<div class="layer-left">
-
-<div class="layer-number">L3</div>
-
-<div class="layer-info">
-<div class="layer-label" style="color: var(--l3-color)">
-Daten-Schicht
-</div>
-
-<div class="layer-title">
-Unified Data Fabric
-</div>
-
-<div class="layer-chips">
-<span class="chip">Kafka</span>
-<span class="chip">Delta Lake</span>
-<span class="chip">Time Series</span>
-<span class="chip">Vector DB</span>
-</div>
-</div>
-</div>
-
-<div class="layer-arrow">›</div>
-</div>
-</div>
-</div>
-
-<div class="flow-arrow">
-<svg viewBox="0 0 20 8" fill="none">
-<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
-stroke="#2a3a50" stroke-width="1.5"/>
-</svg>
-</div>
-
-<!-- L2 -->
-<div class="layer" id="layer-2" tabindex="0" onclick="selectLayer(2)" role="button">
-<div class="layer-inner">
-<div class="layer-bar" style="background: var(--l2-color)"></div>
-
-<div class="layer-content">
-<div class="layer-left">
-
-<div class="layer-number">L2</div>
-
-<div class="layer-info">
-<div class="layer-label" style="color: var(--l2-color)">
-Infrastruktur-Schicht
-</div>
-
-<div class="layer-title">
-Compute & Infrastruktur
-</div>
-
-<div class="layer-chips">
-<span class="chip">Edge GPU</span>
-<span class="chip">5G / TSN</span>
-<span class="chip">Cloud</span>
-<span class="chip">Federated Learning</span>
-</div>
-</div>
-</div>
-
-<div class="layer-arrow">›</div>
-</div>
-</div>
-</div>
-
-<div class="flow-arrow">
-<svg viewBox="0 0 20 8" fill="none">
-<path d="M10 0 L10 6 M7 3 L10 6 L13 3"
-stroke="#2a3a50" stroke-width="1.5"/>
-</svg>
-</div>
-
-<!-- L1 -->
-<div class="layer" id="layer-1" tabindex="0" onclick="selectLayer(1)" role="button">
-<div class="layer-inner">
-<div class="layer-bar" style="background: var(--l1-color)"></div>
-
-<div class="layer-content">
-<div class="layer-left">
-
-<div class="layer-number">L1</div>
-
-<div class="layer-info">
-<div class="layer-label" style="color: var(--l1-color)">
-Physische Schicht
-</div>
-
-<div class="layer-title">
-Maschinen- & Legacy-Integration
-</div>
-
-<div class="layer-chips">
-<span class="chip">ERP / SAP</span>
-<span class="chip">MES</span>
-<span class="chip">PLC</span>
-<span class="chip">SCADA</span>
-<span class="chip">Retrofit</span>
-</div>
-</div>
-</div>
-
-<div class="layer-arrow">›</div>
-</div>
-</div>
-</div>
-
-</div>
-
-<div class="detail-panel">
-<div class="panel-empty" id="panelEmpty">
-<div class="panel-icon">⬡</div>
-<p>SCHICHT AUSWÄHLEN<br>FÜR DETAILS</p>
-</div>
-
-<div class="panel-content" id="panelContent"></div>
-</div>
-
-</div>
-
-<div class="bottom-section">
-
-<div class="bottom-card">
-<div class="bottom-card-label">Architektur-Schichten</div>
-<div class="bottom-card-value">7</div>
-<div class="bottom-card-sub">
-Von physischen Systemen bis zur Autonomie
-</div>
-</div>
-
-<div class="bottom-card">
-<div class="bottom-card-label">BIW Energie-Mapping</div>
-<div class="bottom-card-value">L1→L6</div>
-<div class="bottom-card-sub">
-Von SCADA/MES-Export bis zum Entscheidungsreport
-</div>
-</div>
-
-<div class="bottom-card">
-<div class="bottom-card-label">Ausführungsmodus</div>
-<div class="bottom-card-value">Advisory</div>
-<div class="bottom-card-sub">
-Der Operator entscheidet über Maßnahmen
-</div>
-</div>
-
-</div>
-
-</div>
-
-<script>
-function selectLayer(num) {
-  console.log("Layer selected:", num);
-}
-</script>
+<section class="os-hero">
+  <div class="os-shell">
+
+    <div class="os-eyebrow">Industrielle Entscheidungsarchitektur</div>
+
+    <h1>
+      Sieben Schichten.<br>
+      <em>Ein industrielles Betriebssystem.</em>
+    </h1>
+
+    <p class="os-intro">
+      virtauto.OS verbindet industrielle Anlagen, Unternehmenssysteme,
+      operative Daten und kontrollierte Entscheidungsintelligenz zu einer
+      einheitlichen industriellen Ausführungsarchitektur. Die Plattform
+      schlägt die Brücke zwischen bestehenden Produktionssystemen und
+      KI-gestützter Optimierung — ohne vorhandene Infrastruktur zu ersetzen.
+    </p>
+
+    <div class="stack-layout">
+
+      <div class="stack-container">
+
+        <div class="layer">
+          <div class="layer-inner">
+            <div class="layer-bar" style="background: var(--l7-color)"></div>
+            <div class="layer-content">
+              <div class="layer-left">
+                <div class="layer-number">L7</div>
+                <div>
+                  <div class="layer-label" style="color: var(--l7-color)">Autonomie-Schicht</div>
+                  <div class="layer-title">Agenten & Orchestrierung</div>
+                  <div class="layer-chips">
+                    <span class="chip">KI-Agenten</span>
+                    <span class="chip">Selbstoptimierung</span>
+                    <span class="chip">Orchestrierung</span>
+                    <span class="chip">Governance</span>
+                  </div>
+                </div>
+              </div>
+              <div class="layer-arrow">›</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer">
+          <div class="layer-inner">
+            <div class="layer-bar" style="background: var(--l6-color)"></div>
+            <div class="layer-content">
+              <div class="layer-left">
+                <div class="layer-number">L6</div>
+                <div>
+                  <div class="layer-label" style="color: var(--l6-color)">Anwendungs-Schicht</div>
+                  <div class="layer-title">Industrielle Anwendungen</div>
+                  <div class="layer-chips">
+                    <span class="chip">Energie</span>
+                    <span class="chip">Qualität</span>
+                    <span class="chip">Predictive Ops</span>
+                    <span class="chip">Marketplace</span>
+                  </div>
+                </div>
+              </div>
+              <div class="layer-arrow">›</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer">
+          <div class="layer-inner">
+            <div class="layer-bar" style="background: var(--l5-color)"></div>
+            <div class="layer-content">
+              <div class="layer-left">
+                <div class="layer-number">L5</div>
+                <div>
+                  <div class="layer-label" style="color: var(--l5-color)">Entscheidungs-Schicht</div>
+                  <div class="layer-title">Entscheidungslogik & KI-Engine</div>
+                  <div class="layer-chips">
+                    <span class="chip">Digital Twin</span>
+                    <span class="chip">Decision Trace</span>
+                    <span class="chip">ML-Modelle</span>
+                    <span class="chip">Policies</span>
+                  </div>
+                </div>
+              </div>
+              <div class="layer-arrow">›</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer">
+          <div class="layer-inner">
+            <div class="layer-bar" style="background: var(--l4-color)"></div>
+            <div class="layer-content">
+              <div class="layer-left">
+                <div class="layer-number">L4</div>
+                <div>
+                  <div class="layer-label" style="color: var(--l4-color)">Semantik-Schicht</div>
+                  <div class="layer-title">Wissen & Kontext</div>
+                  <div class="layer-chips">
+                    <span class="chip">Knowledge Graph</span>
+                    <span class="chip">OPC UA</span>
+                    <span class="chip">AAS</span>
+                    <span class="chip">Ontologien</span>
+                  </div>
+                </div>
+              </div>
+              <div class="layer-arrow">›</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer">
+          <div class="layer-inner">
+            <div class="layer-bar" style="background: var(--l3-color)"></div>
+            <div class="layer-content">
+              <div class="layer-left">
+                <div class="layer-number">L3</div>
+                <div>
+                  <div class="layer-label" style="color: var(--l3-color)">Daten-Schicht</div>
+                  <div class="layer-title">Unified Industrial Data Fabric</div>
+                  <div class="layer-chips">
+                    <span class="chip">Kafka</span>
+                    <span class="chip">Delta Lake</span>
+                    <span class="chip">Vector DB</span>
+                    <span class="chip">Zeitreihen</span>
+                  </div>
+                </div>
+              </div>
+              <div class="layer-arrow">›</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer">
+          <div class="layer-inner">
+            <div class="layer-bar" style="background: var(--l2-color)"></div>
+            <div class="layer-content">
+              <div class="layer-left">
+                <div class="layer-number">L2</div>
+                <div>
+                  <div class="layer-label" style="color: var(--l2-color)">Infrastruktur-Schicht</div>
+                  <div class="layer-title">Compute & Infrastruktur</div>
+                  <div class="layer-chips">
+                    <span class="chip">Edge</span>
+                    <span class="chip">GPU</span>
+                    <span class="chip">Cloud</span>
+                    <span class="chip">Federated AI</span>
+                  </div>
+                </div>
+              </div>
+              <div class="layer-arrow">›</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer">
+          <div class="layer-inner">
+            <div class="layer-bar" style="background: var(--l1-color)"></div>
+            <div class="layer-content">
+              <div class="layer-left">
+                <div class="layer-number">L1</div>
+                <div>
+                  <div class="layer-label" style="color: var(--l1-color)">Physische Schicht</div>
+                  <div class="layer-title">Maschinen- & Legacy-Integration</div>
+                  <div class="layer-chips">
+                    <span class="chip">ERP</span>
+                    <span class="chip">MES</span>
+                    <span class="chip">PLC</span>
+                    <span class="chip">SCADA</span>
+                    <span class="chip">Retrofit</span>
+                  </div>
+                </div>
+              </div>
+              <div class="layer-arrow">›</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <aside class="detail-panel">
+        <h3 class="panel-title">Warum ein Decision Layer?</h3>
+
+        <p class="panel-text">
+          Industrielle Umgebungen erzeugen bereits heute enorme Mengen
+          an Maschinen-, Prozess- und Energiedaten. Dennoch optimieren
+          die meisten Systeme weiterhin isoliert — statt gemeinsame
+          operative Entscheidungen zu treffen.
+        </p>
+
+        <p class="panel-text">
+          virtauto.OS führt eine kontrollierte Entscheidungsschicht
+          zwischen Daten und operativer Ausführung ein. Die Plattform
+          bewertet Risiken, Energiepreise, Qualitätsziele und
+          Produktionsrestriktionen, bevor Handlungsempfehlungen erzeugt werden.
+        </p>
+
+        <div class="panel-list">
+          <span class="chip">Decision Intelligence</span>
+          <span class="chip">Governance</span>
+          <span class="chip">Industrial AI</span>
+          <span class="chip">Operational Optimization</span>
+        </div>
+      </aside>
+
+    </div>
+
+    <div class="bottom-section">
+
+      <div class="bottom-card">
+        <div class="bottom-card-label">Architektur-Schichten</div>
+        <div class="bottom-card-value">7</div>
+        <div class="bottom-card-sub">
+          Von physischen Systemen bis zur kontrollierten industriellen Autonomie.
+        </div>
+      </div>
+
+      <div class="bottom-card">
+        <div class="bottom-card-label">Energy-Scan-Mapping</div>
+        <div class="bottom-card-value">L1 → L6</div>
+        <div class="bottom-card-sub">
+          Von SCADA- und MES-Exporten bis zu operativen Handlungsempfehlungen.
+        </div>
+      </div>
+
+      <div class="bottom-card">
+        <div class="bottom-card-label">Ausführungsmodus</div>
+        <div class="bottom-card-value">Advisory</div>
+        <div class="bottom-card-sub">
+          Der Mensch bleibt jederzeit in Kontrolle der industriellen Ausführung.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+
+    <div class="footer-brand">
+      <strong>virtauto®</strong><br>
+      Decision Intelligence for Autonomous Industrial Operations.
+    </div>
+
+    <div class="footer-links">
+      <a href="contact-de.html">Kontakt</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="privacy.html">Datenschutz</a>
+    </div>
+
+    <div class="footer-copy">
+      © 2026 virtauto®. Alle Rechte vorbehalten.
+    </div>
+
+  </div>
+</footer>
 
 </body>
 </html>
