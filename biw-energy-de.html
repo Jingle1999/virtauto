@@ -22,9 +22,29 @@
     .findings-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0 0}.finding-card{border:1px solid var(--biw-border);background:var(--biw-card);border-radius:14px;padding:14px}.finding-value{font-family:var(--biw-mono);font-size:20px;line-height:1;color:var(--biw-green);margin-bottom:8px}.finding-title{font-family:var(--biw-mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--biw-text);margin-bottom:6px}.finding-detail{font-size:12px;color:var(--biw-muted);line-height:1.45}.finding-severity{display:inline-block;font-family:var(--biw-mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:3px 7px;margin-bottom:8px;border:1px solid var(--biw-border-hi)}.finding-severity.high{color:var(--biw-red);border-color:rgba(255,68,85,.45)}.finding-severity.medium{color:var(--biw-amber);border-color:rgba(255,179,0,.45)}.finding-severity.low{color:var(--biw-green);border-color:rgba(32,212,147,.45)}.finding-rec{font-size:12px;color:var(--biw-text);line-height:1.45;margin-top:8px}.finding-evidence{font-family:var(--biw-mono);font-size:9px;color:var(--biw-muted);line-height:1.5;margin-top:8px}.biw-footer{max-width:1120px;margin:0 auto;padding:26px 24px;border-top:1px solid var(--biw-border);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--biw-muted);font-family:var(--biw-mono);font-size:10px}.biw-footer a{color:var(--biw-muted);text-decoration:none;margin-left:14px}.biw-footer a:hover{color:#9fdcff}.hidden{display:none!important}@media(max-width:900px){.upload-grid,.result-grid,.driver-grid,.lead-grid,.scan-flow,.findings-grid,.config-grid,.factor-grid,.station-grid,.confidence-grid{grid-template-columns:1fr}.op-row{grid-template-columns:44px 1fr 1.4fr 100px}.op-row>div:nth-child(5){display:none}.biw-page .biw-wrap{padding:0 18px}.flow-item{border-right:none;border-bottom:1px solid var(--biw-border)}.menu{display:none}.agent-flag{margin-left:auto}}
   </style>
 </head>
+  
 <body>
-  <header class="header"><div class="container nav"><a class="brand" href="index.html">virtauto<span class="badge">OS</span></a><nav id="menu" class="menu"><a href="index.html">Home</a><a href="industrymodel.html">Industry Model</a><a href="decision-model.html">Decision Model</a><a href="decision-demo.html">Decision Demo</a><a href="energy-steel.html">Real Data PoC</a><a class="active" href="biw-energy-de.html">Energy Scan</a><a href="pilot.html">Pilot</a><a href="/status/">Status</a><a href="contact.html">Contact</a><a href="biw-energy.html">EN</a><a class="active" href="biw-energy-de.html">DE</a></nav><div class="agent-flag">Agentic Website</div></div></header>
-
+  <header class="site-header">
+    <div class="nav-container">
+      <a class="logo" href="index-de.html" aria-label="virtauto Startseite">
+        <img src="assets/virtauto-logo.svg" alt="virtauto">
+      </a>
+      
+      <nav class="main-nav" aria-label="Hauptnavigation">
+        <a href="index-de.html">Home</a>
+        <a href="virtauto-os.html">virtauto.OS</a>
+        <a href="biw-energy-de.html">Energy Scan</a>
+        <a href="pilot-de.html">Pilotprogramm</a>
+        <a href="contact-de.html">Kontakt</a>
+      </nav>
+      
+      <div class="lang-switch" aria-label="Sprachumschaltung">
+        <a class="lang-btn" href="biw-energy.html">EN</a>
+        <a class="lang-btn active" href="biw-energy-de.html">DE</a>
+      </div>
+    </div>
+  </header>
+  
   <main class="biw-page"><div class="biw-wrap">
     <section class="hero"><div class="kicker">virtauto.OS Energie-Scan für BIW-Türlinien</div><h1>MES-, SCADA- und ERP-Exporte hochladen. <em>Erkennen, wo Ihre BIW-Linie Energie verliert.</em></h1><p class="lead">virtauto.OS analysiert Produktions- und Energiesignale lokal im Browser und erstellt daraus einen Energie-Opportunity-Report: geschätzte Einsparpotenziale, Idle Losses, Lastspitzenrisiken, Druckluftauffälligkeiten und Standby-Fenster — als Grundlage für einen 90-Tage-Piloten.</p><div class="pills"><span class="pill green">6%-Ziel nach Baseline-Validierung</span><span class="pill">BIW · Türlinie</span><span class="pill blue">MES + SCADA + ERP</span><span class="pill">Energie-Opportunity-Report</span><span class="pill amber">Ihre Daten bleiben lokal</span></div></section>
     <div class="scan-flow"><div class="flow-item active"><div class="flow-num">01</div><div class="flow-label">Daten hochladen</div></div><div class="flow-item active"><div class="flow-num">02</div><div class="flow-label">Scan konfigurieren</div></div><div class="flow-item active"><div class="flow-num">03</div><div class="flow-label">Potenziale prüfen</div></div><div class="flow-item active"><div class="flow-num">04</div><div class="flow-label">Pilot anfragen</div></div></div>
