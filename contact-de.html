@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kontakt · virtauto®</title>
+  <meta name="description" content="Kontakt zu virtauto für Pilotprogramme, Energy Scan und Industrial-AI-Zusammenarbeit." />
+  <link rel="canonical" href="https://www.virtauto.de/contact-de.html" />
+  <link rel="alternate" hreflang="en" href="https://www.virtauto.de/contact.html" />
+  <link rel="alternate" hreflang="de" href="https://www.virtauto.de/contact-de.html" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+<header class="site-header">
+  <div class="nav-container">
+    <a class="logo" href="index-de.html" aria-label="virtauto Startseite">
+      <img src="assets/virtauto-logo.svg" alt="virtauto">
+    </a>
+
+    <nav class="main-nav" aria-label="Hauptnavigation">
+      <a href="index-de.html">Home</a>
+      <a href="virtauto-os-de.html">virtauto.OS</a>
+      <a href="biw-energy-de.html">Energy Scan</a>
+      <a href="pilot-de.html">Pilotprogramm</a>
+      <a href="contact-de.html" class="active">Kontakt</a>
+    </nav>
+
+    <div class="lang-switch" aria-label="Sprachumschaltung">
+      <a class="lang-btn" href="contact.html">EN</a>
+      <a class="lang-btn active" href="contact-de.html">DE</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <div class="kicker">Kontakt</div>
+      <h1>Sprechen wir über virtauto.</h1>
+      <p class="lead">
+        Interesse an einem Pilotprojekt, dem Energy Scan oder einer Zusammenarbeit im Bereich Industrial AI?
+        Senden Sie direkt eine Nachricht. Antwortzeit typischerweise innerhalb von 24–48 Stunden.
+      </p>
+
+      <div class="btn-row">
+        <a class="btn btn-primary" href="mailto:andreas.braun.2011@gmx.de?subject=virtauto%20Anfrage">
+          Andreas direkt per E-Mail kontaktieren
+        </a>
+        <a class="btn btn-ghost" href="pilot-de.html">Pilotprogramm ansehen</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="card" style="max-width: 780px; margin-inline: auto;">
+        <h2>Nachricht senden</h2>
+        <p>
+          Dieses Formular öffnet Ihr E-Mail-Programm mit einer vorbereiteten Nachricht. Es werden keine Daten auf der Website gespeichert.
+        </p>
+
+        <form class="form" id="contact-form">
+          <label>
+            Name
+            <input id="contact-name" name="name" type="text" placeholder="Max Mustermann" required />
+          </label>
+
+          <label>
+            E-Mail
+            <input id="contact-email" name="email" type="email" placeholder="max@example.com" required />
+          </label>
+
+          <label>
+            Nachricht
+            <textarea id="contact-message" name="message" placeholder="Beschreiben Sie kurz, worüber Sie sprechen möchten…" required></textarea>
+          </label>
+
+          <button class="btn btn-primary" type="submit">Per E-Mail senden</button>
+        </form>
+
+        <p style="margin-top: 18px;">
+          Oder schreiben Sie direkt an:
+          <a href="mailto:andreas.braun.2011@gmx.de">andreas.braun.2011@gmx.de</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <strong>virtauto®</strong><br>
+      Decision Intelligence for Autonomous Industrial Operations.
+    </div>
+
+    <div class="footer-links">
+      <a href="contact-de.html">Kontakt</a>
+      <a href="impressum.html">Impressum</a>
+      <a href="privacy.html">Datenschutz</a>
+    </div>
+
+    <div class="footer-copy">
+      © 2026 virtauto®. Alle Rechte vorbehalten.
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('contact-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    const name = document.getElementById('contact-name').value.trim();
+    const email = document.getElementById('contact-email').value.trim();
+    const message = document.getElementById('contact-message').value.trim();
+
+    const subject = encodeURIComponent('virtauto Anfrage von ' + (name || 'Website-Besucher'));
+    const body = encodeURIComponent(
+      'Hallo Andreas,\n\n' +
+      message + '\n\n' +
+      '---\n' +
+      'Name: ' + name + '\n' +
+      'E-Mail: ' + email + '\n' +
+      'Quelle: virtauto Kontaktseite'
+    );
+
+    window.location.href = 'mailto:andreas.braun.2011@gmx.de?subject=' + subject + '&body=' + body;
+  });
+</script>
+</body>
+</html>
