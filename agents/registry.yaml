@@ -1,59 +1,143 @@
 # agents/registry.yaml
 # Minimal governed agent registry
-# Required fields for CI (Consistency Agent v1):
+# Required fields for CI:
+# - agent_id
+# - name
 # - autonomy_mode
 # - state
+# - owner
+# - domain
+# - role
+# - description
 
-schema_version: "1.0"
+schema_version: "1.1"
 
 agents:
   - agent_id: "guardian"
-    name: "Guardian"
+    name: "Guardian Agent"
     autonomy_mode: "supervised"
     state: "active"
     owner: "virtauto"
-    description: "Governance gatekeeper (policy/security)."
+    domain: "governance"
+    role: "policy_gatekeeper"
+    description: "Applies policy, safety, security and governance constraints before execution."
 
   - agent_id: "monitoring"
     name: "Monitoring Agent"
     autonomy_mode: "supervised"
     state: "active"
     owner: "virtauto"
-    description: "Operational monitoring and health signals."
-
-  - agent_id: "content"
-    name: "Content Agent"
-    autonomy_mode: "supervised"
-    state: "active"
-    owner: "virtauto"
-    description: "Drafts governed content proposals (PR-based)."
-
-  - agent_id: "site_audit"
-    name: "Site Audit Agent"
-    autonomy_mode: "supervised"
-    state: "active"
-    owner: "virtauto"
-    description: "Checks site integrity, links, structure, and consistency."
-
-  - agent_id: "deploy"
-    name: "Deployment Agent"
-    autonomy_mode: "supervised"
-    state: "inactive"
-    owner: "virtauto"
-    description: "Performs governed deployment workflows (PR-based)."
+    domain: "runtime"
+    role: "health_monitor"
+    description: "Monitors operational health signals and runtime availability."
 
   - agent_id: "status"
     name: "Status Agent"
     autonomy_mode: "supervised"
     state: "active"
     owner: "virtauto"
-    description: "Publishes canonical system truth to ops/reports/system_status.json."
+    domain: "runtime"
+    role: "runtime_publisher"
+    description: "Publishes canonical system truth to ops/reports/system_status.json and the Runtime Surface."
 
-  - agent_id: consistency
-    name: Consistency Agent
-    autonomy_mode: SUPERVISED
-    state: ACTIVE
-    role: validator
+  - agent_id: "consistency"
+    name: "Consistency Agent"
+    autonomy_mode: "supervised"
+    state: "active"
+    owner: "virtauto"
+    domain: "governance"
+    role: "validator"
+    description: "Checks consistency of site structure, governance artifacts, navigation and runtime metadata."
+
+  - agent_id: "site_audit"
+    name: "Site Audit Agent"
+    autonomy_mode: "supervised"
+    state: "active"
+    owner: "virtauto"
+    domain: "ux"
+    role: "site_integrity_checker"
+    description: "Checks site integrity, links, structure, accessibility and consistency."
+
+  - agent_id: "content"
+    name: "Content Agent"
+    autonomy_mode: "supervised"
+    state: "active"
+    owner: "virtauto"
+    domain: "ux"
+    role: "content_proposer"
+    description: "Drafts governed content proposals and prepares PR-based updates."
+
+  - agent_id: "deploy"
+    name: "Deployment Agent"
+    autonomy_mode: "supervised"
+    state: "inactive"
+    owner: "virtauto"
+    domain: "core"
+    role: "deployment_controller"
+    description: "Performs governed deployment workflows after review."
+
+  - agent_id: "data_ingest"
+    name: "Data Ingest Agent"
+    autonomy_mode: "supervised"
+    state: "planned"
+    owner: "virtauto"
+    domain: "energy"
+    role: "signal_ingestion"
+    description: "Reads MES, SCADA and ERP exports for BIW energy decision use cases."
+
+  - agent_id: "peak_guard"
+    name: "Peak Guard Agent"
+    autonomy_mode: "supervised"
+    state: "planned"
+    owner: "virtauto"
+    domain: "energy"
+    role: "peak_risk_detection"
+    description: "Detects peak load risks and evaluates admissible load reduction windows."
+
+  - agent_id: "idle_loss"
+    name: "Idle Loss Agent"
+    autonomy_mode: "supervised"
+    state: "planned"
+    owner: "virtauto"
+    domain: "energy"
+    role: "idle_loss_detection"
+    description: "Detects energy consumption without corresponding production output."
+
+  - agent_id: "compressed_air"
+    name: "Compressed Air Agent"
+    autonomy_mode: "supervised"
+    state: "planned"
+    owner: "virtauto"
+    domain: "energy"
+    role: "compressed_air_anomaly_detection"
+    description: "Detects compressed-air anomalies and potential leakage patterns."
+
+  - agent_id: "takt_correlator"
+    name: "Takt Correlator Agent"
+    autonomy_mode: "supervised"
+    state: "planned"
+    owner: "virtauto"
+    domain: "energy"
+    role: "production_stability_correlation"
+    description: "Correlates energy recommendations with takt, cycle and buffer stability."
+
+  - agent_id: "stability"
+    name: "Stability Agent"
+    autonomy_mode: "supervised"
+    state: "planned"
+    owner: "virtauto"
+    domain: "energy"
+    role: "availability_risk_assessment"
+    description: "Assesses whether energy optimization proposals could affect line availability, takt stability or operational continuity."
+
+  - agent_id: "operator_review"
+    name: "Operator Review Agent"
+    autonomy_mode: "human_in_loop"
+    state: "planned"
+    owner: "virtauto"
+    domain: "governance"
+    role: "human_approval_interface"
+    description: "Prepares recommendations for human review before operational execution."
 
 pipelines:
   monitoring: "active"
@@ -61,3 +145,4 @@ pipelines:
   guardian: "active"
   deploy: "inactive"
   content: "active"
+  energy_decision_mas: "planned"
