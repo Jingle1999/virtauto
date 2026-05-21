@@ -1,0 +1,58 @@
+contract_id: "VA-ENERGY-001"
+name: "Energy Admissibility Contract"
+version: "1.0"
+
+scope:
+  domain: "energy"
+  plant_area: "BIW"
+  use_case: "Energy reduction advisory"
+  execution_mode: "advisory_only"
+
+objective:
+  reduce_peak_energy_load: true
+  reduce_idle_energy_loss: true
+  protect_operational_availability: true
+
+constraints:
+  takt_stability:
+    required_state: "OK"
+
+  buffer_level:
+    minimum_units: 4
+
+  quality_gate:
+    required_state: "OK"
+
+  protected_station:
+    allowed_delay: false
+
+  availability:
+    minimum_runtime_ratio: 0.98
+
+  maintenance_window:
+    must_not_be_violated: true
+
+default_behavior:
+  insufficient_evidence: "HOLD"
+  governance_violation: "BLOCK"
+  availability_risk: "HOLD"
+  quality_risk: "BLOCK"
+
+execution:
+  autonomous_execution: false
+  operator_approval_required: true
+  write_back_allowed: false
+
+outputs:
+  allowed_results:
+    - "ALLOW"
+    - "HOLD"
+    - "BLOCK"
+    - "DELAY"
+    - "ALERT"
+
+traceability:
+  decision_trace_required: true
+  reason_required: true
+  timestamp_required: true
+  responsible_agent_required: true
