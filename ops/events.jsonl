@@ -1,8 +1,11 @@
-{"timestamp": "2025-10-31T19:10:00Z", "agent": "website_monitoring", "event": "status_ok", "message": "Website reachable (HTTP 200)"}
-{"timestamp": "2025-10-31T19:11:00Z", "agent": "self_guardian", "event": "check_started", "message": "Security headers scan triggered"}
-{"timestamp": "2025-10-31T19:12:00Z", "agent": "self_guardian", "event": "check_complete", "message": "No CSP violations found"}
-{"timestamp":"2025-12-03T09:00:00Z","agent":"self_audit","event":"completed","details":"Test event from Andreas"}
-{"agent":"system_status","status":"updated","message":"Status.json updated – health=52.8%, autonomy=50.1%.","timestamp":"2025-12-11T08:05:00+01:00"}
-{"timestamp": "2025-12-16T11:35:00Z","agent": "self_content", "event": "content_done","message": "Dashboard content updated based on latest audit."}
-{"timestamp":"2025-12-16T20:59:00Z","agent":"george","event":"deploy_requested","message":"SIMULATION: deploy requested after content update (health below threshold)","mode":"simulation"}
-
+{"timestamp":"2026-05-21T08:45:00Z","event":"runtime_started","line":"BIW-TVL","severity":"info","source":"GEORGE","message":"virtauto.OS runtime surface initialized in advisory-only mode."}
+{"timestamp":"2026-05-21T08:46:00Z","event":"agent_status_update","agent":"Data Ingest Agent","state":"ACTIVE","domain":"energy","source":"Status Agent"}
+{"timestamp":"2026-05-21T08:47:00Z","event":"agent_status_update","agent":"Peak Guard Agent","state":"ACTIVE","domain":"energy","source":"Status Agent"}
+{"timestamp":"2026-05-21T08:48:00Z","event":"agent_status_update","agent":"Stability Agent","state":"ACTIVE","domain":"energy","source":"Status Agent"}
+{"timestamp":"2026-05-21T08:49:00Z","event":"agent_status_update","agent":"Guardian Agent","state":"ACTIVE","domain":"governance","source":"Status Agent"}
+{"timestamp":"2026-05-21T09:00:00Z","event":"peak_load_detected","line":"BIW-TVL","severity":"medium","source":"Peak Guard Agent","message":"Potential peak-load window detected for BIW doorline."}
+{"timestamp":"2026-05-21T09:02:00Z","event":"buffer_level_check","line":"BIW-TVL","buffer_units":5,"result":"PASS","source":"Stability Agent"}
+{"timestamp":"2026-05-21T09:03:00Z","event":"availability_check","line":"BIW-TVL","runtime_ratio":0.982,"result":"PASS","source":"Stability Agent"}
+{"timestamp":"2026-05-21T09:04:00Z","event":"quality_gate_validation","line":"BIW-TVL","quality_gate":"OK","result":"PASS","source":"Guardian Agent"}
+{"timestamp":"2026-05-21T09:05:00Z","event":"energy_admissibility_evaluation","line":"BIW-TVL","contract_id":"VA-ENERGY-001","decision":"ALLOW","source":"GEORGE","message":"Energy reduction recommendation admissible under current governance contract."}
+{"timestamp":"2026-05-21T09:06:00Z","event":"operator_review_required","line":"BIW-TVL","decision":"ALLOW","operator_review":true,"source":"Operator Review Agent"}
