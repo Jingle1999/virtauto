@@ -10,268 +10,74 @@
 <link rel="stylesheet" href="../assets/styles_unify.css"/>
 
 <style>
-
 :root{
-  --bg:#050816;
-  --panel:#0b1120;
-  --panel2:#0f172b;
-  --border:#1a2342;
-  --text:#edf2ff;
-  --muted:#95a0c6;
-
-  --ok:#18d39a;
-  --warn:#ffb547;
-  --bad:#ff5c7c;
-
-  --cyan:#29d3ff;
-  --blue:#4d7dff;
+  --bg:#050816; --panel:#0b1120; --border:#1a2342;
+  --text:#edf2ff; --muted:#95a0c6;
+  --ok:#18d39a; --warn:#ffb547; --bad:#ff5c7c;
+  --cyan:#29d3ff; --blue:#4d7dff;
 }
-
-*{
-  box-sizing:border-box;
-}
-
+*{box-sizing:border-box}
 body{
   margin:0;
-  background:
-    radial-gradient(circle at top right, rgba(41,211,255,.08), transparent 20%),
-    linear-gradient(180deg,#040814 0%, #060b17 100%);
+  background:radial-gradient(circle at top right,rgba(41,211,255,.08),transparent 20%),linear-gradient(180deg,#040814 0%,#060b17 100%);
   color:var(--text);
   font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
 }
-
-.container{
-  max-width:1320px;
-  margin:auto;
-  padding:34px 20px 60px;
-}
-
-.site-header{
-  border-bottom:1px solid var(--border);
-  background:rgba(5,8,22,.88);
-  backdrop-filter:blur(10px);
-}
-
-.nav-container{
-  max-width:1320px;
-  margin:auto;
-  padding:16px 20px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:20px;
-}
-
-.logo img{
-  height:30px;
-}
-
-.main-nav{
-  display:flex;
-  gap:24px;
-  flex-wrap:wrap;
-}
-
-.main-nav a{
-  color:#b4bde0;
-  text-decoration:none;
-  font-size:14px;
-}
-
-.main-nav a:hover{
-  color:#fff;
-}
+.container{max-width:1320px;margin:auto;padding:34px 20px 60px}
+.site-header{border-bottom:1px solid var(--border);background:rgba(5,8,22,.88);backdrop-filter:blur(10px)}
+.nav-container{max-width:1320px;margin:auto;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.logo img{height:30px}
+.main-nav{display:flex;gap:24px;flex-wrap:wrap}
+.main-nav a{color:#b4bde0;text-decoration:none;font-size:14px}
+.main-nav a:hover{color:#fff}
 
 .hero{
-  background:
-    radial-gradient(circle at top right, rgba(77,125,255,.15), transparent 30%),
-    linear-gradient(180deg,#0b1428 0%, #09101d 100%);
+  background:radial-gradient(circle at top right,rgba(77,125,255,.15),transparent 30%),linear-gradient(180deg,#0b1428 0%,#09101d 100%);
   border:1px solid var(--border);
   border-radius:24px;
   padding:28px;
   margin-bottom:24px;
 }
-
-.kicker{
-  font-size:12px;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-  color:#89a4ff;
-  margin-bottom:12px;
-}
-
-.hero-top{
-  display:flex;
-  justify-content:space-between;
-  gap:24px;
-  flex-wrap:wrap;
-}
-
-.hero h1{
-  font-size:42px;
-  line-height:1.05;
-  margin:0 0 14px 0;
-}
-
-.hero p{
-  color:#b7c2e5;
-  max-width:760px;
-  line-height:1.7;
-}
-
+.kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#89a4ff;margin-bottom:12px}
+.hero-top{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.hero h1{font-size:42px;line-height:1.05;margin:0 0 14px 0}
+.hero p{color:#b7c2e5;max-width:760px;line-height:1.7}
 .runtime-badge{
-  min-width:160px;
-  padding:14px 18px;
-  border-radius:999px;
-  background:#0f1e19;
-  border:1px solid #1d5c49;
-  color:var(--ok);
-  font-size:13px;
-  font-weight:800;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:fit-content;
+  min-width:160px;padding:14px 18px;border-radius:999px;
+  background:#0f1e19;border:1px solid #1d5c49;color:var(--ok);
+  font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;height:fit-content;
 }
+.hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:26px}
+.hero-stat{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:18px;padding:18px}
+.hero-stat .label{font-size:12px;color:#8f9ac2;margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em}
+.hero-stat .value{font-size:22px;font-weight:800}
 
-.hero-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:16px;
-  margin-top:26px;
-}
-
-.hero-stat{
-  background:rgba(255,255,255,.02);
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:18px;
-}
-
-.hero-stat .label{
-  font-size:12px;
-  color:#8f9ac2;
-  margin-bottom:10px;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-}
-
-.hero-stat .value{
-  font-size:22px;
-  font-weight:800;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
-}
-
-.card{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:22px;
-}
-
-.card h2{
-  margin:0 0 18px 0;
-  font-size:14px;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  color:#8fa0d6;
-}
-
-.table{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-.row{
-  display:flex;
-  justify-content:space-between;
-  gap:20px;
-  padding-bottom:12px;
-  border-bottom:1px solid rgba(255,255,255,.05);
-}
-
-.row:last-child{
-  border-bottom:none;
-  padding-bottom:0;
-}
-
-.label{
-  color:#95a0c6;
-  font-size:14px;
-}
-
-.value{
-  font-weight:700;
-  text-align:right;
-}
-
-.ok{ color:var(--ok); }
-.warn{ color:var(--warn); }
-.bad{ color:var(--bad); }
-
-.trace{
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-.trace-item{
-  border-left:3px solid var(--cyan);
-  padding-left:14px;
-}
-
-.trace-title{
-  font-weight:700;
-  margin-bottom:4px;
-}
-
-.trace-meta{
-  color:#9ca7cd;
-  font-size:13px;
-  line-height:1.6;
-}
-
-.footer{
-  margin-top:34px;
-  text-align:center;
-  color:#7f89b2;
-  font-size:13px;
-}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:22px;padding:22px}
+.card h2{margin:0 0 18px 0;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#8fa0d6}
+.table{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;justify-content:space-between;gap:20px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.05)}
+.row:last-child{border-bottom:none;padding-bottom:0}
+.label{color:#95a0c6;font-size:14px}
+.value{font-weight:700;text-align:right}
+.ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+.trace{display:flex;flex-direction:column;gap:14px}
+.trace-item{border-left:3px solid var(--cyan);padding-left:14px}
+.trace-title{font-weight:700;margin-bottom:4px}
+.trace-meta{color:#9ca7cd;font-size:13px;line-height:1.6}
+.event-time{color:#8f99c2;font-size:11px;margin-bottom:3px}
+.footer{margin-top:34px;text-align:center;color:#7f89b2;font-size:13px}
 
 @media(max-width:980px){
-
-  .hero-grid{
-    grid-template-columns:1fr 1fr;
-  }
-
-  .grid{
-    grid-template-columns:1fr;
-  }
+  .hero-grid{grid-template-columns:1fr 1fr}
+  .grid{grid-template-columns:1fr}
 }
-
 @media(max-width:640px){
-
-  .hero h1{
-    font-size:34px;
-  }
-
-  .hero-grid{
-    grid-template-columns:1fr;
-  }
-
-  .main-nav{
-    gap:14px;
-  }
+  .hero h1{font-size:34px}
+  .hero-grid{grid-template-columns:1fr}
+  .main-nav{gap:14px}
 }
-
 </style>
 </head>
 
@@ -279,11 +85,9 @@ body{
 
 <header class="site-header">
   <div class="nav-container">
-
     <a class="logo" href="../index.html">
       <img src="../assets/virtauto-logo.svg" alt="virtauto">
     </a>
-
     <nav class="main-nav">
       <a href="../index.html">Home</a>
       <a href="../virtauto-os.html">virtauto.OS</a>
@@ -291,273 +95,106 @@ body{
       <a href="../pilot.html">Pilot Program</a>
       <a href="../contact.html">Contact</a>
     </nav>
-
   </div>
 </header>
 
 <div class="container">
 
   <section class="hero">
-
-    <div class="kicker">
-      virtauto.OS Runtime Surface
-    </div>
+    <div class="kicker">virtauto.OS Runtime Surface</div>
 
     <div class="hero-top">
-
       <div>
-        <h1>
-          Governed industrial runtime.<br>
-          Live operational decision layer.
-        </h1>
-
+        <h1>Governed industrial runtime.<br>Live operational decision layer.</h1>
         <p>
           virtauto.OS exposes industrial runtime states, governance logic,
           operational admissibility and multi-agent orchestration as a unified
           industrial execution surface.
         </p>
       </div>
-
-      <div class="runtime-badge">
-        Runtime Active
-      </div>
-
+      <div class="runtime-badge" id="runtimeBadge">Runtime Active</div>
     </div>
 
     <div class="hero-grid">
-
       <div class="hero-stat">
         <div class="label">Runtime Health</div>
-        <div class="value ok">STABLE</div>
+        <div class="value ok" id="runtimeHealth">STABLE</div>
       </div>
-
       <div class="hero-stat">
         <div class="label">Governance State</div>
         <div class="value ok">ENFORCED</div>
       </div>
-
       <div class="hero-stat">
         <div class="label">Execution Mode</div>
         <div class="value warn">ADVISORY</div>
       </div>
-
       <div class="hero-stat">
-        <div class="label">Operator Review</div>
-        <div class="value warn">2 PENDING</div>
+        <div class="label">Latest Decision</div>
+        <div class="value warn" id="latestDecision">LOADING</div>
       </div>
-
     </div>
-
   </section>
 
   <div class="grid">
 
     <div class="card">
+      <h2>Runtime Events</h2>
+      <div class="trace" id="runtimeEvents">
+        <div class="trace-meta">Loading runtime events…</div>
+      </div>
+    </div>
 
+    <div class="card">
       <h2>Agent Status</h2>
-
-      <div class="table">
-
-        <div class="row">
-          <div class="label">Data Ingest Agent</div>
-          <div class="value ok">ACTIVE</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Peak Guard Agent</div>
-          <div class="value ok">ACTIVE</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Stability Agent</div>
-          <div class="value warn">HOLD</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Governance Agent</div>
-          <div class="value ok">ACTIVE</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Operator Review Agent</div>
-          <div class="value warn">WAITING</div>
-        </div>
-
+      <div class="table" id="agentStatus">
+        <div class="row"><div class="label">Data Ingest Agent</div><div class="value ok">ACTIVE</div></div>
+        <div class="row"><div class="label">Peak Guard Agent</div><div class="value ok">ACTIVE</div></div>
+        <div class="row"><div class="label">Stability Agent</div><div class="value ok">ACTIVE</div></div>
+        <div class="row"><div class="label">Guardian Agent</div><div class="value ok">ACTIVE</div></div>
+        <div class="row"><div class="label">Operator Review Agent</div><div class="value warn">WAITING</div></div>
       </div>
-
     </div>
 
     <div class="card">
-
       <h2>Decision Queue</h2>
-
       <div class="table">
-
-        <div class="row">
-          <div class="label">Peak Reduction Proposal</div>
-          <div class="value ok">ALLOW</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Compressed Air Standby</div>
-          <div class="value warn">HOLD</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Welding Pause Window</div>
-          <div class="value bad">BLOCK</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Energy Shift Optimization</div>
-          <div class="value warn">DELAY</div>
-        </div>
-
+        <div class="row"><div class="label">Peak Reduction Proposal</div><div class="value ok">ALLOW</div></div>
+        <div class="row"><div class="label">Compressed Air Standby</div><div class="value warn">HOLD</div></div>
+        <div class="row"><div class="label">Welding Pause Window</div><div class="value bad">BLOCK</div></div>
+        <div class="row"><div class="label">Energy Shift Optimization</div><div class="value warn">DELAY</div></div>
       </div>
-
     </div>
 
     <div class="card">
-
       <h2>Energy Window</h2>
-
       <div class="table">
-
-        <div class="row">
-          <div class="label">Current Shift</div>
-          <div class="value">Night Shift</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Hall Load</div>
-          <div class="value warn">84%</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Compressed Air</div>
-          <div class="value ok">STABLE</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Buffer Fill</div>
-          <div class="value ok">6 Units</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Peak Window</div>
-          <div class="value warn">22:00–23:00</div>
-        </div>
-
+        <div class="row"><div class="label">Current Line</div><div class="value">BIW-TVL</div></div>
+        <div class="row"><div class="label">Hall Load</div><div class="value warn">84%</div></div>
+        <div class="row"><div class="label">Compressed Air</div><div class="value ok">STABLE</div></div>
+        <div class="row"><div class="label">Buffer Fill</div><div class="value ok">5 Units</div></div>
+        <div class="row"><div class="label">Availability</div><div class="value ok">98.2%</div></div>
       </div>
-
     </div>
 
     <div class="card">
-
       <h2>Governance Contract</h2>
-
       <div class="trace">
-
-        <div class="trace-item">
-          <div class="trace-title">Constraint</div>
-          <div class="trace-meta">
-            takt_stability == OK
-          </div>
-        </div>
-
-        <div class="trace-item">
-          <div class="trace-title">Constraint</div>
-          <div class="trace-meta">
-            buffer_fill >= 4
-          </div>
-        </div>
-
-        <div class="trace-item">
-          <div class="trace-title">Constraint</div>
-          <div class="trace-meta">
-            safety_state == GREEN
-          </div>
-        </div>
-
-        <div class="trace-item">
-          <div class="trace-title">Fallback</div>
-          <div class="trace-meta">
-            default = HOLD
-          </div>
-        </div>
-
+        <div class="trace-item"><div class="trace-title">Contract</div><div class="trace-meta">VA-ENERGY-001 · Energy Admissibility Contract</div></div>
+        <div class="trace-item"><div class="trace-title">Constraint</div><div class="trace-meta">takt_stability == OK</div></div>
+        <div class="trace-item"><div class="trace-title">Constraint</div><div class="trace-meta">buffer_level >= 4</div></div>
+        <div class="trace-item"><div class="trace-title">Constraint</div><div class="trace-meta">availability >= 0.98</div></div>
+        <div class="trace-item"><div class="trace-title">Fallback</div><div class="trace-meta">insufficient evidence = HOLD</div></div>
       </div>
-
     </div>
 
     <div class="card">
-
-      <h2>Trace Feed</h2>
-
-      <div class="trace">
-
-        <div class="trace-item">
-          <div class="trace-title">
-            HOLD — Compressed Air Standby
-          </div>
-          <div class="trace-meta">
-            Buffer level below admissibility threshold.
-            Operator confirmation required.
-          </div>
-        </div>
-
-        <div class="trace-item">
-          <div class="trace-title">
-            ALLOW — Peak Reduction
-          </div>
-          <div class="trace-meta">
-            takt stability confirmed.
-            Energy reduction window admissible.
-          </div>
-        </div>
-
-        <div class="trace-item">
-          <div class="trace-title">
-            BLOCK — Welding Pause
-          </div>
-          <div class="trace-meta">
-            Quality gate dependency active.
-            Operational interruption not admissible.
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-
-    <div class="card">
-
       <h2>Operator Review</h2>
-
       <div class="table">
-
-        <div class="row">
-          <div class="label">Open Reviews</div>
-          <div class="value warn">2</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Execution Authority</div>
-          <div class="value ok">HUMAN-IN-LOOP</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Runtime Policy</div>
-          <div class="value ok">GOVERNED</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Decision Traceability</div>
-          <div class="value ok">100%</div>
-        </div>
-
+        <div class="row"><div class="label">Open Reviews</div><div class="value warn">1</div></div>
+        <div class="row"><div class="label">Execution Authority</div><div class="value ok">HUMAN-IN-LOOP</div></div>
+        <div class="row"><div class="label">Runtime Policy</div><div class="value ok">GOVERNED</div></div>
+        <div class="row"><div class="label">Decision Traceability</div><div class="value ok">100%</div></div>
       </div>
-
     </div>
 
   </div>
@@ -567,6 +204,62 @@ body{
   </div>
 
 </div>
+
+<script>
+async function loadEvents(){
+  try{
+    const response = await fetch("../ops/events.jsonl?t=" + Date.now(), { cache: "no-store" });
+    if(!response.ok) throw new Error("events.jsonl not available");
+
+    const text = await response.text();
+    const events = text
+      .trim()
+      .split("\n")
+      .map(line => {
+        try { return JSON.parse(line); }
+        catch { return null; }
+      })
+      .filter(Boolean);
+
+    const latestEvents = events.slice(-6).reverse();
+    const latestDecision = [...events].reverse().find(e => e.decision);
+
+    if(latestDecision){
+      document.getElementById("latestDecision").textContent = latestDecision.decision;
+      document.getElementById("latestDecision").className =
+        "value " + (
+          latestDecision.decision === "ALLOW" ? "ok" :
+          latestDecision.decision === "BLOCK" ? "bad" : "warn"
+        );
+    }
+
+    document.getElementById("runtimeEvents").innerHTML = latestEvents.map(e => `
+      <div class="trace-item">
+        <div class="event-time">${e.timestamp || "—"}</div>
+        <div class="trace-title">${e.event || "runtime_event"}</div>
+        <div class="trace-meta">
+          ${(e.source || e.agent || "virtauto.OS")}
+          ${e.line ? " · " + e.line : ""}
+          ${e.result ? " · " + e.result : ""}
+          ${e.decision ? " · Decision: " + e.decision : ""}
+          ${e.message ? "<br>" + e.message : ""}
+        </div>
+      </div>
+    `).join("");
+
+  }catch(error){
+    document.getElementById("runtimeHealth").textContent = "DEGRADED";
+    document.getElementById("runtimeHealth").className = "value warn";
+    document.getElementById("runtimeBadge").textContent = "Runtime Degraded";
+    document.getElementById("runtimeBadge").style.color = "var(--warn)";
+    document.getElementById("runtimeEvents").innerHTML =
+      '<div class="trace-meta">Runtime events unavailable. Static fallback data shown.</div>';
+  }
+}
+
+loadEvents();
+setInterval(loadEvents, 60000);
+</script>
 
 </body>
 </html>
