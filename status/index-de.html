@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-<title>virtauto.OS — Runtime Surface</title>
+<title>virtauto.OS — Runtime Oberfläche</title>
 
 <link rel="stylesheet" href="../assets/styles.css"/>
 <link rel="stylesheet" href="../assets/styles_unify.css"/>
@@ -85,16 +85,16 @@ body{
 
 <header class="site-header">
   <div class="nav-container">
-    <a class="logo" href="../index.html">
+    <a class="logo" href="../index-de.html">
       <img src="../assets/virtauto-logo.svg" alt="virtauto">
     </a>
-    <nav class="main-nav" aria-label="Main navigation">
-      <a href="index.html">Home</a>
-      <a href="virtauto-os.html">virtauto.OS</a>
-      <a href="biw-energy.html">Energy Scan</a>
-      <a href="status/">Runtime</a>
-      <a href="pilot.html">Pilot Program</a>
-      <a href="contact.html">Contact</a>
+    <nav class="main-nav" aria-label="Hauptnavigation">
+      <a href="../index-de.html">Home</a>
+      <a href="../virtauto-os-de.html">virtauto.OS</a>
+      <a href="../biw-energy-de.html">Energy Scan</a>
+      <a href="../status/index-de.html">Runtime</a>
+      <a href="../pilot-de.html">Pilotprogramm</a>
+      <a href="../contact-de.html">Kontakt</a>
     </nav>
   </div>
 </header>
@@ -102,36 +102,36 @@ body{
 <div class="container">
 
   <section class="hero">
-    <div class="kicker">virtauto.OS Runtime Surface</div>
+    <div class="kicker">virtauto.OS Runtime Oberfläche</div>
 
     <div class="hero-top">
       <div>
-        <h1>Governed industrial runtime.<br>Live operational decision layer.</h1>
+        <h1>Governed Industrial Runtime.<br>Live operative Entscheidungsebene.</h1>
         <p>
-          virtauto.OS exposes industrial runtime states, governance logic,
-          operational admissibility and multi-agent orchestration as a unified
-          industrial execution surface.
+          virtauto.OS visualisiert industrielle Runtime-Zustände, Governance-Logik,
+          operative Zulässigkeit und Multi-Agenten-Orchestrierung als einheitliche
+          industrielle Ausführungsebene.
         </p>
       </div>
-      <div class="runtime-badge" id="runtimeBadge">Runtime Active</div>
+      <div class="runtime-badge" id="runtimeBadge">Runtime Aktiv</div>
     </div>
 
     <div class="hero-grid">
       <div class="hero-stat">
-        <div class="label">Runtime Health</div>
-        <div class="value ok" id="runtimeHealth">STABLE</div>
+        <div class="label">Runtime-Zustand</div>
+        <div class="value ok" id="runtimeHealth">STABIL</div>
       </div>
       <div class="hero-stat">
-        <div class="label">Governance State</div>
-        <div class="value ok">ENFORCED</div>
+        <div class="label">Governance-Status</div>
+        <div class="value ok">AKTIV</div>
       </div>
       <div class="hero-stat">
-        <div class="label">Execution Mode</div>
+        <div class="label">Ausführungsmodus</div>
         <div class="value warn">ADVISORY</div>
       </div>
       <div class="hero-stat">
-        <div class="label">Latest Decision</div>
-        <div class="value warn" id="latestDecision">LOADING</div>
+        <div class="label">Letzte Entscheidung</div>
+        <div class="value warn" id="latestDecision">LÄDT</div>
       </div>
     </div>
   </section>
@@ -139,69 +139,69 @@ body{
   <div class="grid">
 
     <div class="card">
-      <h2>Runtime Events</h2>
+      <h2>Runtime Ereignisse</h2>
       <div class="trace" id="runtimeEvents">
-        <div class="trace-meta">Loading runtime events…</div>
+        <div class="trace-meta">Runtime-Ereignisse werden geladen…</div>
       </div>
     </div>
 
     <div class="card">
-      <h2>Agent Status</h2>
+      <h2>Agentenstatus</h2>
       <div class="table" id="agentStatus">
-        <div class="row"><div class="label">Data Ingest Agent</div><div class="value ok">ACTIVE</div></div>
-        <div class="row"><div class="label">Peak Guard Agent</div><div class="value ok">ACTIVE</div></div>
-        <div class="row"><div class="label">Stability Agent</div><div class="value ok">ACTIVE</div></div>
-        <div class="row"><div class="label">Guardian Agent</div><div class="value ok">ACTIVE</div></div>
-        <div class="row"><div class="label">Operator Review Agent</div><div class="value warn">WAITING</div></div>
+        <div class="row"><div class="label">Data Ingest Agent</div><div class="value ok">AKTIV</div></div>
+        <div class="row"><div class="label">Peak Guard Agent</div><div class="value ok">AKTIV</div></div>
+        <div class="row"><div class="label">Stability Agent</div><div class="value ok">AKTIV</div></div>
+        <div class="row"><div class="label">Guardian Agent</div><div class="value ok">AKTIV</div></div>
+        <div class="row"><div class="label">Operator Review Agent</div><div class="value warn">WARTET</div></div>
       </div>
     </div>
 
     <div class="card">
-      <h2>Decision Queue</h2>
+      <h2>Entscheidungswarteschlange</h2>
       <div class="table">
-        <div class="row"><div class="label">Peak Reduction Proposal</div><div class="value ok">ALLOW</div></div>
-        <div class="row"><div class="label">Compressed Air Standby</div><div class="value warn">HOLD</div></div>
-        <div class="row"><div class="label">Welding Pause Window</div><div class="value bad">BLOCK</div></div>
-        <div class="row"><div class="label">Energy Shift Optimization</div><div class="value warn">DELAY</div></div>
+        <div class="row"><div class="label">Peak-Reduction-Vorschlag</div><div class="value ok">ALLOW</div></div>
+        <div class="row"><div class="label">Druckluft-Standby</div><div class="value warn">HOLD</div></div>
+        <div class="row"><div class="label">Schweißpause-Fenster</div><div class="value bad">BLOCK</div></div>
+        <div class="row"><div class="label">Energy Shift Optimierung</div><div class="value warn">DELAY</div></div>
       </div>
     </div>
 
     <div class="card">
-      <h2>Energy Window</h2>
+      <h2>Energiefenster</h2>
       <div class="table">
-        <div class="row"><div class="label">Current Line</div><div class="value">BIW-TVL</div></div>
-        <div class="row"><div class="label">Hall Load</div><div class="value warn">84%</div></div>
-        <div class="row"><div class="label">Compressed Air</div><div class="value ok">STABLE</div></div>
-        <div class="row"><div class="label">Buffer Fill</div><div class="value ok">5 Units</div></div>
-        <div class="row"><div class="label">Availability</div><div class="value ok">98.2%</div></div>
+        <div class="row"><div class="label">Aktuelle Linie</div><div class="value">BIW-TVL</div></div>
+        <div class="row"><div class="label">Hallenauslastung</div><div class="value warn">84%</div></div>
+        <div class="row"><div class="label">Druckluft</div><div class="value ok">STABIL</div></div>
+        <div class="row"><div class="label">Pufferfüllstand</div><div class="value ok">5 Einheiten</div></div>
+        <div class="row"><div class="label">Verfügbarkeit</div><div class="value ok">98,2%</div></div>
       </div>
     </div>
 
     <div class="card">
-      <h2>Governance Contract</h2>
+      <h2>Governance Vertrag</h2>
       <div class="trace">
-        <div class="trace-item"><div class="trace-title">Contract</div><div class="trace-meta">VA-ENERGY-001 · Energy Admissibility Contract</div></div>
-        <div class="trace-item"><div class="trace-title">Constraint</div><div class="trace-meta">takt_stability == OK</div></div>
-        <div class="trace-item"><div class="trace-title">Constraint</div><div class="trace-meta">buffer_level >= 4</div></div>
-        <div class="trace-item"><div class="trace-title">Constraint</div><div class="trace-meta">availability >= 0.98</div></div>
-        <div class="trace-item"><div class="trace-title">Fallback</div><div class="trace-meta">insufficient evidence = HOLD</div></div>
+        <div class="trace-item"><div class="trace-title">Vertrag</div><div class="trace-meta">VA-ENERGY-001 · Energy Admissibility Contract</div></div>
+        <div class="trace-item"><div class="trace-title">Bedingung</div><div class="trace-meta">takt_stability == OK</div></div>
+        <div class="trace-item"><div class="trace-title">Bedingung</div><div class="trace-meta">buffer_level >= 4</div></div>
+        <div class="trace-item"><div class="trace-title">Bedingung</div><div class="trace-meta">availability >= 0.98</div></div>
+        <div class="trace-item"><div class="trace-title">Rückfallregel</div><div class="trace-meta">insufficient evidence = HOLD</div></div>
       </div>
     </div>
 
     <div class="card">
       <h2>Operator Review</h2>
       <div class="table">
-        <div class="row"><div class="label">Open Reviews</div><div class="value warn">1</div></div>
-        <div class="row"><div class="label">Execution Authority</div><div class="value ok">HUMAN-IN-LOOP</div></div>
-        <div class="row"><div class="label">Runtime Policy</div><div class="value ok">GOVERNED</div></div>
-        <div class="row"><div class="label">Decision Traceability</div><div class="value ok">100%</div></div>
+        <div class="row"><div class="label">Offene Reviews</div><div class="value warn">1</div></div>
+        <div class="row"><div class="label">Ausführungsfreigabe</div><div class="value ok">HUMAN-IN-LOOP</div></div>
+        <div class="row"><div class="label">Runtime-Richtlinie</div><div class="value ok">GOVERNED</div></div>
+        <div class="row"><div class="label">Entscheidungsnachvollziehbarkeit</div><div class="value ok">100%</div></div>
       </div>
     </div>
 
   </div>
 
   <div class="footer">
-    virtauto.OS — Industrial Decision Runtime Surface · © 2026 virtauto®
+    virtauto.OS — Industrielle Runtime Oberfläche · © 2026 virtauto®
   </div>
 
 </div>
@@ -242,19 +242,19 @@ async function loadEvents(){
           ${(e.source || e.agent || "virtauto.OS")}
           ${e.line ? " · " + e.line : ""}
           ${e.result ? " · " + e.result : ""}
-          ${e.decision ? " · Decision: " + e.decision : ""}
+          ${e.decision ? " · Entscheidung: " + e.decision : ""}
           ${e.message ? "<br>" + e.message : ""}
         </div>
       </div>
     `).join("");
 
   }catch(error){
-    document.getElementById("runtimeHealth").textContent = "DEGRADED";
+    document.getElementById("runtimeHealth").textContent = "EINGESCHRÄNKT";
     document.getElementById("runtimeHealth").className = "value warn";
-    document.getElementById("runtimeBadge").textContent = "Runtime Degraded";
+    document.getElementById("runtimeBadge").textContent = "Runtime Eingeschränkt";
     document.getElementById("runtimeBadge").style.color = "var(--warn)";
     document.getElementById("runtimeEvents").innerHTML =
-      '<div class="trace-meta">Runtime events unavailable. Static fallback data shown.</div>';
+      '<div class="trace-meta">Laufzeitereignisse nicht verfügbar. Statische Fallback-Daten werden angezeigt.</div>';
   }
 }
 
