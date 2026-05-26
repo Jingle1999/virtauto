@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.virtauto.de/schemas/biw_runtime_event.schema.json",
+  "title": "virtauto.OS BIW Runtime Event",
+  "description": "Runtime event schema for BIW energy scan events emitted by virtauto.OS.",
+  "type": "object",
+
+  "required": [
+    "ts",
+    "type",
+    "source",
+    "severity",
+    "msg",
+    "data"
+  ],
+
+  "properties": {
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "type": {
+      "type": "string",
+      "const": "energy/scan_completed"
+    },
+
+    "source": {
+      "type": "string"
+    },
+
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ]
+    },
+
+    "msg": {
+      "type": "string"
+    },
+
+    "data": {
+      "type": "object",
+
+      "required": [
+        "scan_id",
+        "rows",
+        "dataset_days",
+        "saving_pct",
+        "data_confidence",
+        "model_confidence",
+        "overall_traffic",
+        "advisory_only",
+        "operator_review_required",
+        "no_autonomous_execution"
+      ],
+
+      "properties": {
+        "scan_id": {
+          "type": "string"
+        },
+
+        "rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+
+        "dataset_days": {
+          "type": "number",
+          "minimum": 0
+        },
+
+        "saving_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 12
+        },
+
+        "annual_savings_eur": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "dataset_saving_kwh": {
+          "type": "number",
+          "minimum": 0
+        },
+
+        "data_confidence": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ]
+        },
+
+        "model_confidence": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ]
+        },
+
+        "overall_traffic": {
+          "type": "string",
+          "enum": [
+            "GRÜN",
+            "GELB",
+            "ROT",
+            "GREEN",
+            "YELLOW",
+            "RED"
+          ]
+        },
+
+        "cap_applied": {
+          "type": "boolean"
+        },
+
+        "advisory_only": {
+          "type": "boolean",
+          "const": true
+        },
+
+        "operator_review_required": {
+          "type": "boolean",
+          "const": true
+        },
+
+        "no_autonomous_execution": {
+          "type": "boolean",
+          "const": true
+        },
+
+        "top_opportunities": {
+          "type": "array",
+
+          "items": {
+            "type": "object",
+
+            "required": [
+              "type",
+              "reason",
+              "saving_kwh",
+              "confidence"
+            ],
+
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+
+              "reason": {
+                "type": "string"
+              },
+
+              "saving_kwh": {
+                "type": "number"
+              },
+
+              "annual_saving_eur": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+
+              "confidence": {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              }
+            }
+          }
+        },
+
+        "findings": {
+          "type": "array",
+
+          "items": {
+            "type": "object",
+
+            "required": [
+              "id",
+              "title",
+              "severity"
+            ],
+
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+
+              "title": {
+                "type": "string"
+              },
+
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "HOCH",
+                  "MITTEL",
+                  "NIEDRIG",
+                  "HIGH",
+                  "MEDIUM",
+                  "LOW"
+                ]
+              },
+
+              "recommendation": {
+                "type": "string"
+              },
+
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
