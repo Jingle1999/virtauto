@@ -1,0 +1,139 @@
+contract_id: "VA-BIW-ENERGY-001"
+name: "BIW Energy Admissibility Contract"
+version: "1.0"
+owner: "virtauto"
+domain: "energy"
+mode: "advisory_only"
+
+purpose: >
+  Governs BIW energy reduction recommendations before they are exposed
+  to the virtauto.OS Runtime Surface. The contract ensures that energy
+  optimization remains subordinate to production stability, quality,
+  availability and human operator review.
+
+default_decision: "HOLD"
+
+allowed_decisions:
+  - "ALLOW"
+  - "HOLD"
+  - "BLOCK"
+  - "ESCALATE"
+  - "REQUEST_BASELINE"
+
+constraints:
+  - id: "C001"
+    name: "Minimum data coverage"
+    rule: "dataset_days >= 14"
+    on_fail: "REQUEST_BASELINE"
+
+  - id: "C002"
+    name: "Minimum row count"
+    rule: "rows >= 2000"
+    on_fail: "REQUEST_BASELINE"
+
+  - id: "C003"
+    name: "Data confidence"
+    rule: "data_confidence in ['MEDIUM', 'HIGH']"
+    on_fail: "HOLD"
+
+  - id: "C004"
+    name: "Model confidence"
+    rule: "model_confidence in ['MEDIUM', 'HIGH']"
+    on_fail: "HOLD"
+
+  - id: "C005"
+    name: "Availability protection"
+    rule: "availability >= 0.98"
+    on_fail: "BLOCK"
+
+  - id: "C006"
+    name: "Quality gate protection"
+    rule: "quality_gate == 'OK'"
+    on_fail: "BLOCK"
+
+  - id: "C007"
+    name: "Takt stability protection"
+    rule: "takt_stability == 'OK'"
+    on_fail: "HOLD"
+
+  - id: "C008"
+    name: "Buffer protection"
+    rule: "buffer_level >= 4"
+    on_fail: "HOLD"
+
+  - id: "C009"
+    name: "Advisory-only execution"
+    rule: "advisory_only == true and no_autonomous_execution == true"
+    on_fail: "BLOCK"
+
+  - id: "C010"
+    name: "Human operator review"
+    rule: "operator_review_required == true"
+    on_fail: "HOLD"
+
+decision_logic:
+  ALLOW:
+    when:
+      - "all mandatory constraints pass"
+      - "overall_traffic in ['GREEN', 'GRÜN']"
+      - "operator_review_required == true"
+    meaning: >
+      Energy reduction recommendation is admissible for human review.
+      No autonomous execution is permitted.
+
+  HOLD:
+    when:
+      - "evidence incomplete"
+      - "data_confidence == 'LOW'"
+      - "model_confidence == 'LOW'"
+      - "takt_stability unknown"
+      - "buffer_level unknown or below threshold"
+    meaning: >
+      Recommendation must not proceed until missing evidence or operational
+      uncertainty is resolved.
+
+  BLOCK:
+    when:
+      - "quality_gate != 'OK'"
+      - "availability < 0.98"
+      - "advisory_only == false"
+      - "no_autonomous_execution == false"
+    meaning: >
+      Recommendation is not admissible because it could affect quality,
+      availability, safety or execution authority.
+
+  ESCALATE:
+    when:
+      - "critical severity"
+      - "repeated constraint failure"
+      - "operator override required"
+    meaning: >
+      Human review is mandatory before any further recommendation is issued.
+
+  REQUEST_BASELINE:
+    when:
+      - "dataset_days < 14"
+      - "rows < 2000"
+      - "baseline not validated"
+    meaning: >
+      More data or a validated baseline is required before a reliable
+      energy opportunity assessment can be made.
+
+outputs:
+  runtime_event: true
+  decision_trace: true
+  operator_review: true
+  audit_log: true
+
+runtime_surface:
+  target: "/status/"
+  event_stream: "ops/events.jsonl"
+  visibility: "public_demo"
+  execution_authority: "human_in_loop"
+
+safety_statement: >
+  This contract does not authorize autonomous industrial execution.
+  All outputs are advisory-only and require human review before operational action.
+
+created_at: "2026-05-26T00:00:00Z"
+updated_at: "2026-05-26T00:00:00Z"
