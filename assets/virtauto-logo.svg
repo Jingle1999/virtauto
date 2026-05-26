@@ -1,0 +1,6 @@
+<svg width="220" height="46" viewBox="0 0 220 46" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="virtauto">
+  <rect width="220" height="46" rx="10" fill="#050816"/>
+  <path d="M24 13L36 33L48 13" stroke="#29D3FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="58" cy="23" r="6" fill="#29D3FF"/>
+  <text x="74" y="29" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="0.5">virtauto</text>
+</svg>
