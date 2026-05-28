@@ -28,24 +28,10 @@
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     }
 
-    .container{
-      max-width:1500px;
-      margin:auto;
-      padding:24px;
-    }
-
-    .grid{
-      display:grid;
-      gap:20px;
-    }
-
-    .top{
-      grid-template-columns:1fr;
-    }
-
-    .middle{
-      grid-template-columns:1fr 1fr 1fr;
-    }
+    .container{max-width:1500px;margin:auto;padding:24px}
+    .grid{display:grid;gap:20px}
+    .top{grid-template-columns:1fr}
+    .middle{grid-template-columns:1fr 1fr 1fr}
 
     .panel{
       background:var(--surface);
@@ -54,13 +40,8 @@
       padding:20px;
     }
 
-    h1,h2{
-      margin-top:0;
-    }
-
-    p{
-      color:var(--muted);
-    }
+    h1,h2,h3{margin-top:0}
+    p{color:var(--muted)}
 
     .line-grid{
       display:grid;
@@ -78,44 +59,15 @@
       transition:0.3s;
     }
 
-    .station-name{
-      font-size:14px;
-      color:var(--muted);
-      margin-bottom:10px;
-    }
+    .station-name{font-size:14px;color:var(--muted);margin-bottom:10px}
+    .station-kw{font-size:28px;font-weight:bold;margin-bottom:10px}
+    .station-state{font-size:12px;letter-spacing:1px}
 
-    .station-kw{
-      font-size:28px;
-      font-weight:bold;
-      margin-bottom:10px;
-    }
+    .green{border-color:var(--green);box-shadow:0 0 15px rgba(32,212,147,.2)}
+    .yellow{border-color:var(--yellow);box-shadow:0 0 15px rgba(255,179,0,.18)}
+    .red{border-color:var(--red);box-shadow:0 0 15px rgba(255,68,85,.2)}
 
-    .station-state{
-      font-size:12px;
-      letter-spacing:1px;
-    }
-
-    .green{
-      border-color:var(--green);
-      box-shadow:0 0 15px rgba(32,212,147,.2);
-    }
-
-    .yellow{
-      border-color:var(--yellow);
-      box-shadow:0 0 15px rgba(255,179,0,.18);
-    }
-
-    .red{
-      border-color:var(--red);
-      box-shadow:0 0 15px rgba(255,68,85,.2);
-    }
-
-    .agent-list{
-      display:grid;
-      grid-template-columns:1fr;
-      gap:8px;
-      margin-bottom:16px;
-    }
+    .agent-list{display:grid;gap:8px;margin-bottom:16px}
 
     .agent-chip{
       display:flex;
@@ -150,57 +102,115 @@
       animation:fadeIn .25s ease;
     }
 
-    .feed-meta{
-      font-size:11px;
-      color:var(--muted);
-      margin-bottom:5px;
-    }
+    .feed-meta{font-size:11px;color:var(--muted);margin-bottom:5px}
+    .feed-title{font-size:13px;font-weight:700;margin-bottom:5px}
+    .feed-msg{font-size:12px;color:var(--muted);line-height:1.45}
 
-    .feed-title{
-      font-size:13px;
-      font-weight:700;
-      margin-bottom:5px;
-    }
+    .decision-allow{color:var(--green)}
+    .decision-hold{color:var(--yellow)}
+    .decision-block{color:var(--red)}
 
-    .feed-msg{
+    .contract-box{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:var(--surface2);
+      padding:14px;
+      margin-bottom:16px;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
       font-size:12px;
       color:var(--muted);
-      line-height:1.45;
+      line-height:1.6;
     }
 
-    .decision-allow{
-      color:var(--green);
+    .george-decision{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:rgba(20,184,255,.06);
+      padding:18px;
+      margin-bottom:16px;
     }
 
-    .decision-hold{
+    .george-label{
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:1.4px;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    }
+
+    .george-status{
+      font-size:40px;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .george-reason{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .operator-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-bottom:16px;
+    }
+
+    .btn{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      background:transparent;
+      color:var(--text);
+      cursor:pointer;
+      font-weight:700;
+      letter-spacing:.5px;
+    }
+
+    .btn-approve{
+      background:var(--green);
+      border-color:var(--green);
+      color:#06101c;
+    }
+
+    .btn-hold{
+      border-color:var(--yellow);
       color:var(--yellow);
     }
 
-    .decision-block{
-      color:var(--red);
+    .audit{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      max-height:230px;
+      overflow:hidden;
     }
 
+    .audit-item{
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:9px 10px;
+      background:rgba(255,255,255,.025);
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.45;
+      animation:fadeIn .25s ease;
+    }
+
+    .audit-item strong{color:var(--text)}
+
     @keyframes fadeIn{
-      from{
-        opacity:0;
-        transform:translateY(-4px);
-      }
-      to{
-        opacity:1;
-        transform:translateY(0);
-      }
+      from{opacity:0;transform:translateY(-4px)}
+      to{opacity:1;transform:translateY(0)}
     }
 
     @media(max-width:1200px){
-      .line-grid{
-        grid-template-columns:repeat(2,1fr);
-      }
+      .line-grid{grid-template-columns:repeat(2,1fr)}
     }
 
     @media(max-width:1000px){
-      .middle{
-        grid-template-columns:1fr;
-      }
+      .middle{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -215,53 +225,18 @@
   </section>
 
   <div class="grid top">
-
     <section class="panel" id="line-panel">
-
       <h2>Line Status Panel</h2>
 
       <div class="line-grid" id="lineGrid">
-
-        <div class="station" id="s1">
-          <div class="station-name">Welding</div>
-          <div class="station-kw">0 kW</div>
-          <div class="station-state">ACTIVE</div>
-        </div>
-
-        <div class="station" id="s2">
-          <div class="station-name">Flanging</div>
-          <div class="station-kw">0 kW</div>
-          <div class="station-state">ACTIVE</div>
-        </div>
-
-        <div class="station" id="s3">
-          <div class="station-name">Gluing</div>
-          <div class="station-kw">0 kW</div>
-          <div class="station-state">ACTIVE</div>
-        </div>
-
-        <div class="station" id="s4">
-          <div class="station-name">Pressing</div>
-          <div class="station-kw">0 kW</div>
-          <div class="station-state">ACTIVE</div>
-        </div>
-
-        <div class="station" id="s5">
-          <div class="station-name">Robot Cell</div>
-          <div class="station-kw">0 kW</div>
-          <div class="station-state">ACTIVE</div>
-        </div>
-
-        <div class="station" id="s6">
-          <div class="station-name">Quality Gate</div>
-          <div class="station-kw">0 kW</div>
-          <div class="station-state">ACTIVE</div>
-        </div>
-
+        <div class="station" id="s1"><div class="station-name">Welding</div><div class="station-kw">0 kW</div><div class="station-state">ACTIVE</div></div>
+        <div class="station" id="s2"><div class="station-name">Flanging</div><div class="station-kw">0 kW</div><div class="station-state">ACTIVE</div></div>
+        <div class="station" id="s3"><div class="station-name">Gluing</div><div class="station-kw">0 kW</div><div class="station-state">ACTIVE</div></div>
+        <div class="station" id="s4"><div class="station-name">Pressing</div><div class="station-kw">0 kW</div><div class="station-state">ACTIVE</div></div>
+        <div class="station" id="s5"><div class="station-name">Robot Cell</div><div class="station-kw">0 kW</div><div class="station-state">ACTIVE</div></div>
+        <div class="station" id="s6"><div class="station-name">Quality Gate</div><div class="station-kw">0 kW</div><div class="station-state">ACTIVE</div></div>
       </div>
-
     </section>
-
   </div>
 
   <div class="grid middle">
@@ -270,26 +245,11 @@
       <h2>Agent Feed</h2>
 
       <div class="agent-list">
-        <div class="agent-chip">
-          <span>Idle Loss Detector</span>
-          <span>ACTIVE</span>
-        </div>
-        <div class="agent-chip">
-          <span>Peak Load Guard</span>
-          <span>ACTIVE</span>
-        </div>
-        <div class="agent-chip">
-          <span>Compressed Air Agent</span>
-          <span>ACTIVE</span>
-        </div>
-        <div class="agent-chip">
-          <span>Standby Optimizer</span>
-          <span>ACTIVE</span>
-        </div>
-        <div class="agent-chip">
-          <span>Takt Correlator</span>
-          <span>ACTIVE</span>
-        </div>
+        <div class="agent-chip"><span>Idle Loss Detector</span><span>ACTIVE</span></div>
+        <div class="agent-chip"><span>Peak Load Guard</span><span>ACTIVE</span></div>
+        <div class="agent-chip"><span>Compressed Air Agent</span><span>ACTIVE</span></div>
+        <div class="agent-chip"><span>Standby Optimizer</span><span>ACTIVE</span></div>
+        <div class="agent-chip"><span>Takt Correlator</span><span>ACTIVE</span></div>
       </div>
 
       <div class="feed" id="agentFeed"></div>
@@ -297,6 +257,31 @@
 
     <section class="panel">
       <h2>GEORGE Decision Layer</h2>
+
+      <div class="contract-box">
+        contract_id: VA-BIW-ENERGY-001<br>
+        mode: advisory_only<br>
+        default_decision: HOLD<br>
+        operator_approval_required: true<br>
+        availability_threshold: 0.98<br>
+        autonomous_execution: false
+      </div>
+
+      <div class="george-decision">
+        <div class="george-label">Current GEORGE Recommendation</div>
+        <div class="george-status decision-hold" id="georgeStatus">HOLD</div>
+        <div class="george-reason" id="georgeReason">
+          Waiting for sufficient agent evidence. Default decision remains HOLD.
+        </div>
+      </div>
+
+      <div class="operator-actions">
+        <button class="btn btn-approve" onclick="operatorApprove()">APPROVE</button>
+        <button class="btn btn-hold" onclick="operatorHold()">KEEP HOLD</button>
+      </div>
+
+      <h3>Audit Trail</h3>
+      <div class="audit" id="auditTrail"></div>
     </section>
 
     <section class="panel">
@@ -320,12 +305,13 @@
   };
 
   let latestStationState = {};
+  let latestEvent = null;
+  let latestGeorgeDecision = "HOLD";
   let tick = 0;
 
   function updateStations(){
     stationIds.forEach(id => {
       const station = document.getElementById(id);
-
       const kw = Math.round(15 + Math.random() * 65);
       const rnd = Math.random();
 
@@ -371,6 +357,15 @@
     const totalKw = Object.values(latestStationState)
       .reduce((sum, s) => sum + s.kw, 0);
 
+    if(station.state === "ALERT"){
+      return {
+        agent: "Compressed Air Agent",
+        type: "compressed_air_anomaly",
+        decision: "BLOCK",
+        message: `${station.name}: abnormal utility pattern detected. Possible compressed-air leakage or uncontrolled actuator demand.`
+      };
+    }
+
     if(station.state === "IDLE" && station.kw > 35){
       return {
         agent: "Idle Loss Detector",
@@ -386,15 +381,6 @@
         type: "peak_load_risk",
         decision: "HOLD",
         message: `Total line load is ${totalKw} kW. Simultaneous high-load window detected. Recommend delayed activation of non-critical consumers.`
-      };
-    }
-
-    if(station.state === "ALERT"){
-      return {
-        agent: "Compressed Air Agent",
-        type: "compressed_air_anomaly",
-        decision: "BLOCK",
-        message: `${station.name}: abnormal utility pattern detected. Possible compressed-air leakage or uncontrolled actuator demand.`
       };
     }
 
@@ -417,21 +403,11 @@
 
   function addFeedItem(event){
     const feed = document.getElementById("agentFeed");
-
     const item = document.createElement("div");
     item.className = "feed-item";
 
     const time = new Date().toLocaleTimeString("en-GB");
-
-    let decisionClass = "decision-allow";
-
-    if(event.decision === "HOLD"){
-      decisionClass = "decision-hold";
-    }
-
-    if(event.decision === "BLOCK"){
-      decisionClass = "decision-block";
-    }
+    const decisionClass = getDecisionClass(event.decision);
 
     item.innerHTML = `
       <div class="feed-meta">${time} · ${event.agent}</div>
@@ -448,6 +424,73 @@
     }
   }
 
+  function updateGeorge(event){
+    latestEvent = event;
+
+    const status = document.getElementById("georgeStatus");
+    const reason = document.getElementById("georgeReason");
+
+    latestGeorgeDecision = event.decision;
+    status.innerText = event.decision;
+    status.className = "george-status " + getDecisionClass(event.decision);
+
+    if(event.decision === "ALLOW"){
+      reason.innerText =
+        "GEORGE confirms admissibility under VA-BIW-ENERGY-001. Recommendation remains advisory and requires operator approval.";
+    }
+
+    if(event.decision === "HOLD"){
+      reason.innerText =
+        "GEORGE keeps HOLD because optimization is not yet sufficiently safe or stable under the active decision contract.";
+    }
+
+    if(event.decision === "BLOCK"){
+      reason.innerText =
+        "GEORGE blocks the recommendation. Safety, availability or utility stability may be at risk. Escalation required.";
+    }
+
+    addAuditItem("GEORGE", event.decision, event.type);
+  }
+
+  function operatorApprove(){
+    addAuditItem("Operator", "APPROVED", "manual approval after GEORGE recommendation");
+  }
+
+  function operatorHold(){
+    addAuditItem("Operator", "HOLD", "operator kept decision on hold");
+  }
+
+  function addAuditItem(actor, decision, reason){
+    const audit = document.getElementById("auditTrail");
+    const item = document.createElement("div");
+    const time = new Date().toLocaleTimeString("en-GB");
+
+    item.className = "audit-item";
+    item.innerHTML = `
+      ${time} · <strong>${actor}</strong> → 
+      <span class="${getDecisionClass(decision)}">${decision}</span><br>
+      ${reason}
+    `;
+
+    audit.prepend(item);
+
+    while(audit.children.length > 6){
+      audit.removeChild(audit.lastChild);
+    }
+  }
+
+  function getDecisionClass(decision){
+    if(decision === "ALLOW" || decision === "APPROVED"){
+      return "decision-allow";
+    }
+
+    if(decision === "BLOCK"){
+      return "decision-block";
+    }
+
+    return "decision-hold";
+  }
+
   function runtimeTick(){
     tick++;
     updateStations();
@@ -457,6 +500,7 @@
 
       if(event){
         addFeedItem(event);
+        updateGeorge(event);
       }
     }
   }
