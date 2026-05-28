@@ -200,6 +200,41 @@
 
     .audit-item strong{color:var(--text)}
 
+    .kpi-grid{
+      display:grid;
+      gap:12px;
+    }
+
+    .kpi-card{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      background:var(--surface2);
+    }
+
+    .kpi-label{
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:1px;
+      text-transform:uppercase;
+      margin-bottom:10px;
+    }
+
+    .kpi-value{
+      font-size:28px;
+      font-weight:800;
+      color:var(--accent);
+    }
+
+    .kpi-sub{
+      margin-top:6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .kpi-safe{color:var(--green)}
+    .kpi-warning{color:var(--yellow)}
+
     @keyframes fadeIn{
       from{opacity:0;transform:translateY(-4px)}
       to{opacity:1;transform:translateY(0)}
@@ -286,6 +321,40 @@
 
     <section class="panel">
       <h2>KPI Dashboard</h2>
+
+      <div class="kpi-grid">
+
+        <div class="kpi-card">
+          <div class="kpi-label">Current Saving Today</div>
+          <div class="kpi-value" id="savingToday">0 kWh</div>
+          <div class="kpi-sub" id="savingEuro">0 €</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">90-Day Projection</div>
+          <div class="kpi-value" id="projection90">0 €</div>
+          <div class="kpi-sub">Pilot potential after baseline validation</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Scaled CFO View</div>
+          <div class="kpi-value" id="fleetProjection">0 €</div>
+          <div class="kpi-sub">Illustrative: line × plants</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Decision Mode</div>
+          <div class="kpi-value kpi-warning">ADVISORY</div>
+          <div class="kpi-sub">Human approval required</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Execution Policy</div>
+          <div class="kpi-value kpi-safe">SAFE</div>
+          <div class="kpi-sub">No autonomous execution</div>
+        </div>
+
+      </div>
     </section>
 
   </div>
@@ -307,6 +376,7 @@
   let latestStationState = {};
   let latestEvent = null;
   let latestGeorgeDecision = "HOLD";
+  let accumulatedSavings = 0;
   let tick = 0;
 
   function updateStations(){
@@ -491,9 +561,24 @@
     return "decision-hold";
   }
 
+  function updateKpis(){
+    accumulatedSavings += Math.random() * 1.4;
+
+    const kwh = accumulatedSavings.toFixed(1);
+    const euro = accumulatedSavings * 0.28;
+    const pilot = euro * 90;
+    const fleet = pilot * 8;
+
+    document.getElementById("savingToday").innerText = kwh + " kWh";
+    document.getElementById("savingEuro").innerText = euro.toFixed(0) + " €";
+    document.getElementById("projection90").innerText = pilot.toFixed(0) + " €";
+    document.getElementById("fleetProjection").innerText = fleet.toFixed(0) + " €";
+  }
+
   function runtimeTick(){
     tick++;
     updateStations();
+    updateKpis();
 
     if(tick % 2 === 0){
       const event = createAgentEvent();
