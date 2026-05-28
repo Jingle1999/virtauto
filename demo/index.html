@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>virtauto BIW Energy Intelligence Demo</title>
+
+  <style>
+    :root{
+      --bg:#050816;
+      --surface:#0b1220;
+      --border:#243255;
+      --accent:#14b8ff;
+      --green:#20d493;
+      --yellow:#ffb300;
+      --red:#ff4455;
+      --text:#eaf4ff;
+      --muted:#8ea1bb;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui;
+    }
+
+    .container{
+      max-width:1500px;
+      margin:auto;
+      padding:24px;
+    }
+
+    .grid{
+      display:grid;
+      gap:20px;
+    }
+
+    .top{
+      grid-template-columns:1fr;
+    }
+
+    .middle{
+      grid-template-columns:1fr 1fr 1fr;
+    }
+
+    .panel{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:20px;
+    }
+
+    h1,h2{
+      margin-top:0;
+    }
+
+    @media(max-width:1000px){
+      .middle{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <section class="panel">
+      <h1>virtauto BIW Energy Intelligence</h1>
+      <p>Governed Industrial MAS Showcase</p>
+  </section>
+
+  <div class="grid top">
+
+      <section class="panel" id="line-panel">
+          <h2>Line Status Panel</h2>
+      </section>
+
+  </div>
+
+  <div class="grid middle">
+
+      <section class="panel">
+          <h2>Agent Feed</h2>
+      </section>
+
+      <section class="panel">
+          <h2>GEORGE Decision Layer</h2>
+      </section>
+
+      <section class="panel">
+          <h2>KPI Dashboard</h2>
+      </section>
+
+  </div>
+
+</div>
+
+</body>
+</html>
