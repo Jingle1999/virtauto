@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>virtauto BIW Energy Intelligence Demo DE</title>
+
+  <style>
+    :root{
+      --bg:#050816;
+      --surface:#0b1220;
+      --surface2:#09101d;
+      --border:#243255;
+      --accent:#14b8ff;
+      --green:#20d493;
+      --yellow:#ffb300;
+      --red:#ff4455;
+      --text:#eaf4ff;
+      --muted:#8ea1bb;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+
+    .site-header{
+      border-bottom:1px solid var(--border);
+      background:rgba(5,8,22,.92);
+      position:sticky;
+      top:0;
+      z-index:10;
+      backdrop-filter:blur(10px);
+    }
+
+    .nav-container{
+      max-width:1500px;
+      margin:auto;
+      padding:16px 24px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+    }
+
+    .logo{
+      color:var(--text);
+      font-weight:800;
+      text-decoration:none;
+      letter-spacing:.02em;
+    }
+
+    .logo span{
+      color:var(--accent);
+    }
+
+    .main-nav{
+      display:flex;
+      gap:22px;
+      flex-wrap:wrap;
+    }
+
+    .main-nav a{
+      color:var(--muted);
+      text-decoration:none;
+      font-size:14px;
+      font-weight:600;
+    }
+
+    .main-nav a:hover,
+    .main-nav a.active{
+      color:var(--accent);
+    }
+
+    .container{max-width:1500px;margin:auto;padding:24px}
+    .grid{display:grid;gap:20px}
+    .top{grid-template-columns:1fr}
+    .middle{grid-template-columns:1fr 1fr 1fr}
+
+    .panel{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:20px;
+    }
+
+    .hero{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:24px;
+      flex-wrap:wrap;
+    }
+
+    .hero h1{
+      font-size:38px;
+      line-height:1.05;
+      margin-bottom:14px;
+    }
+
+    .hero p{
+      max-width:820px;
+      font-size:16px;
+      line-height:1.65;
+    }
+
+    h1,h2,h3{margin-top:0}
+    p{color:var(--muted)}
+
+    .cta-row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:18px;
+    }
+
+    .cta{
+      display:inline-block;
+      padding:13px 18px;
+      border-radius:12px;
+      background:var(--accent);
+      color:#06101c;
+      text-decoration:none;
+      font-weight:800;
+      font-size:13px;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .cta-secondary{
+      background:transparent;
+      color:var(--accent);
+      border:1px solid var(--accent);
+    }
+
+    .line-grid{
+      display:grid;
+      grid-template-columns:repeat(6,1fr);
+      gap:14px;
+      margin-top:20px;
+    }
+
+    .station{
+      padding:18px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--surface2);
+      text-align:center;
+      transition:0.3s;
+    }
+
+    .station-name{font-size:14px;color:var(--muted);margin-bottom:10px}
+    .station-kw{font-size:28px;font-weight:bold;margin-bottom:10px}
+    .station-state{font-size:12px;letter-spacing:1px}
+
+    .green{border-color:var(--green);box-shadow:0 0 15px rgba(32,212,147,.2)}
+    .yellow{border-color:var(--yellow);box-shadow:0 0 15px rgba(255,179,0,.18)}
+    .red{border-color:var(--red);box-shadow:0 0 15px rgba(255,68,85,.2)}
+
+    .agent-list{display:grid;gap:8px;margin-bottom:16px}
+
+    .agent-chip{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:var(--surface2);
+      font-size:13px;
+    }
+
+    .agent-chip span:last-child{
+      color:var(--green);
+      font-size:11px;
+      letter-spacing:1px;
+    }
+
+    .feed{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height:360px;
+      overflow:hidden;
+    }
+
+    .feed-item{
+      border-left:3px solid var(--accent);
+      background:rgba(255,255,255,.025);
+      padding:10px 12px;
+      border-radius:0 10px 10px 0;
+      animation:fadeIn .25s ease;
+    }
+
+    .feed-meta{font-size:11px;color:var(--muted);margin-bottom:5px}
+    .feed-title{font-size:13px;font-weight:700;margin-bottom:5px}
+    .feed-msg{font-size:12px;color:var(--muted);line-height:1.45}
+
+    .decision-allow{color:var(--green)}
+    .decision-hold{color:var(--yellow)}
+    .decision-block{color:var(--red)}
+
+    .contract-box{
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:var(--surface2);
+      padding:14px;
+      margin-bottom:16px;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    .george-decision{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:rgba(20,184,255,.06);
+      padding:18px;
+      margin-bottom:16px;
+    }
+
+    .george-label{
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:1.4px;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    }
+
+    .george-status{
+      font-size:40px;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .george-reason{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .operator-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-bottom:16px;
+    }
+
+    .btn{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      background:transparent;
+      color:var(--text);
+      cursor:pointer;
+      font-weight:700;
+      letter-spacing:.5px;
+    }
+
+    .btn-approve{
+      background:var(--green);
+      border-color:var(--green);
+      color:#06101c;
+    }
+
+    .btn-hold{
+      border-color:var(--yellow);
+      color:var(--yellow);
+    }
+
+    .audit{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      max-height:230px;
+      overflow:hidden;
+    }
+
+    .audit-item{
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:9px 10px;
+      background:rgba(255,255,255,.025);
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.45;
+      animation:fadeIn .25s ease;
+    }
+
+    .audit-item strong{color:var(--text)}
+
+    .kpi-grid{display:grid;gap:12px}
+
+    .kpi-card{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      background:var(--surface2);
+    }
+
+    .kpi-label{
+      font-size:11px;
+      color:var(--muted);
+      letter-spacing:1px;
+      text-transform:uppercase;
+      margin-bottom:10px;
+    }
+
+    .kpi-value{
+      font-size:28px;
+      font-weight:800;
+      color:var(--accent);
+    }
+
+    .kpi-sub{
+      margin-top:6px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .kpi-safe{color:var(--green)}
+    .kpi-warning{color:var(--yellow)}
+
+    .bottom-cta{
+      margin-top:20px;
+      border-color:var(--accent);
+      background:rgba(20,184,255,.06);
+    }
+
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(-4px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+
+    @media(max-width:1200px){
+      .line-grid{grid-template-columns:repeat(2,1fr)}
+    }
+
+    @media(max-width:1000px){
+      .middle{grid-template-columns:1fr}
+      .main-nav{gap:12px}
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="nav-container">
+    <a class="logo" href="../index-de.html"><span>V•</span> virtauto</a>
+
+    <nav class="main-nav" aria-label="Hauptnavigation">
+      <a href="../index-de.html">Home</a>
+      <a href="../virtauto-os-de.html">virtauto.OS</a>
+      <a href="../biw-energy-de.html">Energy Scan</a>
+      <a href="../status/index-de.html">Runtime</a>
+      <a href="../pilot-de.html">Pilotprogramm</a>
+      <a href="../contact-de.html">Kontakt</a>
+      <a class="active" href="index-de.html">Demo</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+
+  <section class="panel hero">
+    <div>
+      <h1>virtauto BIW Energy Intelligence</h1>
+      <p>
+        Eine synthetische Live-Demo für kontrollierte Multi-Agenten-Energieoptimierung
+        in BIW-Türlinien. Energie-Agenten erkennen operative Potenziale,
+        GEORGE bewertet die Zulässigkeit, und jede Empfehlung bleibt rein
+        beratend, bis sie von einem menschlichen Operator freigegeben wird.
+      </p>
+
+      <div class="cta-row">
+        <a class="cta" href="../pilot-de.html">Assessment Sprint anfragen →</a>
+        <a class="cta cta-secondary" href="../biw-energy-de.html">Energy Scan öffnen</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid top">
+    <section class="panel" id="line-panel">
+      <h2>Linienstatus</h2>
+
+      <div class="line-grid" id="lineGrid">
+        <div class="station" id="s1"><div class="station-name">Schweißen</div><div class="station-kw">0 kW</div><div class="station-state">AKTIV</div></div>
+        <div class="station" id="s2"><div class="station-name">Falzen</div><div class="station-kw">0 kW</div><div class="station-state">AKTIV</div></div>
+        <div class="station" id="s3"><div class="station-name">Kleben</div><div class="station-kw">0 kW</div><div class="station-state">AKTIV</div></div>
+        <div class="station" id="s4"><div class="station-name">Pressen</div><div class="station-kw">0 kW</div><div class="station-state">AKTIV</div></div>
+        <div class="station" id="s5"><div class="station-name">Roboterzelle</div><div class="station-kw">0 kW</div><div class="station-state">AKTIV</div></div>
+        <div class="station" id="s6"><div class="station-name">Qualitätstor</div><div class="station-kw">0 kW</div><div class="station-state">AKTIV</div></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="grid middle">
+
+    <section class="panel">
+      <h2>Agenten-Feed</h2>
+
+      <div class="agent-list">
+        <div class="agent-chip"><span>Idle Loss Detector</span><span>AKTIV</span></div>
+        <div class="agent-chip"><span>Peak Load Guard</span><span>AKTIV</span></div>
+        <div class="agent-chip"><span>Compressed Air Agent</span><span>AKTIV</span></div>
+        <div class="agent-chip"><span>Standby Optimizer</span><span>AKTIV</span></div>
+        <div class="agent-chip"><span>Takt Correlator</span><span>AKTIV</span></div>
+      </div>
+
+      <div class="feed" id="agentFeed"></div>
+    </section>
+
+    <section class="panel">
+      <h2>GEORGE Entscheidungsebene</h2>
+
+      <div class="contract-box">
+        contract_id: VA-BIW-ENERGY-001<br>
+        mode: advisory_only<br>
+        default_decision: HOLD<br>
+        operator_approval_required: true<br>
+        availability_threshold: 0.98<br>
+        autonomous_execution: false
+      </div>
+
+      <div class="george-decision">
+        <div class="george-label">Aktuelle GEORGE Empfehlung</div>
+        <div class="george-status decision-hold" id="georgeStatus">HOLD</div>
+        <div class="george-reason" id="georgeReason">
+          Warte auf ausreichende Evidenz der Agenten. Standardentscheidung bleibt HOLD.
+        </div>
+      </div>
+
+      <div class="operator-actions">
+        <button class="btn btn-approve" onclick="operatorApprove()">FREIGEBEN</button>
+        <button class="btn btn-hold" onclick="operatorHold()">HOLD BEHALTEN</button>
+      </div>
+
+      <h3>Audit Trail</h3>
+      <div class="audit" id="auditTrail"></div>
+    </section>
+
+    <section class="panel">
+      <h2>KPI Dashboard</h2>
+
+      <div class="kpi-grid">
+
+        <div class="kpi-card">
+          <div class="kpi-label">Aktuelle Einsparung heute</div>
+          <div class="kpi-value" id="savingToday">0 kWh</div>
+          <div class="kpi-sub" id="savingEuro">0 €</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">90-Tage-Projektion</div>
+          <div class="kpi-value" id="projection90">0 €</div>
+          <div class="kpi-sub">Pilotpotenzial nach Baseline-Validierung</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">CFO-Hochrechnung</div>
+          <div class="kpi-value" id="fleetProjection">0 €</div>
+          <div class="kpi-sub">Illustrativ: Linie × Werke</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Entscheidungsmodus</div>
+          <div class="kpi-value kpi-warning">ADVISORY</div>
+          <div class="kpi-sub">Menschliche Freigabe erforderlich</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-label">Ausführungsrichtlinie</div>
+          <div class="kpi-value kpi-safe">SAFE</div>
+          <div class="kpi-sub">Keine autonome Ausführung</div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <section class="panel bottom-cta">
+    <h2>Starten Sie mit einer Linie, einem Use Case und einem Entscheidungsfenster.</h2>
+    <p>
+      Die Demo zeigt die Produktlogik: Agenten erkennen Potenziale,
+      GEORGE steuert Entscheidungen, Operatoren behalten die Kontrolle,
+      und geschäftlicher Nutzen wird sichtbar.
+    </p>
+
+    <div class="cta-row">
+      <a class="cta" href="../pilot-de.html">Assessment Sprint anfragen →</a>
+      <a class="cta cta-secondary" href="../contact-de.html">Kontakt aufnehmen</a>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const stationIds = ["s1", "s2", "s3", "s4", "s5", "s6"];
+
+  const stationNames = {
+    s1: "Schweißen",
+    s2: "Falzen",
+    s3: "Kleben",
+    s4: "Pressen",
+    s5: "Roboterzelle",
+    s6: "Qualitätstor"
+  };
+
+  let latestStationState = {};
+  let latestEvent = null;
+  let latestGeorgeDecision = "HOLD";
+  let accumulatedSavings = 0;
+  let tick = 0;
+
+  function updateStations(){
+    stationIds.forEach(id => {
+      const station = document.getElementById(id);
+      const kw = Math.round(15 + Math.random() * 65);
+      const rnd = Math.random();
+
+      let state = "AKTIV";
+      let color = "green";
+
+      if(rnd > 0.75){
+        state = "IDLE";
+        color = "yellow";
+      }
+
+      if(rnd > 0.92){
+        state = "ALERT";
+        color = "red";
+      }
+
+      latestStationState[id] = {
+        id,
+        name: stationNames[id],
+        kw,
+        state,
+        color
+      };
+
+      station.className = "station " + color;
+      station.querySelector(".station-kw").innerText = kw + " kW";
+      station.querySelector(".station-state").innerText = state;
+    });
+  }
+
+  function randomStation(){
+    const id = stationIds[Math.floor(Math.random() * stationIds.length)];
+    return latestStationState[id];
+  }
+
+  function createAgentEvent(){
+    const station = randomStation();
+
+    if(!station){
+      return null;
+    }
+
+    const totalKw = Object.values(latestStationState)
+      .reduce((sum, s) => sum + s.kw, 0);
+
+    if(station.state === "ALERT"){
+      return {
+        agent: "Compressed Air Agent",
+        type: "compressed_air_anomaly",
+        decision: "BLOCK",
+        message: `${station.name}: Auffälliges Verbrauchsmuster erkannt. Mögliche Druckluftleckage oder unkontrollierter Aktorbedarf.`
+      };
+    }
+
+    if(station.state === "IDLE" && station.kw > 35){
+      return {
+        agent: "Idle Loss Detector",
+        type: "idle_loss_detected",
+        decision: "HOLD",
+        message: `${station.name}: ${station.kw} kW trotz IDLE-Zustand. Leerlaufverluste steigen an. Standby-Sequenz nach Operator-Prüfung empfohlen.`
+      };
+    }
+
+    if(totalKw > 330){
+      return {
+        agent: "Peak Load Guard",
+        type: "peak_load_risk",
+        decision: "HOLD",
+        message: `Gesamtlast beträgt ${totalKw} kW. Simultanes Hochlastfenster erkannt. Verzögerte Aktivierung unkritischer Verbraucher empfohlen.`
+      };
+    }
+
+    if(station.state === "AKTIV" && station.kw < 28){
+      return {
+        agent: "Standby Optimizer",
+        type: "standby_window_candidate",
+        decision: "ALLOW",
+        message: `${station.name}: Kontrolliertes Standby-Fenster erscheint zulässig. Der Governance Contract verlangt menschliche Freigabe vor Ausführung.`
+      };
+    }
+
+    return {
+      agent: "Takt Correlator",
+      type: "energy_takt_correlation",
+      decision: "ALLOW",
+      message: `${station.name}: Energiebedarf und Taktzustand wirken plausibel korreliert. Kein unmittelbarer Eingriff erforderlich.`
+    };
+  }
+
+  function addFeedItem(event){
+    const feed = document.getElementById("agentFeed");
+    const item = document.createElement("div");
+    item.className = "feed-item";
+
+    const time = new Date().toLocaleTimeString("de-DE");
+    const decisionClass = getDecisionClass(event.decision);
+
+    item.innerHTML = `
+      <div class="feed-meta">${time} · ${event.agent}</div>
+      <div class="feed-title">
+        ${event.type} · <span class="${decisionClass}">${event.decision}</span>
+      </div>
+      <div class="feed-msg">${event.message}</div>
+    `;
+
+    feed.prepend(item);
+
+    while(feed.children.length > 8){
+      feed.removeChild(feed.lastChild);
+    }
+  }
+
+  function updateGeorge(event){
+    latestEvent = event;
+
+    const status = document.getElementById("georgeStatus");
+    const reason = document.getElementById("georgeReason");
+
+    latestGeorgeDecision = event.decision;
+    status.innerText = event.decision;
+    status.className = "george-status " + getDecisionClass(event.decision);
+
+    if(event.decision === "ALLOW"){
+      reason.innerText =
+        "GEORGE bestätigt die Zulässigkeit gemäß VA-BIW-ENERGY-001. Die Empfehlung bleibt beratend und benötigt eine Operator-Freigabe.";
+    }
+
+    if(event.decision === "HOLD"){
+      reason.innerText =
+        "GEORGE bleibt bei HOLD, da die Optimierung unter dem aktiven Entscheidungsvertrag noch nicht ausreichend sicher oder stabil ist.";
+    }
+
+    if(event.decision === "BLOCK"){
+      reason.innerText =
+        "GEORGE blockiert die Empfehlung. Sicherheit, Verfügbarkeit oder Versorgungsstabilität könnten gefährdet sein. Eskalation erforderlich.";
+    }
+
+    addAuditItem("GEORGE", event.decision, event.type);
+  }
+
+  function operatorApprove(){
+    addAuditItem("Operator", "APPROVED", "manuelle Freigabe nach GEORGE Empfehlung");
+  }
+
+  function operatorHold(){
+    addAuditItem("Operator", "HOLD", "Operator hat Entscheidung auf HOLD belassen");
+  }
+
+  function addAuditItem(actor, decision, reason){
+    const audit = document.getElementById("auditTrail");
+    const item = document.createElement("div");
+    const time = new Date().toLocaleTimeString("de-DE");
+
+    item.className = "audit-item";
+    item.innerHTML = `
+      ${time} · <strong>${actor}</strong> → 
+      <span class="${getDecisionClass(decision)}">${decision}</span><br>
+      ${reason}
+    `;
+
+    audit.prepend(item);
+
+    while(audit.children.length > 6){
+      audit.removeChild(audit.lastChild);
+    }
+  }
+
+  function getDecisionClass(decision){
+    if(decision === "ALLOW" || decision === "APPROVED"){
+      return "decision-allow";
+    }
+
+    if(decision === "BLOCK"){
+      return "decision-block";
+    }
+
+    return "decision-hold";
+  }
+
+  function updateKpis(){
+    accumulatedSavings += Math.random() * 1.4;
+
+    const kwh = accumulatedSavings.toFixed(1);
+    const euro = accumulatedSavings * 0.28;
+    const pilot = euro * 90;
+    const fleet = pilot * 8;
+
+    document.getElementById("savingToday").innerText = kwh + " kWh";
+    document.getElementById("savingEuro").innerText = euro.toFixed(0) + " €";
+    document.getElementById("projection90").innerText = pilot.toFixed(0) + " €";
+    document.getElementById("fleetProjection").innerText = fleet.toFixed(0) + " €";
+  }
+
+  function runtimeTick(){
+    tick++;
+    updateStations();
+    updateKpis();
+
+    if(tick % 2 === 0){
+      const event = createAgentEvent();
+
+      if(event){
+        addFeedItem(event);
+        updateGeorge(event);
+      }
+    }
+  }
+
+  runtimeTick();
+  setInterval(runtimeTick, 2000);
+</script>
+
+</body>
+</html>
