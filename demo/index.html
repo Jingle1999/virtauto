@@ -24,7 +24,7 @@
       margin:0;
       background:var(--bg);
       color:var(--text);
-      font-family:system-ui;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     }
 
     .container{
@@ -57,6 +57,64 @@
       margin-top:0;
     }
 
+    p{
+      color:var(--muted);
+    }
+
+    .line-grid{
+      display:grid;
+      grid-template-columns:repeat(6,1fr);
+      gap:14px;
+      margin-top:20px;
+    }
+
+    .station{
+      padding:18px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#09101d;
+      text-align:center;
+      transition:0.3s;
+    }
+
+    .station-name{
+      font-size:14px;
+      color:var(--muted);
+      margin-bottom:10px;
+    }
+
+    .station-kw{
+      font-size:28px;
+      font-weight:bold;
+      margin-bottom:10px;
+    }
+
+    .station-state{
+      font-size:12px;
+      letter-spacing:1px;
+    }
+
+    .green{
+      border-color:var(--green);
+      box-shadow:0 0 15px rgba(32,212,147,.2);
+    }
+
+    .yellow{
+      border-color:var(--yellow);
+      box-shadow:0 0 15px rgba(255,179,0,.18);
+    }
+
+    .red{
+      border-color:var(--red);
+      box-shadow:0 0 15px rgba(255,68,85,.2);
+    }
+
+    @media(max-width:1200px){
+      .line-grid{
+        grid-template-columns:repeat(2,1fr);
+      }
+    }
+
     @media(max-width:1000px){
       .middle{
         grid-template-columns:1fr;
@@ -70,35 +128,111 @@
 <div class="container">
 
   <section class="panel">
-      <h1>virtauto BIW Energy Intelligence</h1>
-      <p>Governed Industrial MAS Showcase</p>
+    <h1>virtauto BIW Energy Intelligence</h1>
+    <p>Governed Industrial MAS Showcase</p>
   </section>
 
   <div class="grid top">
 
-      <section class="panel" id="line-panel">
-          <h2>Line Status Panel</h2>
-      </section>
+    <section class="panel" id="line-panel">
+
+      <h2>Line Status Panel</h2>
+
+      <div class="line-grid" id="lineGrid">
+
+        <div class="station" id="s1">
+          <div class="station-name">Welding</div>
+          <div class="station-kw">0 kW</div>
+          <div class="station-state">ACTIVE</div>
+        </div>
+
+        <div class="station" id="s2">
+          <div class="station-name">Flanging</div>
+          <div class="station-kw">0 kW</div>
+          <div class="station-state">ACTIVE</div>
+        </div>
+
+        <div class="station" id="s3">
+          <div class="station-name">Gluing</div>
+          <div class="station-kw">0 kW</div>
+          <div class="station-state">ACTIVE</div>
+        </div>
+
+        <div class="station" id="s4">
+          <div class="station-name">Pressing</div>
+          <div class="station-kw">0 kW</div>
+          <div class="station-state">ACTIVE</div>
+        </div>
+
+        <div class="station" id="s5">
+          <div class="station-name">Robot Cell</div>
+          <div class="station-kw">0 kW</div>
+          <div class="station-state">ACTIVE</div>
+        </div>
+
+        <div class="station" id="s6">
+          <div class="station-name">Quality Gate</div>
+          <div class="station-kw">0 kW</div>
+          <div class="station-state">ACTIVE</div>
+        </div>
+
+      </div>
+
+    </section>
 
   </div>
 
   <div class="grid middle">
 
-      <section class="panel">
-          <h2>Agent Feed</h2>
-      </section>
+    <section class="panel">
+      <h2>Agent Feed</h2>
+    </section>
 
-      <section class="panel">
-          <h2>GEORGE Decision Layer</h2>
-      </section>
+    <section class="panel">
+      <h2>GEORGE Decision Layer</h2>
+    </section>
 
-      <section class="panel">
-          <h2>KPI Dashboard</h2>
-      </section>
+    <section class="panel">
+      <h2>KPI Dashboard</h2>
+    </section>
 
   </div>
 
 </div>
+
+<script>
+  const stations = ["s1", "s2", "s3", "s4", "s5", "s6"];
+
+  function updateStations(){
+    stations.forEach(id => {
+      const station = document.getElementById(id);
+
+      const kw = Math.round(15 + Math.random() * 65);
+      const rnd = Math.random();
+
+      let state = "ACTIVE";
+      let color = "green";
+
+      if(rnd > 0.75){
+        state = "IDLE";
+        color = "yellow";
+      }
+
+      if(rnd > 0.92){
+        state = "ALERT";
+        color = "red";
+      }
+
+      station.className = "station " + color;
+
+      station.querySelector(".station-kw").innerText = kw + " kW";
+      station.querySelector(".station-state").innerText = state;
+    });
+  }
+
+  updateStations();
+  setInterval(updateStations, 2000);
+</script>
 
 </body>
 </html>
