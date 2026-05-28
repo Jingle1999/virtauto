@@ -9,6 +9,7 @@
     :root{
       --bg:#050816;
       --surface:#0b1220;
+      --surface2:#09101d;
       --border:#243255;
       --accent:#14b8ff;
       --green:#20d493;
@@ -72,7 +73,7 @@
       padding:18px;
       border-radius:14px;
       border:1px solid var(--border);
-      background:#09101d;
+      background:var(--surface2);
       text-align:center;
       transition:0.3s;
     }
@@ -107,6 +108,87 @@
     .red{
       border-color:var(--red);
       box-shadow:0 0 15px rgba(255,68,85,.2);
+    }
+
+    .agent-list{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+      margin-bottom:16px;
+    }
+
+    .agent-chip{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:var(--surface2);
+      font-size:13px;
+    }
+
+    .agent-chip span:last-child{
+      color:var(--green);
+      font-size:11px;
+      letter-spacing:1px;
+    }
+
+    .feed{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height:360px;
+      overflow:hidden;
+    }
+
+    .feed-item{
+      border-left:3px solid var(--accent);
+      background:rgba(255,255,255,.025);
+      padding:10px 12px;
+      border-radius:0 10px 10px 0;
+      animation:fadeIn .25s ease;
+    }
+
+    .feed-meta{
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:5px;
+    }
+
+    .feed-title{
+      font-size:13px;
+      font-weight:700;
+      margin-bottom:5px;
+    }
+
+    .feed-msg{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.45;
+    }
+
+    .decision-allow{
+      color:var(--green);
+    }
+
+    .decision-hold{
+      color:var(--yellow);
+    }
+
+    .decision-block{
+      color:var(--red);
+    }
+
+    @keyframes fadeIn{
+      from{
+        opacity:0;
+        transform:translateY(-4px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
     }
 
     @media(max-width:1200px){
@@ -186,6 +268,31 @@
 
     <section class="panel">
       <h2>Agent Feed</h2>
+
+      <div class="agent-list">
+        <div class="agent-chip">
+          <span>Idle Loss Detector</span>
+          <span>ACTIVE</span>
+        </div>
+        <div class="agent-chip">
+          <span>Peak Load Guard</span>
+          <span>ACTIVE</span>
+        </div>
+        <div class="agent-chip">
+          <span>Compressed Air Agent</span>
+          <span>ACTIVE</span>
+        </div>
+        <div class="agent-chip">
+          <span>Standby Optimizer</span>
+          <span>ACTIVE</span>
+        </div>
+        <div class="agent-chip">
+          <span>Takt Correlator</span>
+          <span>ACTIVE</span>
+        </div>
+      </div>
+
+      <div class="feed" id="agentFeed"></div>
     </section>
 
     <section class="panel">
@@ -201,10 +308,22 @@
 </div>
 
 <script>
-  const stations = ["s1", "s2", "s3", "s4", "s5", "s6"];
+  const stationIds = ["s1", "s2", "s3", "s4", "s5", "s6"];
+
+  const stationNames = {
+    s1: "Welding",
+    s2: "Flanging",
+    s3: "Gluing",
+    s4: "Pressing",
+    s5: "Robot Cell",
+    s6: "Quality Gate"
+  };
+
+  let latestStationState = {};
+  let tick = 0;
 
   function updateStations(){
-    stations.forEach(id => {
+    stationIds.forEach(id => {
       const station = document.getElementById(id);
 
       const kw = Math.round(15 + Math.random() * 65);
@@ -223,15 +342,127 @@
         color = "red";
       }
 
-      station.className = "station " + color;
+      latestStationState[id] = {
+        id,
+        name: stationNames[id],
+        kw,
+        state,
+        color
+      };
 
+      station.className = "station " + color;
       station.querySelector(".station-kw").innerText = kw + " kW";
       station.querySelector(".station-state").innerText = state;
     });
   }
 
-  updateStations();
-  setInterval(updateStations, 2000);
+  function randomStation(){
+    const id = stationIds[Math.floor(Math.random() * stationIds.length)];
+    return latestStationState[id];
+  }
+
+  function createAgentEvent(){
+    const station = randomStation();
+
+    if(!station){
+      return null;
+    }
+
+    const totalKw = Object.values(latestStationState)
+      .reduce((sum, s) => sum + s.kw, 0);
+
+    if(station.state === "IDLE" && station.kw > 35){
+      return {
+        agent: "Idle Loss Detector",
+        type: "idle_loss_detected",
+        decision: "HOLD",
+        message: `${station.name}: ${station.kw} kW while production state is IDLE. Estimated idle loss accumulating. Recommend standby sequence after operator review.`
+      };
+    }
+
+    if(totalKw > 330){
+      return {
+        agent: "Peak Load Guard",
+        type: "peak_load_risk",
+        decision: "HOLD",
+        message: `Total line load is ${totalKw} kW. Simultaneous high-load window detected. Recommend delayed activation of non-critical consumers.`
+      };
+    }
+
+    if(station.state === "ALERT"){
+      return {
+        agent: "Compressed Air Agent",
+        type: "compressed_air_anomaly",
+        decision: "BLOCK",
+        message: `${station.name}: abnormal utility pattern detected. Possible compressed-air leakage or uncontrolled actuator demand.`
+      };
+    }
+
+    if(station.state === "ACTIVE" && station.kw < 28){
+      return {
+        agent: "Standby Optimizer",
+        type: "standby_window_candidate",
+        decision: "ALLOW",
+        message: `${station.name}: controlled standby window appears admissible. Governance contract requires human approval before execution.`
+      };
+    }
+
+    return {
+      agent: "Takt Correlator",
+      type: "energy_takt_correlation",
+      decision: "ALLOW",
+      message: `${station.name}: energy demand and takt state appear aligned. No immediate intervention required.`
+    };
+  }
+
+  function addFeedItem(event){
+    const feed = document.getElementById("agentFeed");
+
+    const item = document.createElement("div");
+    item.className = "feed-item";
+
+    const time = new Date().toLocaleTimeString("en-GB");
+
+    let decisionClass = "decision-allow";
+
+    if(event.decision === "HOLD"){
+      decisionClass = "decision-hold";
+    }
+
+    if(event.decision === "BLOCK"){
+      decisionClass = "decision-block";
+    }
+
+    item.innerHTML = `
+      <div class="feed-meta">${time} · ${event.agent}</div>
+      <div class="feed-title">
+        ${event.type} · <span class="${decisionClass}">${event.decision}</span>
+      </div>
+      <div class="feed-msg">${event.message}</div>
+    `;
+
+    feed.prepend(item);
+
+    while(feed.children.length > 8){
+      feed.removeChild(feed.lastChild);
+    }
+  }
+
+  function runtimeTick(){
+    tick++;
+    updateStations();
+
+    if(tick % 2 === 0){
+      const event = createAgentEvent();
+
+      if(event){
+        addFeedItem(event);
+      }
+    }
+  }
+
+  runtimeTick();
+  setInterval(runtimeTick, 2000);
 </script>
 
 </body>
