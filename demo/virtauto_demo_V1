@@ -1,0 +1,202 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Activity, AlertTriangle, CheckCircle2, CirclePause, Cpu, Factory, FileCheck2, Gauge, ShieldCheck, Zap } from "lucide-react";
+
+const stations = [
+  { id: "ST10", name: "Welding", baseKw: 42, jph: 72 },
+  { id: "ST20", name: "Hemming", baseKw: 31, jph: 70 },
+  { id: "ST30", name: "Adhesive", baseKw: 24, jph: 68 },
+  { id: "ST40", name: "Press", baseKw: 38, jph: 69 },
+  { id: "ST50", name: "Pre-Assembly", baseKw: 27, jph: 70 },
+  { id: "ST60", name: "Quality Check", baseKw: 16, jph: 71 },
+  { id: "ST70", name: "Buffer", baseKw: 12, jph: 0 },
+  { id: "ST80", name: "Packout", baseKw: 18, jph: 70 },
+];
+
+const agents = [
+  { id: "idle", name: "Idle Loss Detector", icon: CirclePause },
+  { id: "peak", name: "Peak Load Guard", icon: Zap },
+  { id: "air", name: "Compressed Air Agent", icon: Gauge },
+  { id: "standby", name: "Standby Optimizer", icon: Activity },
+  { id: "takt", name: "Takt Correlator", icon: Cpu },
+];
+
+const contract = {
+  id: "VA-BIW-ENERGY-001",
+  mode: "advisory_only",
+  default: "HOLD",
+  constraints: ["operator_approval_required", "availability >= 0.98", "quality_gate == OK", "buffer_level >= 4", "no_autonomous_execution"],
+};
+
+function statusClass(status) {
+  if (status === "normal" || status === "ALLOW" || status === "APPROVED") return "text-emerald-300 border-emerald-400/40 bg-emerald-400/10";
+  if (status === "alert" || status === "BLOCK" || status === "ESCALATE") return "text-rose-300 border-rose-400/40 bg-rose-400/10";
+  return "text-amber-300 border-amber-400/40 bg-amber-400/10";
+}
+
+function fmt(n) {
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n);
+}
+
+function makeEvent(tick, line) {
+  const station = line[(tick * 3 + 2) % line.length];
+  const highLoad = line.reduce((s, x) => s + x.kw, 0) > 235;
+  const idle = station.state === "idle" && station.kw > 18;
+  const air = station.air > 6.8 && station.state !== "active";
+  const takt = line.filter((x) => x.state === "active").reduce((s, x) => s + x.jph, 0) / 7;
+
+  if (idle) return { agent: "Idle Loss Detector", type: "idle_loss_event", station: station.id, severity: "warning", decision: "HOLD", msg: `${station.name}: ${station.kw.toFixed(1)} kW at 0 JPH. Idle loss accumulating. Recommend standby sequence after operator review.` };
+  if (highLoad) return { agent: "Peak Load Guard", type: "peak_risk_alert", station: "LINE", severity: "warning", decision: "HOLD", msg: `Simultaneous high-load window detected. Peak guard recommends delayed activation of non-critical consumers.` };
+  if (air) return { agent: "Compressed Air Agent", type: "air_leakage_pattern", station: station.id, severity: "alert", decision: "BLOCK", msg: `${station.name}: compressed-air flow remains high during low-output state. Leakage or open blow-off point suspected.` };
+  if (takt < 62) return { agent: "Takt Correlator", type: "takt_energy_correlation", station: "LINE", severity: "warning", decision: "HOLD", msg: `Takt stability below target. Energy optimization is not admissible until production rhythm stabilizes.` };
+  return { agent: "Standby Optimizer", type: "standby_proposal", station: station.id, severity: "info", decision: "ALLOW", msg: `${station.name}: controlled standby window appears admissible. Governance contract requires human approval before action.` };
+}
+
+export default function VirtautoDemoV1() {
+  const [tick, setTick] = useState(0);
+  const [feed, setFeed] = useState([]);
+  const [audit, setAudit] = useState([]);
+  const [operatorState, setOperatorState] = useState("WAITING");
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 2200);
+    return () => clearInterval(id);
+  }, []);
+
+  const line = useMemo(() => stations.map((s, i) => {
+    const phase = (tick + i) % 12;
+    const state = phase === 0 || phase === 1 ? "pause" : phase === 5 ? "idle" : "active";
+    const spike = phase === 8 ? 18 : 0;
+    const kw = Math.max(5, s.baseKw + spike + Math.sin((tick + i) / 2) * 4 - (state === "pause" ? 18 : 0) + (state === "idle" ? 6 : 0));
+    const air = state === "active" ? 5.4 + Math.random() * 0.8 : 4.2 + Math.random() * 3.2;
+    const jph = state === "active" ? s.jph + Math.round(Math.sin(tick + i) * 4) : 0;
+    const status = state === "idle" && kw > 18 ? "warning" : air > 6.8 && state !== "active" ? "alert" : "normal";
+    return { ...s, kw, air, jph, state, status };
+  }), [tick]);
+
+  useEffect(() => {
+    const e = makeEvent(tick, line);
+    const item = { ...e, time: new Date().toLocaleTimeString("en-GB"), id: `${tick}-${e.agent}` };
+    setFeed((f) => [item, ...f].slice(0, 9));
+    if (tick % 3 === 0) {
+      setAudit((a) => [{ time: item.time, actor: "GEORGE", decision: e.decision, reason: e.type, operator: operatorState }, ...a].slice(0, 6));
+    }
+  }, [tick]);
+
+  const latest = feed[0];
+  const totalKw = line.reduce((s, x) => s + x.kw, 0);
+  const savedToday = Math.max(42, tick * 4.7);
+  const euroToday = savedToday * 0.12;
+  const ninetyDays = euroToday * 90;
+  const scaled = ninetyDays * 4 * 20;
+
+  return (
+    <div className="min-h-screen bg-[#050816] text-slate-100 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-5">
+        <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 border border-slate-800 rounded-2xl p-5 bg-slate-950/70">
+          <div>
+            <div className="text-xs tracking-[0.28em] uppercase text-cyan-300 mb-2">virtauto BIW Energy Intelligence · /demo</div>
+            <h1 className="text-3xl md:text-5xl font-semibold tracking-tight">Governed Industrial MAS Showcase</h1>
+            <p className="text-slate-400 mt-3 max-w-3xl">A browser-based runtime demo showing how energy agents, GEORGE, decision contracts and operator approval connect industrial data with governed operational decisions.</p>
+          </div>
+          <div className="border border-cyan-400/30 rounded-2xl p-4 bg-cyan-400/10 min-w-56">
+            <div className="text-xs uppercase tracking-widest text-cyan-300">Line Load</div>
+            <div className="text-3xl font-bold mt-1">{totalKw.toFixed(1)} kW</div>
+            <div className="text-xs text-slate-400 mt-1">Synthetic BIW doorline · advisory only</div>
+          </div>
+        </header>
+
+        <section className="border border-slate-800 rounded-2xl p-5 bg-slate-950/60">
+          <div className="flex items-center gap-2 mb-4"><Factory className="w-5 h-5 text-cyan-300" /><h2 className="text-lg font-semibold">Line Status Panel</h2></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 xl:grid-cols-8 gap-3">
+            {line.map((s) => (
+              <motion.div key={s.id} layout className={`rounded-2xl border p-4 ${statusClass(s.status)}`}>
+                <div className="text-xs text-slate-400">{s.id}</div>
+                <div className="font-semibold mt-1">{s.name}</div>
+                <div className="text-2xl font-bold mt-3">{s.kw.toFixed(1)}</div>
+                <div className="text-xs uppercase tracking-widest">kW</div>
+                <div className="mt-3 text-xs text-slate-300">State: <span className="font-semibold">{s.state}</span></div>
+                <div className="text-xs text-slate-300">JPH: <span className="font-semibold">{s.jph}</span></div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <section className="border border-slate-800 rounded-2xl p-5 bg-slate-950/60 lg:col-span-1">
+            <div className="flex items-center gap-2 mb-4"><Activity className="w-5 h-5 text-cyan-300" /><h2 className="text-lg font-semibold">Agent Activity Feed</h2></div>
+            <div className="grid grid-cols-1 gap-2 mb-4">
+              {agents.map((a) => {
+                const Icon = a.icon;
+                return <div key={a.id} className="flex items-center gap-2 text-xs text-slate-300 border border-slate-800 rounded-xl px-3 py-2 bg-slate-900/60"><Icon className="w-4 h-4 text-cyan-300" />{a.name}<span className="ml-auto text-emerald-300">ACTIVE</span></div>;
+              })}
+            </div>
+            <div className="space-y-3 max-h-[520px] overflow-hidden">
+              <AnimatePresence initial={false}>
+                {feed.map((e) => (
+                  <motion.div key={e.id} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="border-l-2 border-cyan-400 pl-3 py-1">
+                    <div className="text-xs text-slate-500">{e.time} · {e.agent}</div>
+                    <div className="text-sm font-semibold mt-1">{e.type} · <span className={e.decision === "ALLOW" ? "text-emerald-300" : e.decision === "BLOCK" ? "text-rose-300" : "text-amber-300"}>{e.decision}</span></div>
+                    <div className="text-xs text-slate-400 mt-1 leading-relaxed">{e.msg}</div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </section>
+
+          <section className="border border-slate-800 rounded-2xl p-5 bg-slate-950/60 lg:col-span-1">
+            <div className="flex items-center gap-2 mb-4"><ShieldCheck className="w-5 h-5 text-cyan-300" /><h2 className="text-lg font-semibold">GEORGE Decision Panel</h2></div>
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 mb-4">
+              <div className="text-xs uppercase tracking-widest text-slate-400">Decision Contract</div>
+              <div className="font-semibold mt-1">{contract.id}</div>
+              <div className="text-xs text-slate-400 mt-2">mode: {contract.mode} · default: {contract.default}</div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {contract.constraints.map((c) => <span key={c} className="text-[10px] border border-slate-700 rounded-full px-2 py-1 text-slate-300">{c}</span>)}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 p-4 mb-4">
+              <div className="text-xs uppercase tracking-widest text-cyan-300">Current Recommendation</div>
+              <div className="text-3xl font-bold mt-2">{latest?.decision || "HOLD"}</div>
+              <p className="text-sm text-slate-300 mt-3 leading-relaxed">{latest ? latest.msg : "Waiting for agent evidence. Default decision remains HOLD until admissibility is proven."}</p>
+            </div>
+            <div className="flex gap-3 mb-5">
+              <button onClick={() => setOperatorState("APPROVED")} className="flex-1 rounded-xl bg-emerald-400 text-slate-950 font-semibold py-3">APPROVE</button>
+              <button onClick={() => setOperatorState("HOLD")} className="flex-1 rounded-xl border border-amber-400/50 text-amber-300 font-semibold py-3">HOLD</button>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-semibold"><FileCheck2 className="w-4 h-4 text-cyan-300" />Audit Trail</div>
+              {audit.map((a, i) => <div key={i} className="text-xs border border-slate-800 rounded-xl p-3 text-slate-400 bg-slate-900/50">{a.time} · {a.actor} → <span className="text-slate-100">{a.decision}</span> · {a.reason} · Operator: {a.operator}</div>)}
+            </div>
+          </section>
+
+          <section className="border border-slate-800 rounded-2xl p-5 bg-slate-950/60 lg:col-span-1">
+            <div className="flex items-center gap-2 mb-4"><Gauge className="w-5 h-5 text-cyan-300" /><h2 className="text-lg font-semibold">KPI Dashboard</h2></div>
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-5">
+                <div className="text-xs uppercase tracking-widest text-emerald-300">Current saving today</div>
+                <div className="text-4xl font-bold mt-2">{fmt(savedToday)} kWh</div>
+                <div className="text-slate-300 mt-1">€ {euroToday.toFixed(2)}</div>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                <div className="text-xs uppercase tracking-widest text-slate-400">90-day pilot projection</div>
+                <div className="text-3xl font-bold mt-2">€ {fmt(ninetyDays)}</div>
+                <div className="text-xs text-slate-400 mt-1">advisory-only, baseline validation required</div>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                <div className="text-xs uppercase tracking-widest text-slate-400">Scaled CFO view</div>
+                <div className="text-3xl font-bold mt-2">€ {fmt(scaled)}</div>
+                <div className="text-xs text-slate-400 mt-1">4 lines × 20 plants · illustrative scenario</div>
+              </div>
+              <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 flex gap-3 text-sm text-amber-100">
+                <AlertTriangle className="w-5 h-5 shrink-0" />
+                <span>No autonomous execution. Every non-trivial recommendation requires operator approval and audit logging.</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <footer className="text-xs text-slate-500 text-center py-4">virtauto.OS · Decision Intelligence & Governance Layer for Industrial Operations · Demo v1</footer>
+      </div>
+    </div>
+  );
+}
