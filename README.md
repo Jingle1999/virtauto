@@ -1,8 +1,40 @@
-# Website Unify Agent Kit
+# virtauto.OS
 
-This kit adds a **UX Unify Agent** and a **site_unifier** tool that
-normalize images and content blocks across your static site. It also injects a
-small CSS patch for consistent layout.
+Governed Industrial Multi-Agent Systems for Energy Optimization, Decision Intelligence and Industrial Operations.
+
+virtauto.OS combines:
+
+- Industrial Multi-Agent Systems (MAS)
+- Human-in-the-loop governance
+- Runtime observability
+- Decision Intelligence
+- Energy optimization workflows
+- Governed industrial AI
+
+Core governance pattern:
+
+ALLOW → HOLD → BLOCK
+
+Execution principle:
+
+Advisory-first. Human approval required.
+
+## Current Focus Areas
+
+- BIW Energy Intelligence
+- Governed Decision Layers
+- Industrial Runtime Monitoring
+- Energy Optimization Agents
+- GEORGE Orchestration Layer
+- Safe Industrial AI
+
+## Product Components
+
+- Runtime Surface
+- Energy Scan
+- Governance Contracts
+- Decision Traceability
+- Agent Orchestration
 
 ## What it does (safe defaults)
 - Adds `<link rel="stylesheet" href="assets/styles_unify.css">` to each `*.html` (if missing).
