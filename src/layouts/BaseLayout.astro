@@ -1,0 +1,24 @@
+---
+const {
+  title = "virtauto.OS",
+  description = "Industrial Decision Intelligence Platform for governed Multi-Agent Systems.",
+  canonical = "",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  {description && <meta name="description" content={description} />}
+  {canonical && <link rel="canonical" href={canonical} />}
+  <link rel="stylesheet" href="/styles.css" />
+  <slot name="head" />
+</head>
+
+<body>
+  <slot />
+</body>
+</html>
