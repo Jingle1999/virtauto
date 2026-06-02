@@ -16,6 +16,9 @@ ops/__pycache__/
 ops/reports/*.jsonl
 ops/reports/*.tmp
 ops/decisions/latest.json
+george_decision.json
+*.event.json
+energy_scan_completed.event.json
 
 # notebooks
 .ipynb_checkpoints/
