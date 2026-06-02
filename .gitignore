@@ -1,0 +1,32 @@
+
+# dependencies
+node_modules/
+dist/
+.astro/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+env/
+ops/__pycache__/
+
+# runtime artifacts
+*.log
+ops/reports/*.jsonl
+ops/reports/*.tmp
+ops/decisions/latest.json
+
+# notebooks
+.ipynb_checkpoints/
+
+# secrets
+.env
+.env.*
+
+# editor / os
+.DS_Store
+.vscode/settings.json
+
+# generated artifacts
+*.bak
