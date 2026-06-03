@@ -1,0 +1,288 @@
+{
+  "meta": {
+    "generator": "virtauto synthetic_biw_v1",
+    "schema_version": "1.0",
+    "line_id": "BIW-TVL-01",
+    "plant_id": "WK-MUC-01",
+    "period_start": "2026-06-02T12:00:00",
+    "period_end": "2026-06-07T12:00:00",
+    "total_shifts": 15,
+    "total_ticks": 7200,
+    "tick_interval_sec": 60,
+    "anomaly_types": [
+      "idle_loss",
+      "compressed_air_leak",
+      "peak_load",
+      "unplanned_stop"
+    ]
+  },
+  "kpi_summary": {
+    "total_energy_kwh": 17321.39,
+    "idle_loss_kwh": 167.31,
+    "idle_loss_pct": 1.0,
+    "total_doors_produced": 6278,
+    "kwh_per_door": 2.759,
+    "projected_annual_kwh": 900712.0,
+    "projected_annual_cost_eur": 108085.0,
+    "estimated_saving_6pct_eur": 6485.0,
+    "estimated_saving_9pct_eur": 9728.0
+  },
+  "shift_summaries": [
+    {
+      "shift_id": "SH-01-1",
+      "day": 1,
+      "label": "Frühschicht",
+      "start": "2026-06-02T12:00:00",
+      "end": "2026-06-02T20:00:00",
+      "total_kwh": 1136.48,
+      "idle_loss_kwh": 22.69,
+      "idle_loss_pct": 2.0,
+      "doors_produced": 424,
+      "anomaly_types": [
+        "idle_loss",
+        "peak_load"
+      ],
+      "anomaly_events": 5
+    },
+    {
+      "shift_id": "SH-01-2",
+      "day": 1,
+      "label": "Spätschicht",
+      "start": "2026-06-02T20:00:00",
+      "end": "2026-06-03T04:00:00",
+      "total_kwh": 1155.89,
+      "idle_loss_kwh": 5.01,
+      "idle_loss_pct": 0.4,
+      "doors_produced": 422,
+      "anomaly_types": [
+        "idle_loss",
+        "peak_load",
+        "compressed_air_leak"
+      ],
+      "anomaly_events": 6
+    },
+    {
+      "shift_id": "SH-01-3",
+      "day": 1,
+      "label": "Nachtschicht",
+      "start": "2026-06-03T04:00:00",
+      "end": "2026-06-03T12:00:00",
+      "total_kwh": 1169.1,
+      "idle_loss_kwh": 12.09,
+      "idle_loss_pct": 1.0,
+      "doors_produced": 417,
+      "anomaly_types": [
+        "idle_loss",
+        "unplanned_stop",
+        "peak_load",
+        "compressed_air_leak"
+      ],
+      "anomaly_events": 7
+    },
+    {
+      "shift_id": "SH-02-1",
+      "day": 2,
+      "label": "Frühschicht",
+      "start": "2026-06-03T12:00:00",
+      "end": "2026-06-03T20:00:00",
+      "total_kwh": 1102.74,
+      "idle_loss_kwh": 7.18,
+      "idle_loss_pct": 0.7,
+      "doors_produced": 409,
+      "anomaly_types": [
+        "idle_loss",
+        "peak_load"
+      ],
+      "anomaly_events": 5
+    },
+    {
+      "shift_id": "SH-02-2",
+      "day": 2,
+      "label": "Spätschicht",
+      "start": "2026-06-03T20:00:00",
+      "end": "2026-06-04T04:00:00",
+      "total_kwh": 1220.34,
+      "idle_loss_kwh": 2.11,
+      "idle_loss_pct": 0.2,
+      "doors_produced": 439,
+      "anomaly_types": [
+        "idle_loss",
+        "compressed_air_leak",
+        "peak_load"
+      ],
+      "anomaly_events": 6
+    },
+    {
+      "shift_id": "SH-02-3",
+      "day": 2,
+      "label": "Nachtschicht",
+      "start": "2026-06-04T04:00:00",
+      "end": "2026-06-04T12:00:00",
+      "total_kwh": 1190.46,
+      "idle_loss_kwh": 3.59,
+      "idle_loss_pct": 0.3,
+      "doors_produced": 431,
+      "anomaly_types": [
+        "idle_loss",
+        "compressed_air_leak",
+        "peak_load"
+      ],
+      "anomaly_events": 4
+    },
+    {
+      "shift_id": "SH-03-1",
+      "day": 3,
+      "label": "Frühschicht",
+      "start": "2026-06-04T12:00:00",
+      "end": "2026-06-04T20:00:00",
+      "total_kwh": 1104.44,
+      "idle_loss_kwh": 14.6,
+      "idle_loss_pct": 1.3,
+      "doors_produced": 398,
+      "anomaly_types": [
+        "idle_loss",
+        "unplanned_stop",
+        "peak_load",
+        "compressed_air_leak"
+      ],
+      "anomaly_events": 8
+    },
+    {
+      "shift_id": "SH-03-2",
+      "day": 3,
+      "label": "Spätschicht",
+      "start": "2026-06-04T20:00:00",
+      "end": "2026-06-05T04:00:00",
+      "total_kwh": 1123.62,
+      "idle_loss_kwh": 40.09,
+      "idle_loss_pct": 3.6,
+      "doors_produced": 393,
+      "anomaly_types": [
+        "idle_loss",
+        "unplanned_stop",
+        "peak_load"
+      ],
+      "anomaly_events": 7
+    },
+    {
+      "shift_id": "SH-03-3",
+      "day": 3,
+      "label": "Nachtschicht",
+      "start": "2026-06-05T04:00:00",
+      "end": "2026-06-05T12:00:00",
+      "total_kwh": 1205.18,
+      "idle_loss_kwh": 1.75,
+      "idle_loss_pct": 0.1,
+      "doors_produced": 440,
+      "anomaly_types": [
+        "idle_loss",
+        "peak_load"
+      ],
+      "anomaly_events": 5
+    },
+    {
+      "shift_id": "SH-04-1",
+      "day": 4,
+      "label": "Frühschicht",
+      "start": "2026-06-05T12:00:00",
+      "end": "2026-06-05T20:00:00",
+      "total_kwh": 1129.01,
+      "idle_loss_kwh": 9.82,
+      "idle_loss_pct": 0.9,
+      "doors_produced": 418,
+      "anomaly_types": [
+        "idle_loss",
+        "unplanned_stop",
+        "peak_load",
+        "compressed_air_leak"
+      ],
+      "anomaly_events": 6
+    },
+    {
+      "shift_id": "SH-04-2",
+      "day": 4,
+      "label": "Spätschicht",
+      "start": "2026-06-05T20:00:00",
+      "end": "2026-06-06T04:00:00",
+      "total_kwh": 1090.72,
+      "idle_loss_kwh": 16.52,
+      "idle_loss_pct": 1.5,
+      "doors_produced": 396,
+      "anomaly_types": [
+        "unplanned_stop",
+        "compressed_air_leak",
+        "idle_loss",
+        "peak_load"
+      ],
+      "anomaly_events": 5
+    },
+    {
+      "shift_id": "SH-04-3",
+      "day": 4,
+      "label": "Nachtschicht",
+      "start": "2026-06-06T04:00:00",
+      "end": "2026-06-06T12:00:00",
+      "total_kwh": 1169.56,
+      "idle_loss_kwh": 12.52,
+      "idle_loss_pct": 1.1,
+      "doors_produced": 413,
+      "anomaly_types": [
+        "idle_loss",
+        "unplanned_stop",
+        "peak_load"
+      ],
+      "anomaly_events": 7
+    },
+    {
+      "shift_id": "SH-05-1",
+      "day": 5,
+      "label": "Frühschicht",
+      "start": "2026-06-06T12:00:00",
+      "end": "2026-06-06T20:00:00",
+      "total_kwh": 1165.24,
+      "idle_loss_kwh": 9.59,
+      "idle_loss_pct": 0.8,
+      "doors_produced": 419,
+      "anomaly_types": [
+        "unplanned_stop",
+        "idle_loss",
+        "peak_load"
+      ],
+      "anomaly_events": 4
+    },
+    {
+      "shift_id": "SH-05-2",
+      "day": 5,
+      "label": "Spätschicht",
+      "start": "2026-06-06T20:00:00",
+      "end": "2026-06-07T04:00:00",
+      "total_kwh": 1206.76,
+      "idle_loss_kwh": 6.34,
+      "idle_loss_pct": 0.5,
+      "doors_produced": 428,
+      "anomaly_types": [
+        "idle_loss",
+        "compressed_air_leak",
+        "unplanned_stop",
+        "peak_load"
+      ],
+      "anomaly_events": 6
+    },
+    {
+      "shift_id": "SH-05-3",
+      "day": 5,
+      "label": "Nachtschicht",
+      "start": "2026-06-07T04:00:00",
+      "end": "2026-06-07T12:00:00",
+      "total_kwh": 1151.85,
+      "idle_loss_kwh": 3.42,
+      "idle_loss_pct": 0.3,
+      "doors_produced": 431,
+      "anomaly_types": [
+        "idle_loss",
+        "peak_load"
+      ],
+      "anomaly_events": 3
+    }
+  ]
+}
