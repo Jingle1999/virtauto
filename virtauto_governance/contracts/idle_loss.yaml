@@ -1,0 +1,45 @@
+contract_id: idle_loss_v1
+
+name: Idle Loss Detection
+
+description: >
+  Detect energy consumption while production is inactive.
+
+owner: GEORGE
+
+version: 1.0
+
+trigger:
+
+  production_active: false
+
+conditions:
+
+  energy_kw_gt: 10
+
+decision:
+
+  action: BLOCK
+
+reason: Idle consumption detected
+
+confidence:
+
+  minimum: 0.80
+
+governance:
+
+  default_state: HOLD
+
+evidence_required:
+
+  - production_active
+  - energy_kw
+  - shift
+  - timestamp
+
+outputs:
+
+  runtime_state: BLOCK
+  alert: true
+  create_trace: true
