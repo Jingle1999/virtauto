@@ -6,19 +6,15 @@
   "line_id": "BIW-TVL-01",
   "plant_id": "WK-MUC-01",
   "station_id": "DOOR-FL",
-  "timestamp": "2026-06-11T08:45:00",
+  "timestamp": "2026-06-11T10:40:00",
   "shift": "Frühschicht",
+  "minute_in_shift": 3,
   "variant": "Door_FL_Base",
-  "production_active": false,
-  "energy_kw": 11.3,
-  "jph_actual": 0,
-  "buffer_units": 2,
+  "production_active": true,
+  "energy_kw": 8.1,
+  "jph_actual": 42,
+  "buffer_units": 8,
   "quality_state": "OK",
-  "machine_state": "IDLE",
-  "active_anomalies": [
-    {
-      "type": "idle_loss",
-      "severity": 0.95
-    }
-  ]
+  "machine_state": "RUNNING",
+  "active_anomalies": []
 }
