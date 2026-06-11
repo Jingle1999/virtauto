@@ -1,0 +1,10 @@
+contract_id: production_recovery_v1
+
+jph_actual_gt: 30
+buffer_units_gt: 5
+
+action: ALLOW
+
+reason: Production recovered
+
+default_state: HOLD
