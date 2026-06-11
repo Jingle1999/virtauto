@@ -1,0 +1,24 @@
+{
+  "schema_id": "runtime_state_v1",
+  "name": "Runtime State",
+  "description": "Current operational state used by GEORGE for governed decision evaluation.",
+  "version": "1.0",
+  "line_id": "BIW-TVL-01",
+  "plant_id": "WK-MUC-01",
+  "station_id": "DOOR-FL",
+  "timestamp": "2026-06-11T08:45:00",
+  "shift": "Frühschicht",
+  "variant": "Door_FL_Base",
+  "production_active": false,
+  "energy_kw": 11.3,
+  "jph_actual": 0,
+  "buffer_units": 2,
+  "quality_state": "OK",
+  "machine_state": "IDLE",
+  "active_anomalies": [
+    {
+      "type": "idle_loss",
+      "severity": 0.95
+    }
+  ]
+}
