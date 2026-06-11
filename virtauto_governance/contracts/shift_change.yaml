@@ -1,0 +1,16 @@
+contract_id: shift_change_v1
+
+description: Shift transition stabilization window
+
+condition:
+  minute_in_shift: "<=5"
+
+decision: HOLD
+
+reason: Shift transition in progress
+
+governance:
+  human_approval_required: false
+  autonomous_action_allowed: false
+  audit_required: true
+  default_state: HOLD
