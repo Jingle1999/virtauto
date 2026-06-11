@@ -5,7 +5,7 @@ from virtauto_core.decision_kernel import DecisionKernel
 
 kernel = DecisionKernel(
     runtime_state_path="virtauto_governance/schemas/runtime_state.json",
-    contract_path="virtauto_governance/contracts/idle_loss.yaml",
+    contract_path="virtauto_governance/contracts/shift_change.yaml",
     trace_path="decision_traces/george_decision_trace.jsonl",
 )
 

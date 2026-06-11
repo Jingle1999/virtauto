@@ -54,24 +54,39 @@ class DecisionKernel:
     def evaluate_contract(self, runtime_state, contract):
         production_active = runtime_state.get("production_active")
         energy_kw = runtime_state.get("energy_kw", 0)
+        minute_in_shift = runtime_state.get("minute_in_shift", 999)
 
         energy_threshold = contract.get("energy_kw_gt", 10)
         contract_id = contract.get("contract_id", "unknown_contract")
 
-        condition_matched = (
-            production_active is False
-            and energy_kw > energy_threshold
-        )
+        if contract_id == "shift_change_v1":
+            condition_matched = minute_in_shift <= 5
 
-        if condition_matched:
-            decision = contract.get("action", "BLOCK")
-            reason = contract.get(
-                "reason",
-                "Idle consumption detected",
-            )
+            if condition_matched:
+                decision = "HOLD"
+                reason = contract.get(
+                    "reason",
+                    "Shift transition in progress",
+                )
+            else:
+                decision = "ALLOW"
+                reason = "No shift transition condition matched"
+
         else:
-            decision = "ALLOW"
-            reason = "No contract condition matched"
+            condition_matched = (
+                production_active is False
+                and energy_kw > energy_threshold
+            )
+
+            if condition_matched:
+                decision = contract.get("action", "BLOCK")
+                reason = contract.get(
+                    "reason",
+                    "Idle consumption detected",
+                )
+            else:
+                decision = "ALLOW"
+                reason = "No contract condition matched"
 
         evidence = self.create_evidence(
             runtime_state=runtime_state,
@@ -109,6 +124,7 @@ class DecisionKernel:
                 "production_active": runtime_state.get("production_active"),
                 "energy_kw": runtime_state.get("energy_kw"),
                 "shift": runtime_state.get("shift"),
+                "minute_in_shift": runtime_state.get("minute_in_shift"),
                 "variant": runtime_state.get("variant"),
                 "jph_actual": runtime_state.get("jph_actual"),
                 "buffer_units": runtime_state.get("buffer_units"),
