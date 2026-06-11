@@ -1,0 +1,39 @@
+{
+  "schema_id": "decision_trace_v1",
+  "name": "Decision Trace",
+  "description": "Audit record for decisions created or routed by GEORGE.",
+  "version": "1.0",
+  "decision_id": "DEC-20260611-0001",
+  "contract_id": "idle_loss_v1",
+  "source_agent": "idle_loss",
+  "runtime_state_id": "runtime_state_v1",
+  "timestamp": "2026-06-11T08:50:00",
+  "runtime_state": "BLOCK",
+  "decision": "BLOCK",
+  "reason": "Idle consumption detected",
+  "evidence": {
+    "production_active": false,
+    "energy_kw": 11.3,
+    "threshold_kw": 10.0,
+    "shift": "Frühschicht",
+    "variant": "Door_FL_Base",
+    "jph_actual": 0,
+    "buffer_units": 2,
+    "active_anomalies": [
+      {
+        "type": "idle_loss",
+        "severity": 0.95
+      }
+    ]
+  },
+  "governance": {
+    "human_approval_required": true,
+    "autonomous_action_allowed": false,
+    "audit_required": true,
+    "default_state": "HOLD"
+  },
+  "outcome": {
+    "action_taken": "none",
+    "status": "advisory_only"
+  }
+}
