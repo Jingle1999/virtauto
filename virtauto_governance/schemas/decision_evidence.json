@@ -1,0 +1,38 @@
+{
+  "schema_id": "decision_evidence_v1",
+  "name": "Decision Evidence",
+  "description": "Structured evidence used by GEORGE to justify and audit runtime decisions.",
+  "version": "1.0",
+  "evidence_id": "EVD-20260611-0001",
+  "decision_id": "DEC-20260611-0001",
+  "contract_id": "idle_loss_v1",
+  "source_agent": "idle_loss",
+  "timestamp": "2026-06-11T08:55:00",
+  "facts": {
+    "production_active": false,
+    "energy_kw": 11.3,
+    "threshold_kw": 10.0,
+    "jph_actual": 0,
+    "buffer_units": 2,
+    "shift": "Frühschicht",
+    "variant": "Door_FL_Base",
+    "active_anomalies": [
+      {
+        "type": "idle_loss",
+        "severity": 0.95
+      }
+    ]
+  },
+  "interpretation": {
+    "condition_matched": true,
+    "matched_condition": "production_active=false AND energy_kw > threshold_kw",
+    "reason": "Energy consumption detected while production is inactive.",
+    "confidence": 0.95
+  },
+  "governance_relevance": {
+    "supports_runtime_state": "BLOCK",
+    "human_review_required": true,
+    "autonomous_action_allowed": false,
+    "audit_required": true
+  }
+}
