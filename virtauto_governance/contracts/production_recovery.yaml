@@ -1,0 +1,9 @@
+contract_id: production_recovery_v1
+
+condition: production_recovered
+
+action: ALLOW
+
+default_state: HOLD
+
+reason: Production recovered
