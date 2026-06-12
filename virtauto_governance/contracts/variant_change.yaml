@@ -1,0 +1,9 @@
+contract_id: variant_change_v1
+
+condition: variant_changed
+
+action: HOLD
+
+default_state: HOLD
+
+reason: Variant transition in progress

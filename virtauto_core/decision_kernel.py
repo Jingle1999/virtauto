@@ -79,6 +79,23 @@ class DecisionKernel:
                 decision = "HOLD"
                 reason = "Production recovery conditions not met"
 
+        elif contract_id == "variant_change_v1":
+            previous_variant = runtime_state.get("previous_variant")
+            variant = runtime_state.get("variant")
+
+            condition_matched = (
+                previous_variant is not None
+                and variant is not None
+                and previous_variant != variant
+            )
+
+            if condition_matched:
+                decision = contract.get("action", "HOLD")
+                reason = contract.get("reason", "Variant transition in progress")
+            else:
+                decision = "ALLOW"
+                reason = "No variant change detected"
+
         else:
             energy_threshold = contract.get("energy_kw_gt", 10)
 
@@ -131,6 +148,7 @@ class DecisionKernel:
                 "energy_kw": runtime_state.get("energy_kw"),
                 "shift": runtime_state.get("shift"),
                 "minute_in_shift": runtime_state.get("minute_in_shift"),
+                "previous_variant": runtime_state.get("previous_variant"),
                 "variant": runtime_state.get("variant"),
                 "jph_actual": runtime_state.get("jph_actual"),
                 "buffer_units": runtime_state.get("buffer_units"),

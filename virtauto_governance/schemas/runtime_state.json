@@ -9,12 +9,17 @@
   "timestamp": "2026-06-11T10:40:00",
   "shift": "Frühschicht",
   "minute_in_shift": 3,
-  "variant": "Door_FL_Base",
+
+  "previous_variant": "Door_FL_Base",
+  "variant": "Door_FL_Premium",
+
   "production_active": true,
   "energy_kw": 8.1,
   "jph_actual": 42,
   "buffer_units": 8,
+
   "quality_state": "OK",
   "machine_state": "RUNNING",
+
   "active_anomalies": []
 }
