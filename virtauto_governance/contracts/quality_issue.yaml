@@ -1,0 +1,9 @@
+contract_id: quality_issue_v1
+
+condition: quality_issue_detected
+
+action: HOLD
+
+default_state: HOLD
+
+reason: Quality issue under investigation
