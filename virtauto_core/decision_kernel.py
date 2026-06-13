@@ -54,6 +54,7 @@ class DecisionKernel:
         minute_in_shift = runtime_state.get("minute_in_shift", 999)
         jph_actual = runtime_state.get("jph_actual", 0)
         buffer_units = runtime_state.get("buffer_units", 0)
+        quality_state = runtime_state.get("quality_state")
 
         if contract_id == "shift_change_v1":
             condition_matched = minute_in_shift <= 5
@@ -95,6 +96,19 @@ class DecisionKernel:
             else:
                 decision = "ALLOW"
                 reason = "No variant change detected"
+
+        elif contract_id == "quality_issue_v1":
+            condition_matched = quality_state == "NOK"
+
+            if condition_matched:
+                decision = contract.get("action", "HOLD")
+                reason = contract.get(
+                    "reason",
+                    "Quality issue under investigation",
+                )
+            else:
+                decision = "ALLOW"
+                reason = "Quality state OK"
 
         else:
             energy_threshold = contract.get("energy_kw_gt", 10)
@@ -152,6 +166,8 @@ class DecisionKernel:
                 "variant": runtime_state.get("variant"),
                 "jph_actual": runtime_state.get("jph_actual"),
                 "buffer_units": runtime_state.get("buffer_units"),
+                "quality_state": runtime_state.get("quality_state"),
+                "machine_state": runtime_state.get("machine_state"),
                 "active_anomalies": runtime_state.get("active_anomalies", []),
             },
         }
