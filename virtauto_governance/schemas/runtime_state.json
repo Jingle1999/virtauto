@@ -19,7 +19,7 @@
   "buffer_units": 8,
 
   "quality_state": "NOK",
-  "machine_state": "RUNNING",
+  "machine_state": "FAILURE",
 
   "active_anomalies": []
 }
