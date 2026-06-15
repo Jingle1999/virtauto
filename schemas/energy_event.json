@@ -1,0 +1,14 @@
+{
+  "event_id": "SCAN-001",
+  "entity": "doorline_fl",
+  "station": "ST20",
+  "signal_type": "energy",
+  "metric": "kwh",
+  "value": 42.1,
+  "threshold": 25.0,
+  "production_active": false,
+  "shift": "A",
+  "timestamp": "2026-06-03T10:20:00Z",
+  "source": "synthetic_csv",
+  "trace_id": "TRACE-001"
+}

@@ -1,0 +1,9 @@
+contract_id: material_shortage_v1
+
+material_buffer_lt: 30
+
+action: HOLD
+
+default_state: HOLD
+
+reason: Material shortage risk detected

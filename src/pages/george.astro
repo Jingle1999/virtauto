@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GEORGE · virtauto®</title>
+  <link rel="stylesheet" href="/styles.css"/>
+  <script defer src="/site.js"></script>
+</head>
+
+<body>
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="/index.html">virtauto<span class="badge">OS</span></a>
+    <nav id="menu" class="menu">
+      <a href="/index.html">Home</a>
+      <a href="/industrymodel.html">Industry Model</a>
+      <a href="/decision-model.html">Decision Model</a>
+      <a href="/decision-demo.html">Decision Demo</a>
+      <a href="/energy-steel.html">Real Data PoC</a>
+      <a href="/biw-energy.html">Energy Scan</a>
+      <a href="/pilot.html">Pilot</a>
+      <a href="/status/">Status</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/biw-energy.html">EN</a>
+      <a href="/biw-energy-de.html">DE</a>
+    </nav>
+    <div id="agent-chips" class="agent-chips"></div>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<section class="runtime-panel">
+  <h2>GEORGE Runtime Decision</h2>
+
+  <div class="runtime-grid">
+    <div>
+      <strong>Runtime State:</strong>
+      <div id="decision-status">-</div>
+    </div>
+
+    <div>
+      <strong>Source Agent:</strong>
+      <div id="decision-agent">-</div>
+    </div>
+
+    <div>
+      <strong>Reason:</strong>
+      <div id="decision-reason">-</div>
+    </div>
+
+    <div>
+      <strong>Timestamp:</strong>
+      <div id="decision-timestamp">-</div>
+    </div>
+
+    <div>
+      <strong>Energy:</strong>
+      <div id="decision-energy">-</div>
+    </div>
+
+    <div>
+      <strong>Shift:</strong>
+      <div id="decision-shift">-</div>
+    </div>
+  </div>
+</section>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <div class="kicker">Orchestrator</div>
+      <h1>GEORGE</h1>
+      <p class="lead">
+        The supervisory brain of virtauto.OS — connects runtime events, agents, decision traces, governance and the visible decision interface.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container card-grid three">
+      <div class="card">
+        <h3>Decision Routing</h3>
+        <p>GEORGE receives agent decisions and prioritizes runtime states such as ALLOW, HOLD and BLOCK.</p>
+      </div>
+      <div class="card">
+        <h3>Evidence</h3>
+        <p>Every final decision keeps its evidence, source agent, timestamp, energy state and operational context.</p>
+      </div>
+      <div class="card">
+        <h3>Runtime Surface</h3>
+        <p>The website becomes a visible decision interface, not just a static showcase.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container cols">
+    <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
+    <div><small><a href="/blog.html">Blog</a> · <a href="/contact.html">Contact</a></small></div>
+    <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+  </div>
+</footer>
+
+<script>
+fetch("/runtime/george_decision.json")
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById("decision-status").textContent = data.runtime_state || data.decision || "-";
+    document.getElementById("decision-agent").textContent = data.source_agent || data.agent || "-";
+    document.getElementById("decision-reason").textContent = data.reason || "-";
+    document.getElementById("decision-timestamp").textContent = data.timestamp || "-";
+    document.getElementById("decision-energy").textContent = data.evidence?.energy_kw ? data.evidence.energy_kw + " kW" : "-";
+    document.getElementById("decision-shift").textContent = data.evidence?.shift || "-";
+  })
+  .catch(error => {
+    console.error("Could not load GEORGE decision:", error);
+  });
+</script>
+
+</body>
+</html>

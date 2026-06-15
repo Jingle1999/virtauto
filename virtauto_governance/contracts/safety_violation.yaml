@@ -1,0 +1,9 @@
+contract_id: safety_violation_v1
+
+condition: safety_violation_detected
+
+action: BLOCK
+
+default_state: HOLD
+
+reason: Safety violation detected

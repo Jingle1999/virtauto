@@ -55,6 +55,7 @@ class DecisionKernel:
         jph_actual = runtime_state.get("jph_actual", 0)
         buffer_units = runtime_state.get("buffer_units", 0)
         quality_state = runtime_state.get("quality_state")
+        machine_state = runtime_state.get("machine_state")
 
         if contract_id == "shift_change_v1":
             condition_matched = minute_in_shift <= 5
@@ -102,13 +103,54 @@ class DecisionKernel:
 
             if condition_matched:
                 decision = contract.get("action", "HOLD")
-                reason = contract.get(
-                    "reason",
-                    "Quality issue under investigation",
-                )
+                reason = contract.get("reason", "Quality issue under investigation")
             else:
                 decision = "ALLOW"
                 reason = "Quality state OK"
+
+        elif contract_id == "machine_failure_v1":
+            condition_matched = machine_state == "FAILURE"
+
+            if condition_matched:
+                decision = contract.get("action", "BLOCK")
+                reason = contract.get("reason", "Machine failure detected")
+            else:
+                decision = "ALLOW"
+                reason = "Machine running normally"
+
+        elif contract_id == "material_shortage_v1":
+            material_available = runtime_state.get("material_available", True)
+            material_buffer_minutes = runtime_state.get(
+                "material_buffer_minutes",
+                999,
+            )
+
+            condition_matched = (
+                material_available is False
+                or material_buffer_minutes < contract.get("material_buffer_lt", 30)
+            )
+
+            if condition_matched:
+                decision = contract.get("action", "HOLD")
+                reason = contract.get("reason", "Material shortage risk detected")
+            else:
+                decision = "ALLOW"
+                reason = "Material supply stable"
+        
+        elif contract_id == "safety_violation_v1":
+            safety_state = runtime_state.get("safety_state", "OK")
+
+            condition_matched = safety_state == "VIOLATION"
+
+            if condition_matched:
+                decision = contract.get("action", "BLOCK")
+                reason = contract.get("reason", "Safety violation detected")
+            elif safety_state == "WARNING":
+                decision = "HOLD"
+                reason = "Safety warning requires review"
+            else:
+                decision = "ALLOW"
+                reason = "Safety state OK"
 
         else:
             energy_threshold = contract.get("energy_kw_gt", 10)
@@ -168,6 +210,11 @@ class DecisionKernel:
                 "buffer_units": runtime_state.get("buffer_units"),
                 "quality_state": runtime_state.get("quality_state"),
                 "machine_state": runtime_state.get("machine_state"),
+                "safety_state": runtime_state.get("safety_state"),
+                "material_available": runtime_state.get("material_available"),
+                "material_buffer_minutes": runtime_state.get(
+                    "material_buffer_minutes"
+                ),
                 "active_anomalies": runtime_state.get("active_anomalies", []),
             },
         }

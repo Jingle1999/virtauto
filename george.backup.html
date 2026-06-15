@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>GEORGE · virtauto®</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <script defer src="assets/site.js"></script>
+</head>
+  <script defer src="./status.js"></script>
+<body>
+<header class="header">
+  <div class="container nav">
+    <a class="brand" href="index.html">virtauto<span class="badge">OS</span></a>
+    <nav id="menu" class="menu">
+      <a href="index.html">Home</a>
+      <a href="industrymodel.html">Industry Model</a>
+      <a href="decision-model.html">Decision Model</a>
+      <a href="decision-demo.html">Decision Demo</a>
+      <a href="energy-steel.html">Real Data PoC</a>
+      <a href="biw-energy.html">Energy Scan</a>
+      <a href="pilot.html">Pilot</a>
+      <a href="/status/">Status</a>
+      <a href="contact.html">Contact</a>
+      <a href="biw-energy.html">EN</a>
+      <a href="biw-energy-de.html">DE</a>
+    </nav>
+    <!-- add just under </nav> in the header on every page -->
+    <div id="agent-chips" class="agent-chips"></div>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<section class="runtime-panel">
+
+    <h2>GEORGE Runtime Decision</h2>
+
+    <div class="runtime-grid">
+
+        <div>
+            <strong>Agent:</strong>
+            <div id="decision-agent">-</div>
+        </div>
+
+        <div>
+            <strong>Status:</strong>
+            <div id="decision-status">-</div>
+        </div>
+
+        <div>
+            <strong>Reason:</strong>
+            <div id="decision-reason">-</div>
+        </div>
+
+    </div>
+
+</section>
+
+<main>
+  <section class="hero">
+    <div class="container">
+      <div class="kicker">Orchestrator</div>
+      <h1>GEORGE</h1>
+      <p class="lead">The supervisory brain of virtauto.OS — connects Git, build systems, factory IT (MES/SCADA), data platform and UI.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container card-grid three">
+      <div class="card"><h3>Capabilities</h3><p>CI/CD coordination, quality gates, retries &amp; auto‑rollback; routing to specialized agents; least‑privilege policy &amp; secrets handling.</p></div>
+      <div class="card"><h3>Integrations</h3><p>GitHub Actions/Runners, artifact storage; REST to MES/SCADA/PLC; data lake/warehouse; identity &amp; audit.</p></div>
+      <div class="card"><h3>UI &amp; APIs</h3><p>Live Status Dashboard, job/event APIs for self‑service, context assistants for devs &amp; operators.</p></div>
+    </div>
+  </section>
+
+  # …
+- name: Dispatch → self-audit
+  uses: actions/github-script@v7
+  with:
+    script: |
+      await github.request('POST /repos/{owner}/{repo}/actions/workflows/{wf}/dispatches', {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        wf: 'self-audit.yml',
+        ref: 'main',
+      });
+
+- name: Wait for self-audit
+  run: sleep 25
+
+- name: Dispatch → self-optimization
+  uses: actions/github-script@v7
+  with:
+    script: |
+      await github.request('POST /repos/{owner}/{repo}/actions/workflows/{wf}/dispatches', {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        wf: 'self-optimization.yml',
+        ref: 'main',
+      });
+
+
+  <section class="section">
+    <div class="container">
+      <h3>Architecture Overview</h3>
+      <div class="kit">
+        <img class="img-fluid responsive-img" src="assets/architecture.svg" alt="Architecture"/>
+      </div>
+    </div>
+  </section>
+</main>
+
+    - name: Plan tool usage (blog+audit)
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const {execSync} = require('child_process');
+          execSync('python .github/workflows/scripts/plan_manager.py --goal publish_blog_and_audit --out ops/current_plan.json', {stdio:'inherit'});
+
+    - name: Execute plan (dispatch & workflow_dispatch)
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const {execSync} = require('child_process');
+          execSync('python .github/workflows/scripts/dag_executor.py --plan ops/current_plan.json', {stdio:'inherit'});
+
+
+<footer class="footer">
+  <div class="container cols">
+    <div><strong>virtauto®</strong><br/><small>The Digital Transformation of the Automotive Industry. When Software builds Hardware.</small></div>
+    <div><small><a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></small></div>
+    <div class="right"><small>© 2025 virtauto®. All rights reserved.</small></div>
+  </div>
+</footer>
+</body>
+</html>
