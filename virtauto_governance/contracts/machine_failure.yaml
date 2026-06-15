@@ -1,0 +1,9 @@
+contract_id: machine_failure_v1
+
+condition: machine_failure_detected
+
+action: BLOCK
+
+default_state: HOLD
+
+reason: Machine failure detected
