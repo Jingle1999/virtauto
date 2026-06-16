@@ -144,6 +144,61 @@ body{
   <div class="grid">
 
     <div class="card">
+      <h2>GEORGE Decision Layer</h2>
+      <div class="table">
+        <div class="row">
+          <div class="label">Final Decision</div>
+          <div class="value bad">BLOCK</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Primary Reason</div>
+          <div class="value">Safety violation detected</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Decision Mode</div>
+          <div class="value warn">HUMAN-IN-LOOP</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Audit Trail</div>
+          <div class="value ok">ENABLED</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Contracts Evaluated</div>
+          <div class="value">8</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Contract Evaluation</h2>
+      <div class="table">
+        <div class="row">
+          <div class="label">Safety Violation</div>
+          <div class="value bad">BLOCK</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Machine Failure</div>
+          <div class="value bad">BLOCK</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Quality Issue</div>
+          <div class="value warn">HOLD</div>
+        </div>
+
+        <div class="row">
+          <div class="label">Material Shortage</div>
+          <div class="value ok">ALLOW</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <h2>Runtime Events</h2>
       <div class="trace" id="runtimeEvents">
         <div class="trace-meta">Loading runtime events…</div>
