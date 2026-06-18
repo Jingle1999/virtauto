@@ -161,8 +161,8 @@ body{
     <nav class="main-nav" aria-label="Hauptnavigation">
       <a href="../index-de.html">Home</a>
       <a href="../virtauto-os-de.html">virtauto.OS</a>
-      <a href="../biw-energy-de.html">Energy Scan</a>
-      <a href="../status/index-de.html" class="active" aria-current="page">Runtime</a>
+      <a href="../biw-energy-de.html">Energie-Scan</a>
+      <a href="../status/index-de.html" class="active" aria-current="page">Laufzeit</a>
       <a href="../pilot-de.html">Pilotprogramm</a>
       <a href="../contact-de.html">Kontakt</a>
     </nav>
@@ -304,7 +304,7 @@ body{
         <div class="row"><div class="label">Peak-Reduction-Vorschlag</div><div class="value ok">ALLOW</div></div>
         <div class="row"><div class="label">Druckluft-Standby</div><div class="value warn">HOLD</div></div>
         <div class="row"><div class="label">Schweißpause-Fenster</div><div class="value bad">BLOCK</div></div>
-        <div class="row"><div class="label">Energy Shift Optimierung</div><div class="value warn">DELAY</div></div>
+        <div class="row"><div class="label">Energie-Schichtoptimierung</div><div class="value warn">DELAY</div></div>
       </div>
     </div>
 
@@ -320,7 +320,7 @@ body{
     </div>
 
     <div class="card">
-      <h2>Governance Vertrag</h2>
+      <h2>Governance-Vertrag</h2>
       <div class="trace">
         <div class="trace-item"><div class="trace-title">Vertrag</div><div class="trace-meta">VA-ENERGY-001 · Energie-Zulässigkeitsvertrag</div></div>
         <div class="trace-item"><div class="trace-title">Bedingung</div><div class="trace-meta">Taktstabilität == OK</div></div>
@@ -379,7 +379,7 @@ async function loadEvents(){
     document.getElementById("runtimeEvents").innerHTML = latestEvents.map(e => `
       <div class="trace-item">
         <div class="event-time">${e.timestamp || "—"}</div>
-        <div class="trace-title">${e.event || "runtime_event"}</div>
+        <div class="trace-title">${e.event || "Laufzeitereignis"}</div>
         <div class="trace-meta">
           ${(e.source || e.agent || "virtauto.OS")}
           ${e.line ? " · " + e.line : ""}
