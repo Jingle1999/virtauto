@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-<title>virtauto.OS — Runtime Oberfläche</title>
+<title>virtauto.OS — Laufzeitumgebung</title>
 
 <link rel="stylesheet" href="../assets/styles.css"/>
 <link rel="stylesheet" href="../assets/styles_unify.css"/>
@@ -67,6 +67,76 @@ body{
 .trace-title{font-weight:700;margin-bottom:4px}
 .trace-meta{color:#9ca7cd;font-size:13px;line-height:1.6}
 .event-time{color:#8f99c2;font-size:11px;margin-bottom:3px}
+.decision-snapshot{
+  margin-bottom:24px;
+}
+
+.snapshot-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:24px;
+}
+
+.snapshot-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:16px;
+  margin-bottom:20px;
+}
+
+.snapshot-title{
+  font-size:26px;
+  font-weight:800;
+}
+
+.snapshot-subtitle{
+  color:var(--muted);
+  max-width:700px;
+  line-height:1.6;
+}
+
+.snapshot-block{
+  background:#35111a;
+  border:1px solid #6d2435;
+  color:var(--bad);
+  padding:10px 18px;
+  border-radius:999px;
+  font-weight:800;
+}
+
+.snapshot-flow{
+  display:grid;
+  grid-template-columns:1fr 120px 1fr 120px 1fr;
+  gap:14px;
+  align-items:center;
+  margin-top:24px;
+}
+
+.snapshot-box{
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px;
+  text-align:center;
+}
+
+.snapshot-arrow{
+  text-align:center;
+  color:var(--cyan);
+  font-size:28px;
+  font-weight:800;
+}
+
+.snapshot-rule{
+  margin-top:24px;
+  padding:16px;
+  border-left:4px solid var(--cyan);
+  background:rgba(41,211,255,.05);
+  color:#cfd8ff;
+}
+
 .footer{margin-top:34px;text-align:center;color:#7f89b2;font-size:13px}
 
 @media(max-width:980px){
@@ -107,23 +177,23 @@ body{
 <div class="container">
 
   <section class="hero">
-    <div class="kicker">virtauto.OS Runtime Oberfläche</div>
+    <div class="kicker">virtauto.OS Laufzeitumgebung</div>
 
     <div class="hero-top">
       <div>
-        <h1>Governed Industrial Runtime.<br>Live operative Entscheidungsebene.</h1>
+        <h1>Gesteuerte industrielle Laufzeitumgebung.<br>Live operative Entscheidungsebene.</h1>
         <p>
-          virtauto.OS visualisiert industrielle Runtime-Zustände, Governance-Logik,
+          virtauto.OS visualisiert den Zustand der industriellen Laufzeitumgebung, Governance-Logik,
           operative Zulässigkeit und Multi-Agenten-Orchestrierung als einheitliche
           industrielle Ausführungsebene.
         </p>
       </div>
-      <div class="runtime-badge" id="runtimeBadge">Runtime Aktiv</div>
+      <div class="runtime-badge" id="runtimeBadge">Laufzeit Aktiv</div>
     </div>
 
     <div class="hero-grid">
       <div class="hero-stat">
-        <div class="label">Runtime-Zustand</div>
+        <div class="label">Systemzustand</div>
         <div class="value ok" id="runtimeHealth">STABIL</div>
       </div>
       <div class="hero-stat">
@@ -132,7 +202,7 @@ body{
       </div>
       <div class="hero-stat">
         <div class="label">Ausführungsmodus</div>
-        <div class="value warn">ADVISORY</div>
+        <div class="value warn">BERATEND</div>
       </div>
       <div class="hero-stat">
         <div class="label">Letzte Entscheidung</div>
@@ -141,23 +211,90 @@ body{
     </div>
   </section>
 
+ <section class="decision-snapshot">
+
+  <div class="snapshot-card">
+
+    <div class="snapshot-header">
+
+      <div>
+        <div class="kicker">GEORGE Entscheidungsebene</div>
+
+        <div class="snapshot-title">
+          Gesteuerte Priorisierung der Entscheidung 
+        </div>
+
+        <div class="snapshot-subtitle">
+          GEORGE bewertet mehrere Governance-Verträge gleichzeitig,
+          priorisiert konkurrierende Ergebnisse und erzeugt eine einzige
+          nachvollziehbare operative Entscheidung.
+        </div>
+      </div>
+
+      <div class="snapshot-block">
+        FINALE ENTSCHEIDUNG: BLOCK
+      </div>
+
+    </div>
+
+    <div class="snapshot-flow">
+
+      <div class="snapshot-box">
+        <strong>8 Governance-Verträge</strong><br><br>
+        Leerlaufverlust<br>
+        Schichtwechsel<br>
+        Variantenwechsel<br>
+        Qualität<br>
+        Maschinenstörung<br>
+        Sicherheit
+      </div>
+
+      <div class="snapshot-arrow">→</div>
+
+      <div class="snapshot-box">
+        <strong>Bewertung</strong><br><br>
+        ALLOW = 3<br>
+        HOLD = 3<br>
+        BLOCK = 2
+      </div>
+
+      <div class="snapshot-arrow">→</div>
+
+      <div class="snapshot-box">
+        <strong>Priorisierung</strong><br><br>
+        Sicherheit > Qualität > Produktion
+      </div>
+
+    </div>
+
+    <div class="snapshot-rule">
+      <strong>Regel:</strong><br>
+      Zuerst Entscheidungsschwere, danach Domänenpriorität.
+      <br><br>
+      Ergebnis: Eine Sicherheitsverletzung übersteuert alle Entscheidungen mit niedrigerer Priorität.
+    </div>
+
+  </div>
+
+</section> 
+
   <div class="grid">
 
     <div class="card">
-      <h2>Runtime Ereignisse</h2>
+      <h2>Laufzeit-Ereignisse</h2>
       <div class="trace" id="runtimeEvents">
-        <div class="trace-meta">Runtime-Ereignisse werden geladen…</div>
+        <div class="trace-meta">Laufzeit-Ereignisse werden geladen…</div>
       </div>
     </div>
 
     <div class="card">
       <h2>Agentenstatus</h2>
       <div class="table" id="agentStatus">
-        <div class="row"><div class="label">Data Ingest Agent</div><div class="value ok">AKTIV</div></div>
-        <div class="row"><div class="label">Peak Guard Agent</div><div class="value ok">AKTIV</div></div>
-        <div class="row"><div class="label">Stability Agent</div><div class="value ok">AKTIV</div></div>
-        <div class="row"><div class="label">Guardian Agent</div><div class="value ok">AKTIV</div></div>
-        <div class="row"><div class="label">Operator Review Agent</div><div class="value warn">WARTET</div></div>
+        <div class="row"><div class="label">Datenerfassungs-Agent</div><div class="value ok">AKTIV</div></div>
+        <div class="row"><div class="label">Lastspitzen-Agent</div><div class="value ok">AKTIV</div></div>
+        <div class="row"><div class="label">Stabilitäts-Agent</div><div class="value ok">AKTIV</div></div>
+        <div class="row"><div class="label">Governance-Agent</div><div class="value ok">AKTIV</div></div>
+        <div class="row"><div class="label">Operator-Freigabe-Agent</div><div class="value warn">WARTET</div></div>
       </div>
     </div>
 
@@ -185,20 +322,20 @@ body{
     <div class="card">
       <h2>Governance Vertrag</h2>
       <div class="trace">
-        <div class="trace-item"><div class="trace-title">Vertrag</div><div class="trace-meta">VA-ENERGY-001 · Energy Admissibility Contract</div></div>
-        <div class="trace-item"><div class="trace-title">Bedingung</div><div class="trace-meta">takt_stability == OK</div></div>
-        <div class="trace-item"><div class="trace-title">Bedingung</div><div class="trace-meta">buffer_level >= 4</div></div>
-        <div class="trace-item"><div class="trace-title">Bedingung</div><div class="trace-meta">availability >= 0.98</div></div>
-        <div class="trace-item"><div class="trace-title">Rückfallregel</div><div class="trace-meta">insufficient evidence = HOLD</div></div>
+        <div class="trace-item"><div class="trace-title">Vertrag</div><div class="trace-meta">VA-ENERGY-001 · Energie-Zulässigkeitsvertrag</div></div>
+        <div class="trace-item"><div class="trace-title">Bedingung</div><div class="trace-meta">Taktstabilität == OK</div></div>
+        <div class="trace-item"><div class="trace-title">Bedingung</div><div class="trace-meta">Pufferfüllstand >= 4</div></div>
+        <div class="trace-item"><div class="trace-title">Bedingung</div><div class="trace-meta">Verfügbarkeit >= 0.98</div></div>
+        <div class="trace-item"><div class="trace-title">Rückfallregel</div><div class="trace-meta">unzureichende Evidenz = HOLD</div></div>
       </div>
     </div>
 
     <div class="card">
-      <h2>Operator Review</h2>
+      <h2>Operator-Freigabe</h2>
       <div class="table">
         <div class="row"><div class="label">Offene Reviews</div><div class="value warn">1</div></div>
         <div class="row"><div class="label">Ausführungsfreigabe</div><div class="value ok">HUMAN-IN-LOOP</div></div>
-        <div class="row"><div class="label">Runtime-Richtlinie</div><div class="value ok">GOVERNED</div></div>
+        <div class="row"><div class="label">Laufzeit-Richtlinie</div><div class="value ok">GESTEUERT</div></div>
         <div class="row"><div class="label">Entscheidungsnachvollziehbarkeit</div><div class="value ok">100%</div></div>
       </div>
     </div>
@@ -206,7 +343,7 @@ body{
   </div>
 
   <div class="footer">
-    virtauto.OS — Industrielle Runtime Oberfläche · © 2026 virtauto®
+    virtauto.OS — Industrielle Laufzeitumgebung · © 2026 virtauto®
   </div>
 
 </div>
@@ -256,7 +393,7 @@ async function loadEvents(){
   }catch(error){
     document.getElementById("runtimeHealth").textContent = "EINGESCHRÄNKT";
     document.getElementById("runtimeHealth").className = "value warn";
-    document.getElementById("runtimeBadge").textContent = "Runtime Eingeschränkt";
+    document.getElementById("runtimeBadge").textContent = "Laufzeit Eingeschränkt";
     document.getElementById("runtimeBadge").style.color = "var(--warn)";
     document.getElementById("runtimeEvents").innerHTML =
       '<div class="trace-meta">Laufzeitereignisse nicht verfügbar. Statische Fallback-Daten werden angezeigt.</div>';

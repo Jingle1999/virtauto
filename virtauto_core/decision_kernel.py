@@ -236,7 +236,7 @@ class DecisionKernel:
             ),
             "timestamp": runtime_state.get("timestamp"),
             "decision": decision,
-            "runtime_state": decision,
+            "runtime_state": runtime_state,
             "reason": reason,
             "evidence": evidence,
             "governance": {
