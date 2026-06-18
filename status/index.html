@@ -67,6 +67,75 @@ body{
 .trace-title{font-weight:700;margin-bottom:4px}
 .trace-meta{color:#9ca7cd;font-size:13px;line-height:1.6}
 .event-time{color:#8f99c2;font-size:11px;margin-bottom:3px}
+.decision-snapshot{
+  margin:28px 0;
+}
+
+.snapshot-card{
+  background:linear-gradient(180deg,#0b1428 0%,#09101d 100%);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:28px;
+}
+
+.snapshot-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:24px;
+  flex-wrap:wrap;
+}
+
+.snapshot-title{
+  font-size:28px;
+  font-weight:800;
+  margin-top:8px;
+}
+
+.snapshot-subtitle{
+  margin-top:10px;
+  color:#b7c2e5;
+  max-width:760px;
+  line-height:1.6;
+}
+
+.snapshot-block{
+  padding:14px 18px;
+  border-radius:999px;
+  border:1px solid #6d2334;
+  background:#1b1017;
+  color:var(--bad);
+  font-weight:800;
+}
+
+.snapshot-flow{
+  margin-top:28px;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:12px;
+}
+
+.snapshot-box{
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px;
+  text-align:center;
+}
+
+.snapshot-arrow{
+  text-align:center;
+  color:var(--cyan);
+  font-size:28px;
+  font-weight:800;
+}
+
+.snapshot-rule{
+  margin-top:24px;
+  padding:16px;
+  border-left:4px solid var(--cyan);
+  background:rgba(41,211,255,.05);
+  color:#cfd8ff;
+}
 .footer{margin-top:34px;text-align:center;color:#7f89b2;font-size:13px}
 
 @media(max-width:980px){
@@ -140,6 +209,76 @@ body{
       </div>
     </div>
   </section>
+
+  <section class="decision-snapshot">
+
+  <div class="snapshot-card">
+
+    <div class="snapshot-header">
+
+      <div>
+
+        <div class="kicker">
+          GEORGE Decision Layer
+        </div>
+
+        <div class="snapshot-title">
+          Governed Decision Prioritization
+        </div>
+
+        <div class="snapshot-subtitle">
+          GEORGE evaluates multiple governance contracts simultaneously,
+          prioritizes competing outcomes and produces a single
+          traceable operational decision.
+        </div>
+
+      </div>
+
+      <div class="snapshot-block">
+        FINAL DECISION: BLOCK
+      </div>
+
+    </div>
+
+    <div class="snapshot-flow">
+
+      <div class="snapshot-box">
+        <strong>Shift Change</strong><br>
+        HOLD
+      </div>
+
+      <div class="snapshot-box">
+        <strong>Variant Change</strong><br>
+        HOLD
+      </div>
+
+      <div class="snapshot-box">
+        <strong>Machine Failure</strong><br>
+        BLOCK
+      </div>
+
+      <div class="snapshot-box">
+        <strong>Material Supply</strong><br>
+        ALLOW
+      </div>
+
+      <div class="snapshot-box">
+        <strong>Safety Violation</strong><br>
+        BLOCK
+      </div>
+
+    </div>
+
+    <div class="snapshot-rule">
+      <strong>Prioritization Rule:</strong><br>
+      Decision severity first, domain priority second.
+      BLOCK overrides HOLD and ALLOW.
+      Safety contracts outrank production contracts.
+    </div>
+
+  </div>
+
+</section>  
 
   <div class="grid">
 
