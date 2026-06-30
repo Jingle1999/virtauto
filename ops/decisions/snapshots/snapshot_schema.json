@@ -1,0 +1,19 @@
+{
+  "schema_id": "decision_snapshot_v1",
+  "description": "Canonical schema for a virtauto.OS Decision Snapshot.",
+  "required_fields": [
+    "snapshot_id",
+    "decision_id",
+    "created_at",
+    "snapshot_type",
+    "runtime_state",
+    "governance_environment",
+    "contracts_evaluated",
+    "prioritization",
+    "final_decision",
+    "trace_reference",
+    "replay"
+  ],
+  "snapshot_type": "decision_environment",
+  "version": "0.1"
+}
