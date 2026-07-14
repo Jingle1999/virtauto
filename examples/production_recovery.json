@@ -1,0 +1,37 @@
+{
+  "decision_id": "DEC-000001",
+
+  "decision_type": "production_recovery",
+
+  "timestamp": "2026-07-15T08:30:00Z",
+
+  "context": {
+    "runtime_state": "production_recovery"
+  },
+
+  "governance": {
+    "contract": "production_recovery_v1",
+    "decision": "ALLOW"
+  },
+
+  "evidence": [
+    "production_active",
+    "jph_actual",
+    "buffer_units"
+  ],
+
+  "alternatives": [
+    "ALLOW",
+    "HOLD"
+  ],
+
+  "selected_action": "ALLOW",
+
+  "expected_outcome": {
+    "production_active": true
+  },
+
+  "actual_outcome": {},
+
+  "relationships": []
+}
