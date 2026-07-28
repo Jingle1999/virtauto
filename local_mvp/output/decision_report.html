@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>virtauto Decision Report</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:1100px;margin:0 auto;padding:32px;color:#1e293b;background:#f8fafc}h1,h2{color:#0f172a}.card{background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:20px;margin:16px 0}.status{font-size:1.2rem;font-weight:700}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.metric{background:#f1f5f9;padding:14px;border-radius:8px}.value{font-size:1.4rem;font-weight:700}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #e2e8f0}.muted{color:#64748b}.warning{border-left:5px solid #f59e0b}code{background:#e2e8f0;padding:2px 5px;border-radius:4px}@media print{body{background:white}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<h1>virtauto Decision Report</h1>
+<p class="muted">BIW Energy Peak Mitigation · REP-ce8ab93bda58834e</p>
+<section class="card warning">
+<div class="status">ALLOW_ADVISORY_WITH_CONDITIONS</div>
+<h2>Nicht produktionskritischer Nebenverbraucher zeitlich verschieben</h2>
+<p>A known non-critical flexible load can reduce the peak without directly changing the production process.</p>
+<p><strong>Ausführungsmodus:</strong> PROPOSE_ONLY</p>
+<p><strong>Gültig bis:</strong> 2026-07-27T14:30:08.263350+00:00</p>
+</section>
+<section class="card"><h2>Situation</h2><div class="grid">
+<div class="metric"><div class="muted">Trigger</div><div class="value">PEAK_ACTIVE</div></div>
+<div class="metric"><div class="muted">Maximale Leistung</div><div class="value">243.16 kW</div></div>
+<div class="metric"><div class="muted">Peak-Grenze</div><div class="value">180.0 kW</div></div>
+<div class="metric"><div class="muted">Überschreitung</div><div class="value">63.16 kW</div></div>
+</div><p>43,200 one-minute records were analysed. 5 peak event(s) above 180.0 kW were detected. The maximum measured power was 243.2 kW.</p></section>
+<section class="card"><h2>Empfohlene Maßnahme</h2><p><strong>Nicht produktionskritischer Nebenverbraucher zeitlich verschieben</strong></p><table><tr><th>target_asset</th><td>AUX_03</td></tr><tr><th>peak_reduction_kw</th><td>35.0</td></tr><tr><th>remaining_excess_kw</th><td>28.16</td></tr><tr><th>duration_minutes</th><td>15</td></tr><tr><th>expected_delay_minutes</th><td>0</td></tr><tr><th>expected_oee_change</th><td>0.0</td></tr></table></section>
+<section class="card"><h2>Optionen</h2><table><thead><tr><th>Rang</th><th>Option</th><th>Score</th><th>Status</th></tr></thead><tbody><tr><td>1</td><td>Nicht produktionskritischer Nebenverbraucher zeitlich verschieben</td><td>84.58</td><td>FEASIBLE</td></tr><tr><td>2</td><td>Betrieb unverändert fortführen</td><td>55.0</td><td>FEASIBLE</td></tr></tbody></table></section>
+<section class="card"><h2>Governance</h2><p><strong>Status:</strong> ALLOW_ADVISORY_WITH_CONDITIONS</p><p><strong>Decision Owner:</strong> Production Manager</p><p><strong>Review:</strong> Energy Manager</p><p><strong>Veto:</strong> Quality Manager</p><h3>Bedingungen</h3><ul><li>Production Manager confirms that AUX_03 is operationally deferrable.</li></ul></section>
+<section class="card"><h2>Datenqualität und Confidence</h2><table><tr><th>rows</th><td>43200</td></tr><tr><th>columns</th><td>12</td></tr><tr><th>missing_required_values</th><td>16140</td></tr><tr><th>duplicate_timestamps</th><td>0</td></tr><tr><th>interval_minutes</th><td>1.0</td></tr><tr><th>decision_readiness</th><td>READY</td></tr><tr><th>issues</th><td>[]</td></tr><tr><th>context_confidence</th><td>HIGH</td></tr><tr><th>recommendation_confidence</th><td>MEDIUM</td></tr></table></section>
+<section class="card"><h2>Annahmen und Grenzen</h2><ul><li>Energy price is supplied by configuration, not by the CSV.</li><li>Quality, buffer and order state are supplied by demo configuration.</li><li>Expected load reductions are engineering assumptions for the demo.</li></ul></section>
+<section class="card"><h2>Audit</h2><table><tr><th>context_builder_version</th><td>0.1.0</td></tr><tr><th>decision_engine_version</th><td>0.1.0</td></tr><tr><th>governance_gate_version</th><td>0.1.0</td></tr><tr><th>report_builder_version</th><td>0.1.0</td></tr><tr><th>options_generated</th><td>2</td></tr><tr><th>rules_evaluated</th><td>4</td></tr></table></section>
+</body></html>

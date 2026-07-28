@@ -1,0 +1,46 @@
+schema_version: "1.0.0"
+site_id: "PLANT_01"
+area_id: "BIW"
+line_id: "DOOR_LINE_01"
+timezone: "Europe/Berlin"
+analysis:
+  peak_threshold_kw: 180.0
+  high_price_threshold_eur_per_kwh: 0.28
+  assumed_price_eur_per_kwh: 0.34
+  baseline_method: "median_run_power"
+  minimum_peak_duration_minutes: 1
+assets:
+  flexible_loads:
+    - asset_id: "AUX_03"
+      name: "Nicht produktionskritischer Nebenverbraucher"
+      estimated_reduction_kw: 35.0
+      max_deferral_minutes: 15
+      operationally_deferrable: true
+quality:
+  status: "STABLE"
+  quality_gate_open: true
+material_flow:
+  buffer_id: "BUFFER_01"
+  buffer_level_units: 60
+  buffer_capacity_units: 100
+  buffer_autonomy_minutes: 18
+order:
+  order_id: "ORDER_DEMO_001"
+  priority: "HIGH"
+  reschedulable: true
+  delay_tolerance_minutes: 10
+governance:
+  contract_id: "DC-BIW-ENERGY-001"
+  execution_mode: "PROPOSE_ONLY"
+  decision_owner: "Production Manager"
+  required_reviewers:
+    - "Energy Manager"
+  veto_roles:
+    - "Quality Manager"
+  max_shift_minutes: 15
+  min_buffer_fill_ratio: 0.40
+  min_remaining_buffer_autonomy_minutes: 5
+  max_expected_delay_minutes: 10
+  minimum_peak_reduction_kw: 25
+  advisory_validity_minutes: 15
+  retention_mode: "EPHEMERAL"
