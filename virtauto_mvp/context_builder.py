@@ -39,6 +39,14 @@ def _as_float(value: str | None) -> float | None:
 def _as_bool(value: str | None) -> bool:
     return str(value).strip().lower() in {"true", "1", "yes"}
 
+def _parse_timestamp(value: str | None) -> datetime | None:
+    if value is None or value.strip() == "":
+        return None
+
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
 
 class ContextBuilder:
     version = "0.1.0"
@@ -47,7 +55,21 @@ class ContextBuilder:
         path = Path(csv_path)
         rows = self._load_rows(path)
         quality = self._validate(rows)
-        timestamps = [datetime.fromisoformat(r["timestamp"]) for r in rows]
+        timestamps = [
+            _parse_timestamp(row.get("timestamp"))
+            for row in rows
+        ]
+
+        if any(timestamp is None for timestamp in timestamps):
+            raise ValueError(
+                "CSV contains one or more invalid timestamps."
+            )
+
+        valid_timestamps = [
+            timestamp
+            for timestamp in timestamps
+            if timestamp is not None
+        ]
         powers = [_as_float(r.get("power_kw")) for r in rows]
         valid_powers = [v for v in powers if v is not None]
         threshold = float(config["analysis"]["peak_threshold_kw"])
@@ -92,7 +114,10 @@ class ContextBuilder:
             area_id=config["area_id"],
             line_id=config["line_id"],
             generated_at=now,
-            analysis_window={"start": timestamps[0].isoformat(), "end": timestamps[-1].isoformat()},
+            analysis_window={
+                "start": valid_timestamps[0].isoformat(),
+                "end": valid_timestamps[-1].isoformat(),
+            },
             data_quality=quality,
             trigger={
                 "type": trigger_type,
