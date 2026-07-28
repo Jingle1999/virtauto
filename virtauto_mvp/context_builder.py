@@ -18,6 +18,14 @@ REQUIRED_COLUMNS = {
     "parts_produced_min",
 }
 
+ALWAYS_REQUIRED_VALUES = {
+    "timestamp",
+    "production_state",
+    "power_kw",
+    "takt_target_s",
+    "parts_produced_min",
+}
+
 
 def _as_float(value: str | None) -> float | None:
     if value is None or value == "":
@@ -127,23 +135,70 @@ class ContextBuilder:
         columns = set(rows[0].keys())
         missing_columns = sorted(REQUIRED_COLUMNS - columns)
         issues: list[str] = []
+
         if missing_columns:
-            issues.append("Missing required columns: " + ", ".join(missing_columns))
-        missing_values = sum(1 for row in rows for col in REQUIRED_COLUMNS if col not in row or row[col] in (None, ""))
+            issues.append(
+                "Missing required columns: " + ", ".join(missing_columns)
+            )
+
+        missing_values = 0
+
+        for row in rows:
+            for column in ALWAYS_REQUIRED_VALUES:
+                if row.get(column) in (None, ""):
+                    missing_values += 1
+
+            # Der Ist-Takt ist nur während tatsächlicher Produktion erforderlich.
+            if (
+                row.get("production_state") == "RUN"
+                and row.get("takt_actual_s") in (None, "")
+            ):
+                missing_values += 1
+
+        if missing_values:
+            issues.append(
+                f"Missing required values: {missing_values}"
+            )
+
         timestamps = [row.get("timestamp") for row in rows]
         duplicates = len(timestamps) - len(set(timestamps))
         interval = None
+
         try:
-            parsed = [datetime.fromisoformat(t) for t in timestamps if t]
-            deltas = [(b - a).total_seconds() / 60 for a, b in zip(parsed, parsed[1:])]
+            parsed = [
+                datetime.fromisoformat(timestamp)
+                for timestamp in timestamps
+                if timestamp
+            ]
+
+            deltas = [
+                (current - previous).total_seconds() / 60
+                for previous, current in zip(parsed, parsed[1:])
+            ]
+
             interval = statistics.median(deltas) if deltas else None
-            if deltas and any(abs(d - interval) > 0.001 for d in deltas):
-                issues.append("Timestamp intervals are not fully regular.")
+
+            if deltas and any(
+                abs(delta - interval) > 0.001
+                for delta in deltas
+            ):
+                issues.append(
+                    "Timestamp intervals are not fully regular."
+                )
+
         except ValueError:
             issues.append("One or more timestamps are invalid.")
+
         if duplicates:
             issues.append(f"Duplicate timestamps: {duplicates}")
-        readiness = "INSUFFICIENT" if missing_columns else "LIMITED" if issues else "READY"
+
+        if missing_columns:
+            readiness = "INSUFFICIENT"
+        elif issues:
+            readiness = "LIMITED"
+        else:
+            readiness = "READY"
+
         return DataQuality(
             rows=len(rows),
             columns=len(columns),
@@ -153,7 +208,7 @@ class ContextBuilder:
             decision_readiness=readiness,
             issues=issues,
         )
-
+    
     def _detect_peaks(self, rows: list[dict[str, str]], threshold: float) -> list[PeakEvent]:
         events: list[PeakEvent] = []
         current: list[dict[str, str]] = []
