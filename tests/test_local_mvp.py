@@ -73,3 +73,33 @@ def test_invalid_timestamp_is_rejected_with_clear_error(tmp_path: Path):
             "local_mvp/demo_config.yaml",
             tmp_path / "output",
         )
+
+def test_unsorted_rows_are_processed_chronologically(tmp_path: Path):
+    source_csv = Path("local_mvp/input/biw_door_line_anomalies_30d.csv")
+    unsorted_csv = tmp_path / "unsorted_input.csv"
+
+    with source_csv.open("r", encoding="utf-8-sig", newline="") as source:
+        rows = list(csv.DictReader(source))
+        fieldnames = list(rows[0].keys())
+
+    expected_start = rows[0]["timestamp"]
+    expected_end = rows[-1]["timestamp"]
+
+    # Zwei weit auseinanderliegende Datensätze vertauschen.
+    rows[0], rows[-1] = rows[-1], rows[0]
+
+    with unsorted_csv.open("w", encoding="utf-8", newline="") as target:
+        writer = csv.DictWriter(target, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    result = run_pipeline(
+        unsorted_csv,
+        "local_mvp/demo_config.yaml",
+        tmp_path / "output",
+    )
+
+    context = result["context"]
+
+    assert context.analysis_window["start"] == expected_start
+    assert context.analysis_window["end"] == expected_end

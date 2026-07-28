@@ -55,9 +55,31 @@ class ContextBuilder:
         path = Path(csv_path)
         rows = self._load_rows(path)
         quality = self._validate(rows)
+
         timestamps = [
             _parse_timestamp(row.get("timestamp"))
             for row in rows
+        ]
+
+        if any(timestamp is None for timestamp in timestamps):
+            raise ValueError(
+                "CSV contains one or more invalid timestamps."
+            )
+
+        rows = sorted(
+            rows,
+            key=lambda row: _parse_timestamp(row.get("timestamp")),
+        )
+
+        timestamps = [
+            _parse_timestamp(row.get("timestamp"))
+            for row in rows
+        ]
+
+        valid_timestamps = [
+            timestamp
+            for timestamp in timestamps
+            if timestamp is not None
         ]
 
         if any(timestamp is None for timestamp in timestamps):
