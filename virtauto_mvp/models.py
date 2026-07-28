@@ -19,8 +19,11 @@ class PeakEvent(BaseModel):
     end: str
     duration_minutes: int
     maximum_power_kw: float
+    average_power_kw: float
     threshold_kw: float
     excess_kw: float
+    energy_above_threshold_kwh: float
+    severity: Literal["LOW", "MEDIUM", "HIGH"]
 
 
 class IndustrialContext(BaseModel):

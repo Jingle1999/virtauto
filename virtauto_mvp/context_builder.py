@@ -73,24 +73,13 @@ class ContextBuilder:
 
         timestamps = [
             _parse_timestamp(row.get("timestamp"))
-            for row in rows
+           for row in rows
         ]
 
         valid_timestamps = [
             timestamp
-            for timestamp in timestamps
-            if timestamp is not None
-        ]
-
-        if any(timestamp is None for timestamp in timestamps):
-            raise ValueError(
-                "CSV contains one or more invalid timestamps."
-            )
-
-        valid_timestamps = [
-            timestamp
-            for timestamp in timestamps
-            if timestamp is not None
+         for timestamp in timestamps
+          if timestamp is not None
         ]
         powers = [_as_float(r.get("power_kw")) for r in rows]
         valid_powers = [v for v in powers if v is not None]
@@ -152,8 +141,8 @@ class ContextBuilder:
             trigger={
                 "type": trigger_type,
                 "active": bool(peaks),
-                "severity": "HIGH" if strongest_peak and strongest_peak.excess_kw >= 25 else "MEDIUM" if peaks else "NONE",
-                "peak_events": [p.model_dump() for p in peaks],
+                "severity": strongest_peak.severity if strongest_peak else "NONE",
+                "peak_events": [peak.model_dump() for peak in peaks],
             },
             energy={
                 "average_power_kw": round(statistics.fmean(valid_powers), 2),
@@ -292,16 +281,42 @@ class ContextBuilder:
 
         return events
 
-    def _to_peak(self, rows: list[dict[str, str]], threshold: float) -> PeakEvent:
-        powers = [float(r["power_kw"]) for r in rows]
+    def _to_peak(
+        self,
+        rows: list[dict[str, str]],
+        threshold: float,
+    ) -> PeakEvent:
+        powers = [float(row["power_kw"]) for row in rows]
+
         maximum = max(powers)
+        average = statistics.fmean(powers)
+        excess = maximum - threshold
+
+        energy_above = (
+            sum(
+                max(power - threshold, 0)
+                for power in powers
+            )
+            / 60.0
+        )
+
+        if excess >= 30:
+          severity = "HIGH"
+        elif excess >= 10:
+            severity = "MEDIUM"
+        else:
+            severity = "LOW"
+
         return PeakEvent(
             start=rows[0]["timestamp"],
             end=rows[-1]["timestamp"],
             duration_minutes=len(rows),
             maximum_power_kw=round(maximum, 2),
+            average_power_kw=round(average, 2),
             threshold_kw=threshold,
-            excess_kw=round(maximum - threshold, 2),
+            excess_kw=round(excess, 2),
+            energy_above_threshold_kwh=round(energy_above, 3),
+            severity=severity,
         )
 
     def _takt_deviation(self, rows: list[dict[str, str]]) -> float | None:
