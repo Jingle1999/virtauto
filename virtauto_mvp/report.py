@@ -11,9 +11,48 @@ from .models import DecisionEvaluation, DecisionReport, GovernanceResult, Indust
 class ReportBuilder:
     version = "0.1.0"
 
-    def build(self, context: IndustrialContext, decision: DecisionEvaluation, governance: GovernanceResult, config: dict) -> DecisionReport:
-        selected = next((o for o in decision.options if o.option_id == governance.recommended_option_id), decision.options[0])
-        peak = max(context.trigger["peak_events"], key=lambda p: p["maximum_power_kw"], default=None)
+    def build(
+        self,
+        context: IndustrialContext,
+        decision: DecisionEvaluation,
+        governance: GovernanceResult,
+        config: dict,
+    ) -> DecisionReport:
+        selected = next(
+            (
+                option
+                for option in decision.options
+                if option.option_id == governance.recommended_option_id
+            ),
+            decision.options[0],
+        )
+
+        peak = max(
+            context.trigger["peak_events"],
+            key=lambda item: item["maximum_power_kw"],
+            default=None,
+        )
+
+        price_eur_per_kwh = context.energy.get(
+            "assumed_price_eur_per_kwh"
+        )
+
+        energy_above_threshold_kwh = (
+            peak.get("energy_above_threshold_kwh")
+            if peak
+            else None
+        )
+
+        estimated_excess_energy_cost_eur = None
+        if (
+            energy_above_threshold_kwh is not None
+            and price_eur_per_kwh is not None
+        ):
+            estimated_excess_energy_cost_eur = round(
+                energy_above_threshold_kwh * price_eur_per_kwh,
+                2,
+            )
+
         return DecisionReport(
             identity={
                 "report_id": f"REP-{context.dataset_id}",
@@ -32,13 +71,60 @@ class ReportBuilder:
                 "headline": selected.title,
                 "confidence": selected.confidence,
                 "execution_mode": governance.execution_mode,
+                "peak_severity": (
+                    peak.get("severity")
+                    if peak
+                    else "NONE"
+                ),
+                "recommendation_status": decision.recommendation.get(
+                    "status"
+                ),
             },
             situation={
                 "trigger": context.trigger["type"],
-                "severity": context.trigger["severity"],
-                "maximum_power_kw": peak["maximum_power_kw"] if peak else context.energy["maximum_power_kw"],
+                "severity": (
+                    peak.get("severity")
+                    if peak
+                    else context.trigger["severity"]
+                ),
+                "peak_detected": peak is not None,
+                "peak_start": peak.get("start") if peak else None,
+                "peak_end": peak.get("end") if peak else None,
+                "peak_duration_minutes": (
+                    peak.get("duration_minutes")
+                    if peak
+                    else 0
+                ),
+                "maximum_power_kw": (
+                    peak.get("maximum_power_kw")
+                    if peak
+                    else context.energy["maximum_power_kw"]
+                ),
+                "average_peak_power_kw": (
+                    peak.get("average_power_kw")
+                    if peak
+                    else None
+                ),
                 "threshold_kw": context.energy["peak_threshold_kw"],
-                "excess_kw": peak["excess_kw"] if peak else 0,
+                "excess_kw": (
+                    peak.get("excess_kw")
+                    if peak
+                    else 0
+                ),
+                "energy_above_threshold_kwh": (
+                    energy_above_threshold_kwh
+                ),
+                "assumed_price_eur_per_kwh": price_eur_per_kwh,
+               "estimated_excess_energy_cost_eur": (
+                   estimated_excess_energy_cost_eur
+                ),
+                "peak_event_count": context.energy.get(
+                    "peak_event_count",
+                    0,
+                ),
+                "average_power_kw": context.energy.get(
+                    "average_power_kw"
+                ),
                 "analysis_window": context.analysis_window,
             },
             industrial_context={
@@ -53,9 +139,17 @@ class ReportBuilder:
                 "type": selected.option_type,
                 "title": selected.title,
                 "explanation": selected.explanation,
+                "score": selected.score,
+                "confidence": selected.confidence,
+                "status": selected.status,
+                "risks": selected.risks,
+                "constraints": selected.constraints,
             },
             expected_impact=selected.expected_effects,
-            alternatives=[o.model_dump() for o in decision.options],
+            alternatives=[
+                option.model_dump()
+                for option in decision.options
+            ],
             governance=governance.model_dump(),
             data_quality={
                 **context.data_quality.model_dump(),
@@ -70,9 +164,12 @@ class ReportBuilder:
                 "report_builder_version": self.version,
                 "options_generated": len(decision.options),
                 "rules_evaluated": len(governance.rule_results),
+                "decision_type": decision.decision_type,
+                "execution_mode": decision.execution_mode,
+                "baseline_option_id": decision.baseline_option_id,
             },
         )
-
+    
     def write(self, report: DecisionReport, output_dir: str | Path) -> dict[str, str]:
         output = Path(output_dir)
         output.mkdir(parents=True, exist_ok=True)

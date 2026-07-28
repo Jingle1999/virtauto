@@ -7,22 +7,34 @@
     "site_id": "PLANT_01",
     "area_id": "BIW",
     "line_id": "DOOR_LINE_01",
-    "generated_at": "2026-07-27T14:15:08.263387+00:00",
-    "valid_until": "2026-07-27T14:30:08.263350+00:00",
+    "generated_at": "2026-07-28T18:22:24.796877+00:00",
+    "valid_until": "2026-07-28T18:37:24.796817+00:00",
     "retention_mode": "EPHEMERAL"
   },
   "executive_decision": {
     "status": "ALLOW_ADVISORY_WITH_CONDITIONS",
     "headline": "Nicht produktionskritischer Nebenverbraucher zeitlich verschieben",
     "confidence": "MEDIUM",
-    "execution_mode": "PROPOSE_ONLY"
+    "execution_mode": "PROPOSE_ONLY",
+    "peak_severity": "HIGH",
+    "recommendation_status": "PROVISIONAL"
   },
   "situation": {
     "trigger": "PEAK_ACTIVE",
     "severity": "HIGH",
+    "peak_detected": true,
+    "peak_start": "2026-06-19T10:16:00",
+    "peak_end": "2026-06-19T10:18:00",
+    "peak_duration_minutes": 3,
     "maximum_power_kw": 243.16,
+    "average_peak_power_kw": 218.71,
     "threshold_kw": 180.0,
     "excess_kw": 63.16,
+    "energy_above_threshold_kwh": 1.935,
+    "assumed_price_eur_per_kwh": 0.34,
+    "estimated_excess_energy_cost_eur": 0.66,
+    "peak_event_count": 5,
+    "average_power_kw": 102.17,
     "analysis_window": {
       "start": "2026-06-01T00:00:00",
       "end": "2026-06-30T23:59:00"
@@ -70,7 +82,16 @@
     "option_id": "OPT-001",
     "type": "DEFER_FLEXIBLE_LOAD",
     "title": "Nicht produktionskritischer Nebenverbraucher zeitlich verschieben",
-    "explanation": "A known non-critical flexible load can reduce the peak without directly changing the production process."
+    "explanation": "A known non-critical flexible load can reduce the peak without directly changing the production process.",
+    "score": 84.58,
+    "confidence": "MEDIUM",
+    "status": "FEASIBLE",
+    "risks": {
+      "production": "LOW",
+      "quality": "LOW",
+      "material_flow": "LOW"
+    },
+    "constraints": []
   },
   "expected_impact": {
     "target_asset": "AUX_03",
@@ -164,12 +185,12 @@
       }
     ],
     "execution_mode": "PROPOSE_ONLY",
-    "valid_until": "2026-07-27T14:30:08.263350+00:00"
+    "valid_until": "2026-07-28T18:37:24.796817+00:00"
   },
   "data_quality": {
     "rows": 43200,
     "columns": 12,
-    "missing_required_values": 16140,
+    "missing_required_values": 0,
     "duplicate_timestamps": 0,
     "interval_minutes": 1.0,
     "decision_readiness": "READY",
@@ -188,6 +209,9 @@
     "governance_gate_version": "0.1.0",
     "report_builder_version": "0.1.0",
     "options_generated": 2,
-    "rules_evaluated": 4
+    "rules_evaluated": 4,
+    "decision_type": "BIW_ENERGY_PEAK_MITIGATION",
+    "execution_mode": "PROPOSE_ONLY",
+    "baseline_option_id": "OPT-000"
   }
 }
