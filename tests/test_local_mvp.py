@@ -2,6 +2,7 @@ import csv
 from pathlib import Path
 
 import pytest
+import yaml
 
 from virtauto_mvp.pipeline import run_pipeline
 
@@ -103,3 +104,49 @@ def test_unsorted_rows_are_processed_chronologically(tmp_path: Path):
 
     assert context.analysis_window["start"] == expected_start
     assert context.analysis_window["end"] == expected_end
+
+def test_peak_shorter_than_minimum_duration_is_ignored(tmp_path: Path):
+    source_csv = Path("local_mvp/input/biw_door_line_anomalies_30d.csv")
+    short_peak_csv = tmp_path / "short_peak.csv"
+    config_path = tmp_path / "config.yaml"
+
+    with source_csv.open("r", encoding="utf-8-sig", newline="") as source:
+        rows = list(csv.DictReader(source))
+        fieldnames = list(rows[0].keys())
+
+    # Alle Werte zunächst sicher unter die Peak-Grenze setzen.
+    for row in rows:
+        row["power_kw"] = "100"
+
+    # Genau eine Minute oberhalb der Schwelle.
+    rows[100]["power_kw"] = "220"
+
+    with short_peak_csv.open("w", encoding="utf-8", newline="") as target:
+        writer = csv.DictWriter(target, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    with Path("local_mvp/demo_config.yaml").open(
+        "r",
+        encoding="utf-8",
+    ) as source:
+        config = yaml.safe_load(source)
+
+    config["analysis"]["minimum_peak_duration_minutes"] = 3
+
+    with config_path.open("w", encoding="utf-8") as target:
+        yaml.safe_dump(
+            config,
+            target,
+            sort_keys=False,
+            allow_unicode=True,
+        )
+
+    result = run_pipeline(
+        short_peak_csv,
+        config_path,
+        tmp_path / "output",
+    )
+
+    assert result["context"].trigger["active"] is False
+    assert result["context"].energy["peak_event_count"] == 0

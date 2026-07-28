@@ -95,7 +95,15 @@ class ContextBuilder:
         powers = [_as_float(r.get("power_kw")) for r in rows]
         valid_powers = [v for v in powers if v is not None]
         threshold = float(config["analysis"]["peak_threshold_kw"])
-        peaks = self._detect_peaks(rows, threshold)
+        minimum_peak_duration = int(
+            config["analysis"].get("minimum_peak_duration_minutes", 1)
+        )
+
+        peaks = self._detect_peaks(
+            rows,
+            threshold,
+            minimum_peak_duration,
+        )
         run_rows = [r for r in rows if r.get("production_state") == "RUN"]
         run_powers = [_as_float(r.get("power_kw")) for r in run_rows]
         run_powers = [v for v in run_powers if v is not None]
@@ -256,18 +264,32 @@ class ContextBuilder:
             issues=issues,
         )
     
-    def _detect_peaks(self, rows: list[dict[str, str]], threshold: float) -> list[PeakEvent]:
+    def _detect_peaks(
+        self,
+        rows: list[dict[str, str]],
+        threshold: float,
+        minimum_duration_minutes: int,
+    ) -> list[PeakEvent]:
         events: list[PeakEvent] = []
         current: list[dict[str, str]] = []
+
         for row in rows:
             power = _as_float(row.get("power_kw"))
+
             if power is not None and power > threshold:
                 current.append(row)
             elif current:
-                events.append(self._to_peak(current, threshold))
+                if len(current) >= minimum_duration_minutes:
+                    events.append(
+                        self._to_peak(current, threshold)
+                    )
                 current = []
-        if current:
-            events.append(self._to_peak(current, threshold))
+
+        if current and len(current) >= minimum_duration_minutes:
+            events.append(
+                self._to_peak(current, threshold)
+            )
+
         return events
 
     def _to_peak(self, rows: list[dict[str, str]], threshold: float) -> PeakEvent:
