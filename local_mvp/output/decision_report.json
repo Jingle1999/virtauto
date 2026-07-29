@@ -1,0 +1,217 @@
+{
+  "identity": {
+    "report_id": "REP-ce8ab93bda58834e",
+    "decision_id": "DEC-ce8ab93bda58834e",
+    "context_id": "CTX-ce8ab93bda58834e",
+    "contract_id": "DC-BIW-ENERGY-001",
+    "site_id": "PLANT_01",
+    "area_id": "BIW",
+    "line_id": "DOOR_LINE_01",
+    "generated_at": "2026-07-28T18:22:24.796877+00:00",
+    "valid_until": "2026-07-28T18:37:24.796817+00:00",
+    "retention_mode": "EPHEMERAL"
+  },
+  "executive_decision": {
+    "status": "ALLOW_ADVISORY_WITH_CONDITIONS",
+    "headline": "Nicht produktionskritischer Nebenverbraucher zeitlich verschieben",
+    "confidence": "MEDIUM",
+    "execution_mode": "PROPOSE_ONLY",
+    "peak_severity": "HIGH",
+    "recommendation_status": "PROVISIONAL"
+  },
+  "situation": {
+    "trigger": "PEAK_ACTIVE",
+    "severity": "HIGH",
+    "peak_detected": true,
+    "peak_start": "2026-06-19T10:16:00",
+    "peak_end": "2026-06-19T10:18:00",
+    "peak_duration_minutes": 3,
+    "maximum_power_kw": 243.16,
+    "average_peak_power_kw": 218.71,
+    "threshold_kw": 180.0,
+    "excess_kw": 63.16,
+    "energy_above_threshold_kwh": 1.935,
+    "assumed_price_eur_per_kwh": 0.34,
+    "estimated_excess_energy_cost_eur": 0.66,
+    "peak_event_count": 5,
+    "average_power_kw": 102.17,
+    "analysis_window": {
+      "start": "2026-06-01T00:00:00",
+      "end": "2026-06-30T23:59:00"
+    }
+  },
+  "industrial_context": {
+    "production": {
+      "state_counts": {
+        "CHANGEOVER": 660,
+        "RUN": 27060,
+        "IDLE": 3960,
+        "OFF": 10560,
+        "STANDBY": 960
+      },
+      "parts_produced": 27060,
+      "takt_deviation_pct": 0.16,
+      "status": "STABLE",
+      "anomaly_counts": {
+        "peak_spike": 24,
+        "idle_loss": 60,
+        "air_leak": 5427,
+        "standby_violation": 108,
+        "takt_drift": 410
+      }
+    },
+    "quality": {
+      "status": "STABLE",
+      "quality_gate_open": true
+    },
+    "material_flow": {
+      "buffer_id": "BUFFER_01",
+      "buffer_level_units": 60,
+      "buffer_capacity_units": 100,
+      "buffer_autonomy_minutes": 18
+    },
+    "order": {
+      "order_id": "ORDER_DEMO_001",
+      "priority": "HIGH",
+      "reschedulable": true,
+      "delay_tolerance_minutes": 10
+    },
+    "summary": "43,200 one-minute records were analysed. 5 peak event(s) above 180.0 kW were detected. The maximum measured power was 243.2 kW."
+  },
+  "recommendation": {
+    "option_id": "OPT-001",
+    "type": "DEFER_FLEXIBLE_LOAD",
+    "title": "Nicht produktionskritischer Nebenverbraucher zeitlich verschieben",
+    "explanation": "A known non-critical flexible load can reduce the peak without directly changing the production process.",
+    "score": 84.58,
+    "confidence": "MEDIUM",
+    "status": "FEASIBLE",
+    "risks": {
+      "production": "LOW",
+      "quality": "LOW",
+      "material_flow": "LOW"
+    },
+    "constraints": []
+  },
+  "expected_impact": {
+    "target_asset": "AUX_03",
+    "peak_reduction_kw": 35.0,
+    "remaining_excess_kw": 28.16,
+    "duration_minutes": 15,
+    "expected_delay_minutes": 0,
+    "expected_oee_change": 0.0
+  },
+  "alternatives": [
+    {
+      "option_id": "OPT-001",
+      "option_type": "DEFER_FLEXIBLE_LOAD",
+      "title": "Nicht produktionskritischer Nebenverbraucher zeitlich verschieben",
+      "expected_effects": {
+        "target_asset": "AUX_03",
+        "peak_reduction_kw": 35.0,
+        "remaining_excess_kw": 28.16,
+        "duration_minutes": 15,
+        "expected_delay_minutes": 0,
+        "expected_oee_change": 0.0
+      },
+      "risks": {
+        "production": "LOW",
+        "quality": "LOW",
+        "material_flow": "LOW"
+      },
+      "constraints": [],
+      "score": 84.58,
+      "status": "FEASIBLE",
+      "confidence": "MEDIUM",
+      "explanation": "A known non-critical flexible load can reduce the peak without directly changing the production process."
+    },
+    {
+      "option_id": "OPT-000",
+      "option_type": "MAINTAIN_CURRENT_OPERATION",
+      "title": "Betrieb unverändert fortführen",
+      "expected_effects": {
+        "peak_reduction_kw": 0.0,
+        "expected_delay_minutes": 0,
+        "expected_oee_change": 0.0
+      },
+      "risks": {
+        "production": "LOW",
+        "quality": "LOW",
+        "energy": "HIGH"
+      },
+      "constraints": [],
+      "score": 55.0,
+      "status": "FEASIBLE",
+      "confidence": "HIGH",
+      "explanation": "Baseline for comparison; no operational intervention is made."
+    }
+  ],
+  "governance": {
+    "status": "ALLOW_ADVISORY_WITH_CONDITIONS",
+    "decision_id": "DEC-ce8ab93bda58834e",
+    "recommended_option_id": "OPT-001",
+    "conditions": [
+      "Production Manager confirms that AUX_03 is operationally deferrable."
+    ],
+    "required_approvals": [
+      "Production Manager"
+    ],
+    "required_reviews": [
+      "Energy Manager"
+    ],
+    "veto_roles": [
+      "Quality Manager"
+    ],
+    "rule_results": [
+      {
+        "rule_id": "GOV-DATA-001",
+        "result": "PASS",
+        "explanation": "The dataset must be decision-capable."
+      },
+      {
+        "rule_id": "GOV-EXEC-001",
+        "result": "PASS",
+        "explanation": "Only advisory execution is permitted."
+      },
+      {
+        "rule_id": "GOV-QUALITY-001",
+        "result": "PASS",
+        "explanation": "Critical quality conditions block production-related advice."
+      },
+      {
+        "rule_id": "GOV-BUFFER-001",
+        "result": "PASS",
+        "explanation": "Buffer fill must remain above the configured minimum."
+      }
+    ],
+    "execution_mode": "PROPOSE_ONLY",
+    "valid_until": "2026-07-28T18:37:24.796817+00:00"
+  },
+  "data_quality": {
+    "rows": 43200,
+    "columns": 12,
+    "missing_required_values": 0,
+    "duplicate_timestamps": 0,
+    "interval_minutes": 1.0,
+    "decision_readiness": "READY",
+    "issues": [],
+    "context_confidence": "HIGH",
+    "recommendation_confidence": "MEDIUM"
+  },
+  "assumptions": [
+    "Energy price is supplied by configuration, not by the CSV.",
+    "Quality, buffer and order state are supplied by demo configuration.",
+    "Expected load reductions are engineering assumptions for the demo."
+  ],
+  "audit": {
+    "context_builder_version": "0.1.0",
+    "decision_engine_version": "0.1.0",
+    "governance_gate_version": "0.1.0",
+    "report_builder_version": "0.1.0",
+    "options_generated": 2,
+    "rules_evaluated": 4,
+    "decision_type": "BIW_ENERGY_PEAK_MITIGATION",
+    "execution_mode": "PROPOSE_ONLY",
+    "baseline_option_id": "OPT-000"
+  }
+}
