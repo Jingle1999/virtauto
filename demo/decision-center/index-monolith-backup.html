@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>virtauto Decision Center</title>
+
+  <style>
+    :root {
+      --background: #070f1d;
+      --surface: #0d1b30;
+      --surface-light: #122642;
+      --border: #263f60;
+      --text: #f3f7fc;
+      --muted: #9bb3cf;
+      --blue: #3ba3ff;
+      --cyan: #33d7da;
+      --green: #2dd4a7;
+      --yellow: #ffbf3f;
+      --red: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(51, 215, 218, 0.09),
+          transparent 32%
+        ),
+        var(--background);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .page {
+      width: min(1220px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 60px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 20px;
+      margin-bottom: 22px;
+      background: rgba(13, 27, 48, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      color: #02131e;
+      font-weight: 900;
+      font-size: 20px;
+      background:
+        linear-gradient(
+          135deg,
+          var(--cyan),
+          var(--blue)
+        );
+    }
+
+    .brand-name {
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .brand-subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 15px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .button:hover {
+      border-color: var(--blue);
+    }
+
+    .button-primary {
+      color: #03121e;
+      font-weight: 800;
+      border-color: transparent;
+      background:
+        linear-gradient(
+          135deg,
+          var(--cyan),
+          var(--blue)
+        );
+    }
+
+    .hero {
+      padding: 34px;
+      margin-bottom: 22px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(18, 38, 66, 0.98),
+          rgba(13, 27, 48, 0.98)
+        );
+    }
+
+    .eyebrow {
+      margin-bottom: 12px;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin: 0;
+      font-size: clamp(34px, 5vw, 62px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-description {
+      max-width: 850px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 24px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 11px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(7, 15, 29, 0.48);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge-green {
+      color: var(--green);
+      border-color: rgba(45, 212, 167, 0.45);
+    }
+
+    .badge-yellow {
+      color: var(--yellow);
+      border-color: rgba(255, 191, 63, 0.45);
+    }
+
+    .badge-red {
+      color: var(--red);
+      border-color: rgba(255, 107, 107, 0.45);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .metric-card,
+    .panel {
+      border: 1px solid var(--border);
+      background: rgba(13, 27, 48, 0.9);
+    }
+
+    .metric-card {
+      min-height: 135px;
+      padding: 20px;
+      border-radius: 16px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      margin-top: 13px;
+      font-size: 25px;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .metric-subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(310px, 0.75fr);
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 24px;
+      border-radius: 18px;
+    }
+
+    .panel + .panel {
+      margin-top: 18px;
+    }
+
+    .panel-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .panel-label {
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 6px 0 0;
+      font-size: 23px;
+    }
+
+    .recommendation {
+      padding: 20px;
+      border: 1px solid rgba(45, 212, 167, 0.38);
+      border-radius: 14px;
+      background: rgba(45, 212, 167, 0.05);
+    }
+
+    .recommendation-title {
+      font-size: 20px;
+      font-weight: 850;
+      line-height: 1.3;
+    }
+
+    .recommendation-description {
+      margin-top: 10px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(38, 63, 96, 0.7);
+    }
+
+    .list-item:last-child {
+      border-bottom: 0;
+    }
+
+    .list-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .list-value {
+      max-width: 60%;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 750;
+      overflow-wrap: anywhere;
+    }
+
+    .option-card {
+      padding: 17px;
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: rgba(18, 38, 66, 0.55);
+    }
+
+    .option-card.recommended {
+      border-color: rgba(45, 212, 167, 0.55);
+    }
+
+    .option-title {
+      font-weight: 800;
+      line-height: 1.4;
+    }
+
+    .option-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    details {
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(7, 15, 29, 0.45);
+    }
+
+    summary {
+      padding: 14px 16px;
+      cursor: pointer;
+      font-weight: 750;
+    }
+
+    pre {
+      max-height: 500px;
+      margin: 0;
+      padding: 18px;
+      overflow: auto;
+      color: #c9d9ea;
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .empty-state {
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+    }
+
+    .error-box {
+      display: none;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      color: #ffd0d0;
+      border: 1px solid rgba(255, 107, 107, 0.55);
+      border-radius: 12px;
+      background: rgba(255, 107, 107, 0.08);
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 28px;
+      padding: 20px 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        width: min(100% - 20px, 1220px);
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .hero {
+        padding: 24px 20px;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      footer {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">V°</div>
+
+        <div>
+          <div class="brand-name">virtauto Decision Center</div>
+          <div class="brand-subtitle">
+            Decision Intelligence for Industrial Operations
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <a class="button" href="../../biw-energy.html">
+          Energy Scan
+        </a>
+
+        <button
+          class="button button-primary"
+          type="button"
+          id="reloadButton"
+        >
+          Reload Decision
+        </button>
+      </div>
+    </header>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <main id="decisionCenter">
+      <section class="hero">
+        <div class="eyebrow">Decision Center</div>
+
+        <h1 id="decisionTitle">
+          Loading Decision Object …
+        </h1>
+
+        <p class="hero-description" id="decisionDescription">
+          The Decision Center is loading the industrial context,
+          recommendation and governance data.
+        </p>
+
+        <div class="status-row">
+          <span class="badge" id="statusBadge">Status: —</span>
+          <span class="badge" id="priorityBadge">Priority: —</span>
+          <span class="badge" id="domainBadge">Domain: —</span>
+          <span class="badge" id="decisionIdBadge">ID: —</span>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="metric-card">
+          <div class="metric-label">Site</div>
+          <div class="metric-value" id="siteValue">—</div>
+          <div class="metric-subtitle">Industrial location</div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-label">Area / Line</div>
+          <div class="metric-value" id="lineValue">—</div>
+          <div class="metric-subtitle">Affected production scope</div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-label">Trigger</div>
+          <div class="metric-value" id="triggerValue">—</div>
+          <div class="metric-subtitle" id="triggerSubtitle">
+            Operational signal
+          </div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-label">Recommended action</div>
+          <div class="metric-value" id="actionValue">—</div>
+          <div class="metric-subtitle">
+            Proposed operational response
+          </div>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <div>
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Recommendation</div>
+                <h2>Executive decision</h2>
+              </div>
+
+              <span class="badge badge-green" id="governanceBadge">
+                Governance: —
+              </span>
+            </div>
+
+            <div class="recommendation">
+              <div
+                class="recommendation-title"
+                id="recommendationTitle"
+              >
+                —
+              </div>
+
+              <div
+                class="recommendation-description"
+                id="recommendationDescription"
+              >
+                —
+              </div>
+
+              <div class="option-meta">
+                <span class="badge" id="scoreBadge">Score: —</span>
+                <span class="badge" id="confidenceBadge">
+                  Confidence: —
+                </span>
+                <span class="badge" id="executionModeBadge">
+                  Mode: —
+                </span>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Decision space</div>
+                <h2>Evaluated options</h2>
+              </div>
+            </div>
+
+            <div id="optionsContainer">
+              <div class="empty-state">
+                No options loaded yet.
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Transparency</div>
+                <h2>Complete Decision Object</h2>
+              </div>
+            </div>
+
+            <details>
+              <summary>Show raw JSON</summary>
+              <pre id="rawJson">Loading …</pre>
+            </details>
+          </article>
+        </div>
+
+        <aside>
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Industrial context</div>
+                <h2>Situation</h2>
+              </div>
+            </div>
+
+            <div class="list" id="situationList"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Governance</div>
+                <h2>Decision approval</h2>
+              </div>
+            </div>
+
+            <div class="list" id="governanceList"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Impact</div>
+                <h2>Expected effects</h2>
+              </div>
+            </div>
+
+            <div class="list" id="impactList"></div>
+          </article>
+        </aside>
+      </section>
+    </main>
+
+    <footer>
+      <span>© 2026 virtauto®</span>
+      <span>Decision Object Viewer 0.1.0</span>
+    </footer>
+  </div>
+
+  <script>
+    const DECISION_OBJECT_URL =
+      "./decision-object-energy-001.json";
+
+    const getFirst = (...values) =>
+      values.find(
+        (value) =>
+          value !== undefined &&
+          value !== null &&
+          value !== ""
+      );
+
+    const formatValue = (value) => {
+      if (value === undefined || value === null || value === "") {
+        return "—";
+      }
+
+      if (typeof value === "boolean") {
+        return value ? "Yes" : "No";
+      }
+
+      if (Array.isArray(value)) {
+        return value.length ? value.join(", ") : "—";
+      }
+
+      if (typeof value === "object") {
+        return JSON.stringify(value);
+      }
+
+      return String(value);
+    };
+
+    const setText = (id, value) => {
+      const element = document.getElementById(id);
+
+      if (element) {
+        element.textContent = formatValue(value);
+      }
+    };
+
+    const renderList = (containerId, entries) => {
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+
+      const usableEntries = entries.filter(
+        ([, value]) =>
+          value !== undefined &&
+          value !== null &&
+          value !== ""
+      );
+
+      if (!usableEntries.length) {
+        container.innerHTML =
+          '<div class="empty-state">No information available.</div>';
+        return;
+      }
+
+      usableEntries.forEach(([label, value]) => {
+        const row = document.createElement("div");
+        row.className = "list-item";
+
+        const labelElement = document.createElement("div");
+        labelElement.className = "list-label";
+        labelElement.textContent = label;
+
+        const valueElement = document.createElement("div");
+        valueElement.className = "list-value";
+        valueElement.textContent = formatValue(value);
+
+        row.append(labelElement, valueElement);
+        container.appendChild(row);
+      });
+    };
+
+    const renderOptions = (decisionObject) => {
+      const container =
+        document.getElementById("optionsContainer");
+
+      const recommendation =
+        decisionObject.recommendation || {};
+
+      const options =
+        getFirst(
+          decisionObject.options,
+          decisionObject.alternatives,
+          decisionObject.decision?.options,
+          []
+        ) || [];
+
+      container.innerHTML = "";
+
+      if (!Array.isArray(options) || options.length === 0) {
+        const fallback = document.createElement("div");
+        fallback.className = "empty-state";
+        fallback.textContent =
+          "This Decision Object currently contains no separate option list.";
+        container.appendChild(fallback);
+        return;
+      }
+
+      options.forEach((option, index) => {
+        const optionId = getFirst(
+          option.option_id,
+          option.id,
+          option.type,
+          `OPTION_${index + 1}`
+        );
+
+        const recommendedId = getFirst(
+          recommendation.option_id,
+          recommendation.recommended_option_id,
+          decisionObject.recommended_option_id
+        );
+
+        const card = document.createElement("div");
+        card.className =
+          "option-card" +
+          (optionId === recommendedId ? " recommended" : "");
+
+        const title = document.createElement("div");
+        title.className = "option-title";
+        title.textContent = getFirst(
+          option.title,
+          option.name,
+          option.explanation,
+          optionId
+        );
+
+        const description = document.createElement("div");
+        description.className = "recommendation-description";
+        description.textContent = getFirst(
+          option.explanation,
+          option.description,
+          "No additional explanation available."
+        );
+
+        const meta = document.createElement("div");
+        meta.className = "option-meta";
+
+        [
+          ["ID", optionId],
+          ["Score", option.score],
+          ["Status", option.status],
+          ["Confidence", option.confidence]
+        ].forEach(([label, value]) => {
+          if (
+            value === undefined ||
+            value === null ||
+            value === ""
+          ) {
+            return;
+          }
+
+          const badge = document.createElement("span");
+          badge.className = "badge";
+          badge.textContent = `${label}: ${formatValue(value)}`;
+          meta.appendChild(badge);
+        });
+
+        card.append(title, description, meta);
+        container.appendChild(card);
+      });
+    };
+
+    const renderDecisionObject = (data) => {
+      const title = getFirst(
+        data.title?.en,
+        data.title,
+        data.recommendation?.title,
+        data.decision?.headline,
+        "Industrial Decision"
+      );
+
+      const recommendation =
+        data.recommendation || data.decision || {};
+
+      const governance = data.governance || {};
+      const scope = data.scope || {};
+      const trigger = data.trigger || {};
+      const situation = data.situation || {};
+      const impact =
+        data.expected_impact ||
+        recommendation.expected_effects ||
+        {};
+
+      setText("decisionTitle", title);
+
+      setText(
+        "decisionDescription",
+        getFirst(
+          recommendation.explanation,
+          recommendation.description,
+          situation.summary,
+          "A governed industrial decision generated from operational context."
+        )
+      );
+
+      setText(
+        "statusBadge",
+        `Status: ${getFirst(data.status, governance.status, "—")}`
+      );
+
+      setText(
+        "priorityBadge",
+        `Priority: ${getFirst(data.priority, "—")}`
+      );
+
+      setText(
+        "domainBadge",
+        `Domain: ${getFirst(data.domain, "—")}`
+      );
+
+      setText(
+        "decisionIdBadge",
+        `ID: ${getFirst(
+          data.decision_object_id,
+          data.decision_id,
+          "—"
+        )}`
+      );
+
+      setText("siteValue", scope.site_id);
+      setText(
+        "lineValue",
+        [scope.area_id, scope.line_id]
+          .filter(Boolean)
+          .join(" / ")
+      );
+
+      setText(
+        "triggerValue",
+        getFirst(trigger.type, situation.trigger)
+      );
+
+      setText(
+        "triggerSubtitle",
+        getFirst(
+          trigger.detected_at,
+          trigger.severity
+            ? `Severity: ${trigger.severity}`
+            : "Operational signal"
+        )
+      );
+
+      setText(
+        "actionValue",
+        getFirst(
+          recommendation.type,
+          recommendation.option_id,
+          data.decision_type
+        )
+      );
+
+      setText(
+        "recommendationTitle",
+        getFirst(
+          recommendation.title,
+          recommendation.headline,
+          title
+        )
+      );
+
+      setText(
+        "recommendationDescription",
+        getFirst(
+          recommendation.explanation,
+          recommendation.description,
+          "No recommendation explanation available."
+        )
+      );
+
+      setText(
+        "governanceBadge",
+        `Governance: ${getFirst(governance.status, data.status, "—")}`
+      );
+
+      setText(
+        "scoreBadge",
+        `Score: ${getFirst(
+          recommendation.score,
+          data.score,
+          "—"
+        )}`
+      );
+
+      setText(
+        "confidenceBadge",
+        `Confidence: ${getFirst(
+          recommendation.confidence,
+          data.confidence,
+          data.data_quality?.recommendation_confidence,
+          "—"
+        )}`
+      );
+
+      setText(
+        "executionModeBadge",
+        `Mode: ${getFirst(
+          governance.execution_mode,
+          data.execution_mode,
+          "—"
+        )}`
+      );
+
+      renderList("situationList", [
+        ["Trigger", getFirst(trigger.type, situation.trigger)],
+        ["Severity", getFirst(trigger.severity, situation.severity)],
+        ["Detected at", trigger.detected_at],
+        ["Valid until", getFirst(trigger.valid_until, governance.valid_until)],
+        ["Site", scope.site_id],
+        ["Area", scope.area_id],
+        ["Line", scope.line_id],
+        ["Stations", scope.station_ids],
+        ["Maximum power", situation.maximum_power_kw],
+        ["Threshold", situation.threshold_kw],
+        ["Excess", situation.excess_kw]
+      ]);
+
+      renderList("governanceList", [
+        ["Status", getFirst(governance.status, data.status)],
+        ["Execution mode", governance.execution_mode],
+        ["Decision owner", governance.decision_owner],
+        ["Required approvals", governance.required_approvals],
+        ["Required reviews", governance.required_reviews],
+        ["Veto roles", governance.veto_roles],
+        ["Valid until", governance.valid_until],
+        ["Conditions", governance.conditions]
+      ]);
+
+      renderList(
+        "impactList",
+        Object.entries(impact)
+      );
+
+      renderOptions(data);
+
+      document.getElementById("rawJson").textContent =
+        JSON.stringify(data, null, 2);
+    };
+
+    const showError = (message) => {
+      const errorBox = document.getElementById("errorBox");
+      errorBox.style.display = "block";
+      errorBox.textContent = message;
+    };
+
+    const clearError = () => {
+      const errorBox = document.getElementById("errorBox");
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+    };
+
+    const loadDecisionObject = async () => {
+      clearError();
+
+      try {
+        const response = await fetch(
+          `${DECISION_OBJECT_URL}?t=${Date.now()}`
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Decision Object could not be loaded: HTTP ${response.status}`
+          );
+        }
+
+        const data = await response.json();
+        renderDecisionObject(data);
+      } catch (error) {
+        console.error(error);
+
+        showError(
+          `${error.message}. Open this page through the local HTTP server, not directly as a file.`
+        );
+
+        setText(
+          "decisionTitle",
+          "Decision Object could not be loaded"
+        );
+      }
+    };
+
+    document
+      .getElementById("reloadButton")
+      .addEventListener("click", loadDecisionObject);
+
+    loadDecisionObject();
+  </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>virtauto Decision Center</title>
+  <link rel="stylesheet" href="css/decision-center.css">
+
+
+</head>
+
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">V°</div>
+
+        <div>
+          <div class="brand-name">virtauto Decision Center</div>
+          <div class="brand-subtitle">
+            Decision Intelligence for Industrial Operations
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <a class="button" href="../../biw-energy.html">
+          Energy Scan
+        </a>
+
+        <button
+          class="button button-primary"
+          type="button"
+          id="reloadButton"
+        >
+          Reload Decision
+        </button>
+      </div>
+    </header>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <main id="decisionCenter">
+      <section class="hero">
+        <div class="eyebrow">Decision Center</div>
+
+        <h1 id="decisionTitle">
+          Loading Decision Object …
+        </h1>
+
+        <p class="hero-description" id="decisionDescription">
+          The Decision Center is loading the industrial context,
+          recommendation and governance data.
+        </p>
+
+        <div class="status-row">
+          <span class="badge" id="statusBadge">Status: —</span>
+          <span class="badge" id="priorityBadge">Priority: —</span>
+          <span class="badge" id="domainBadge">Domain: —</span>
+          <span class="badge" id="decisionIdBadge">ID: —</span>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="metric-card">
+          <div class="metric-label">Site</div>
+          <div class="metric-value" id="siteValue">—</div>
+          <div class="metric-subtitle">Industrial location</div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-label">Area / Line</div>
+          <div class="metric-value" id="lineValue">—</div>
+          <div class="metric-subtitle">Affected production scope</div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-label">Trigger</div>
+          <div class="metric-value" id="triggerValue">—</div>
+          <div class="metric-subtitle" id="triggerSubtitle">
+            Operational signal
+          </div>
+        </article>
+
+        <article class="metric-card">
+          <div class="metric-label">Recommended action</div>
+          <div class="metric-value" id="actionValue">—</div>
+          <div class="metric-subtitle">
+            Proposed operational response
+          </div>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <div>
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Recommendation</div>
+                <h2>Executive decision</h2>
+              </div>
+
+              <span class="badge badge-green" id="governanceBadge">
+                Governance: —
+              </span>
+            </div>
+
+            <div class="recommendation">
+              <div
+                class="recommendation-title"
+                id="recommendationTitle"
+              >
+                —
+              </div>
+
+              <div
+                class="recommendation-description"
+                id="recommendationDescription"
+              >
+                —
+              </div>
+
+              <div class="option-meta">
+                <span class="badge" id="scoreBadge">Score: —</span>
+                <span class="badge" id="confidenceBadge">
+                  Confidence: —
+                </span>
+                <span class="badge" id="executionModeBadge">
+                  Mode: —
+                </span>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Decision space</div>
+                <h2>Evaluated options</h2>
+              </div>
+            </div>
+
+            <div id="optionsContainer">
+              <div class="empty-state">
+                No options loaded yet.
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Transparency</div>
+                <h2>Complete Decision Object</h2>
+              </div>
+            </div>
+
+            <details>
+              <summary>Show raw JSON</summary>
+              <pre id="rawJson">Loading …</pre>
+            </details>
+          </article>
+        </div>
+
+        <aside>
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Industrial context</div>
+                <h2>Situation</h2>
+              </div>
+            </div>
+
+            <div class="list" id="situationList"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Governance</div>
+                <h2>Decision approval</h2>
+              </div>
+            </div>
+
+            <div class="list" id="governanceList"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-heading">
+              <div>
+                <div class="panel-label">Impact</div>
+                <h2>Expected effects</h2>
+              </div>
+            </div>
+
+            <div class="list" id="impactList"></div>
+          </article>
+        </aside>
+      </section>
+    </main>
+
+    <footer>
+      <span>© 2026 virtauto®</span>
+      <span>Decision Object Viewer 0.1.0</span>
+    </footer>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+  
+</body>
+</html>
