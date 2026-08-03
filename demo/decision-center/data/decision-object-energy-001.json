@@ -1,0 +1,164 @@
+{
+  "schema_version": "0.1.0",
+  "decision_object_id": "DO-ENERGY-BIW-0001",
+  "decision_type": "ENERGY_PEAK_MITIGATION",
+  "domain": "ENERGY",
+  "status": "PENDING_REVIEW",
+  "priority": "HIGH",
+
+  "title": {
+    "en": "Shift a non-production-critical auxiliary load",
+    "de": "Nicht produktionskritischen Nebenverbraucher zeitlich verschieben"
+  },
+
+  "scope": {
+    "site_id": "PLANT_01",
+    "area_id": "BIW",
+    "line_id": "DOOR_LINE_01",
+    "station_ids": [
+      "AUX_03"
+    ]
+  },
+
+  "trigger": {
+    "type": "PEAK_ACTIVE",
+    "severity": "HIGH",
+    "detected_at": "2026-06-19T10:16:00Z",
+    "valid_until": null
+  },
+
+  "situation": {
+    "maximum_power_kw": 243.2,
+    "peak_threshold_kw": 180.0,
+    "excess_power_kw": 63.2,
+    "energy_above_threshold_kwh": 1.94,
+    "estimated_excess_cost_eur": 0.66,
+    "peak_event_count": 5
+  },
+
+  "evidence": [
+    {
+      "evidence_id": "EVIDENCE-001",
+      "source": "SCADA",
+      "signal": "total_power_kw",
+      "observation": "Measured power exceeded the configured threshold.",
+      "confidence": "HIGH"
+    },
+    {
+      "evidence_id": "EVIDENCE-002",
+      "source": "MES",
+      "signal": "production_state",
+      "observation": "The production process remained operationally stable during the analysed peak.",
+      "confidence": "HIGH"
+    },
+    {
+      "evidence_id": "EVIDENCE-003",
+      "source": "CONFIGURATION",
+      "signal": "asset_flexibility",
+      "observation": "AUX_03 is classified as a potentially deferrable auxiliary consumer.",
+      "confidence": "MEDIUM"
+    }
+  ],
+
+  "options": [
+    {
+      "option_id": "OPT-001",
+      "option_type": "DEFER_FLEXIBLE_LOAD",
+      "title": {
+        "en": "Shift AUX_03 outside the peak window",
+        "de": "AUX_03 aus dem Lastspitzenfenster verschieben"
+      },
+      "score": 85.0,
+      "status": "FEASIBLE",
+      "confidence": "MEDIUM",
+      "expected_effects": {
+        "peak_reduction_kw": 35.0,
+        "remaining_excess_kw": 28.2,
+        "expected_delay_minutes": 0,
+        "expected_oee_change_pct": 0.0
+      },
+      "risks": [
+        "Actual operational flexibility must be confirmed by the Production Manager."
+      ],
+      "constraints": [
+        "Production output must not be reduced.",
+        "Quality conditions must remain stable."
+      ]
+    },
+    {
+      "option_id": "OPT-002",
+      "option_type": "CONTINUE_BASELINE",
+      "title": {
+        "en": "Continue operation without intervention",
+        "de": "Betrieb ohne Eingriff fortführen"
+      },
+      "score": 55.0,
+      "status": "FEASIBLE",
+      "confidence": "HIGH",
+      "expected_effects": {
+        "peak_reduction_kw": 0.0,
+        "remaining_excess_kw": 63.2,
+        "expected_delay_minutes": 0,
+        "expected_oee_change_pct": 0.0
+      },
+      "risks": [
+        "The peak-load exposure remains unchanged."
+      ],
+      "constraints": []
+    }
+  ],
+
+  "recommendation": {
+    "recommended_option_id": "OPT-001",
+    "reason": {
+      "en": "The option provides the highest expected peak reduction without directly changing the production process.",
+      "de": "Die Option bietet die höchste erwartete Lastreduzierung, ohne den Produktionsprozess unmittelbar zu verändern."
+    },
+    "confidence": "MEDIUM"
+  },
+
+  "governance": {
+    "decision_mode": "PROPOSE_ONLY",
+    "verdict": "ALLOW_ADVISORY_WITH_CONDITIONS",
+    "decision_owner": "Production Manager",
+    "required_reviews": [
+      "Energy Manager"
+    ],
+    "veto_roles": [
+      "Quality Manager"
+    ],
+    "conditions": [
+      "The Production Manager confirms that AUX_03 is operationally deferrable.",
+      "No active quality restriction prevents the load shift."
+    ],
+    "autonomous_execution_allowed": false
+  },
+
+  "data_quality": {
+    "decision_readiness": "READY",
+    "context_confidence": "HIGH",
+    "recommendation_confidence": "MEDIUM",
+    "records_analysed": 43200,
+    "missing_required_values": 0
+  },
+
+  "uncertainties": [
+    "The electricity price is supplied through configuration.",
+    "The flexibility of AUX_03 is currently an engineering assumption.",
+    "Expected load reduction must be validated in a pilot."
+  ],
+
+  "lifecycle": {
+    "created_at": "2026-07-29T20:45:00Z",
+    "updated_at": "2026-07-29T20:45:00Z",
+    "created_by": "virtauto Decision Engine",
+    "expires_at": null
+  },
+
+  "audit": {
+    "context_builder_version": "0.1.0",
+    "decision_engine_version": "0.1.0",
+    "governance_gate_version": "0.1.0",
+    "report_builder_version": "0.1.0"
+  }
+}

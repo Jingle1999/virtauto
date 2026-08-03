@@ -1,0 +1,1194 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>virtauto Decision Center</title>
+
+    <style>
+        :root {
+            --background: #07101f;
+            --surface: #0d182b;
+            --surface-light: #12213a;
+            --border: #263a59;
+            --text: #f3f7fc;
+            --muted: #93a4bc;
+            --blue: #3ba3ff;
+            --cyan: #33d7d0;
+            --green: #2dd4a7;
+            --yellow: #f9b949;
+            --red: #ff6b6b;
+            --shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(circle at top right, rgba(59, 163, 255, 0.12), transparent 30%),
+                var(--background);
+            color: var(--text);
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+            line-height: 1.55;
+        }
+
+        .page {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 28px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            padding: 18px 22px;
+            margin-bottom: 24px;
+            background: rgba(13, 24, 43, 0.88);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 13px;
+            color: #06101e;
+            background: linear-gradient(135deg, var(--cyan), var(--blue));
+            font-size: 22px;
+            font-weight: 900;
+        }
+
+        .brand-name {
+            font-size: 1.08rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+
+        .brand-subtitle,
+        .muted {
+            color: var(--muted);
+        }
+
+        .report-meta {
+            text-align: right;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: 38px;
+            margin-bottom: 24px;
+            background:
+                linear-gradient(135deg, rgba(59, 163, 255, 0.14), transparent 60%),
+                var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            top: -100px;
+            right: -70px;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(51, 215, 208, 0.08);
+        }
+
+        .eyebrow {
+            margin-bottom: 9px;
+            color: var(--cyan);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin-top: 0;
+        }
+
+        h1 {
+            max-width: 850px;
+            margin-bottom: 12px;
+            font-size: clamp(2rem, 5vw, 3.8rem);
+            line-height: 1.04;
+            letter-spacing: -0.045em;
+        }
+
+        h2 {
+            margin-bottom: 18px;
+            font-size: 1.35rem;
+            letter-spacing: -0.02em;
+        }
+
+        h3 {
+            font-size: 1rem;
+        }
+
+        .hero-description {
+            max-width: 830px;
+            margin-bottom: 24px;
+            color: #c4d0df;
+            font-size: 1.02rem;
+        }
+
+        .status-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.035);
+            color: #dce6f3;
+            font-size: 0.78rem;
+            font-weight: 750;
+        }
+
+        .badge-success {
+            border-color: rgba(45, 212, 167, 0.38);
+            background: rgba(45, 212, 167, 0.10);
+            color: #80f0cf;
+        }
+
+        .badge-warning {
+            border-color: rgba(249, 185, 73, 0.42);
+            background: rgba(249, 185, 73, 0.10);
+            color: #ffd37f;
+        }
+
+        .badge-danger {
+            border-color: rgba(255, 107, 107, 0.42);
+            background: rgba(255, 107, 107, 0.10);
+            color: #ffaaaa;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi {
+            min-height: 150px;
+            padding: 22px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .kpi-label {
+            margin-bottom: 12px;
+            color: var(--muted);
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+        }
+
+        .kpi-value {
+            margin-bottom: 7px;
+            font-size: clamp(1.65rem, 3vw, 2.35rem);
+            font-weight: 850;
+            line-height: 1.05;
+        }
+
+        .kpi-detail {
+            color: var(--muted);
+            font-size: 0.83rem;
+        }
+
+        .accent-blue {
+            color: var(--blue);
+        }
+
+        .accent-green {
+            color: var(--green);
+        }
+
+        .accent-yellow {
+            color: var(--yellow);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.25fr 0.75fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            padding: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 20px;
+            margin-bottom: 18px;
+        }
+
+        .section-label {
+            color: var(--blue);
+            font-size: 0.72rem;
+            font-weight: 850;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .recommendation-title {
+            margin: 4px 0 12px;
+            font-size: clamp(1.4rem, 3vw, 2rem);
+            line-height: 1.18;
+        }
+
+        .recommendation-text {
+            color: #c7d3e2;
+        }
+
+        .recommendation-score {
+            min-width: 120px;
+            padding: 16px;
+            text-align: center;
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+
+        .score-number {
+            display: block;
+            color: var(--cyan);
+            font-size: 1.75rem;
+            font-weight: 850;
+        }
+
+        .score-label {
+            color: var(--muted);
+            font-size: 0.74rem;
+            text-transform: uppercase;
+        }
+
+        .detail-list {
+            display: grid;
+            gap: 12px;
+            margin: 0;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding-bottom: 11px;
+            border-bottom: 1px solid rgba(147, 164, 188, 0.13);
+        }
+
+        .detail-row:last-child {
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+        .detail-label {
+            color: var(--muted);
+        }
+
+        .detail-value {
+            max-width: 60%;
+            text-align: right;
+            font-weight: 700;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            margin-bottom: 14px;
+        }
+
+        .section-title p {
+            margin-bottom: 0;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 12px;
+        }
+
+        .impact-item {
+            padding: 17px;
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+        }
+
+        .impact-key {
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 0.76rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .impact-value {
+            font-size: 1.05rem;
+            font-weight: 750;
+            word-break: break-word;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .option-card {
+            position: relative;
+            padding: 21px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .option-card.recommended {
+            border-color: rgba(45, 212, 167, 0.65);
+            box-shadow: 0 0 0 1px rgba(45, 212, 167, 0.16);
+        }
+
+        .option-rank {
+            display: inline-grid;
+            place-items: center;
+            width: 30px;
+            height: 30px;
+            margin-bottom: 14px;
+            border-radius: 9px;
+            background: var(--surface-light);
+            color: var(--cyan);
+            font-size: 0.8rem;
+            font-weight: 850;
+        }
+
+        .option-title {
+            min-height: 48px;
+            margin-bottom: 13px;
+            font-size: 1.03rem;
+        }
+
+        .option-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .option-meta div {
+            padding: 10px;
+            background: var(--surface-light);
+            border-radius: 9px;
+        }
+
+        .option-meta span {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--muted);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+        }
+
+        .option-meta strong {
+            font-size: 0.86rem;
+        }
+
+        .option-description {
+            margin-bottom: 0;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--surface);
+        }
+
+        th,
+        td {
+            padding: 13px 15px;
+            border-bottom: 1px solid rgba(147, 164, 188, 0.14);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.025);
+            font-size: 0.72rem;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+        }
+
+        td {
+            font-size: 0.87rem;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .notice {
+            padding: 17px 19px;
+            margin-top: 18px;
+            border-left: 4px solid var(--yellow);
+            border-radius: 10px;
+            background: rgba(249, 185, 73, 0.08);
+            color: #e7d3aa;
+        }
+
+        details {
+            margin-top: 16px;
+            padding: 16px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+        }
+
+        summary {
+            cursor: pointer;
+            color: #dce7f5;
+            font-weight: 750;
+        }
+
+        footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 20px 4px 8px;
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        code {
+            color: #a6ddff;
+        }
+
+        @media (max-width: 960px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .page {
+                padding: 14px;
+            }
+
+            .topbar,
+            .hero {
+                padding: 22px;
+            }
+
+            .topbar,
+            footer {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .report-meta {
+                text-align: left;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-header {
+                flex-direction: column;
+            }
+
+            .detail-value {
+                max-width: 55%;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                color: #182235;
+            }
+
+            .page {
+                max-width: none;
+                padding: 0;
+            }
+
+            .topbar,
+            .hero,
+            .card,
+            .kpi,
+            .option-card,
+            details {
+                box-shadow: none;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="page">
+
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-mark">V°</div>
+            <div>
+                <div class="brand-name">virtauto Decision Center</div>
+                <div class="brand-subtitle">Decision Intelligence for Industrial Operations</div>
+            </div>
+        </div>
+
+        <div class="report-meta">
+            <div>REP-ce8ab93bda58834e</div>
+            <div>PLANT_01 · BIW · DOOR_LINE_01</div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="eyebrow">Executive Decision Report</div>
+        <h1>Nicht produktionskritischer Nebenverbraucher zeitlich verschieben</h1>
+
+        <p class="hero-description">
+            A known non-critical flexible load can reduce the peak without directly changing the production process.
+        </p>
+
+        <div class="status-row">
+            
+            <span class="
+                badge
+                
+                    badge-success
+                
+            ">
+                Governance: ALLOW_ADVISORY_WITH_CONDITIONS
+            </span>
+
+            <span class="badge">
+                Modus: PROPOSE_ONLY
+            </span>
+
+            <span class="
+                badge
+                
+                    badge-danger
+                
+            ">
+                Peak Severity: HIGH
+            </span>
+
+            <span class="badge">
+                Confidence: MEDIUM
+            </span>
+        </div>
+    </section>
+
+    <section class="kpi-grid">
+        <article class="kpi">
+            <div class="kpi-label">Maximale Leistung</div>
+            <div class="kpi-value accent-blue">
+                243.2 kW
+            </div>
+            <div class="kpi-detail">
+                Grenzwert: 180.0 kW
+            </div>
+        </article>
+
+        <article class="kpi">
+            <div class="kpi-label">Überschreitung</div>
+            <div class="kpi-value accent-yellow">
+                63.2 kW
+            </div>
+            <div class="kpi-detail">
+                5 erkannte Peak-Events
+            </div>
+        </article>
+
+        <article class="kpi">
+            <div class="kpi-label">Energie oberhalb Grenze</div>
+            <div class="kpi-value accent-green">
+                
+                    1.94 kWh
+                
+            </div>
+            <div class="kpi-detail">
+                Analysefenster: 3 Minuten Peak
+            </div>
+        </article>
+
+        <article class="kpi">
+            <div class="kpi-label">Geschätzte Mehrkosten</div>
+            <div class="kpi-value">
+                
+                    0.66 €
+                
+            </div>
+            <div class="kpi-detail">
+                
+                    Annahme: 0.34 €/kWh
+                
+            </div>
+        </article>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="card">
+            <div class="card-header">
+                <div>
+                    <div class="section-label">Empfohlene Maßnahme</div>
+                    <h2 class="recommendation-title">
+                        Nicht produktionskritischer Nebenverbraucher zeitlich verschieben
+                    </h2>
+                    <p class="recommendation-text">
+                        A known non-critical flexible load can reduce the peak without directly changing the production process.
+                    </p>
+                </div>
+
+                <div class="recommendation-score">
+                    <span class="score-number">
+                        
+                            85.0
+                        
+                    </span>
+                    <span class="score-label">Decision Score</span>
+                </div>
+            </div>
+
+            <div class="status-row">
+                <span class="badge badge-success">
+                    FEASIBLE
+                </span>
+                <span class="badge">
+                    DEFER_FLEXIBLE_LOAD
+                </span>
+                <span class="badge">
+                    Confidence MEDIUM
+                </span>
+            </div>
+        </article>
+
+        <aside class="card">
+            <div class="section-label">Situationsbild</div>
+            <h2>Operational Context</h2>
+
+            <div class="detail-list">
+                <div class="detail-row">
+                    <span class="detail-label">Trigger</span>
+                    <span class="detail-value">PEAK_ACTIVE</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Peak Start</span>
+                    <span class="detail-value">
+                        2026-06-19T10:16:00
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Peak Ende</span>
+                    <span class="detail-value">
+                        2026-06-19T10:18:00
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Ø Leistung</span>
+                    <span class="detail-value">
+                        
+                            102.2 kW
+                        
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Datenqualität</span>
+                    <span class="detail-value">
+                        READY
+                    </span>
+                </div>
+            </div>
+        </aside>
+    </section>
+
+    <section class="section">
+        <div class="section-title">
+            <div>
+                <div class="section-label">Wirkung</div>
+                <h2>Expected Impact</h2>
+            </div>
+            <p>Geschätzte Wirkung der empfohlenen Maßnahme</p>
+        </div>
+
+        <div class="card">
+            <div class="impact-grid">
+                
+                <div class="impact-item">
+                    <div class="impact-key">
+                        target asset
+                    </div>
+                    <div class="impact-value">
+                        AUX_03
+                    </div>
+                </div>
+                
+                <div class="impact-item">
+                    <div class="impact-key">
+                        peak reduction kw
+                    </div>
+                    <div class="impact-value">
+                        35.0
+                    </div>
+                </div>
+                
+                <div class="impact-item">
+                    <div class="impact-key">
+                        remaining excess kw
+                    </div>
+                    <div class="impact-value">
+                        28.16
+                    </div>
+                </div>
+                
+                <div class="impact-item">
+                    <div class="impact-key">
+                        duration minutes
+                    </div>
+                    <div class="impact-value">
+                        15
+                    </div>
+                </div>
+                
+                <div class="impact-item">
+                    <div class="impact-key">
+                        expected delay minutes
+                    </div>
+                    <div class="impact-value">
+                        0
+                    </div>
+                </div>
+                
+                <div class="impact-item">
+                    <div class="impact-key">
+                        expected oee change
+                    </div>
+                    <div class="impact-value">
+                        0.0
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-title">
+            <div>
+                <div class="section-label">Entscheidungsraum</div>
+                <h2>Bewertete Optionen</h2>
+            </div>
+            <p>Vergleich von Empfehlung, Alternativen und Baseline</p>
+        </div>
+
+        <div class="options-grid">
+            
+            <article class="
+                option-card
+                
+                    recommended
+                
+            ">
+                <div class="option-rank">1</div>
+
+                <h3 class="option-title">Nicht produktionskritischer Nebenverbraucher zeitlich verschieben</h3>
+
+                <div class="option-meta">
+                    <div>
+                        <span>Score</span>
+                        <strong>
+                            
+                                85.0
+                            
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Status</span>
+                        <strong>FEASIBLE</strong>
+                    </div>
+
+                    <div>
+                        <span>Confidence</span>
+                        <strong>MEDIUM</strong>
+                    </div>
+                </div>
+
+                <p class="option-description">
+                    A known non-critical flexible load can reduce the peak without directly changing the production process.
+                </p>
+
+                
+                <div class="status-row" style="margin-top: 16px;">
+                    <span class="badge badge-success">Empfohlen</span>
+                </div>
+                
+            </article>
+            
+            <article class="
+                option-card
+                
+            ">
+                <div class="option-rank">2</div>
+
+                <h3 class="option-title">Betrieb unverändert fortführen</h3>
+
+                <div class="option-meta">
+                    <div>
+                        <span>Score</span>
+                        <strong>
+                            
+                                55.0
+                            
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Status</span>
+                        <strong>FEASIBLE</strong>
+                    </div>
+
+                    <div>
+                        <span>Confidence</span>
+                        <strong>HIGH</strong>
+                    </div>
+                </div>
+
+                <p class="option-description">
+                    Baseline for comparison; no operational intervention is made.
+                </p>
+
+                
+            </article>
+            
+        </div>
+    </section>
+
+    <section class="dashboard-grid">
+        <article class="card">
+            <div class="section-label">Governance</div>
+            <h2>Entscheidungsfreigabe</h2>
+
+            <div class="detail-list">
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value">ALLOW_ADVISORY_WITH_CONDITIONS</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Decision Owner</span>
+                    <span class="detail-value">
+                        Production Manager
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Review</span>
+                    <span class="detail-value">
+                        Energy Manager
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Veto Roles</span>
+                    <span class="detail-value">
+                        Quality Manager
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Gültig bis</span>
+                    <span class="detail-value">
+                        2026-07-29T17:56:19.313161+00:00
+                    </span>
+                </div>
+            </div>
+
+            
+            <div class="notice">
+                <strong>Bedingungen:</strong>
+                <ul>
+                    
+                    <li>Production Manager confirms that AUX_03 is operationally deferrable.</li>
+                    
+                </ul>
+            </div>
+            
+        </article>
+
+        <article class="card">
+            <div class="section-label">Confidence</div>
+            <h2>Daten- und Entscheidungsqualität</h2>
+
+            <div class="detail-list">
+                <div class="detail-row">
+                    <span class="detail-label">Decision Readiness</span>
+                    <span class="detail-value">
+                        READY
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Context Confidence</span>
+                    <span class="detail-value">
+                        HIGH
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Recommendation Confidence</span>
+                    <span class="detail-value">
+                        MEDIUM
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Datensätze</span>
+                    <span class="detail-value">43200</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Fehlende Pflichtwerte</span>
+                    <span class="detail-value">
+                        0
+                    </span>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="section">
+        <div class="section-title">
+            <div>
+                <div class="section-label">Industrial Context</div>
+                <h2>Produktionsumfeld</h2>
+            </div>
+        </div>
+
+        <div class="card">
+            <p>43,200 one-minute records were analysed. 5 peak event(s) above 180.0 kW were detected. The maximum measured power was 243.2 kW.</p>
+
+            <details>
+                <summary>Produktionsdaten anzeigen</summary>
+                <div class="table-wrap" style="margin-top: 15px;">
+                    <table>
+                        <tbody>
+                        
+                        <tr>
+                            <th>state_counts</th>
+                            <td>{&#39;CHANGEOVER&#39;: 660, &#39;RUN&#39;: 27060, &#39;IDLE&#39;: 3960, &#39;OFF&#39;: 10560, &#39;STANDBY&#39;: 960}</td>
+                        </tr>
+                        
+                        <tr>
+                            <th>parts_produced</th>
+                            <td>27060</td>
+                        </tr>
+                        
+                        <tr>
+                            <th>takt_deviation_pct</th>
+                            <td>0.16</td>
+                        </tr>
+                        
+                        <tr>
+                            <th>status</th>
+                            <td>STABLE</td>
+                        </tr>
+                        
+                        <tr>
+                            <th>anomaly_counts</th>
+                            <td>{&#39;peak_spike&#39;: 24, &#39;idle_loss&#39;: 60, &#39;air_leak&#39;: 5427, &#39;standby_violation&#39;: 108, &#39;takt_drift&#39;: 410}</td>
+                        </tr>
+                        
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+
+            <details>
+                <summary>Qualität, Materialfluss und Auftrag anzeigen</summary>
+                <div class="impact-grid" style="margin-top: 15px;">
+                    <div class="impact-item">
+                        <div class="impact-key">Quality</div>
+                        <div class="impact-value">
+                            {&#39;status&#39;: &#39;STABLE&#39;, &#39;quality_gate_open&#39;: True}
+                        </div>
+                    </div>
+
+                    <div class="impact-item">
+                        <div class="impact-key">Material Flow</div>
+                        <div class="impact-value">
+                            {&#39;buffer_id&#39;: &#39;BUFFER_01&#39;, &#39;buffer_level_units&#39;: 60, &#39;buffer_capacity_units&#39;: 100, &#39;buffer_autonomy_minutes&#39;: 18}
+                        </div>
+                    </div>
+
+                    <div class="impact-item">
+                        <div class="impact-key">Order</div>
+                        <div class="impact-value">
+                            {&#39;order_id&#39;: &#39;ORDER_DEMO_001&#39;, &#39;priority&#39;: &#39;HIGH&#39;, &#39;reschedulable&#39;: True, &#39;delay_tolerance_minutes&#39;: 10}
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    
+    <section class="section">
+        <div class="section-title">
+            <div>
+                <div class="section-label">Transparenz</div>
+                <h2>Annahmen und Unsicherheiten</h2>
+            </div>
+        </div>
+
+        <div class="card">
+            <ul>
+                
+                <li>Energy price is supplied by configuration, not by the CSV.</li>
+                
+                <li>Quality, buffer and order state are supplied by demo configuration.</li>
+                
+                <li>Expected load reductions are engineering assumptions for the demo.</li>
+                
+            </ul>
+        </div>
+    </section>
+    
+
+    <details>
+        <summary>Audit Trail und technische Metadaten</summary>
+
+        <div class="table-wrap" style="margin-top: 15px;">
+            <table>
+                <tbody>
+                
+                <tr>
+                    <th>context_builder_version</th>
+                    <td><code>0.1.0</code></td>
+                </tr>
+                
+                <tr>
+                    <th>decision_engine_version</th>
+                    <td><code>0.1.0</code></td>
+                </tr>
+                
+                <tr>
+                    <th>governance_gate_version</th>
+                    <td><code>0.1.0</code></td>
+                </tr>
+                
+                <tr>
+                    <th>report_builder_version</th>
+                    <td><code>0.1.0</code></td>
+                </tr>
+                
+                <tr>
+                    <th>options_generated</th>
+                    <td><code>2</code></td>
+                </tr>
+                
+                <tr>
+                    <th>rules_evaluated</th>
+                    <td><code>4</code></td>
+                </tr>
+                
+                <tr>
+                    <th>decision_type</th>
+                    <td><code>BIW_ENERGY_PEAK_MITIGATION</code></td>
+                </tr>
+                
+                <tr>
+                    <th>execution_mode</th>
+                    <td><code>PROPOSE_ONLY</code></td>
+                </tr>
+                
+                <tr>
+                    <th>baseline_option_id</th>
+                    <td><code>OPT-000</code></td>
+                </tr>
+                
+                </tbody>
+            </table>
+        </div>
+    </details>
+
+    <footer>
+        <span>© 2026 virtauto® · Decision Intelligence for Industrial Operations</span>
+        <span>Report Builder 0.1.0</span>
+    </footer>
+
+</div>
+</body>
+</html>
