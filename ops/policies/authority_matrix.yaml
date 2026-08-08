@@ -1,0 +1,21 @@
+# ops/policies/authority_matrix.yaml
+# Wer darf final entscheiden? (final_authority)
+# Wer MUSS vorher beteiligt werden? (required_chain)
+decision_classes:
+  safety:
+    final_authority: human
+    required_chain: [guardian, george]
+  operational:
+    final_authority: human
+    required_chain: [george, guardian]
+  strategic:
+    final_authority: human
+    required_chain: [guardian, george]
+  deploy:
+    final_authority: human
+    required_chain: [george, guardian]
+
+enforcement:
+  mode: block   # block | warn
+  require_trace: true
+  require_human_approval_for_final: true
