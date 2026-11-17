@@ -443,3 +443,13 @@
         flex-direction: column;
       }
     }
+
+/* ENERGY-001: isolated presentation styles */
+#standbyCenter[hidden], #decisionCenter[hidden] { display: none !important; }
+.standby-select { background: var(--surface-light); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 10px; max-width: 100%; font: inherit; }
+.standby-warning { color: var(--yellow); font-weight: 600; }
+.standby-table { width: 100%; border-collapse: collapse; text-align: left; }
+.standby-table th, .standby-table td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.standby-scroll { overflow-x: auto; }
+#standbyResult .panel { margin-top: 16px; }
+#standbyResult pre { overflow: auto; max-height: 420px; }
