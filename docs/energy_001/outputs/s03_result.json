@@ -1,0 +1,96 @@
+{
+  "decision_id": "ENERGY-001-S03",
+  "decision_type": "ENERGY_AWARE_STANDBY",
+  "timestamp": "2026-11-10T20:30:00+01:00",
+  "context": {
+    "scenario_id": "S03",
+    "equipment_id": "AUX-01",
+    "synthetic": true,
+    "advisory_only": true,
+    "analysis_horizon_min": 30.0,
+    "analysis_horizon_semantics": "CONDITIONAL_EX_POST_ONLY"
+  },
+  "governance": {
+    "conditional_preferred_state": "READY",
+    "realtime_recommended_state": "READY",
+    "baseline_status": "ALLOW",
+    "realtime_change_gate": "HOLD",
+    "human_authorization_required": true,
+    "execution_permitted": false,
+    "reason": "Synthetic assumptions and hindsight horizon cannot authorize an operational switch"
+  },
+  "evidence": [
+    {
+      "field": "guaranteed_restart_notice_min",
+      "status": "UNKNOWN"
+    },
+    {
+      "field": "thermal_permission",
+      "status": {
+        "READY": "ASSUMED",
+        "ECO": "UNKNOWN",
+        "DEEP_ECO": "UNKNOWN"
+      }
+    }
+  ],
+  "alternatives": [
+    {
+      "state": "READY",
+      "scenario_feasibility": "ALLOW",
+      "scenario_feasibility_scope": "CONDITIONAL_SYNTHETIC_ONLY",
+      "realtime_status": "ALLOW",
+      "energy_kwh": 6.0,
+      "energy_cost_eur": 1.2,
+      "energy_cost_semantics": "CONDITIONAL_ENERGY_ONLY_NOT_NET_BENEFIT",
+      "restart_duration_min": 0.0,
+      "reasons": []
+    },
+    {
+      "state": "ECO",
+      "scenario_feasibility": "HOLD",
+      "scenario_feasibility_scope": "CONDITIONAL_SYNTHETIC_ONLY",
+      "realtime_status": "HOLD",
+      "energy_kwh": 3.15,
+      "energy_cost_eur": 0.63,
+      "energy_cost_semantics": "CONDITIONAL_ENERGY_ONLY_NOT_NET_BENEFIT",
+      "restart_duration_min": 2.0,
+      "reasons": [
+        "ECO thermal permission is UNKNOWN",
+        "Guaranteed restart notice is UNKNOWN"
+      ]
+    },
+    {
+      "state": "DEEP_ECO",
+      "scenario_feasibility": "HOLD",
+      "scenario_feasibility_scope": "CONDITIONAL_SYNTHETIC_ONLY",
+      "realtime_status": "HOLD",
+      "energy_kwh": 1.8,
+      "energy_cost_eur": 0.36,
+      "energy_cost_semantics": "CONDITIONAL_ENERGY_ONLY_NOT_NET_BENEFIT",
+      "restart_duration_min": 8.0,
+      "reasons": [
+        "DEEP_ECO thermal permission is UNKNOWN",
+        "Guaranteed restart notice is UNKNOWN"
+      ]
+    }
+  ],
+  "selected_action": "HOLD",
+  "expected_outcome": {
+    "conditional_energy_saving_kwh": 0.0,
+    "conditional_avoided_energy_cost_eur": 0.0,
+    "cost_semantics": "CONDITIONAL_AVOIDED_ENERGY_COST_ONLY",
+    "production_impact_cost_eur": null,
+    "net_benefit_eur": null,
+    "realised_savings_claim": false
+  },
+  "actual_outcome": {},
+  "relationships": [],
+  "trace_id": null,
+  "snapshot_id": null,
+  "contract": {
+    "id": "ENERGY-001",
+    "version": "v0.2-p0",
+    "execution_mode": "PROPOSE_ONLY"
+  },
+  "schema_version": "decision_object_v0.1"
+}

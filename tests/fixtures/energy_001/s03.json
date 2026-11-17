@@ -1,0 +1,79 @@
+{
+  "model_version": "energy-001-v0.2",
+  "decision_timestamp": "2026-11-10T20:30:00+01:00",
+  "equipment_id": "AUX-01",
+  "synthetic": true,
+  "advisory_only": true,
+  "trigger": {
+    "stop_confirmed": {
+      "value": true,
+      "evidence": "ASSUMED"
+    },
+    "welding_active": {
+      "value": false,
+      "evidence": "ASSUMED"
+    },
+    "current_state": "READY"
+  },
+  "decision_context": {
+    "guaranteed_restart_notice_min": {
+      "value": null,
+      "evidence": "UNKNOWN"
+    },
+    "thermal_permission": {
+      "READY": {
+        "value": true,
+        "evidence": "ASSUMED"
+      },
+      "ECO": {
+        "value": null,
+        "evidence": "UNKNOWN"
+      },
+      "DEEP_ECO": {
+        "value": null,
+        "evidence": "UNKNOWN"
+      }
+    },
+    "state_approval": {
+      "READY": {
+        "value": true,
+        "evidence": "ASSUMED"
+      },
+      "ECO": {
+        "value": true,
+        "evidence": "ASSUMED"
+      },
+      "DEEP_ECO": {
+        "value": true,
+        "evidence": "ASSUMED"
+      }
+    },
+    "energy_price_eur_per_kwh": {
+      "value": 0.2,
+      "evidence": "ASSUMED"
+    }
+  },
+  "alternatives": [
+    {
+      "state": "READY",
+      "power_kw": 12,
+      "transition_energy_kwh": 0,
+      "restart_duration_min": 0
+    },
+    {
+      "state": "ECO",
+      "power_kw": 6,
+      "transition_energy_kwh": 0.15,
+      "restart_duration_min": 2
+    },
+    {
+      "state": "DEEP_ECO",
+      "power_kw": 2,
+      "transition_energy_kwh": 0.8,
+      "restart_duration_min": 8
+    }
+  ],
+  "analysis_horizon_semantics": "CONDITIONAL_EX_POST_ONLY",
+  "scenario_id": "S03",
+  "analysis_horizon_min": 30
+}
